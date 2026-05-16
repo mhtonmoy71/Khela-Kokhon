@@ -422,7 +422,7 @@ function FixTab({lang,onTeam,TH,scores,setScores}){
   return(
     <div>
       {/* Progress bar */}
-      <div style={{background:TH.surface,padding:"10px 14px 0",borderBottom:`1px solid ${TH.border}`}}>
+      <div style={{background:TH.surface,padding:"10px 14px 0",borderBottom:`1px solid ${TH.border}`,position:"sticky",top:116,zIndex:30}}>
         <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:6}}>
           <span style={{fontFamily:HS,fontSize:11,color:TH.textM}}>{lang==="bn"?"টুর্নামেন্ট অগ্রগতি":"Tournament Progress"}</span>
           <span style={{fontFamily:HS,fontSize:11,color:TH.green,fontWeight:600}}>{totalDone}/72 {lang==="bn"?"ম্যাচ":"matches"}</span>
@@ -470,218 +470,176 @@ function FixTab({lang,onTeam,TH,scores,setScores}){
 
 /* ── Table Tab ──────────────────────────────────────────────────────────────── */
 function TblTab({lang,TH,scores}){
-  const[ag,setAg]=useState("A");
-  const rows=calcStandings(GRP[ag],scores);
-  const th={fontFamily:HS,fontSize:11,fontWeight:700,color:TH.textS,padding:"8px 3px",textAlign:"center",letterSpacing:0.5};
-  const td={fontFamily:HS,fontSize:13,padding:"10px 3px",textAlign:"center",color:TH.text};
+  const th={fontFamily:HS,fontSize:11,fontWeight:700,color:TH.textS,padding:"6px 3px",textAlign:"center",letterSpacing:0.3};
+  const td={fontFamily:HS,fontSize:12,padding:"8px 3px",textAlign:"center",color:TH.text};
   return(
-    <div style={{paddingBottom:80}}>
-      <div style={{display:"flex",flexWrap:"wrap",gap:6,padding:"12px 14px",background:TH.surface,borderBottom:`1px solid ${TH.border}`}}>
-        {Object.keys(GRP).map(g=>(
-          <button key={g} onClick={()=>setAg(g)} style={{fontFamily:HS,fontSize:13,fontWeight:ag===g?700:500,padding:"6px 14px",borderRadius:20,cursor:"pointer",border:`1.5px solid ${ag===g?TH.green:TH.border}`,background:ag===g?TH.green:TH.surface2,color:ag===g?"#fff":TH.textS,transition:"all 0.2s"}}>
-            {lang==="bn"?`গ্রুপ ${g}`:`Grp ${g}`}
-          </button>
-        ))}
-      </div>
-      <div style={{background:TH.surface,marginTop:6,overflowX:"auto"}}>
-        <table style={{width:"100%",borderCollapse:"collapse",minWidth:340}}>
-          <thead>
-            <tr style={{borderBottom:`2px solid ${TH.green}`}}>
-              <th style={{...th,textAlign:"left",paddingLeft:12,width:"40%"}}>{lang==="bn"?"দল":"TEAM"}</th>
-              {["MP","W","D","L","GF","GA","GD","PTS"].map(h=><th key={h} style={th}>{h}</th>)}
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map((r,i)=>(
-              <tr key={r.en} style={{
-                background:i<2?TH.greenBg:i===2?"rgba(245,166,35,0.05)":TH.surface,
-                borderBottom:`1px solid ${TH.border}`,
-                transition:"background 0.3s",
-              }}>
-                <td style={{...td,textAlign:"left",paddingLeft:10}}>
-                  <div style={{display:"flex",alignItems:"center",gap:8}}>
-                    <span style={{fontFamily:HS,fontSize:11,color:i<2?TH.green:TH.textM,fontWeight:700,width:14}}>{i+1}</span>
-                    <Flag en={r.en} size={26}/>
-                    <span style={{fontFamily:HS,fontSize:13,fontWeight:i<2?600:400,color:TH.text}}>{tn(r.en,lang)}</span>
-                  </div>
-                </td>
-                {[r.mp,r.w,r.d,r.l,r.gf,r.ga,r.gd,r.pts].map((v,vi)=>(
-                  <td key={vi} style={{...td,fontWeight:vi===7?800:400,color:vi===7?TH.green:TH.text,fontSize:vi===7?14:13}}>{v}</td>
-                ))}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-        <div style={{fontFamily:HS,fontSize:11,color:TH.textM,padding:"10px 14px",display:"flex",gap:16}}>
-          <span><span style={{color:TH.green}}>■</span> {lang==="bn"?"কোয়ালিফাই":"Qualify"}</span>
-          <span><span style={{color:TH.gold}}>■</span> {lang==="bn"?"সম্ভাব্য সেরা ৩য়":"Potential best 3rd"}</span>
-        </div>
-      </div>
+    <div style={{paddingBottom:90}}>
+      {Object.entries(GRP).map(([g,teams])=>{
+        const rows=calcStandings(teams,scores);
+        return(
+          <div key={g} style={{background:TH.surface,marginBottom:8}}>
+            {/* Group header */}
+            <div style={{padding:"10px 14px 6px"}}>
+              <span style={{fontFamily:HS,fontWeight:700,fontSize:14,color:TH.text}}>
+                {lang==="bn"?`গ্রুপ ${g}`:`Grp. ${g}`}
+              </span>
+            </div>
+            <table style={{width:"100%",borderCollapse:"collapse"}}>
+              <thead>
+                <tr style={{borderBottom:`1px solid ${TH.border}`}}>
+                  <th style={{...th,textAlign:"left",paddingLeft:14,width:"38%"}}>
+                    {lang==="bn"?"দল":"Team"}
+                  </th>
+                  {["Pl","W","D","L","+/-","GD","Pts"].map(h=><th key={h} style={th}>{h}</th>)}
+                </tr>
+              </thead>
+              <tbody>
+                {rows.map((r,i)=>{
+                  const borderColor=i===0?"#00875a":i===1?"#00875a":i===2?"#f5a623":"transparent";
+                  return(
+                    <tr key={r.en} style={{borderBottom:i<3?`1px solid ${TH.border}`:"none"}}>
+                      <td style={{...td,textAlign:"left",paddingLeft:0}}>
+                        <div style={{display:"flex",alignItems:"center",gap:8}}>
+                          <div style={{width:3,height:36,background:borderColor,borderRadius:2,flexShrink:0}}/>
+                          <span style={{fontFamily:HS,fontSize:11,color:TH.textM,width:14,textAlign:"center"}}>{i+1}</span>
+                          <Flag en={r.en} size={24}/>
+                          <span style={{fontFamily:HS,fontSize:12,fontWeight:i<2?600:400,color:TH.text,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",maxWidth:80}}>{tn(r.en,lang)}</span>
+                        </div>
+                      </td>
+                      {[r.mp,r.w,r.d,r.l,`${r.gf}-${r.ga}`,r.gd,r.pts].map((v,vi)=>(
+                        <td key={vi} style={{...td,fontWeight:vi===6?800:400,color:vi===6?TH.green:TH.text,fontSize:vi===6?13:12}}>{v}</td>
+                      ))}
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        );
+      })}
     </div>
   );
 }
 
-/* ── Knockout Tab (auto-fill from scores) ───────────────────────────────────── */
 function KOTab({lang,TH,scores}){
-  const [activeRound, setActiveRound] = useState("R32");
+  const[activeRound,setActiveRound]=useState("R32");
 
-  // Slot labels
-  const slot = (s, lang) => {
-    if (!s) return lang==="bn"?"TBD":"TBD";
-    const map = {
-      "1A": lang==="bn"?"গ্রুপ A চ্যাম্পিয়ন":"Winner Group A",
-      "1B": lang==="bn"?"গ্রুপ B চ্যাম্পিয়ন":"Winner Group B",
-      "1C": lang==="bn"?"গ্রুপ C চ্যাম্পিয়ন":"Winner Group C",
-      "1D": lang==="bn"?"গ্রুপ D চ্যাম্পিয়ন":"Winner Group D",
-      "1E": lang==="bn"?"গ্রুপ E চ্যাম্পিয়ন":"Winner Group E",
-      "1F": lang==="bn"?"গ্রুপ F চ্যাম্পিয়ন":"Winner Group F",
-      "1G": lang==="bn"?"গ্রুপ G চ্যাম্পিয়ন":"Winner Group G",
-      "1H": lang==="bn"?"গ্রুপ H চ্যাম্পিয়ন":"Winner Group H",
-      "1I": lang==="bn"?"গ্রুপ I চ্যাম্পিয়ন":"Winner Group I",
-      "1J": lang==="bn"?"গ্রুপ J চ্যাম্পিয়ন":"Winner Group J",
-      "1K": lang==="bn"?"গ্রুপ K চ্যাম্পিয়ন":"Winner Group K",
-      "1L": lang==="bn"?"গ্রুপ L চ্যাম্পিয়ন":"Winner Group L",
-      "2A": lang==="bn"?"গ্রুপ A রানার্সআপ":"Runner-up A",
-      "2B": lang==="bn"?"গ্রুপ B রানার্সআপ":"Runner-up B",
-      "2C": lang==="bn"?"গ্রুপ C রানার্সআপ":"Runner-up C",
-      "2D": lang==="bn"?"গ্রুপ D রানার্সআপ":"Runner-up D",
-      "2E": lang==="bn"?"গ্রুপ E রানার্সআপ":"Runner-up E",
-      "2F": lang==="bn"?"গ্রুপ F রানার্সআপ":"Runner-up F",
-      "2G": lang==="bn"?"গ্রুপ G রানার্সআপ":"Runner-up G",
-      "2H": lang==="bn"?"গ্রুপ H রানার্সআপ":"Runner-up H",
-      "2I": lang==="bn"?"গ্রুপ I রানার্সআপ":"Runner-up I",
-      "2J": lang==="bn"?"গ্রুপ J রানার্সআপ":"Runner-up J",
-      "2K": lang==="bn"?"গ্রুপ K রানার্সআপ":"Runner-up K",
-      "2L": lang==="bn"?"গ্রুপ L রানার্সআপ":"Runner-up L",
-      "3ABCDF": lang==="bn"?"সেরা ৩য় (A/B/C/D/F)":"Best 3rd A/B/C/D/F",
-      "3CDFGH": lang==="bn"?"সেরা ৩য় (C/D/F/G/H)":"Best 3rd C/D/F/G/H",
-      "3CEFHI": lang==="bn"?"সেরা ৩য় (C/E/F/H/I)":"Best 3rd C/E/F/H/I",
-      "3EHIJK": lang==="bn"?"সেরা ৩য় (E/H/I/J/K)":"Best 3rd E/H/I/J/K",
-      "3BEFIJ": lang==="bn"?"সেরা ৩য় (B/E/F/I/J)":"Best 3rd B/E/F/I/J",
-      "3AEHIJ": lang==="bn"?"সেরা ৩য় (A/E/H/I/J)":"Best 3rd A/E/H/I/J",
-      "3BEFGJ": lang==="bn"?"সেরা ৩য় (B/E/F/G/J)":"Best 3rd B/E/F/G/J",
-      "3DEJIL": lang==="bn"?"সেরা ৩য় (D/E/I/J/L)":"Best 3rd D/E/I/J/L",
-    };
-    return map[s] || s;
-  };
-
-  // Computed qualified teams
-  const qualified = useMemo(()=>{
+  const qualified=useMemo(()=>{
     const q={};
     Object.entries(GRP).forEach(([g,teams])=>{
       const rows=calcStandings(teams,scores);
-      const allDone=RAW_MATCHES.filter(m=>teams.includes(m.h)&&!m.r)
+      const allDone=RAW_MATCHES.filter(m=>teams.includes(m.h))
         .every(m=>{const sc=scores[m.id];return sc&&sc.hg!==""&&sc.ag!=="";});
       if(allDone){q["1"+g]=rows[0]?.en||null;q["2"+g]=rows[1]?.en||null;}
     });
     return q;
   },[scores]);
 
-  const getTeam = (slotKey) => {
-    if (!slotKey) return null;
-    return qualified[slotKey] || null;
-  };
+  const getTeam=k=>qualified[k]||null;
 
-  // Round of 32 matchups (Wikipedia verified)
-  const r32 = [
-    {id:73,  h:"2A", a:"2B",      d:"2026-06-29", t:"1:00 AM",  venue:"Los Angeles"},
-    {id:74,  h:"1E", a:"3ABCDF",  d:"2026-06-29", t:"11:00 PM", venue:"Houston"},
-    {id:75,  h:"1E", a:"2C",      d:"2026-06-30", t:"2:30 AM",  venue:"Boston"},
-    {id:76,  h:"1F", a:"2C",      d:"2026-06-30", t:"7:00 AM",  venue:"Monterrey"},
-    {id:77,  h:"1I", a:"3CDFGH",  d:"2026-06-30", t:"11:00 PM", venue:"Dallas"},
-    {id:78,  h:"2E", a:"2I",      d:"2026-07-01", t:"3:00 AM",  venue:"New York–NJ"},
-    {id:79,  h:"1A", a:"3CEFHI",  d:"2026-07-01", t:"7:00 AM",  venue:"Mexico City"},
-    {id:80,  h:"1L", a:"3EHIJK",  d:"2026-07-01", t:"10:00 PM", venue:"Atlanta"},
-    {id:81,  h:"1D", a:"3BEFIJ",  d:"2026-07-02", t:"2:00 AM",  venue:"Seattle"},
-    {id:82,  h:"1G", a:"3AEHIJ",  d:"2026-07-02", t:"6:00 AM",  venue:"San Francisco"},
-    {id:83,  h:"2K", a:"2L",      d:"2026-07-03", t:"1:00 AM",  venue:"Los Angeles"},
-    {id:84,  h:"1H", a:"2J",      d:"2026-07-03", t:"5:00 AM",  venue:"Toronto"},
-    {id:85,  h:"1B", a:"3BEFGJ",  d:"2026-07-03", t:"9:00 AM",  venue:"Vancouver"},
-    {id:86,  h:"1J", a:"2H",      d:"2026-07-04", t:"12:00 AM", venue:"Dallas"},
-    {id:87,  h:"1K", a:"3DEJIL",  d:"2026-07-04", t:"4:00 AM",  venue:"Miami"},
-    {id:88,  h:"2D", a:"2G",      d:"2026-07-04", t:"8:00 AM",  venue:"Kansas City"},
+  // Wikipedia verified R32 matchups with BST times
+  const R32=[
+    {id:73, h:"2A",   a:"2B",      d:"2026-06-29",t:"1:00 AM", venue:"Los Angeles Stadium"},
+    {id:74, h:"1E",   a:"3ABCDF",  d:"2026-06-29",t:"11:00 PM",venue:"Houston Stadium"},
+    {id:75, h:"1F",   a:"2C",      d:"2026-06-30",t:"2:30 AM", venue:"Boston Stadium"},
+    {id:76, h:"1C",   a:"2F",      d:"2026-06-30",t:"7:00 AM", venue:"Monterrey Stadium"},
+    {id:77, h:"1I",   a:"3CDFGH",  d:"2026-06-30",t:"11:00 PM",venue:"Dallas Stadium"},
+    {id:78, h:"2E",   a:"2I",      d:"2026-07-01",t:"3:00 AM", venue:"New York NJ Stadium"},
+    {id:79, h:"1A",   a:"3CEFHI",  d:"2026-07-01",t:"7:00 AM", venue:"Mexico City Stadium"},
+    {id:80, h:"1L",   a:"3EHIJK",  d:"2026-07-01",t:"10:00 PM",venue:"Atlanta Stadium"},
+    {id:81, h:"1D",   a:"3BEFIJ",  d:"2026-07-02",t:"2:00 AM", venue:"Seattle Stadium"},
+    {id:82, h:"1G",   a:"3AEHIJ",  d:"2026-07-02",t:"6:00 AM", venue:"San Francisco Stadium"},
+    {id:83, h:"2K",   a:"2L",      d:"2026-07-03",t:"1:00 AM", venue:"Los Angeles Stadium"},
+    {id:84, h:"1H",   a:"2J",      d:"2026-07-03",t:"5:00 AM", venue:"Toronto Stadium"},
+    {id:85, h:"1B",   a:"3EFGIJ",  d:"2026-07-03",t:"9:00 AM", venue:"Vancouver Stadium"},
+    {id:86, h:"1J",   a:"2H",      d:"2026-07-04",t:"12:00 AM",venue:"Dallas Stadium"},
+    {id:87, h:"1K",   a:"3DEIJL",  d:"2026-07-04",t:"4:00 AM", venue:"Miami Stadium"},
+    {id:88, h:"2D",   a:"2G",      d:"2026-07-04",t:"8:00 AM", venue:"Kansas City Stadium"},
   ];
 
-  const laterRounds = [
-    {key:"R16", label:lang==="bn"?"রাউন্ড অব ১৬":"Round of 16",
-     matches:[
-       {id:89,d:"2026-07-05",t:"1:00 AM",venue:"TBD"},
-       {id:90,d:"2026-07-05",t:"11:00 PM",venue:"TBD"},
-       {id:91,d:"2026-07-06",t:"3:00 AM",venue:"TBD"},
-       {id:92,d:"2026-07-06",t:"7:00 AM",venue:"TBD"},
-       {id:93,d:"2026-07-07",t:"1:00 AM",venue:"TBD"},
-       {id:94,d:"2026-07-07",t:"11:00 PM",venue:"TBD"},
-       {id:95,d:"2026-07-08",t:"3:00 AM",venue:"TBD"},
-       {id:96,d:"2026-07-08",t:"7:00 AM",venue:"TBD"},
-     ]},
-    {key:"QF", label:lang==="bn"?"কোয়ার্টার ফাইনাল":"Quarter-Finals",
-     matches:[
-       {id:97,d:"2026-07-10",t:"1:00 AM",venue:"TBD"},
-       {id:98,d:"2026-07-10",t:"11:00 PM",venue:"TBD"},
-       {id:99,d:"2026-07-11",t:"3:00 AM",venue:"TBD"},
-       {id:100,d:"2026-07-11",t:"7:00 AM",venue:"TBD"},
-     ]},
-    {key:"SF", label:lang==="bn"?"সেমি ফাইনাল":"Semi-Finals",
-     matches:[
-       {id:101,d:"2026-07-15",t:"1:00 AM",venue:"Atlanta"},
-       {id:102,d:"2026-07-16",t:"1:00 AM",venue:"Dallas"},
-     ]},
-    {key:"3P", label:lang==="bn"?"তৃতীয় স্থান":"Third Place",
-     matches:[{id:103,d:"2026-07-19",t:"10:00 PM",venue:"Miami"}]},
-    {key:"F",  label:lang==="bn"?"🏆 ফাইনাল":"🏆 Final",
-     matches:[{id:104,d:"2026-07-20",t:"1:00 AM",venue:"New York–NJ"}]},
+  const R16=[
+    {id:89, d:"2026-07-05",t:"1:00 AM", venue:"TBD"},
+    {id:90, d:"2026-07-05",t:"11:00 PM",venue:"TBD"},
+    {id:91, d:"2026-07-06",t:"3:00 AM", venue:"TBD"},
+    {id:92, d:"2026-07-06",t:"7:00 AM", venue:"TBD"},
+    {id:93, d:"2026-07-07",t:"1:00 AM", venue:"TBD"},
+    {id:94, d:"2026-07-07",t:"11:00 PM",venue:"TBD"},
+    {id:95, d:"2026-07-08",t:"3:00 AM", venue:"TBD"},
+    {id:96, d:"2026-07-08",t:"7:00 AM", venue:"TBD"},
+  ];
+  const QF=[
+    {id:97, d:"2026-07-10",t:"1:00 AM", venue:"TBD"},
+    {id:98, d:"2026-07-10",t:"11:00 PM",venue:"TBD"},
+    {id:99, d:"2026-07-11",t:"3:00 AM", venue:"TBD"},
+    {id:100,d:"2026-07-11",t:"7:00 AM", venue:"TBD"},
+  ];
+  const SF=[
+    {id:101,d:"2026-07-15",t:"1:00 AM", venue:"Atlanta Stadium"},
+    {id:102,d:"2026-07-16",t:"1:00 AM", venue:"Dallas Stadium"},
+  ];
+  const FINAL=[
+    {id:103,d:"2026-07-19",t:"10:00 PM",venue:"Miami Stadium", label:lang==="bn"?"তৃতীয় স্থান":"Third Place"},
+    {id:104,d:"2026-07-20",t:"1:00 AM", venue:"New York NJ Stadium", label:lang==="bn"?"🏆 ফাইনাল":"🏆 Final"},
   ];
 
-  const rounds = [
-    {key:"R32", label:lang==="bn"?"রাউন্ড অব ৩২":"Round of 32"},
-    {key:"R16", label:lang==="bn"?"রাউন্ড অব ১৬":"Round of 16"},
-    {key:"QF",  label:lang==="bn"?"কোয়ার্টার":"Quarter-Final"},
-    {key:"SF",  label:lang==="bn"?"সেমি":"Semi-Final"},
-    {key:"F",   label:lang==="bn"?"ফাইনাল":"Final"},
+  const tabs=[
+    {key:"R32",label:lang==="bn"?"রাউন্ড অব ৩২":"Round of 32"},
+    {key:"R16",label:lang==="bn"?"রাউন্ড অব ১৬":"Round of 16"},
+    {key:"QF", label:lang==="bn"?"কোয়ার্টার-ফাইনাল":"Quarter-final"},
+    {key:"SF", label:lang==="bn"?"সেমি-ফাইনাল":"Semi-final"},
+    {key:"F",  label:lang==="bn"?"ফাইনাল":"Final"},
   ];
 
-  function MatchRow({h, a, d, t, venue, id, isSlot=false}) {
-    const sc = scores[id];
-    const hasScore = sc&&sc.hg!==""&&sc.ag!=="";
-    const hTeam = isSlot ? getTeam(h) : null;
-    const aTeam = isSlot ? getTeam(a) : null;
-    const [tn2, ap] = t.split(" ");
-    return (
-      <div style={{padding:"11px 14px", borderBottom:`1px solid ${TH.border}`, background:TH.surface}}>
-        {/* Venue + time header */}
-        <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:8}}>
-          <span style={{fontFamily:HS, fontSize:11, color:TH.textM}}>📍 {venue}</span>
-          <div style={{display:"flex", alignItems:"center", gap:4}}>
-            {hasScore ? (
-              <span style={{fontFamily:HS, fontSize:13, fontWeight:800, color:TH.green, background:TH.greenBg, padding:"2px 10px", borderRadius:8}}>{sc.hg}–{sc.ag}</span>
-            ) : (
-              <span style={{fontFamily:HS, fontSize:13, fontWeight:700, color:TH.text}}>
-                {tn2} <span style={{fontSize:9, color:TH.textM}}>{ap}</span>
-              </span>
-            )}
-          </div>
-          <div style={{display:"flex", gap:3}}>
-            <button onClick={()=>addToGCal({h:h,a:a,d,t,g:"KO"},lang)} style={{background:TH.surface2,border:`1px solid ${TH.border}`,borderRadius:6,width:24,height:24,cursor:"pointer",fontSize:11,display:"flex",alignItems:"center",justifyContent:"center"}}>📅</button>
-            <button onClick={()=>shareMatch({h:h,a:a,d,t,g:"KO"},lang)} style={{background:TH.surface2,border:`1px solid ${TH.border}`,borderRadius:6,width:24,height:24,cursor:"pointer",fontSize:11,display:"flex",alignItems:"center",justifyContent:"center"}}>🔗</button>
-          </div>
+  // Fotmob-style match card
+  function KOCard({m, hSlot, aSlot}){
+    const hTeam=hSlot?getTeam(hSlot):null;
+    const aTeam=aSlot?getTeam(aSlot):null;
+    const sc=scores[m.id];
+    const hasScore=sc&&sc.hg!==""&&sc.ag!=="";
+    const[tn2,ap]=m.t.split(" ");
+    return(
+      <div style={{background:TH.surface,borderRadius:14,border:`1px solid ${TH.border}`,
+        marginBottom:10,overflow:"hidden",boxShadow:TH.cardGlow}}>
+        {/* Venue */}
+        <div style={{display:"flex",alignItems:"center",gap:6,padding:"8px 14px 6px",borderBottom:`1px solid ${TH.border}`}}>
+          <div style={{width:8,height:8,borderRadius:"50%",background:TH.green,flexShrink:0}}/>
+          <span style={{fontFamily:HS,fontSize:12,fontWeight:600,color:TH.textS}}>{m.label||m.venue}</span>
         </div>
-        {/* Teams */}
-        <div style={{display:"flex", alignItems:"center", gap:8}}>
-          <div style={{flex:1, display:"flex", alignItems:"center", justifyContent:"flex-end", gap:6}}>
-            {hTeam ? (
-              <><span style={{fontFamily:HS,fontSize:13,fontWeight:600,color:TH.text,textAlign:"right"}}>{tn(hTeam,lang)}</span><Flag en={hTeam} size={28}/></>
-            ) : (
-              <><span style={{fontFamily:HS,fontSize:11,color:TH.textM,textAlign:"right"}}>{slot(h,lang)}</span>
-              <div style={{width:28,height:28,borderRadius:"50%",background:TH.surface2,border:`1px dashed ${TH.border}`,flexShrink:0}}/></>
-            )}
+        {/* Match */}
+        <div style={{display:"flex",alignItems:"center",padding:"12px 14px",gap:8}}>
+          {/* Home team */}
+          <div style={{flex:1,display:"flex",flexDirection:"column",gap:8}}>
+            <div style={{display:"flex",alignItems:"center",gap:8}}>
+              {hTeam?<Flag en={hTeam} size={28}/>:<div style={{width:28,height:28,borderRadius:"50%",background:TH.surface2,border:`1px dashed ${TH.border}`,flexShrink:0}}/>}
+              {!hTeam&&<div style={{height:10,width:70,background:TH.surface2,borderRadius:5}}/>}
+              {hTeam&&<span style={{fontFamily:HS,fontSize:13,fontWeight:600,color:TH.text,lineHeight:1.2}}>{tn(hTeam,lang)}</span>}
+            </div>
+            <div style={{display:"flex",alignItems:"center",gap:8}}>
+              {aTeam?<Flag en={aTeam} size={28}/>:<div style={{width:28,height:28,borderRadius:"50%",background:TH.surface2,border:`1px dashed ${TH.border}`,flexShrink:0}}/>}
+              <span style={{fontFamily:HS,fontSize:aTeam?13:11,fontWeight:aTeam?600:400,color:aTeam?TH.text:TH.textM,lineHeight:1.2}}>
+                {!aTeam&&<div style={{height:10,width:70,background:TH.surface2,borderRadius:5}}/>}
+              {aTeam&&<span style={{fontFamily:HS,fontSize:13,fontWeight:600,color:TH.text,lineHeight:1.2}}>{tn(aTeam,lang)}</span>}
+            </div>
           </div>
-          <span style={{fontFamily:HS,fontSize:12,color:TH.textM,width:16,textAlign:"center"}}>vs</span>
-          <div style={{flex:1, display:"flex", alignItems:"center", gap:6}}>
-            {aTeam ? (
-              <><Flag en={aTeam} size={28}/><span style={{fontFamily:HS,fontSize:13,fontWeight:600,color:TH.text}}>{tn(aTeam,lang)}</span></>
-            ) : (
-              <><div style={{width:28,height:28,borderRadius:"50%",background:TH.surface2,border:`1px dashed ${TH.border}`,flexShrink:0}}/>
-              <span style={{fontFamily:HS,fontSize:11,color:TH.textM}}>{slot(a,lang)}</span></>
+          {/* Time/Score */}
+          <div style={{textAlign:"center",flexShrink:0,minWidth:80}}>
+            {hasScore?(
+              <div style={{background:TH.greenBg,borderRadius:8,padding:"4px 10px"}}>
+                <div style={{fontFamily:HS,fontSize:18,fontWeight:800,color:TH.green}}>{sc.hg}</div>
+                <div style={{fontFamily:HS,fontSize:18,fontWeight:800,color:TH.green}}>{sc.ag}</div>
+              </div>
+            ):(
+              <>
+                <div style={{display:"inline-flex",alignItems:"baseline",gap:2,marginBottom:4}}>
+                  <span style={{fontFamily:HS,fontSize:16,fontWeight:700,color:TH.text}}>{tn2}</span>
+                  <span style={{fontFamily:HS,fontSize:10,color:TH.textM}}>{ap}</span>
+                </div>
+                <div style={{fontFamily:HS,fontSize:10,color:TH.textM}}>{dl(m.d,lang)}</div>
+                <div style={{display:"flex",justifyContent:"center",gap:4,marginTop:6}}>
+                  <button onClick={()=>addToGCal({...m,h:hSlot||"TBD",a:aSlot||"TBD",g:"KO"},lang)} style={{background:TH.surface2,border:`1px solid ${TH.border}`,borderRadius:6,width:24,height:24,cursor:"pointer",fontSize:11,display:"flex",alignItems:"center",justifyContent:"center"}}>📅</button>
+                  <button onClick={()=>shareMatch({...m,h:hSlot||"TBD",a:aSlot||"TBD",g:"KO"},lang)} style={{background:TH.surface2,border:`1px solid ${TH.border}`,borderRadius:6,width:24,height:24,cursor:"pointer",fontSize:11,display:"flex",alignItems:"center",justifyContent:"center"}}>🔗</button>
+                </div>
+              </>
             )}
           </div>
         </div>
@@ -689,41 +647,71 @@ function KOTab({lang,TH,scores}){
     );
   }
 
-  return (
+  function TBDCard({m}){
+    const[tn2,ap]=m.t.split(" ");
+    return(
+      <div style={{background:TH.surface,borderRadius:14,border:`1px solid ${TH.border}`,
+        marginBottom:10,overflow:"hidden",boxShadow:TH.cardGlow}}>
+        <div style={{display:"flex",alignItems:"center",gap:6,padding:"8px 14px 6px",borderBottom:`1px solid ${TH.border}`}}>
+          <div style={{width:8,height:8,borderRadius:"50%",background:TH.textM,flexShrink:0}}/>
+          <span style={{fontFamily:HS,fontSize:12,fontWeight:600,color:TH.textS}}>{m.label||m.venue}</span>
+        </div>
+        <div style={{display:"flex",alignItems:"center",padding:"12px 14px",gap:8}}>
+          <div style={{flex:1,display:"flex",flexDirection:"column",gap:8}}>
+            <div style={{display:"flex",alignItems:"center",gap:8}}>
+              <div style={{width:28,height:28,borderRadius:"50%",background:TH.surface2,border:`1px dashed ${TH.border}`}}/>
+              <div style={{height:10,width:60,background:TH.surface2,borderRadius:5}}/>
+            </div>
+            <div style={{display:"flex",alignItems:"center",gap:8}}>
+              <div style={{width:28,height:28,borderRadius:"50%",background:TH.surface2,border:`1px dashed ${TH.border}`}}/>
+              <div style={{height:10,width:60,background:TH.surface2,borderRadius:5}}/>
+            </div>
+          </div>
+          <div style={{textAlign:"center",flexShrink:0,minWidth:80}}>
+            <div style={{display:"inline-flex",alignItems:"baseline",gap:2,marginBottom:2}}>
+              <span style={{fontFamily:HS,fontSize:16,fontWeight:700,color:TH.text}}>{tn2}</span>
+              <span style={{fontFamily:HS,fontSize:10,color:TH.textM}}>{ap}</span>
+            </div>
+            <div style={{fontFamily:HS,fontSize:10,color:TH.textM}}>{dl(m.d,lang)}</div>
+            <button onClick={()=>addToGCal({...m,h:"?",a:"?",g:"KO"},lang)} style={{background:TH.surface2,border:`1px solid ${TH.border}`,borderRadius:6,width:24,height:24,cursor:"pointer",fontSize:11,display:"flex",alignItems:"center",justifyContent:"center",margin:"6px auto 0"}}>📅</button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return(
     <div style={{fontFamily:HS}}>
-      {/* Round selector tabs */}
-      <div style={{display:"flex", gap:6, padding:"10px 14px", background:TH.surface, borderBottom:`1px solid ${TH.border}`, overflowX:"auto"}}>
-        {rounds.map(r=>(
-          <button key={r.key} onClick={()=>setActiveRound(r.key)} style={{
-            fontFamily:HS, fontSize:12, fontWeight:activeRound===r.key?700:400,
-            padding:"6px 14px", borderRadius:20, cursor:"pointer", border:"none",
-            background:activeRound===r.key?TH.green:TH.surface2,
-            color:activeRound===r.key?"#fff":TH.textS,
-            flexShrink:0, transition:"all 0.2s",
-          }}>{r.label}</button>
+      {/* Round tabs */}
+      <div style={{display:"flex",gap:6,padding:"10px 14px",background:TH.surface,
+        borderBottom:`1px solid ${TH.border}`,overflowX:"auto",
+        scrollbarWidth:"none",msOverflowStyle:"none"}}>
+        {tabs.map(t=>(
+          <button key={t.key} onClick={()=>setActiveRound(t.key)} style={{
+            fontFamily:HS,fontSize:13,fontWeight:activeRound===t.key?700:400,
+            padding:"7px 16px",borderRadius:20,cursor:"pointer",border:"none",
+            background:activeRound===t.key?TH.green:TH.surface2,
+            color:activeRound===t.key?"#fff":TH.textS,
+            flexShrink:0,transition:"all 0.2s",
+          }}>{t.label}</button>
         ))}
       </div>
 
-      <div style={{paddingBottom:80}}>
-        {activeRound==="R32" && (
-          <div>
-            <div style={{fontFamily:HS,fontSize:11,color:TH.textM,padding:"8px 14px",background:TH.surface2}}>
-              {lang==="bn"?"জুন ২৯ – জুলাই ৪, ২০২৬":"June 29 – July 4, 2026"}
-            </div>
-            {r32.map(m=>(
-              <MatchRow key={m.id} h={m.h} a={m.a} d={m.d} t={m.t} venue={m.venue} id={m.id} isSlot={true}/>
-            ))}
-          </div>
-        )}
-        {laterRounds.filter(r=>r.key===activeRound).map(r=>(
-          <div key={r.key}>
-            <div style={{fontFamily:HS,fontSize:11,color:TH.textM,padding:"8px 14px",background:TH.surface2}}>
-              {dl(r.matches[0].d,lang)}
-            </div>
-            {r.matches.map(m=>(
-              <MatchRow key={m.id} h="TBD" a="TBD" d={m.d} t={m.t} venue={m.venue} id={m.id}/>
-            ))}
-          </div>
+      <div style={{padding:"12px 14px 90px"}}>
+        {activeRound==="R32"&&R32.map(m=>(
+          <KOCard key={m.id} m={m} hSlot={m.h} aSlot={m.a}/>
+        ))}
+        {activeRound==="R16"&&R16.map(m=>(
+          <TBDCard key={m.id} m={m}/>
+        ))}
+        {activeRound==="QF"&&QF.map(m=>(
+          <TBDCard key={m.id} m={m}/>
+        ))}
+        {activeRound==="SF"&&SF.map(m=>(
+          <TBDCard key={m.id} m={m}/>
+        ))}
+        {activeRound==="F"&&FINAL.map(m=>(
+          <TBDCard key={m.id} m={m}/>
         ))}
       </div>
     </div>
@@ -912,7 +900,7 @@ export default function App(){
   const[dark,setDark]=useState(true);
   const[lang,setLang]=useState("bn");
   const[mt,setMt]=useState("home");
-  const[wt,setWt]=useState("fixture");
+  const[wt,setWt]=useState("table");
   const[favs,setFavs]=useState([]);
   const[tp,setTp]=useState(null);
   const[sm,setSm]=useState(false);
@@ -943,7 +931,7 @@ export default function App(){
       <div style={{background:TH.bg,minHeight:"100vh",maxWidth:480,margin:"0 auto",fontFamily:HS,transition:"background .3s"}}>
 
         {/* Header */}
-        <div style={{background:TH.header,padding:"16px 14px 0",position:"fixed",top:0,left:0,right:0,maxWidth:480,margin:"0 auto",zIndex:50,boxShadow:"0 2px 20px rgba(0,0,0,0.3)"}}>
+        <div style={{background:TH.header,padding:"16px 14px 0",position:"sticky",top:0,zIndex:50,boxShadow:"0 2px 20px rgba(0,0,0,0.3)"}}>
           <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:14}}>
             <div style={{display:"flex",alignItems:"center",gap:10}}>
               <WCLogo size={42} dark={dark}/>
@@ -968,21 +956,23 @@ export default function App(){
               <button key={id} onClick={()=>setMt(id)} style={{flex:1,background:"transparent",border:"none",borderBottom:`2.5px solid ${mt===id?"#fff":"transparent"}`,color:mt===id?"#fff":"rgba(255,255,255,0.4)",fontFamily:HS,fontSize:14,fontWeight:mt===id?700:400,padding:"10px 0",cursor:"pointer",transition:"all 0.2s"}}>{lb}</button>
             ))}
           </div>
-        </div>
-
-        {/* WC Sub-tabs */}
-        {mt==="wc"&&(
-          <div style={{background:TH.surface,display:"flex",borderBottom:`1px solid ${TH.border}`,position:"fixed",top:70,left:0,right:0,maxWidth:480,margin:"0 auto",zIndex:40,boxShadow:"0 2px 8px rgba(0,0,0,0.08)"}}>
-            {[["fixture",lang==="bn"?"ফিক্সচার":"Fixtures"],["table",lang==="bn"?"টেবিল":"Table"],["knockout",lang==="bn"?"নকআউট":"Knockout"]].map(([id,lb])=>(
-              <button key={id} onClick={()=>setWt(id)} style={{flex:1,background:"transparent",border:"none",borderBottom:`2.5px solid ${wt===id?TH.green:"transparent"}`,color:wt===id?TH.green:TH.textM,fontFamily:HS,fontSize:13,fontWeight:wt===id?700:400,padding:"12px 0",cursor:"pointer",transition:"all 0.2s"}}>{lb}</button>
+          {/* WC Sub-tabs — inside sticky header */}
+          {mt==="wc"&&(
+            <div style={{display:"flex",borderTop:"1px solid rgba(255,255,255,0.15)"}}>
+              {[["table",lang==="bn"?"টেবিল":"Table"],["knockout",lang==="bn"?"নকআউট":"Knockout"],["fixture",lang==="bn"?"গ্রুপ পর্ব":"Group Stage"]].map(([id,lb])=>(
+                <button key={id} onClick={()=>setWt(id)} style={{flex:1,background:"transparent",border:"none",borderBottom:`2.5px solid ${wt===id?"#fff":"transparent"}`,color:wt===id?"#fff":"rgba(255,255,255,0.5)",fontFamily:HS,fontSize:13,fontWeight:wt===id?700:400,padding:"10px 0",cursor:"pointer",transition:"all 0.2s"}}>{lb}</button>
+              ))}
+            </div>
+          )}
+        </div> style={{flex:1,background:"transparent",border:"none",borderBottom:`2.5px solid ${wt===id?TH.green:"transparent"}`,color:wt===id?TH.green:TH.textM,fontFamily:HS,fontSize:13,fontWeight:wt===id?700:400,padding:"12px 0",cursor:"pointer",transition:"all 0.2s"}}>{lb}</button>
             ))}
           </div>
         )}
 
-        {mt==="home"&&<div style={{paddingTop: mt==="wc"?115:70}}><HomeTab lang={lang} favs={favs} setFavs={setFavs} onTeam={openTeam} setSM={setSm} TH={TH}/></div>}
-        {mt==="wc"&&wt==="fixture"&&<div style={{paddingTop:115}}><FixTab lang={lang} onTeam={openTeam} TH={TH} scores={scores} setScores={setScores}/></div>}
-        {mt==="wc"&&wt==="table"&&<div style={{paddingTop:115}}><TblTab lang={lang} TH={TH} scores={scores}/></div>}
-        {mt==="wc"&&wt==="knockout"&&<div style={{paddingTop:115}}><KOTab lang={lang} TH={TH} scores={scores}/></div>}
+        {mt==="home"&&<div><HomeTab lang={lang} favs={favs} setFavs={setFavs} onTeam={openTeam} setSM={setSm} TH={TH}/></div>}
+        {mt==="wc"&&wt==="fixture"&&<div><FixTab lang={lang} onTeam={openTeam} TH={TH} scores={scores} setScores={setScores}/></div>}
+        {mt==="wc"&&wt==="table"&&<div><TblTab lang={lang} TH={TH} scores={scores}/></div>}
+        {mt==="wc"&&wt==="knockout"&&<div><KOTab lang={lang} TH={TH} scores={scores}/></div>}
         {sm&&<AddMdl favs={favs} onAdd={aF} onClose={()=>setSm(false)} lang={lang} TH={TH}/>}
 
         {/* Footer */}
