@@ -562,12 +562,12 @@ function FixRow({m,lang,onTeam,T,scores,setScores,myPreds,setPredictM,userName,i
                 🎯 <span style={{fontFamily:HS}}>{myPreds?.[m.id]?`${myPreds[m.id].home_score}-${myPreds[m.id].away_score}`:(lang==="bn"?"প্রেডিক্ট":"Predict")}</span>
               </button>
             )}
-            <button onClick={()=>{setShowScore(true);setShowAct(false);}}
+            {isAdmin&&<button onClick={()=>{setShowScore(true);setShowAct(false);}}
               style={{flex:1,display:"flex",alignItems:"center",justifyContent:"center",gap:4,
                 background:T.surface,border:`1px solid ${T.border}`,borderRadius:10,padding:7,
                 cursor:"pointer",fontFamily:HS,fontSize:12,color:T.textS}}>
               ✏️ <span style={{fontFamily:HS}}>{lang==="bn"?"স্কোর":"Score"}</span>
-            </button>
+            </button>}
             <button onClick={()=>{addToGCal(m,lang);setShowAct(false);}}
               style={{flex:1,display:"flex",alignItems:"center",justifyContent:"center",gap:4,
                 background:T.surface,border:`1px solid ${T.border}`,borderRadius:10,padding:7,
@@ -882,7 +882,7 @@ function TeamCountdown({m,lang,T}){
   );
 }
 
-function TeamPage({en,lang,onBack,T,scores,setScores,isAdmin}){
+function TeamPage({en,lang,onBack,T,scores,setScores,isAdmin,userName,myPreds,setPredictM}){
   const[showScore,setShowScore]=useState(null);
   const ms=MATCHES.filter(m=>m.h===en||m.a===en).sort((a,b)=>new Date(a.d)-new Date(b.d));
   const now2=new Date();now2.setHours(0,0,0,0);
@@ -917,6 +917,15 @@ function TeamPage({en,lang,onBack,T,scores,setScores,isAdmin}){
               <span style={{fontFamily:HS,fontSize:12,color:T.textM}}>{dl(m.d,lang)}</span>
               <div style={{display:"flex",gap:6,alignItems:"center"}}>
                 <Chip d={m.d} lang={lang} T={T}/>
+                {userName&&getStatus(m)==="up"&&(
+                  <button onClick={()=>setPredictM(m)} style={{
+                    background:myPreds?.[m.id]?T.greenBg:T.sur2,
+                    border:`1px solid ${myPreds?.[m.id]?T.greenBr:T.border}`,
+                    borderRadius:8,padding:"4px 8px",cursor:"pointer",
+                    fontFamily:HS,fontSize:11,color:myPreds?.[m.id]?T.green:T.textS,whiteSpace:"nowrap"}}>
+                    🎯 {myPreds?.[m.id]?`${myPreds[m.id].home_score}–${myPreds[m.id].away_score}`:(lang==="bn"?"প্রেডিক্ট":"Predict")}
+                  </button>
+                )}
                 <button onClick={()=>addToGCal(m,lang)} style={{background:T.sur2,border:`1px solid ${T.border}`,
                   borderRadius:8,width:28,height:28,cursor:"pointer",fontSize:12,display:"flex",alignItems:"center",justifyContent:"center"}}>📅</button>
                 <button onClick={()=>shareMatch(m,lang)} style={{background:T.sur2,border:`1px solid ${T.border}`,
@@ -926,17 +935,17 @@ function TeamPage({en,lang,onBack,T,scores,setScores,isAdmin}){
             <div style={{display:"flex",alignItems:"center",gap:8}}>
               <Flag en={m.h} size={40}/>
               <span style={{fontFamily:HS,fontSize:14,fontWeight:600,color:T.text,flex:1}}>{tn(m.h,lang)}</span>
-              <div onClick={()=>setShowScore(m)} style={{textAlign:"center",minWidth:76,cursor:"pointer"}}>
+              <div style={{textAlign:"center",minWidth:76}}>
                 {hasScore?(
                   <div style={{background:T.greenBg,borderRadius:10,padding:"6px 12px",border:`1px solid ${T.greenBr}`}}>
                     <span style={{fontFamily:HS,fontSize:20,fontWeight:800,color:T.green}}>{sc.hg}–{sc.ag}</span>
                   </div>
                 ):(
-                  <>
+                  <div onClick={()=>isAdmin&&setShowScore(m)} style={{cursor:isAdmin?"pointer":"default"}}>
                     <span style={{fontFamily:HS,fontSize:18,fontWeight:700,color:T.text}}>{tn2}</span>
                     <span style={{fontFamily:HS,fontSize:10,color:T.textM}}>{ap}</span>
                     <div style={{fontFamily:HS,fontSize:9,color:T.textM}}>{lang==="bn"?"বাংলাদেশ সময়":"BST"}</div>
-                  </>
+                  </div>
                 )}
               </div>
               <span style={{fontFamily:HS,fontSize:14,fontWeight:600,color:T.text,flex:1,textAlign:"right"}}>{tn(m.a,lang)}</span>
@@ -945,7 +954,7 @@ function TeamPage({en,lang,onBack,T,scores,setScores,isAdmin}){
           </div>
         );
       })}
-      {showScore&&<ScoreModal m={showScore} lang={lang} T={T} scores={scores} setScores={setScores} onClose={()=>setShowScore(null)} isAdmin={isAdmin}/>}
+      {showScore&&isAdmin&&<ScoreModal m={showScore} lang={lang} T={T} scores={scores} setScores={setScores} onClose={()=>setShowScore(null)} isAdmin={isAdmin}/>}
     </div>
   );
 }
@@ -1625,7 +1634,7 @@ export default function App(){
   if(tp) return(
     <>
       <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet"/>
-      <TeamPage en={tp} lang={lang} onBack={closeTeam} T={T} scores={scores} setScores={setScores} isAdmin={isAdmin}/>
+      <TeamPage en={tp} lang={lang} onBack={closeTeam} T={T} scores={scores} setScores={setScores} isAdmin={isAdmin} userName={userName} myPreds={myPreds} setPredictM={setPredictM}/>
     </>
   );
 
