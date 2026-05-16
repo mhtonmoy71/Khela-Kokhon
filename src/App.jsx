@@ -1443,11 +1443,21 @@ function NameModal({T, lang, onSave, inline=false}) {
 }
 
 /* ── Predict Modal ─────────────────────────────────────────────────── */
+async function deletePrediction(userName, matchId) {
+  return sbFetch("predictions?predictor_name=eq."+encodeURIComponent(userName)+"&match_id=eq."+matchId, {
+    method: "DELETE",
+    extraHeaders: {"Prefer": "return=representation"},
+  });
+}
+
 function PredictModal({m, T, lang, userName, onClose, myPreds, setMyPreds}) {
   const existing = myPreds[m.id];
+  const hasPred = existing!=null;
   const[hg, setHg] = useState(existing?.home_score!=null?String(existing.home_score):"");
   const[ag, setAg] = useState(existing?.away_score!=null?String(existing.away_score):"");
   const[saving, setSaving] = useState(false);
+  const[deleting, setDeleting] = useState(false);
+  const[confirmDel, setConfirmDel] = useState(false);
 
   const save = async () => {
     if(hg===""||ag==="")return;
@@ -1458,6 +1468,16 @@ function PredictModal({m, T, lang, userName, onClose, myPreds, setMyPreds}) {
       onClose();
     } catch(e){ alert("Error: "+e.message); }
     setSaving(false);
+  };
+
+  const doDelete = async () => {
+    setDeleting(true);
+    try {
+      await deletePrediction(userName, m.id);
+      setMyPreds(p=>{const n={...p};delete n[m.id];return n;});
+      onClose();
+    } catch(e){ alert("Error: "+e.message); }
+    setDeleting(false);
   };
 
   const inp={
@@ -1524,14 +1544,44 @@ function PredictModal({m, T, lang, userName, onClose, myPreds, setMyPreds}) {
           </div>
         </div>
 
-        {/* Confirm button */}
-        <button onClick={save} disabled={saving||hg===""||ag===""} style={{
-          width:"100%",padding:16,borderRadius:14,border:"none",
-          background:(saving||hg===""||ag==="")?T.sur3:T.green,
-          color:"#fff",fontFamily:HS,fontSize:16,fontWeight:800,cursor:"pointer",
-          opacity:(saving||hg===""||ag==="")?0.6:1}}>
-          {saving?(lang==="bn"?"সংরক্ষণ হচ্ছে...":"Saving..."):(lang==="bn"?"✅ কনফার্ম করুন":"✅ Confirm")}
-        </button>
+        {/* Delete confirmation */}
+        {confirmDel&&(
+          <div style={{background:T.sur2,borderRadius:12,padding:"12px 14px",marginBottom:12,textAlign:"center"}}>
+            <div style={{fontFamily:HS,fontSize:13,color:T.text,marginBottom:10}}>
+              {lang==="bn"?"প্রেডিকশন মুছে ফেলবেন?":"Delete your prediction?"}
+            </div>
+            <div style={{display:"flex",gap:8}}>
+              <button onClick={()=>setConfirmDel(false)} style={{flex:1,padding:10,borderRadius:10,
+                border:`1px solid ${T.border}`,background:T.surface,color:T.textS,fontFamily:HS,fontSize:13,cursor:"pointer"}}>
+                {lang==="bn"?"না":"No"}
+              </button>
+              <button onClick={doDelete} disabled={deleting} style={{flex:1,padding:10,borderRadius:10,
+                border:"none",background:T.red,color:"#fff",fontFamily:HS,fontSize:13,fontWeight:700,cursor:"pointer"}}>
+                {deleting?(lang==="bn"?"মুছছে...":"Deleting..."):(lang==="bn"?"হ্যাঁ, মুছুন":"Yes, Delete")}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Action buttons */}
+        <div style={{display:"flex",gap:8}}>
+          {hasPred&&!confirmDel&&(
+            <button onClick={()=>setConfirmDel(true)} style={{
+              padding:"14px 16px",borderRadius:14,border:`1px solid ${T.red}55`,
+              background:T.sur2,color:T.red,fontFamily:HS,fontSize:14,cursor:"pointer",flexShrink:0}}>
+              🗑️
+            </button>
+          )}
+          <button onClick={save} disabled={saving||hg===""||ag===""} style={{
+            flex:1,padding:16,borderRadius:14,border:"none",
+            background:(saving||hg===""||ag==="")?T.sur3:T.green,
+            color:"#fff",fontFamily:HS,fontSize:16,fontWeight:800,cursor:"pointer",
+            opacity:(saving||hg===""||ag==="")?0.6:1}}>
+            {saving?(lang==="bn"?"সংরক্ষণ...":"Saving...")
+              :hasPred?(lang==="bn"?"✅ আপডেট করুন":"✅ Update")
+              :(lang==="bn"?"✅ কনফার্ম করুন":"✅ Confirm")}
+          </button>
+        </div>
       </div>
     </div>
   );
