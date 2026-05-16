@@ -1,6 +1,89 @@
 import { useState, useMemo, useEffect } from "react";
+
+/* ── Supabase ──────────────────────────────────────────────────────── */
+const SB_URL = "https://chgegfcnfzihmytgbhjh.supabase.co";
+const SB_KEY = "sb_publishable_sDXbz8NdgoVRcM8YRLNf1w_exWVBe96";
+
+async function sbFetch(path, opts={}) {
+  const res = await fetch(SB_URL + "/rest/v1/" + path, {
+    headers: {
+      "apikey": SB_KEY,
+      "Authorization": "Bearer " + SB_KEY,
+      "Content-Type": "application/json",
+      ...(opts.extraHeaders||{}),
+    },
+    method: opts.method||"GET",
+    body: opts.body||undefined,
+  });
+  const text = await res.text();
+  return text ? JSON.parse(text) : [];
+}
+
+async function getPredictions(name) {
+  return sbFetch("predictions?predictor_name=eq." + encodeURIComponent(name) + "&select=*");
+}
+
+async function savePrediction(name, matchId, hg, ag) {
+  return sbFetch("predictions", {
+    method: "POST",
+    extraHeaders: {"Prefer": "resolution=merge-duplicates,return=representation"},
+    body: JSON.stringify({predictor_name:name, match_id:matchId, home_score:hg, away_score:ag, points:0}),
+  });
+}
+
+async function fetchLeaderboard() {
+  const data = await sbFetch("predictions?select=predictor_name,points");
+  const map = {};
+  data.forEach(r => {
+    if (!map[r.predictor_name]) map[r.predictor_name] = {name:r.predictor_name, total:0, count:0};
+    map[r.predictor_name].total += (r.points||0);
+    map[r.predictor_name].count += 1;
+  });
+  return Object.values(map).sort((a,b)=>b.total-a.total);
+}
+
 const HS = "'Hind Siliguri', sans-serif";
 const LOGO_SRC = "data:image/png;base64,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";
+
+/* ── Device Fingerprint ────────────────────────────────────────────── */
+async function getDeviceId() {
+  const stored = localStorage.getItem("kk_device_id");
+  if (stored) return stored;
+  // Create fingerprint from browser properties
+  const raw = [
+    navigator.userAgent,
+    navigator.language,
+    screen.width + "x" + screen.height,
+    screen.colorDepth,
+    new Date().getTimezoneOffset(),
+    navigator.hardwareConcurrency||"",
+    navigator.platform||"",
+  ].join("|");
+  // Simple hash
+  let hash = 0;
+  for(let i=0;i<raw.length;i++){hash=((hash<<5)-hash)+raw.charCodeAt(i);hash|=0;}
+  const id = "dev_" + Math.abs(hash).toString(36) + "_" + Date.now().toString(36);
+  localStorage.setItem("kk_device_id", id);
+  return id;
+}
+
+async function checkDeviceExists(deviceId) {
+  const data = await sbFetch("predictors?device_id=eq." + encodeURIComponent(deviceId) + "&select=name");
+  return data.length > 0 ? data[0].name : null;
+}
+
+async function registerPredictor(name, deviceId) {
+  // Check if name already taken by different device
+  const nameCheck = await sbFetch("predictors?name=eq." + encodeURIComponent(name) + "&select=device_id");
+  if (nameCheck.length > 0 && nameCheck[0].device_id !== deviceId) {
+    throw new Error("name_taken");
+  }
+  return sbFetch("predictors", {
+    method: "POST",
+    extraHeaders: {"Prefer": "resolution=merge-duplicates,return=representation"},
+    body: JSON.stringify({name, device_id: deviceId}),
+  });
+}
 
 /* ── Theme ─────────────────────────────────────────────────────────── */
 function mkT(dark) {
@@ -371,7 +454,7 @@ function ScoreModal({m,lang,T,scores,setScores,onClose}){
 }
 
 /* ── FixRow ────────────────────────────────────────────────────────── */
-function FixRow({m,lang,onTeam,T,scores,setScores}){
+function FixRow({m,lang,onTeam,T,scores,setScores,myPreds,setPredictM,userName}){
   const[showScore,setShowScore]=useState(false);
   const[showAct,setShowAct]=useState(false);
   const sc=scores[m.id];const hasScore=sc&&sc.hg!==""&&sc.ag!=="";
@@ -416,6 +499,14 @@ function FixRow({m,lang,onTeam,T,scores,setScores}){
         </div>
         {showAct&&(
           <div style={{display:"flex",gap:8,padding:"8px 10px 10px",borderTop:`1px solid ${T.border}`,background:T.sur2}}>
+            {userName&&getStatus(m)==="up"&&(
+              <button onClick={()=>{setPredictM(m);setShowAct(false);}}
+                style={{flex:1,display:"flex",alignItems:"center",justifyContent:"center",gap:4,
+                  background:myPreds?.[m.id]?T.greenBg:T.surface,border:`1px solid ${myPreds?.[m.id]?T.greenBr:T.border}`,
+                  borderRadius:10,padding:7,cursor:"pointer",fontFamily:HS,fontSize:12,color:myPreds?.[m.id]?T.green:T.textS}}>
+                🎯 <span style={{fontFamily:HS}}>{myPreds?.[m.id]?`${myPreds[m.id].home_score}-${myPreds[m.id].away_score}`:(lang==="bn"?"প্রেডিক্ট":"Predict")}</span>
+              </button>
+            )}
             <button onClick={()=>{setShowScore(true);setShowAct(false);}}
               style={{flex:1,display:"flex",alignItems:"center",justifyContent:"center",gap:4,
                 background:T.surface,border:`1px solid ${T.border}`,borderRadius:10,padding:7,
@@ -443,7 +534,7 @@ function FixRow({m,lang,onTeam,T,scores,setScores}){
 }
 
 /* ── GroupTab ──────────────────────────────────────────────────────── */
-function GroupTab({lang,onTeam,T,scores,setScores}){
+function GroupTab({lang,onTeam,T,scores,setScores,myPreds,setMyPreds,userName,setPredictM}){
   const[ft,setFt]=useState(null);const[sf,setSf]=useState(false);const[sq,setSq]=useState("");
   const fil=ft?SORTED.filter(m=>m.h===ft||m.a===ft):SORTED;
   const grpd=useMemo(()=>{
@@ -477,7 +568,7 @@ function GroupTab({lang,onTeam,T,scores,setScores}){
               background:T.sur2,padding:"8px 14px",borderBottom:`1px solid ${T.border}`}}>
               {dl(date,lang).toUpperCase()}
             </div>
-            {ms.map(m=><FixRow key={m.id} m={m} lang={lang} onTeam={onTeam} T={T} scores={scores} setScores={setScores}/>)}
+            {ms.map(m=><FixRow key={m.id} m={m} lang={lang} onTeam={onTeam} T={T} scores={scores} setScores={setScores} myPreds={myPreds} setPredictM={setPredictM} userName={userName}/>)}
           </div>
         ))}
       </div>
@@ -885,6 +976,374 @@ function HomeTab({lang,favs,setFavs,onTeam,setSM,T}){
 }
 
 /* ── App ───────────────────────────────────────────────────────────── */
+
+/* ── PredictionTab ─────────────────────────────────────────────────── */
+function PredictionTab({T, lang, userName, onSave, myPreds, setMyPreds, scores, setPredictM}) {
+  const[subTab, setSubTab] = useState(userName?"matches":"join");
+  const[lb, setLb] = useState([]);
+  const[lbLoading, setLbLoading] = useState(false);
+
+  useEffect(()=>{
+    if(userName) setSubTab("matches");
+  },[userName]);
+
+  useEffect(()=>{
+    if(subTab==="leaderboard"){
+      setLbLoading(true);
+      fetchLeaderboard().then(d=>{setLb(d);setLbLoading(false);}).catch(()=>setLbLoading(false));
+    }
+  },[subTab]);
+
+  // Calculate my points
+  const myPoints = Object.entries(myPreds).reduce((sum,[mid,pred])=>{
+    const sc = scores[parseInt(mid)];
+    if(!sc||sc.hg===""||sc.ag==="") return sum;
+    const ah=parseInt(sc.hg),aa=parseInt(sc.ag);
+    const ph=pred.home_score,pa=pred.away_score;
+    if(ph===ah&&pa===aa) return sum+3;
+    const aRes=ah>aa?"h":ah<aa?"a":"d";
+    const pRes=ph>pa?"h":ph<pa?"a":"d";
+    if(aRes===pRes) return sum+1;
+    return sum;
+  },0);
+
+  const medals=["🥇","🥈","🥉"];
+  const upcomingMatches = SORTED.filter(m=>getStatus(m)==="up");
+  const predictedCount = Object.keys(myPreds).length;
+
+  if(!userName) return(
+    <div style={{padding:"20px 14px 90px"}}>
+      <div style={{background:T.surface,borderRadius:20,padding:28,textAlign:"center",marginBottom:16}}>
+        <div style={{fontSize:40,marginBottom:12}}>🎯</div>
+        <div style={{fontFamily:HS,fontSize:18,fontWeight:800,color:T.text,marginBottom:8}}>
+          {lang==="bn"?"প্রেডিকশন কম্পিটিশন":"Prediction Competition"}
+        </div>
+        <div style={{fontFamily:HS,fontSize:13,color:T.textS,marginBottom:20,lineHeight:1.6}}>
+          {lang==="bn"?"ম্যাচের আগে স্কোর আন্দাজ করো। সঠিক হলে পয়েন্ট পাবে। লিডারবোর্ডে নিজের নাম দেখো!":"Predict match scores before they start. Earn points for correct predictions. Climb the leaderboard!"}
+        </div>
+        <div style={{display:"flex",gap:12,justifyContent:"center",marginBottom:24}}>
+          {[["✅","সঠিক ফলাফল","১ পয়েন্ট"],["🎯","সঠিক স্কোর","৩ পয়েন্ট"]].map(([icon,label,pts])=>(
+            <div key={label} style={{background:T.sur2,borderRadius:12,padding:"10px 16px",textAlign:"center"}}>
+              <div style={{fontSize:20}}>{icon}</div>
+              <div style={{fontFamily:HS,fontSize:11,color:T.textS,marginTop:4}}>{lang==="bn"?label:label}</div>
+              <div style={{fontFamily:HS,fontSize:14,fontWeight:700,color:T.green}}>{lang==="bn"?pts:pts}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+      <NameModal T={T} lang={lang} onSave={onSave} inline={true}/>
+    </div>
+  );
+
+  return(
+    <div style={{fontFamily:HS}}>
+      {/* Sub tabs */}
+      <div style={{display:"flex",background:T.surface,borderBottom:`1px solid ${T.border}`}}>
+        {[
+          ["matches", lang==="bn"?"ম্যাচ":"Matches"],
+          ["leaderboard", lang==="bn"?"লিডারবোর্ড":"Leaderboard"],
+        ].map(([k,l])=>(
+          <button key={k} onClick={()=>setSubTab(k)} style={{flex:1,background:"transparent",border:"none",
+            borderBottom:`2.5px solid ${subTab===k?T.green:"transparent"}`,
+            color:subTab===k?T.green:T.textM,fontFamily:HS,fontSize:13,fontWeight:subTab===k?700:400,
+            padding:"11px 0",cursor:"pointer"}}>
+            {l}
+          </button>
+        ))}
+      </div>
+
+      {subTab==="matches"&&(
+        <div style={{paddingBottom:90}}>
+          {/* My stats */}
+          <div style={{background:T.surface,padding:"14px 16px",marginBottom:6,
+            display:"flex",alignItems:"center",gap:12}}>
+            <div style={{width:44,height:44,borderRadius:"50%",background:T.greenBg,
+              border:`2px solid ${T.greenBr}`,display:"flex",alignItems:"center",
+              justifyContent:"center",fontSize:20,flexShrink:0}}>👤</div>
+            <div style={{flex:1}}>
+              <div style={{fontFamily:HS,fontSize:15,fontWeight:700,color:T.text}}>{userName}</div>
+              <div style={{fontFamily:HS,fontSize:12,color:T.textS}}>
+                {predictedCount} {lang==="bn"?"টি প্রেডিকশন":"predictions"} · {myPoints} {lang==="bn"?"পয়েন্ট":"pts"}
+              </div>
+            </div>
+            <button onClick={()=>{localStorage.removeItem("kk_user");localStorage.removeItem("kk_device_id");window.location.reload();}}
+              style={{background:T.sur2,border:`1px solid ${T.border}`,borderRadius:10,
+                padding:"6px 12px",cursor:"pointer",fontFamily:HS,fontSize:11,color:T.textM}}>
+              {lang==="bn"?"পরিবর্তন":"Change"}
+            </button>
+          </div>
+
+          {/* Upcoming matches to predict */}
+          {upcomingMatches.length===0?(
+            <div style={{textAlign:"center",padding:40,color:T.textM,fontFamily:HS}}>
+              {lang==="bn"?"সব ম্যাচ শেষ!":"All matches done!"}
+            </div>
+          ):(
+            upcomingMatches.map(m=>{
+              const pred = myPreds[m.id];
+              const[tn2,ap]=m.t.split(" ");
+              return(
+                <div key={m.id} style={{background:T.surface,marginBottom:6,padding:"12px 14px",
+                  borderLeft:`3px solid ${pred?T.green:"transparent"}`}}>
+                  <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
+                    <span style={{fontFamily:HS,fontSize:11,color:T.textM}}>{dl(m.d,lang)} · {m.t}</span>
+                    <Chip d={m.d} lang={lang} T={T}/>
+                  </div>
+                  <div style={{display:"flex",alignItems:"center",gap:8}}>
+                    <Flag en={m.h} size={32}/>
+                    <span style={{fontFamily:HS,fontSize:13,fontWeight:500,color:T.text,flex:1}}>{tn(m.h,lang)}</span>
+                    <button onClick={()=>setPredictM(m)} style={{
+                      background:pred?T.greenBg:T.sur2,
+                      border:`1.5px solid ${pred?T.greenBr:T.border}`,
+                      borderRadius:10,padding:"6px 14px",cursor:"pointer",
+                      fontFamily:HS,fontSize:13,fontWeight:pred?700:400,
+                      color:pred?T.green:T.textS,minWidth:80,textAlign:"center"}}>
+                      {pred?`${pred.home_score}–${pred.away_score}`:"🎯 "+( lang==="bn"?"আন্দাজ":"Predict")}
+                    </button>
+                    <span style={{fontFamily:HS,fontSize:13,fontWeight:500,color:T.text,flex:1,textAlign:"right"}}>{tn(m.a,lang)}</span>
+                    <Flag en={m.a} size={32}/>
+                  </div>
+                </div>
+              );
+            })
+          )}
+        </div>
+      )}
+
+      {subTab==="leaderboard"&&(
+        <div style={{padding:"12px 14px 90px"}}>
+          {lbLoading?(
+            <div style={{textAlign:"center",padding:40,fontFamily:HS,color:T.textM}}>
+              {lang==="bn"?"লোড হচ্ছে...":"Loading..."}
+            </div>
+          ):lb.length===0?(
+            <div style={{textAlign:"center",padding:40,fontFamily:HS,color:T.textM,fontSize:14}}>
+              {lang==="bn"?"এখনো কোনো প্রেডিকশন নেই":"No predictions yet"}
+            </div>
+          ):(
+            lb.map((row,i)=>(
+              <div key={row.name} style={{background:T.surface,borderRadius:14,
+                border:`1px solid ${row.name===userName?T.greenBr:T.border}`,
+                padding:"14px 16px",marginBottom:8,display:"flex",alignItems:"center",gap:12,
+                boxShadow:row.name===userName?`0 0 0 2px ${T.green}33`:T.glow}}>
+                <div style={{fontFamily:HS,fontSize:22,width:36,textAlign:"center"}}>
+                  {i<3?medals[i]:<span style={{fontFamily:HS,fontSize:14,color:T.textM}}>{i+1}</span>}
+                </div>
+                <div style={{flex:1}}>
+                  <div style={{fontFamily:HS,fontSize:15,fontWeight:row.name===userName?700:500,
+                    color:row.name===userName?T.green:T.text}}>
+                    {row.name}{row.name===userName&&(lang==="bn"?" (তুমি)":" (you)")}
+                  </div>
+                  <div style={{fontFamily:HS,fontSize:12,color:T.textM,marginTop:2}}>
+                    {row.count} {lang==="bn"?"টি প্রেডিকশন":"predictions"}
+                  </div>
+                </div>
+                <div style={{textAlign:"right"}}>
+                  <div style={{fontFamily:HS,fontSize:24,fontWeight:800,color:T.green}}>{row.total}</div>
+                  <div style={{fontFamily:HS,fontSize:10,color:T.textM}}>{lang==="bn"?"পয়েন্ট":"pts"}</div>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ── Name Modal ────────────────────────────────────────────────────── */
+function NameModal({T, lang, onSave, inline=false}) {
+  const[name, setName] = useState("");
+  const[error, setError] = useState("");
+  const[saving, setSaving] = useState(false);
+
+  const save = async () => {
+    if(!name.trim()) return;
+    setSaving(true);
+    setError("");
+    try {
+      const deviceId = await getDeviceId();
+      await registerPredictor(name.trim(), deviceId);
+      onSave(name.trim(), deviceId);
+    } catch(e) {
+      if(e.message === "name_taken") {
+        setError(lang==="bn"?"এই নামটি অন্য কেউ নিয়েছে। অন্য নাম দিন।":"This name is taken. Choose another.");
+      } else {
+        setError(lang==="bn"?"সমস্যা হয়েছে, আবার চেষ্টা করুন।":"Error, please try again.");
+      }
+    }
+    setSaving(false);
+  };
+  if(inline) return (
+    <div style={{background:T.surface,borderRadius:20,padding:28,width:"100%"}}>
+      <div style={{textAlign:"center",marginBottom:16}}>
+        <div style={{fontFamily:HS,fontSize:16,fontWeight:700,color:T.text}}>
+          {lang==="bn"?"নাম দিয়ে যোগ দিন":"Join with your name"}
+        </div>
+      </div>
+      <input value={name} onChange={e=>setName(e.target.value)}
+        onKeyDown={e=>e.key==="Enter"&&save()}
+        placeholder={lang==="bn"?"তোমার নাম...":"Your name..."}
+        style={{width:"100%",boxSizing:"border-box",border:`2px solid ${T.border}`,
+          borderRadius:12,padding:"12px 14px",fontFamily:HS,fontSize:15,
+          background:T.sur2,color:T.text,outline:"none",marginBottom:12}}/>
+      {error&&<div style={{fontFamily:HS,fontSize:12,color:T.red,textAlign:"center",marginBottom:10}}>{error}</div>}
+      <button onClick={save} disabled={saving||!name.trim()}
+        style={{width:"100%",padding:13,borderRadius:12,border:"none",
+          background:(saving||!name.trim())?"#555":T.green,color:"#fff",
+          fontFamily:HS,fontSize:15,fontWeight:700,cursor:(saving||!name.trim())?"default":"pointer"}}>
+        {saving?(lang==="bn"?"যাচাই করছি...":"Checking..."):(lang==="bn"?"যোগ দিন ✅":"Join ✅")}
+      </button>
+    </div>
+  );
+
+  return (
+    <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.8)",zIndex:1000,
+      display:"flex",alignItems:"center",justifyContent:"center",padding:20}}>
+      <div style={{background:T.surface,borderRadius:20,padding:28,width:"100%",maxWidth:320}}>
+        <div style={{textAlign:"center",marginBottom:20}}>
+          <div style={{fontSize:32,marginBottom:8}}>⚽</div>
+          <div style={{fontFamily:HS,fontSize:18,fontWeight:800,color:T.text,marginBottom:6}}>
+            {lang==="bn"?"খেলা কখন?":"Khela Kokhon?"}
+          </div>
+          <div style={{fontFamily:HS,fontSize:13,color:T.textS}}>
+            {lang==="bn"?"প্রেডিকশন কম্পিটিশনে অংশ নিতে নাম দিন":"Enter your name to join predictions"}
+          </div>
+        </div>
+        <input value={name} onChange={e=>setName(e.target.value)}
+          onKeyDown={e=>e.key==="Enter"&&save()}
+          placeholder={lang==="bn"?"তোমার নাম...":"Your name..."}
+          style={{width:"100%",boxSizing:"border-box",border:`2px solid ${T.border}`,
+            borderRadius:12,padding:"12px 14px",fontFamily:HS,fontSize:15,
+            background:T.sur2,color:T.text,outline:"none",marginBottom:12}}
+          autoFocus/>
+        {error&&<div style={{fontFamily:HS,fontSize:12,color:T.red,textAlign:"center",marginBottom:10}}>{error}</div>}
+        <button onClick={save} disabled={saving||!name.trim()}
+          style={{width:"100%",padding:13,borderRadius:12,border:"none",
+            background:(saving||!name.trim())?"#555":T.green,color:"#fff",
+            fontFamily:HS,fontSize:15,fontWeight:700,cursor:(saving||!name.trim())?"default":"pointer"}}>
+          {saving?(lang==="bn"?"যাচাই করছি...":"Checking..."):(lang==="bn"?"শুরু করুন 🚀":"Start 🚀")}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+/* ── Predict Modal ─────────────────────────────────────────────────── */
+function PredictModal({m, T, lang, userName, onClose, myPreds, setMyPreds}) {
+  const existing = myPreds[m.id];
+  const[hg, setHg] = useState(existing?.home_score!=null?String(existing.home_score):"");
+  const[ag, setAg] = useState(existing?.away_score!=null?String(existing.away_score):"");
+  const[saving, setSaving] = useState(false);
+
+  const save = async () => {
+    if(hg===""||ag==="")return;
+    setSaving(true);
+    try {
+      await savePrediction(userName, m.id, parseInt(hg), parseInt(ag));
+      setMyPreds(p=>({...p,[m.id]:{home_score:parseInt(hg),away_score:parseInt(ag)}}));
+      onClose();
+    } catch(e){ alert("Error: "+e.message); }
+    setSaving(false);
+  };
+
+  const inp={width:54,height:50,textAlign:"center",fontSize:22,fontWeight:800,
+    border:`2px solid ${T.border}`,borderRadius:12,background:T.sur2,color:T.text,outline:"none",fontFamily:HS};
+
+  return(
+    <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.7)",zIndex:999,
+      display:"flex",alignItems:"center",justifyContent:"center",padding:20}} onClick={onClose}>
+      <div style={{background:T.surface,borderRadius:20,padding:28,width:"100%",maxWidth:320}} onClick={e=>e.stopPropagation()}>
+        <div style={{fontFamily:HS,fontWeight:700,fontSize:17,color:T.text,textAlign:"center",marginBottom:4}}>
+          🎯 {lang==="bn"?"প্রেডিকশন":"Prediction"}
+        </div>
+        <div style={{fontFamily:HS,fontSize:12,color:T.textM,textAlign:"center",marginBottom:20}}>
+          {tn(m.h,lang)} vs {tn(m.a,lang)}
+        </div>
+        <div style={{display:"flex",alignItems:"center",justifyContent:"center",gap:16,marginBottom:20}}>
+          <div style={{textAlign:"center"}}>
+            <Flag en={m.h} size={40}/>
+            <div style={{fontFamily:HS,fontSize:11,color:T.textS,margin:"6px 0"}}>{tn(m.h,lang)}</div>
+            <input value={hg} onChange={e=>setHg(e.target.value)} style={inp} placeholder="0" maxLength={2} type="number"/>
+          </div>
+          <div style={{fontFamily:HS,fontSize:24,fontWeight:700,color:T.textM,paddingTop:24}}>–</div>
+          <div style={{textAlign:"center"}}>
+            <Flag en={m.a} size={40}/>
+            <div style={{fontFamily:HS,fontSize:11,color:T.textS,margin:"6px 0"}}>{tn(m.a,lang)}</div>
+            <input value={ag} onChange={e=>setAg(e.target.value)} style={inp} placeholder="0" maxLength={2} type="number"/>
+          </div>
+        </div>
+        <div style={{fontFamily:HS,fontSize:11,color:T.textM,textAlign:"center",marginBottom:16}}>
+          ✅ {lang==="bn"?"সঠিক ফলাফল = ১ পয়েন্ট | সঠিক স্কোর = ৩ পয়েন্ট":"Correct result = 1pt | Exact score = 3pts"}
+        </div>
+        <div style={{display:"flex",gap:8}}>
+          <button onClick={onClose} style={{flex:1,padding:11,borderRadius:12,border:`1px solid ${T.border}`,
+            background:T.sur2,color:T.textS,fontFamily:HS,fontSize:13,cursor:"pointer"}}>
+            {lang==="bn"?"বাতিল":"Cancel"}
+          </button>
+          <button onClick={save} disabled={saving||hg===""||ag===""} style={{flex:2,padding:11,borderRadius:12,border:"none",
+            background:(saving||hg===""||ag==="")?T.sur3:T.green,color:"#fff",
+            fontFamily:HS,fontSize:14,fontWeight:700,cursor:"pointer"}}>
+            {saving?(lang==="bn"?"সংরক্ষণ...":"Saving..."):(lang==="bn"?"সংরক্ষণ":"Save")}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ── Leaderboard ───────────────────────────────────────────────────── */
+function LeaderboardTab({T, lang, userName}) {
+  const[data, setData] = useState([]);
+  const[loading, setLoading] = useState(true);
+
+  useEffect(()=>{
+    fetchLeaderboard().then(d=>{setData(d);setLoading(false);}).catch(()=>setLoading(false));
+  },[]);
+
+  const medals = ["🥇","🥈","🥉"];
+
+  return(
+    <div style={{padding:"12px 14px 90px"}}>
+      <div style={{fontFamily:HS,fontSize:13,color:T.textM,textAlign:"center",marginBottom:16}}>
+        {lang==="bn"?"সকল ম্যাচের পয়েন্ট যোগ করা হয়েছে":"Points from all predicted matches"}
+      </div>
+      {loading?(
+        <div style={{textAlign:"center",padding:40,fontFamily:HS,color:T.textM}}>
+          {lang==="bn"?"লোড হচ্ছে...":"Loading..."}
+        </div>
+      ):data.length===0?(
+        <div style={{textAlign:"center",padding:40,fontFamily:HS,color:T.textM,fontSize:14}}>
+          {lang==="bn"?"এখনো কোনো প্রেডিকশন নেই":"No predictions yet"}
+        </div>
+      ):(
+        data.map((row,i)=>(
+          <div key={row.name} style={{background:T.surface,borderRadius:14,border:`1px solid ${T.border}`,
+            padding:"14px 16px",marginBottom:8,display:"flex",alignItems:"center",gap:12,
+            boxShadow:row.name===userName?`0 0 0 2px ${T.green}`:T.glow}}>
+            <div style={{fontFamily:HS,fontSize:22,width:36,textAlign:"center"}}>
+              {medals[i]||<span style={{fontFamily:HS,fontSize:14,color:T.textM}}>{i+1}</span>}
+            </div>
+            <div style={{flex:1}}>
+              <div style={{fontFamily:HS,fontSize:15,fontWeight:row.name===userName?700:500,
+                color:row.name===userName?T.green:T.text}}>
+                {row.name}{row.name===userName&&" (তুমি)"}
+              </div>
+              <div style={{fontFamily:HS,fontSize:12,color:T.textM,marginTop:2}}>
+                {row.count} {lang==="bn"?"টি প্রেডিকশন":"predictions"}
+              </div>
+            </div>
+            <div style={{textAlign:"right"}}>
+              <div style={{fontFamily:HS,fontSize:22,fontWeight:800,color:T.green}}>{row.total}</div>
+              <div style={{fontFamily:HS,fontSize:10,color:T.textM}}>{lang==="bn"?"পয়েন্ট":"pts"}</div>
+            </div>
+          </div>
+        ))
+      )}
+    </div>
+  );
+}
+
 export default function App(){
   const[dark,setDark]=useState(true);
   const[lang,setLang]=useState("bn");
@@ -894,8 +1353,41 @@ export default function App(){
   const[tp,setTp]=useState(null);
   const[sm,setSm]=useState(false);
   const[scores,setScores]=useState({});
+  const[userName,setUserName]=useState(()=>localStorage.getItem("kk_user")||"");
+  const[myPreds,setMyPreds]=useState({});
+  const[predictM,setPredictM]=useState(null);
   const T=mkT(dark);
   const aF=en=>setFavs(f=>f.includes(en)?f:[...f,en]);
+
+  // Load user's predictions on login
+  useEffect(()=>{
+    if(!userName)return;
+    getPredictions(userName).then(data=>{
+      const map={};
+      data.forEach(p=>{map[p.match_id]={home_score:p.home_score,away_score:p.away_score,points:p.points};});
+      setMyPreds(map);
+    }).catch(()=>{});
+  },[userName]);
+
+  const handleNameSave = async (name, deviceId) => {
+    localStorage.setItem("kk_user", name);
+    if(deviceId) localStorage.setItem("kk_device_id", deviceId);
+    setUserName(name);
+  };
+
+  // Auto-login if device already registered
+  useEffect(()=>{
+    const storedName = localStorage.getItem("kk_user");
+    if(storedName){ setUserName(storedName); return; }
+    getDeviceId().then(deviceId=>{
+      checkDeviceExists(deviceId).then(existingName=>{
+        if(existingName){
+          localStorage.setItem("kk_user", existingName);
+          setUserName(existingName);
+        }
+      }).catch(()=>{});
+    });
+  },[]);
 
   const openTeam=en=>{window.history.pushState({team:en},"","");setTp(en);};
   const closeTeam=()=>setTp(null);
@@ -948,7 +1440,7 @@ export default function App(){
           </div>
           {/* Main tabs */}
           <div style={{display:"flex",borderTop:"1px solid rgba(255,255,255,0.12)"}}>
-            {[["home",lang==="bn"?"🏠 হোম":"🏠 Home"],["wc",lang==="bn"?"🏆 বিশ্বকাপ":"🏆 World Cup"]].map(([id,lb])=>(
+            {[["home",lang==="bn"?"🏠 হোম":"🏠 Home"],["wc",lang==="bn"?"🏆 বিশ্বকাপ":"🏆 World Cup"],["predict","🎯"]].map(([id,lb])=>(
               <button key={id} onClick={()=>setMt(id)} style={{flex:1,background:"transparent",border:"none",
                 borderBottom:`2.5px solid ${mt===id?"#fff":"transparent"}`,
                 color:mt===id?"#fff":"rgba(255,255,255,0.45)",
@@ -960,7 +1452,7 @@ export default function App(){
           {/* WC sub-tabs — inside sticky header */}
           {mt==="wc"&&(
             <div style={{display:"flex",borderTop:"1px solid rgba(255,255,255,0.12)"}}>
-              {[["table",lang==="bn"?"টেবিল":"Table"],["knockout",lang==="bn"?"নকআউট":"Knockout"],["fixture",lang==="bn"?"গ্রুপ পর্ব":"Group Stage"]].map(([id,lb])=>(
+              {[["table",lang==="bn"?"টেবিল":"Table"],["knockout",lang==="bn"?"নকআউট":"Knockout"],["fixture",lang==="bn"?"গ্রুপ পর্ব":"Group Stage"],["leaderboard","🏆"]].map(([id,lb])=>(
                 <button key={id} onClick={()=>setWt(id)} style={{flex:1,background:"transparent",border:"none",
                   borderBottom:`2.5px solid ${wt===id?"#fff":"transparent"}`,
                   color:wt===id?"#fff":"rgba(255,255,255,0.5)",
@@ -974,11 +1466,14 @@ export default function App(){
 
         {/* Body */}
         {mt==="home"&&<HomeTab lang={lang} favs={favs} setFavs={setFavs} onTeam={openTeam} setSM={setSm} T={T}/>}
+        {mt==="predict"&&<PredictionTab T={T} lang={lang} userName={userName} onSave={handleNameSave} myPreds={myPreds} setMyPreds={setMyPreds} scores={scores} setPredictM={setPredictM}/>}
         {mt==="wc"&&wt==="table"&&<TableTab lang={lang} T={T} scores={scores}/>}
         {mt==="wc"&&wt==="knockout"&&<KnockoutTab lang={lang} T={T} scores={scores}/>}
-        {mt==="wc"&&wt==="fixture"&&<GroupTab lang={lang} onTeam={openTeam} T={T} scores={scores} setScores={setScores}/>}
+        {mt==="wc"&&wt==="fixture"&&<GroupTab lang={lang} onTeam={openTeam} T={T} scores={scores} setScores={setScores} myPreds={myPreds} setMyPreds={setMyPreds} userName={userName} setPredictM={setPredictM}/>}
+        {mt==="wc"&&wt==="leaderboard"&&<LeaderboardTab T={T} lang={lang} userName={userName}/>}
 
         {sm&&<AddModal favs={favs} onAdd={aF} onClose={()=>setSm(false)} lang={lang} T={T}/>}
+        {predictM&&<PredictModal m={predictM} T={T} lang={lang} userName={userName} onClose={()=>setPredictM(null)} myPreds={myPreds} setMyPreds={setMyPreds}/>}
 
         {/* Footer */}
         <div style={{position:"fixed",bottom:0,left:0,right:0,background:T.surface,
