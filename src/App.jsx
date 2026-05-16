@@ -219,22 +219,28 @@ const R32=[
   {id:88,h:"1K",    a:"3DEIJL", d:"2026-07-04",t:"7:30 AM",  venue:"Kansas City Stadium"},
 ];
 const R16=[
-  {id:89,d:"2026-07-05",t:"1:00 AM",venue:"TBD"},{id:90,d:"2026-07-05",t:"11:00 PM",venue:"TBD"},
-  {id:91,d:"2026-07-06",t:"3:00 AM",venue:"TBD"},{id:92,d:"2026-07-06",t:"7:00 AM",venue:"TBD"},
-  {id:93,d:"2026-07-07",t:"1:00 AM",venue:"TBD"},{id:94,d:"2026-07-07",t:"11:00 PM",venue:"TBD"},
-  {id:95,d:"2026-07-08",t:"3:00 AM",venue:"TBD"},{id:96,d:"2026-07-08",t:"7:00 AM",venue:"TBD"},
+  {id:89,h:"2A/2B",    a:"1F/2C",     d:"2026-07-04",t:"11:00 PM",venue:"Houston Stadium"},
+  {id:90,h:"1E/3ABCDF",a:"1I/3CDFGH", d:"2026-07-05",t:"3:00 AM", venue:"Philadelphia Stadium"},
+  {id:91,h:"1C/2F",    a:"2E/2I",     d:"2026-07-06",t:"2:00 AM", venue:"New York New Jersey Stadium"},
+  {id:92,h:"1A/3CEFHI",a:"1L/3EHIJK", d:"2026-07-06",t:"6:00 AM", venue:"Mexico City Stadium"},
+  {id:93,h:"2K/2L",    a:"1H/2J",     d:"2026-07-07",t:"1:00 AM", venue:"Dallas Stadium"},
+  {id:94,h:"1D/3BEFIJ",a:"1G/3AEHIJ", d:"2026-07-07",t:"6:00 AM", venue:"Seattle Stadium"},
+  {id:95,h:"1J/2H",    a:"2D/2G",     d:"2026-07-07",t:"10:00 PM",venue:"Atlanta Stadium"},
+  {id:96,h:"1B/3EFGIJ",a:"1K/3DEIJL", d:"2026-07-08",t:"2:00 AM", venue:"BC Place Vancouver"},
 ];
 const QF=[
-  {id:97,d:"2026-07-10",t:"1:00 AM",venue:"TBD"},{id:98,d:"2026-07-10",t:"11:00 PM",venue:"TBD"},
-  {id:99,d:"2026-07-11",t:"3:00 AM",venue:"TBD"},{id:100,d:"2026-07-11",t:"7:00 AM",venue:"TBD"},
+  {id:97, h:"W EF1",a:"W EF2",d:"2026-07-10",t:"2:00 AM",  venue:"Boston Stadium"},
+  {id:98, h:"W EF5",a:"W EF6",d:"2026-07-11",t:"1:00 AM",  venue:"Los Angeles Stadium"},
+  {id:99, h:"W EF3",a:"W EF4",d:"2026-07-12",t:"3:00 AM",  venue:"Miami Stadium"},
+  {id:100,h:"W EF7",a:"W EF8",d:"2026-07-12",t:"7:00 AM",  venue:"Kansas City Stadium"},
 ];
 const SF=[
-  {id:101,d:"2026-07-15",t:"1:00 AM",venue:"Atlanta"},
-  {id:102,d:"2026-07-16",t:"1:00 AM",venue:"Dallas"},
+  {id:101,h:"W QF1",a:"W QF2",d:"2026-07-15",t:"1:00 AM",venue:"Dallas Stadium"},
+  {id:102,h:"W QF3",a:"W QF4",d:"2026-07-16",t:"1:00 AM",venue:"Atlanta Stadium"},
 ];
 const FINAL=[
-  {id:103,d:"2026-07-19",t:"10:00 PM",venue:"Miami",label:"Third Place"},
-  {id:104,d:"2026-07-20",t:"1:00 AM",venue:"New York NJ",label:"🏆 Final"},
+  {id:103,h:"Loser SF 1",a:"Loser SF 2",d:"2026-07-19",t:"3:00 AM", venue:"Miami Stadium",              label:"🥉 Bronze Final"},
+  {id:104,h:"Winner SF 1",a:"Winner SF 2",d:"2026-07-20",t:"1:00 AM",venue:"New York New Jersey Stadium",label:"🏆 Final"},
 ];
 
 /* ── Date helpers ──────────────────────────────────────────────────── */
@@ -445,17 +451,11 @@ function GroupTab({lang,onTeam,T,scores,setScores}){
     return Object.entries(mp).sort((a,b)=>new Date(a[0])-new Date(b[0]));
   },[fil]);
   const sr=AT.filter(en=>en.toLowerCase().includes(sq.toLowerCase())||(TEAMS[en]?.bn||"").includes(sq));
-  const done=MATCHES.filter(m=>{const sc=scores[m.id];return sc&&sc.hg!==""&&sc.ag!=="";}).length;
+
   return(
     <div>
       <div style={{background:T.surface,padding:"10px 12px 0",borderBottom:`1px solid ${T.border}`}}>
-        <div style={{display:"flex",justifyContent:"space-between",marginBottom:5}}>
-          <span style={{fontFamily:HS,fontSize:11,color:T.textM}}>{lang==="bn"?"অগ্রগতি":"Progress"}</span>
-          <span style={{fontFamily:HS,fontSize:11,color:T.green,fontWeight:600}}>{done}/72</span>
-        </div>
-        <div style={{height:3,background:T.sur2,borderRadius:3,marginBottom:10,overflow:"hidden"}}>
-          <div style={{height:"100%",width:`${(done/72)*100}%`,background:T.green,borderRadius:3,transition:"width 0.5s"}}/>
-        </div>
+
         <div style={{display:"flex",gap:8,paddingBottom:10}}>
           <button onClick={()=>{setSf(true);setSq("");}} style={{display:"flex",alignItems:"center",gap:6,
             background:ft?T.greenBg:T.sur2,border:`1.5px solid ${ft?T.greenBr:T.border}`,
@@ -665,16 +665,16 @@ function KnockoutTab({lang,T,scores}){
             T={T} lang={lang} scores={scores}/>
         ))}
         {round==="R16"&&R16.map(m=>(
-          <KOMatchCard key={m.id} m={m} hLabel="?" aLabel="?" hTeam={null} aTeam={null} T={T} lang={lang} scores={scores}/>
+          <KOMatchCard key={m.id} m={m} hLabel={m.h||"?"} aLabel={m.a||"?"} hTeam={null} aTeam={null} T={T} lang={lang} scores={scores}/>
         ))}
         {round==="QF"&&QF.map(m=>(
-          <KOMatchCard key={m.id} m={m} hLabel="?" aLabel="?" hTeam={null} aTeam={null} T={T} lang={lang} scores={scores}/>
+          <KOMatchCard key={m.id} m={m} hLabel={m.h||"?"} aLabel={m.a||"?"} hTeam={null} aTeam={null} T={T} lang={lang} scores={scores}/>
         ))}
         {round==="SF"&&SF.map(m=>(
-          <KOMatchCard key={m.id} m={m} hLabel="?" aLabel="?" hTeam={null} aTeam={null} T={T} lang={lang} scores={scores}/>
+          <KOMatchCard key={m.id} m={m} hLabel={m.h||"?"} aLabel={m.a||"?"} hTeam={null} aTeam={null} T={T} lang={lang} scores={scores}/>
         ))}
         {round==="F"&&FINAL.map(m=>(
-          <KOMatchCard key={m.id} m={m} hLabel="?" aLabel="?" hTeam={null} aTeam={null} T={T} lang={lang} scores={scores}/>
+          <KOMatchCard key={m.id} m={m} hLabel={m.h||"?"} aLabel={m.a||"?"} hTeam={null} aTeam={null} T={T} lang={lang} scores={scores}/>
         ))}
       </div>
     </div>
