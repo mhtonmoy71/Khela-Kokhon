@@ -527,7 +527,7 @@ function FixRow({m,lang,onTeam,T,scores,setScores,myPreds,setPredictM,userName,i
             </span>
             <Flag en={m.h} size={30}/>
           </div>
-          <div style={{width:72,textAlign:"center",flexShrink:0,cursor:"pointer"}} onClick={()=>setShowScore(true)}>
+          <div style={{width:72,textAlign:"center",flexShrink:0}}>
             {hasScore?(
               <div style={{background:T.greenBg,borderRadius:8,padding:"3px 6px",border:`1px solid ${T.greenBr}`}}>
                 <span style={{fontFamily:HS,fontSize:15,fontWeight:800,color:T.green}}>{sc.hg}–{sc.ag}</span>
@@ -547,6 +547,17 @@ function FixRow({m,lang,onTeam,T,scores,setScores,myPreds,setPredictM,userName,i
               {tn(m.a,lang)}
             </span>
           </div>
+          {/* Predict button - always visible for upcoming matches */}
+          {status==="up"&&(
+            <button onClick={()=>userName?setPredictM(m):(alert(lang==="bn"?"🎯 ট্যাবে গিয়ে নাম দিন!":"Go to 🎯 tab to join!"))} style={{
+              flexShrink:0,background:pred?T.greenBg:T.sur2,
+              border:`1.5px solid ${pred?T.greenBr:T.border}`,
+              borderRadius:10,padding:"5px 8px",cursor:"pointer",
+              fontFamily:HS,fontSize:10,fontWeight:pred?700:400,
+              color:pred?T.green:T.textS,whiteSpace:"nowrap",lineHeight:1.3}}>
+              {pred?`🎯 ${pred.home_score}-${pred.away_score}`:(lang==="bn"?"🎯 প্রেডিক্ট":"🎯 Predict")}
+            </button>
+          )}
           {isAdmin&&<button onClick={()=>setShowAct(v=>!v)}
             style={{background:"transparent",border:"none",color:T.textM,fontSize:18,cursor:"pointer",padding:"0 2px",flexShrink:0}}>
             ⋯
