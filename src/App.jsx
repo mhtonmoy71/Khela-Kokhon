@@ -926,7 +926,7 @@ export default function App(){
               <WCLogo size={40} dark={dark}/>
               <div>
                 <div style={{fontFamily:HS,fontSize:18,fontWeight:800,color:"#fff",lineHeight:1}}>
-                  {lang==="bn"?"খেলা কখন?":"Khela Kokhon"}
+                  {lang==="bn"?"খেলা কখন?":"Khela Kokhon?"}
                 </div>
                 <div style={{fontFamily:HS,fontSize:10,color:"rgba(255,255,255,0.5)",letterSpacing:1}}>
                   FIFA WORLD CUP 2026
@@ -985,7 +985,7 @@ export default function App(){
           borderTop:`1px solid ${T.border}`,padding:"10px 16px",textAlign:"center",zIndex:30}}>
           <div style={{fontFamily:HS,fontSize:11,color:T.textM}}>
             {lang==="bn"?"ডেভেলপ করেছেন ":"Developed by "}
-            <span style={{fontWeight:700,color:T.textS}}>মাহবুব হাসান তন্ময়</span>
+            <span style={{fontWeight:700,color:T.textS}}>{lang==="bn"?"মাহবুব হাসান তন্ময়":"Mahbub Hasan Tonmoy"}</span>
           </div>
         </div>
       </div>
