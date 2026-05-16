@@ -616,8 +616,7 @@ function KOTab({lang,TH,scores}){
             </div>
             <div style={{display:"flex",alignItems:"center",gap:8}}>
               {aTeam?<Flag en={aTeam} size={28}/>:<div style={{width:28,height:28,borderRadius:"50%",background:TH.surface2,border:`1px dashed ${TH.border}`,flexShrink:0}}/>}
-              <span style={{fontFamily:HS,fontSize:aTeam?13:11,fontWeight:aTeam?600:400,color:aTeam?TH.text:TH.textM,lineHeight:1.2}}>
-                {!aTeam&&<div style={{height:10,width:70,background:TH.surface2,borderRadius:5}}/>}
+              {!aTeam&&<div style={{height:10,width:70,background:TH.surface2,borderRadius:5}}/>}
               {aTeam&&<span style={{fontFamily:HS,fontSize:13,fontWeight:600,color:TH.text,lineHeight:1.2}}>{tn(aTeam,lang)}</span>}
             </div>
           </div>
