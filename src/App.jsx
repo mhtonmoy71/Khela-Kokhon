@@ -933,15 +933,18 @@ function TeamPage({en,lang,onBack,T,scores,setScores,isAdmin,userName,myPreds,se
             borderLeft:`4px solid ${hasScore?T.green:"transparent"}`}}>
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
               <span style={{fontFamily:HS,fontSize:12,color:T.textM}}>{dl(m.d,lang)}</span>
-              <div style={{display:"flex",gap:6,alignItems:"center"}}>
+              <div style={{display:"flex",gap:6,alignItems:"center",flexWrap:"wrap",justifyContent:"flex-end"}}>
                 <Chip d={m.d} lang={lang} T={T}/>
-                {userName&&getStatus(m)==="up"&&(
+                {getStatus(m)==="up"&&(
                   <button onClick={()=>setPredictM(m)} style={{
-                    background:myPreds?.[m.id]?T.greenBg:T.sur2,
-                    border:`1px solid ${myPreds?.[m.id]?T.greenBr:T.border}`,
+                    background:(myPreds?.[m.id]||myPreds?.[String(m.id)])?T.greenBg:T.sur2,
+                    border:`1.5px solid ${(myPreds?.[m.id]||myPreds?.[String(m.id)])?T.greenBr:T.border}`,
                     borderRadius:8,padding:"4px 8px",cursor:"pointer",
-                    fontFamily:HS,fontSize:11,color:myPreds?.[m.id]?T.green:T.textS,whiteSpace:"nowrap"}}>
-                    🎯 {myPreds?.[m.id]?`${myPreds[m.id].home_score}–${myPreds[m.id].away_score}`:(lang==="bn"?"প্রেডিক্ট":"Predict")}
+                    fontFamily:HS,fontSize:11,fontWeight:(myPreds?.[m.id]||myPreds?.[String(m.id)])?700:400,
+                    color:(myPreds?.[m.id]||myPreds?.[String(m.id)])?T.green:T.textS,whiteSpace:"nowrap"}}>
+                    {(myPreds?.[m.id]||myPreds?.[String(m.id)])?
+                      `🎯 ${(myPreds[m.id]||myPreds[String(m.id)]).home_score}–${(myPreds[m.id]||myPreds[String(m.id)]).away_score}`
+                      :(lang==="bn"?"🎯 প্রেডিক্ট":"🎯 Predict")}
                   </button>
                 )}
                 <button onClick={()=>addToGCal(m,lang)} style={{background:T.sur2,border:`1px solid ${T.border}`,
@@ -978,6 +981,154 @@ function TeamPage({en,lang,onBack,T,scores,setScores,isAdmin,userName,myPreds,se
 }
 
 /* ── HomeTab ───────────────────────────────────────────────────────── */
+/* ── Mini Calendar ─────────────────────────────────────────────────── */
+const ALL_MATCH_DATES = new Set([
+  ...MATCHES.map(m=>m.d),
+  ...R32.map(m=>m.d),
+  ...R16.map(m=>m.d),
+  ...QF.map(m=>m.d),
+  ...SF.map(m=>m.d),
+  ...FINAL.map(m=>m.d),
+]);
+
+function getAllMatchesForDate(d) {
+  return [
+    ...MATCHES.filter(m=>m.d===d),
+    ...R32.filter(m=>m.d===d),
+    ...R16.filter(m=>m.d===d),
+    ...QF.filter(m=>m.d===d),
+    ...SF.filter(m=>m.d===d),
+    ...FINAL.filter(m=>m.d===d),
+  ];
+}
+
+function CompactCalendar({T, lang, onDateSelect}) {
+  const today = new Date();
+  const todayStr = today.toISOString().split("T")[0];
+  const[vm, setVm] = useState(new Date(2026, 5, 1));
+  const[popDate, setPopDate] = useState(null);
+  const year=vm.getFullYear(), month=vm.getMonth();
+  const firstDay=new Date(year,month,1).getDay();
+  const dim=new Date(year,month+1,0).getDate();
+  const ENM=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  const BNM=["জানু","ফেব্রু","মার্চ","এপ্রিল","মে","জুন","জুলাই","আগস্ট","সেপ্টে","অক্টো","নভে","ডিসে"];
+  const days=[];
+  for(let i=0;i<firstDay;i++) days.push(null);
+  for(let d=1;d<=dim;d++) days.push(d);
+  const dh=["S","M","T","W","T","F","S"];
+
+  const handleDay=(d)=>{
+    const ds=`${year}-${String(month+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
+    if(ALL_MATCH_DATES.has(ds)) setPopDate(ds);
+  };
+
+  const popMatches = popDate ? getAllMatchesForDate(popDate) : [];
+
+  return(
+    <>
+      <div style={{background:T.surface,borderRadius:14,border:`1px solid ${T.border}`,
+        overflow:"hidden",width:"100%"}}>
+        {/* Header */}
+        <div style={{background:T.green,padding:"6px 8px",display:"flex",
+          alignItems:"center",justifyContent:"space-between"}}>
+          <button onClick={()=>setVm(new Date(year,month-1,1))}
+            style={{background:"rgba(255,255,255,0.2)",border:"none",borderRadius:6,
+              width:22,height:22,cursor:"pointer",color:"#fff",fontSize:13,
+              display:"flex",alignItems:"center",justifyContent:"center"}}>‹</button>
+          <span style={{fontFamily:HS,fontSize:11,fontWeight:700,color:"#fff"}}>
+            {lang==="bn"?BNM[month]:ENM[month]} {year}
+          </span>
+          <button onClick={()=>setVm(new Date(year,month+1,1))}
+            style={{background:"rgba(255,255,255,0.2)",border:"none",borderRadius:6,
+              width:22,height:22,cursor:"pointer",color:"#fff",fontSize:13,
+              display:"flex",alignItems:"center",justifyContent:"center"}}>›</button>
+        </div>
+        {/* Days header */}
+        <div style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",
+          background:T.sur2,padding:"3px 4px"}}>
+          {dh.map((d,i)=>(
+            <div key={i} style={{textAlign:"center",fontFamily:HS,fontSize:9,
+              color:T.textM,fontWeight:600}}>{d}</div>
+          ))}
+        </div>
+        {/* Days grid */}
+        <div style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",
+          gap:1,padding:"3px 4px 4px"}}>
+          {days.map((d,i)=>{
+            if(!d) return <div key={i}/>;
+            const ds=`${year}-${String(month+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
+            const hasM=ALL_MATCH_DATES.has(ds);
+            const isTod=ds===todayStr;
+            return(
+              <div key={i} onClick={()=>hasM&&handleDay(d)}
+                style={{display:"flex",flexDirection:"column",alignItems:"center",
+                  padding:"3px 1px",borderRadius:6,
+                  cursor:hasM?"pointer":"default",
+                  background:isTod?T.greenBg:"transparent"}}>
+                <span style={{fontFamily:HS,fontSize:10,fontWeight:isTod?700:400,
+                  color:hasM?T.text:T.textM,lineHeight:1.3}}>{d}</span>
+                {hasM&&<div style={{width:3,height:3,borderRadius:"50%",
+                  background:T.green,marginTop:1}}/>}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Popup for selected date */}
+      {popDate&&(
+        <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.7)",
+          zIndex:999,display:"flex",alignItems:"flex-end"}} onClick={()=>setPopDate(null)}>
+          <div style={{background:T.surface,borderRadius:"20px 20px 0 0",width:"100%",
+            maxHeight:"70vh",overflow:"hidden",display:"flex",flexDirection:"column"}}
+            onClick={e=>e.stopPropagation()}>
+            <div style={{padding:"14px 16px 10px",borderBottom:`1px solid ${T.border}`,
+              display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+              <div style={{fontFamily:HS,fontSize:15,fontWeight:700,color:T.text}}>
+                {dl(popDate,lang)}
+              </div>
+              <button onClick={()=>setPopDate(null)} style={{background:T.sur2,
+                border:"none",borderRadius:20,width:28,height:28,cursor:"pointer",
+                fontSize:14,color:T.text}}>✕</button>
+            </div>
+            <div style={{overflowY:"auto",padding:"8px 12px 24px"}}>
+              {popMatches.map((m,i)=>{
+                const isGroup=m.g&&m.g.length===1;
+                const[tn2,ap]=m.t.split(" ");
+                return(
+                  <div key={m.id||i} style={{background:T.sur2,borderRadius:12,
+                    padding:"12px 14px",marginBottom:8}}>
+                    <div style={{fontFamily:HS,fontSize:10,color:T.textM,marginBottom:6}}>
+                      {isGroup?`Group ${m.g}`:m.label||m.venue||m.g}
+                    </div>
+                    <div style={{display:"flex",alignItems:"center",gap:8}}>
+                      {isGroup&&<Flag en={m.h} size={28}/>}
+                      <span style={{fontFamily:HS,fontSize:13,fontWeight:600,
+                        color:T.text,flex:1}}>
+                        {isGroup?tn(m.h,lang):(m.h||"TBD")}
+                      </span>
+                      <div style={{textAlign:"center",minWidth:60}}>
+                        <span style={{fontFamily:HS,fontSize:14,fontWeight:700,color:T.text}}>{tn2}</span>
+                        <span style={{fontFamily:HS,fontSize:9,color:T.textM}}>{ap}</span>
+                      </div>
+                      <span style={{fontFamily:HS,fontSize:13,fontWeight:600,
+                        color:T.text,flex:1,textAlign:"right"}}>
+                        {isGroup?tn(m.a,lang):(m.a||"TBD")}
+                      </span>
+                      {isGroup&&<Flag en={m.a} size={28}/>}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
+
+
 /* ── Today/Tomorrow Match Card ─────────────────────────────────────── */
 function DayMatchCard({m, lang, T, userName, myPreds, setPredictM, onTeam}) {
   const cd = useCountdown(tSort(m).getTime());
@@ -1033,7 +1184,7 @@ function DayMatchCard({m, lang, T, userName, myPreds, setPredictM, onTeam}) {
 
         {/* Actions */}
         <div style={{display:"flex",gap:6}}>
-          {userName&&!isLocked&&(
+          {!isLocked&&(
             <button onClick={()=>setPredictM(m)} style={{
               flex:1,display:"flex",alignItems:"center",justifyContent:"center",gap:4,
               background:pred?T.greenBg:T.sur2,
@@ -1041,14 +1192,23 @@ function DayMatchCard({m, lang, T, userName, myPreds, setPredictM, onTeam}) {
               borderRadius:10,padding:"8px",cursor:"pointer",
               fontFamily:HS,fontSize:13,fontWeight:pred?700:400,
               color:pred?T.green:T.textS}}>
-              🎯 {pred?`${pred.home_score}–${pred.away_score}`:(lang==="bn"?"প্রেডিক্ট":"Predict")}
+              {pred?`🎯 ${pred.home_score}–${pred.away_score}`:(lang==="bn"?"🎯 প্রেডিক্ট করুন":"🎯 Predict")}
             </button>
           )}
-          {isLocked&&userName&&(
+          {isLocked&&pred&&(
             <div style={{flex:1,display:"flex",alignItems:"center",justifyContent:"center",gap:4,
-              background:T.sur2,borderRadius:10,padding:"8px",
-              fontFamily:HS,fontSize:12,color:T.textM}}>
-              🔒 {pred?`${pred.home_score}–${pred.away_score}`:(lang==="bn"?"লক হয়েছে":"Locked")}
+              background:T.greenBg,borderRadius:10,padding:"8px",
+              border:`1px solid ${T.greenBr}`}}>
+              <span style={{fontFamily:HS,fontSize:13,fontWeight:700,color:T.green}}>
+                🎯 {pred.home_score}–{pred.away_score}
+              </span>
+              <span style={{fontFamily:HS,fontSize:10,color:T.textM}}>🔒</span>
+            </div>
+          )}
+          {isLocked&&!pred&&(
+            <div style={{flex:1,display:"flex",alignItems:"center",justifyContent:"center",
+              background:T.sur2,borderRadius:10,padding:"8px"}}>
+              <span style={{fontFamily:HS,fontSize:11,color:T.textM}}>🔒 {lang==="bn"?"লক":"Locked"}</span>
             </div>
           )}
           <button onClick={()=>addToGCal(m,lang)} style={{background:T.sur2,border:`1px solid ${T.border}`,
@@ -1064,6 +1224,8 @@ function DayMatchCard({m, lang, T, userName, myPreds, setPredictM, onTeam}) {
 function HomeTab({lang,favs,setFavs,onTeam,setSM,T,userName,myPreds,setPredictM}){
   const pop=AT.filter(en=>TEAMS[en].pop);
 
+  const[selectedDate, setSelectedDate] = useState(null);
+
   // Today & Tomorrow matches
   const now = new Date();
   const todayStr = now.toISOString().split("T")[0];
@@ -1072,6 +1234,10 @@ function HomeTab({lang,favs,setFavs,onTeam,setSM,T,userName,myPreds,setPredictM}
 
   const todayMatches = SORTED.filter(m=>m.d===todayStr);
   const tomMatches = SORTED.filter(m=>m.d===tomStr);
+  const selectedMatches = selectedDate?SORTED.filter(m=>m.d===selectedDate):[];
+
+  const ENM3=["January","February","March","April","May","June","July","August","September","October","November","December"];
+  const BNM3=["জানুয়ারি","ফেব্রুয়ারি","মার্চ","এপ্রিল","মে","জুন","জুলাই","আগস্ট","সেপ্টেম্বর","অক্টোবর","নভেম্বর","ডিসেম্বর"];
 
   function gN(en){
     const n=new Date();n.setHours(0,0,0,0);
@@ -1132,34 +1298,119 @@ function HomeTab({lang,favs,setFavs,onTeam,setSM,T,userName,myPreds,setPredictM}
   return(
     <div style={{padding:"14px 14px 90px"}}>
 
-      {/* Today's Matches */}
+      {/* Today & Tomorrow + Calendar - side by side */}
+      <div style={{display:"flex",gap:10,marginBottom:16,alignItems:"flex-start"}}>
+        {/* Left: Today/Tomorrow info */}
+        <div style={{flex:1,minWidth:0}}>
+          {todayMatches.length>0?(
+            <div style={{background:T.surface,borderRadius:14,border:`1px solid ${T.border}`,
+              padding:"10px 12px",marginBottom:8}}>
+              <div style={{display:"flex",alignItems:"center",gap:5,marginBottom:8}}>
+                <div style={{width:7,height:7,borderRadius:"50%",background:T.red,flexShrink:0,animation:"pulse 1s infinite"}}/>
+                <span style={{fontFamily:HS,fontSize:12,fontWeight:700,color:T.text}}>
+                  {lang==="bn"?"আজকের ম্যাচ":"Today"}
+                </span>
+              </div>
+              {todayMatches.map(m=>{
+                const[t2,ap]=m.t.split(" ");
+                return(
+                  <div key={m.id} style={{display:"flex",alignItems:"center",
+                    gap:4,marginBottom:6,paddingBottom:6,
+                    borderBottom:`1px solid ${T.border}`}}>
+                    <Flag en={m.h} size={18}/>
+                    <span style={{fontFamily:HS,fontSize:10,color:T.text,flex:1,
+                      overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>
+                      {tn(m.h,lang)}
+                    </span>
+                    <span style={{fontFamily:HS,fontSize:11,fontWeight:700,color:T.green,flexShrink:0}}>
+                      {t2}<span style={{fontSize:8,color:T.textM}}>{ap}</span>
+                    </span>
+                    <span style={{fontFamily:HS,fontSize:10,color:T.text,flex:1,
+                      textAlign:"right",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>
+                      {tn(m.a,lang)}
+                    </span>
+                    <Flag en={m.a} size={18}/>
+                  </div>
+                );
+              })}
+              <button onClick={()=>{}} style={{width:"100%",background:"transparent",
+                border:"none",fontFamily:HS,fontSize:10,color:T.green,cursor:"pointer",
+                padding:"2px 0",textAlign:"center"}}>
+                {lang==="bn"?"বিস্তারিত ↓":"Details ↓"}
+              </button>
+            </div>
+          ):(
+            <div style={{background:T.surface,borderRadius:14,border:`1px solid ${T.border}`,
+              padding:"10px 12px",marginBottom:8,textAlign:"center"}}>
+              <div style={{fontFamily:HS,fontSize:11,color:T.textM}}>
+                {lang==="bn"?"আজ কোনো ম্যাচ নেই":"No match today"}
+              </div>
+            </div>
+          )}
+          {tomMatches.length>0&&(
+            <div style={{background:T.surface,borderRadius:14,border:`1px solid ${T.border}`,
+              padding:"10px 12px"}}>
+              <div style={{fontFamily:HS,fontSize:12,fontWeight:700,color:T.text,marginBottom:8}}>
+                📅 {lang==="bn"?"আগামীকাল":"Tomorrow"}
+              </div>
+              {tomMatches.map(m=>{
+                const[t2,ap]=m.t.split(" ");
+                return(
+                  <div key={m.id} style={{display:"flex",alignItems:"center",
+                    gap:4,marginBottom:6,paddingBottom:6,
+                    borderBottom:`1px solid ${T.border}`}}>
+                    <Flag en={m.h} size={18}/>
+                    <span style={{fontFamily:HS,fontSize:10,color:T.text,flex:1,
+                      overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>
+                      {tn(m.h,lang)}
+                    </span>
+                    <span style={{fontFamily:HS,fontSize:11,fontWeight:700,color:T.gold,flexShrink:0}}>
+                      {t2}<span style={{fontSize:8,color:T.textM}}>{ap}</span>
+                    </span>
+                    <span style={{fontFamily:HS,fontSize:10,color:T.text,flex:1,
+                      textAlign:"right",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>
+                      {tn(m.a,lang)}
+                    </span>
+                    <Flag en={m.a} size={18}/>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+          {todayMatches.length===0&&tomMatches.length===0&&(
+            <div style={{background:T.surface,borderRadius:14,border:`1px solid ${T.border}`,
+              padding:"12px",textAlign:"center"}}>
+              <div style={{fontSize:24,marginBottom:4}}>📭</div>
+              <div style={{fontFamily:HS,fontSize:11,color:T.textM}}>
+                {lang==="bn"?"আজ ও আগামীকাল ম্যাচ নেই":"No matches today or tomorrow"}
+              </div>
+            </div>
+          )}
+        </div>
+        {/* Right: Compact Calendar */}
+        <div style={{width:160,flexShrink:0}}>
+          <CompactCalendar T={T} lang={lang} onDateSelect={()=>{}}/>
+        </div>
+      </div>
+
+      {/* Full match cards for today - shown below */}
       {todayMatches.length>0&&(
-        <div style={{marginBottom:20}}>
+        <div style={{marginBottom:16}}>
           <div style={{fontFamily:HS,fontWeight:700,fontSize:13,color:T.textS,marginBottom:10,display:"flex",alignItems:"center",gap:6}}>
-            <span style={{background:T.red,width:8,height:8,borderRadius:"50%",display:"inline-block",animation:"pulse 1s infinite"}}/>
+            <div style={{width:8,height:8,borderRadius:"50%",background:T.red,animation:"pulse 1s infinite"}}/>
             {lang==="bn"?"আজকের ম্যাচ":"Today's Matches"}
           </div>
           {todayMatches.map(m=><DayMatchCard key={m.id} m={m} lang={lang} T={T} userName={userName} myPreds={myPreds} setPredictM={setPredictM} onTeam={onTeam}/>)}
         </div>
       )}
 
-      {/* Tomorrow's Matches */}
+      {/* Tomorrow full cards */}
       {tomMatches.length>0&&(
-        <div style={{marginBottom:20}}>
+        <div style={{marginBottom:16}}>
           <div style={{fontFamily:HS,fontWeight:700,fontSize:13,color:T.textS,marginBottom:10}}>
             📅 {lang==="bn"?"আগামীকালের ম্যাচ":"Tomorrow's Matches"}
           </div>
           {tomMatches.map(m=><DayMatchCard key={m.id} m={m} lang={lang} T={T} userName={userName} myPreds={myPreds} setPredictM={setPredictM} onTeam={onTeam}/>)}
-        </div>
-      )}
-
-      {/* No matches today/tomorrow */}
-      {todayMatches.length===0&&tomMatches.length===0&&(
-        <div style={{background:T.surface,borderRadius:14,padding:"20px 16px",textAlign:"center",marginBottom:20}}>
-          <div style={{fontSize:32,marginBottom:8}}>⚽</div>
-          <div style={{fontFamily:HS,fontSize:14,color:T.textM}}>
-            {lang==="bn"?"আজ ও আগামীকাল কোনো ম্যাচ নেই":"No matches today or tomorrow"}
-          </div>
         </div>
       )}
 
