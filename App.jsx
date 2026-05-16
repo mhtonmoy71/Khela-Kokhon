@@ -512,13 +512,20 @@ function ScoreModal({m,lang,T,scores,setScores,onClose,isAdmin}){
 function FixRow({m,lang,onTeam,T,scores,setScores,myPreds,setPredictM,userName,isAdmin}){
   const[showScore,setShowScore]=useState(false);
   const[showAct,setShowAct]=useState(false);
-  const sc=scores[m.id];const hasScore=sc&&sc.hg!==""&&sc.ag!=="";
-  const status=getStatus(m);const[tn2,ap]=m.t.split(" ");
+  const sc=scores[m.id];
+  const hasScore=sc&&sc.hg!==""&&sc.ag!=="";
+  const status=getStatus(m);
+  const[tn2,ap]=m.t.split(" ");
+  const pred=myPreds?.[m.id];
+  const isUpcoming=status==="up";
+
   return(
     <>
       <div style={{borderBottom:`1px solid ${T.border}`,background:T.surface,
         borderLeft:`3px solid ${hasScore?T.green:status==="live"?T.red:"transparent"}`}}>
+        {/* Main row */}
         <div style={{display:"flex",alignItems:"center",padding:"11px 10px",gap:4}}>
+          {/* Home team */}
           <div onClick={()=>onTeam(m.h)} style={{flex:1,display:"flex",alignItems:"center",
             justifyContent:"flex-end",gap:6,cursor:"pointer",minWidth:0}}>
             <span style={{fontFamily:HS,fontSize:13,fontWeight:500,color:T.text,
@@ -527,19 +534,22 @@ function FixRow({m,lang,onTeam,T,scores,setScores,myPreds,setPredictM,userName,i
             </span>
             <Flag en={m.h} size={30}/>
           </div>
-          <div style={{width:72,textAlign:"center",flexShrink:0}}>
+          {/* Time/Score */}
+          <div style={{width:68,textAlign:"center",flexShrink:0}}>
             {hasScore?(
               <div style={{background:T.greenBg,borderRadius:8,padding:"3px 6px",border:`1px solid ${T.greenBr}`}}>
                 <span style={{fontFamily:HS,fontSize:15,fontWeight:800,color:T.green}}>{sc.hg}–{sc.ag}</span>
               </div>
             ):(
               <div>
-                <span style={{fontFamily:HS,fontSize:14,fontWeight:700,color:status==="live"?T.red:T.text}}>{tn2}</span>
-                <span style={{fontFamily:HS,fontSize:8,color:T.textM}}>{ap}</span>
+                <div style={{fontFamily:HS,fontSize:13,fontWeight:700,color:status==="live"?T.red:T.text,lineHeight:1}}>
+                  {tn2}<span style={{fontSize:8,color:T.textM}}>{ap}</span>
+                </div>
                 <div style={{fontFamily:HS,fontSize:9,color:T.textM}}>Grp {m.g}</div>
               </div>
             )}
           </div>
+          {/* Away team */}
           <div style={{flex:1,display:"flex",alignItems:"center",gap:6,minWidth:0}}>
             <Flag en={m.a} size={30}/>
             <span onClick={()=>onTeam(m.a)} style={{fontFamily:HS,fontSize:13,fontWeight:500,color:T.text,
@@ -547,38 +557,36 @@ function FixRow({m,lang,onTeam,T,scores,setScores,myPreds,setPredictM,userName,i
               {tn(m.a,lang)}
             </span>
           </div>
-          {/* Predict button - always visible for upcoming matches */}
-          {status==="up"&&(
-            <button onClick={()=>userName?setPredictM(m):(alert(lang==="bn"?"🎯 ট্যাবে গিয়ে নাম দিন!":"Go to 🎯 tab to join!"))} style={{
+          {/* Predict button - always shown for upcoming */}
+          {isUpcoming&&(
+            <button onClick={()=>setPredictM(m)} style={{
               flexShrink:0,background:pred?T.greenBg:T.sur2,
               border:`1.5px solid ${pred?T.greenBr:T.border}`,
-              borderRadius:10,padding:"5px 8px",cursor:"pointer",
+              borderRadius:8,padding:"4px 7px",cursor:"pointer",
               fontFamily:HS,fontSize:10,fontWeight:pred?700:400,
-              color:pred?T.green:T.textS,whiteSpace:"nowrap",lineHeight:1.3}}>
+              color:pred?T.green:T.textS,whiteSpace:"nowrap"}}>
               {pred?`🎯 ${pred.home_score}-${pred.away_score}`:(lang==="bn"?"🎯 প্রেডিক্ট":"🎯 Predict")}
             </button>
           )}
-          {isAdmin&&<button onClick={()=>setShowAct(v=>!v)}
-            style={{background:"transparent",border:"none",color:T.textM,fontSize:18,cursor:"pointer",padding:"0 2px",flexShrink:0}}>
-            ⋯
-          </button>}
+          {/* Admin ⋯ button */}
+          {isAdmin&&(
+            <button onClick={()=>setShowAct(v=>!v)}
+              style={{background:"transparent",border:"none",color:T.textM,
+                fontSize:18,cursor:"pointer",padding:"0 2px",flexShrink:0}}>
+              ⋯
+            </button>
+          )}
         </div>
-        {showAct&&(
-          <div style={{display:"flex",gap:8,padding:"8px 10px 10px",borderTop:`1px solid ${T.border}`,background:T.sur2}}>
-            {userName&&getStatus(m)==="up"&&(
-              <button onClick={()=>{setPredictM(m);setShowAct(false);}}
-                style={{flex:1,display:"flex",alignItems:"center",justifyContent:"center",gap:4,
-                  background:myPreds?.[m.id]?T.greenBg:T.surface,border:`1px solid ${myPreds?.[m.id]?T.greenBr:T.border}`,
-                  borderRadius:10,padding:7,cursor:"pointer",fontFamily:HS,fontSize:12,color:myPreds?.[m.id]?T.green:T.textS}}>
-                🎯 <span style={{fontFamily:HS}}>{myPreds?.[m.id]?`${myPreds[m.id].home_score}-${myPreds[m.id].away_score}`:(lang==="bn"?"প্রেডিক্ট":"Predict")}</span>
-              </button>
-            )}
-            {isAdmin&&<button onClick={()=>{setShowScore(true);setShowAct(false);}}
+        {/* Admin action bar */}
+        {showAct&&isAdmin&&(
+          <div style={{display:"flex",gap:8,padding:"8px 10px 10px",
+            borderTop:`1px solid ${T.border}`,background:T.sur2}}>
+            <button onClick={()=>{setShowScore(true);setShowAct(false);}}
               style={{flex:1,display:"flex",alignItems:"center",justifyContent:"center",gap:4,
                 background:T.surface,border:`1px solid ${T.border}`,borderRadius:10,padding:7,
                 cursor:"pointer",fontFamily:HS,fontSize:12,color:T.textS}}>
               ✏️ <span style={{fontFamily:HS}}>{lang==="bn"?"স্কোর":"Score"}</span>
-            </button>}
+            </button>
             <button onClick={()=>{addToGCal(m,lang);setShowAct(false);}}
               style={{flex:1,display:"flex",alignItems:"center",justifyContent:"center",gap:4,
                 background:T.surface,border:`1px solid ${T.border}`,borderRadius:10,padding:7,
@@ -594,11 +602,10 @@ function FixRow({m,lang,onTeam,T,scores,setScores,myPreds,setPredictM,userName,i
           </div>
         )}
       </div>
-      {showScore&&<ScoreModal m={m} lang={lang} T={T} scores={scores} setScores={setScores} onClose={()=>setShowScore(false)} isAdmin={isAdmin}/>}
+      {showScore&&isAdmin&&<ScoreModal m={m} lang={lang} T={T} scores={scores} setScores={setScores} onClose={()=>setShowScore(false)} isAdmin={isAdmin}/>}
     </>
   );
 }
-
 /* ── GroupTab ──────────────────────────────────────────────────────── */
 function GroupTab({lang,onTeam,T,scores,setScores,myPreds,setMyPreds,userName,setPredictM,isAdmin}){
   const[ft,setFt]=useState(null);const[sf,setSf]=useState(false);const[sq,setSq]=useState("");
@@ -1718,7 +1725,8 @@ export default function App(){
         {mt==="wc"&&wt==="leaderboard"&&<LeaderboardTab T={T} lang={lang} userName={userName}/>}
 
         {sm&&<AddModal favs={favs} onAdd={aF} onClose={()=>setSm(false)} lang={lang} T={T}/>}
-        {predictM&&<PredictModal m={predictM} T={T} lang={lang} userName={userName} onClose={()=>setPredictM(null)} myPreds={myPreds} setMyPreds={setMyPreds}/>}
+        {predictM&&!userName&&<NameModal T={T} lang={lang} onSave={(name,did)=>{handleNameSave(name,did);}} inline={false}/>}
+        {predictM&&userName&&<PredictModal m={predictM} T={T} lang={lang} userName={userName} onClose={()=>setPredictM(null)} myPreds={myPreds} setMyPreds={setMyPreds}/>}
 
         {/* Footer */}
         <div style={{position:"fixed",bottom:0,left:0,right:0,background:T.surface,
