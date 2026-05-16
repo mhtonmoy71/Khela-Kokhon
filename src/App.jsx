@@ -265,6 +265,17 @@ function getStatus(m){
   if(now<start)return "up";if(now<=end)return "live";return "ft";
 }
 
+function useCountdown(targetMs){
+  const[diff,setDiff]=useState(Math.max(0,(targetMs||0)-Date.now()));
+  useEffect(()=>{
+    if(!targetMs)return;
+    const id=setInterval(()=>setDiff(Math.max(0,targetMs-Date.now())),1000);
+    return()=>clearInterval(id);
+  },[targetMs]);
+  const s=Math.floor(diff/1000),m=Math.floor(s/60),h=Math.floor(m/60);
+  return{days:Math.floor(h/24),hours:h%24,mins:m%60,secs:s%60,done:diff===0};
+}
+
 /* ── Standings ─────────────────────────────────────────────────────── */
 function calcStandings(teams,scores){
   const st={};teams.forEach(t=>{st[t]={mp:0,w:0,d:0,l:0,gf:0,ga:0,pts:0};});
@@ -704,9 +715,32 @@ function AddModal({favs,onAdd,onClose,lang,T}){
 }
 
 /* ── TeamPage ──────────────────────────────────────────────────────── */
+function TeamCountdown({m,lang,T}){
+  const cd=useCountdown(tSort(m).getTime());
+  if(cd.done)return null;
+  return(
+    <div style={{marginTop:14,background:"rgba(255,255,255,0.1)",borderRadius:14,
+      padding:"12px 16px",border:"1px solid rgba(255,255,255,0.15)"}}>
+      <div style={{fontFamily:HS,fontSize:11,color:"rgba(255,255,255,0.7)",marginBottom:8,textAlign:"center"}}>
+        {lang==="bn"?"পরবর্তী ম্যাচ শুরু হতে":"Next match in"}
+      </div>
+      <div style={{display:"flex",justifyContent:"center",gap:16}}>
+        {[{v:cd.days,l:lang==="bn"?"দিন":"Days"},{v:cd.hours,l:lang==="bn"?"ঘণ্টা":"Hrs"},{v:cd.mins,l:lang==="bn"?"মিনিট":"Min"},{v:cd.secs,l:lang==="bn"?"সেকেন্ড":"Sec"}].map(({v,l})=>(
+          <div key={l} style={{textAlign:"center"}}>
+            <div style={{fontFamily:HS,fontSize:22,fontWeight:800,color:"#fff",lineHeight:1}}>{String(v).padStart(2,"0")}</div>
+            <div style={{fontFamily:HS,fontSize:10,color:"rgba(255,255,255,0.6)",marginTop:2}}>{l}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function TeamPage({en,lang,onBack,T,scores,setScores}){
   const[showScore,setShowScore]=useState(null);
   const ms=MATCHES.filter(m=>m.h===en||m.a===en).sort((a,b)=>new Date(a.d)-new Date(b.d));
+  const now2=new Date();now2.setHours(0,0,0,0);
+  const nextMatch=ms.find(m=>new Date(m.d+"T00:00:00")>=now2&&getStatus(m)==="up")||null;
   return(
     <div style={{background:T.bg,minHeight:"100vh",fontFamily:HS}}>
       <div style={{background:T.hdr,padding:"14px 14px 20px"}}>
@@ -723,6 +757,9 @@ function TeamPage({en,lang,onBack,T,scores,setScores}){
             </div>
           </div>
         </div>
+        {nextMatch&&(
+          <TeamCountdown m={nextMatch} lang={lang} T={T}/>
+        )}
       </div>
       {ms.map(m=>{
         const[tn2,ap]=m.t.split(" ");
@@ -776,6 +813,8 @@ function HomeTab({lang,favs,setFavs,onTeam,setSM,T}){
   }
   function Row({en}){
     const nx=gN(en),iF=favs.includes(en),opp=nx?(nx.h===en?nx.a:nx.h):null;
+    const cd=useCountdown(nx?tSort(nx).getTime():null);
+    const showCd=nx&&!cd.done&&cd.days<3;
     return(
       <div style={{background:T.surface,borderRadius:14,border:`1px solid ${T.border}`,
         padding:"12px 13px",marginBottom:8,display:"flex",alignItems:"center",gap:10}}>
@@ -791,7 +830,17 @@ function HomeTab({lang,favs,setFavs,onTeam,setSM,T}){
                 <div style={{fontFamily:HS,fontSize:12,color:T.textS,marginTop:1}}>
                   📅 {dl(nx.d,lang)} · 🕐 <span style={{color:T.green,fontWeight:600}}>{nx.t}</span>
                 </div>
-                <div style={{marginTop:4}}><Chip d={nx.d} lang={lang} T={T}/></div>
+                {showCd&&(
+                  <div style={{display:"flex",gap:6,marginTop:5}}>
+                    {[{v:cd.days,l:lang==="bn"?"দিন":"d"},{v:cd.hours,l:lang==="bn"?"ঘণ্টা":"h"},{v:cd.mins,l:lang==="bn"?"মিনিট":"m"},{v:cd.secs,l:lang==="bn"?"সেকেন্ড":"s"}].map(({v,l})=>(
+                      <div key={l} style={{background:T.sur2,borderRadius:8,padding:"3px 7px",textAlign:"center",border:`1px solid ${T.border}`}}>
+                        <div style={{fontFamily:HS,fontSize:14,fontWeight:700,color:T.green,lineHeight:1}}>{String(v).padStart(2,"0")}</div>
+                        <div style={{fontFamily:HS,fontSize:9,color:T.textM}}>{l}</div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                {!showCd&&<div style={{marginTop:4}}><Chip d={nx.d} lang={lang} T={T}/></div>}
               </>
             ):(
               <div style={{fontFamily:HS,fontSize:12,color:T.textM,marginTop:2}}>
