@@ -171,6 +171,44 @@ const RAW_MATCHES=[
   {id:70,h:"DR Congo",     a:"Uzbekistan",    g:"K", d:"2026-06-28", t:"5:30 AM"},
   {id:71,h:"Algeria",      a:"Austria",       g:"J", d:"2026-06-28", t:"8:00 AM"},
   {id:72,h:"Jordan",       a:"Argentina",     g:"J", d:"2026-06-28", t:"8:00 AM"},
+  // ── Knockout Stage (verified BST from Daily Star) ──
+  {id:73, h:"TBD",a:"TBD",g:"R32",d:"2026-06-29",t:"1:00 AM",  venue:"Los Angeles",  r:"R32"},
+  {id:74, h:"TBD",a:"TBD",g:"R32",d:"2026-06-29",t:"11:00 PM", venue:"Houston",       r:"R32"},
+  {id:75, h:"TBD",a:"TBD",g:"R32",d:"2026-06-30",t:"2:30 AM",  venue:"Boston",        r:"R32"},
+  {id:76, h:"TBD",a:"TBD",g:"R32",d:"2026-06-30",t:"7:00 AM",  venue:"Monterrey",     r:"R32"},
+  {id:77, h:"TBD",a:"TBD",g:"R32",d:"2026-06-30",t:"11:00 PM", venue:"Dallas",        r:"R32"},
+  {id:78, h:"TBD",a:"TBD",g:"R32",d:"2026-07-01",t:"3:00 AM",  venue:"New York–NJ",   r:"R32"},
+  {id:79, h:"TBD",a:"TBD",g:"R32",d:"2026-07-01",t:"7:00 AM",  venue:"Mexico City",   r:"R32"},
+  {id:80, h:"TBD",a:"TBD",g:"R32",d:"2026-07-01",t:"10:00 PM", venue:"Atlanta",       r:"R32"},
+  {id:81, h:"TBD",a:"TBD",g:"R32",d:"2026-07-02",t:"2:00 AM",  venue:"Seattle",       r:"R32"},
+  {id:82, h:"TBD",a:"TBD",g:"R32",d:"2026-07-02",t:"6:00 AM",  venue:"San Francisco", r:"R32"},
+  {id:83, h:"TBD",a:"TBD",g:"R32",d:"2026-07-03",t:"1:00 AM",  venue:"Los Angeles",   r:"R32"},
+  {id:84, h:"TBD",a:"TBD",g:"R32",d:"2026-07-03",t:"5:00 AM",  venue:"Toronto",       r:"R32"},
+  {id:85, h:"TBD",a:"TBD",g:"R32",d:"2026-07-03",t:"9:00 AM",  venue:"Vancouver",     r:"R32"},
+  {id:86, h:"TBD",a:"TBD",g:"R32",d:"2026-07-04",t:"12:00 AM", venue:"Dallas",        r:"R32"},
+  {id:87, h:"TBD",a:"TBD",g:"R32",d:"2026-07-04",t:"4:00 AM",  venue:"Miami",         r:"R32"},
+  {id:88, h:"TBD",a:"TBD",g:"R32",d:"2026-07-04",t:"8:00 AM",  venue:"Kansas City",   r:"R32"},
+  // Round of 16
+  {id:89, h:"TBD",a:"TBD",g:"R16",d:"2026-07-05",t:"1:00 AM",  venue:"TBD",r:"R16"},
+  {id:90, h:"TBD",a:"TBD",g:"R16",d:"2026-07-05",t:"11:00 PM", venue:"TBD",r:"R16"},
+  {id:91, h:"TBD",a:"TBD",g:"R16",d:"2026-07-06",t:"3:00 AM",  venue:"TBD",r:"R16"},
+  {id:92, h:"TBD",a:"TBD",g:"R16",d:"2026-07-06",t:"7:00 AM",  venue:"TBD",r:"R16"},
+  {id:93, h:"TBD",a:"TBD",g:"R16",d:"2026-07-07",t:"1:00 AM",  venue:"TBD",r:"R16"},
+  {id:94, h:"TBD",a:"TBD",g:"R16",d:"2026-07-07",t:"11:00 PM", venue:"TBD",r:"R16"},
+  {id:95, h:"TBD",a:"TBD",g:"R16",d:"2026-07-08",t:"3:00 AM",  venue:"TBD",r:"R16"},
+  {id:96, h:"TBD",a:"TBD",g:"R16",d:"2026-07-08",t:"7:00 AM",  venue:"TBD",r:"R16"},
+  // Quarter-Finals
+  {id:97, h:"TBD",a:"TBD",g:"QF",d:"2026-07-10",t:"1:00 AM",  venue:"TBD",r:"QF"},
+  {id:98, h:"TBD",a:"TBD",g:"QF",d:"2026-07-10",t:"11:00 PM", venue:"TBD",r:"QF"},
+  {id:99, h:"TBD",a:"TBD",g:"QF",d:"2026-07-11",t:"3:00 AM",  venue:"TBD",r:"QF"},
+  {id:100,h:"TBD",a:"TBD",g:"QF",d:"2026-07-11",t:"7:00 AM",  venue:"TBD",r:"QF"},
+  // Semi-Finals
+  {id:101,h:"TBD",a:"TBD",g:"SF",d:"2026-07-15",t:"1:00 AM",  venue:"Atlanta",r:"SF"},
+  {id:102,h:"TBD",a:"TBD",g:"SF",d:"2026-07-16",t:"1:00 AM",  venue:"Dallas", r:"SF"},
+  // Third Place
+  {id:103,h:"TBD",a:"TBD",g:"3P",d:"2026-07-19",t:"10:00 PM", venue:"Miami",     r:"3P"},
+  // Final
+  {id:104,h:"TBD",a:"TBD",g:"F", d:"2026-07-20",t:"1:00 AM",  venue:"New York–NJ",r:"F"},
 ];
 
 function tSort(m){
@@ -316,44 +354,58 @@ function ScoreModal({m,lang,TH,scores,setScores,onClose}){
 /* ── Fixture Row ────────────────────────────────────────────────────────────── */
 function FixRow({m,lang,onTeam,TH,scores,setScores}){
   const[showScore,setShowScore]=useState(false);
+  const[showActions,setShowActions]=useState(false);
   const sc=scores[m.id];const hasScore=sc&&sc.hg!==""&&sc.ag!=="";
   const status=getStatus(m);const[tn2,ap]=m.t.split(" ");
   return(
     <>
-      <div style={{
-        display:"flex",alignItems:"center",padding:"13px 14px",
-        borderBottom:`1px solid ${TH.border}`,background:TH.surface,
-        borderLeft:`3px solid ${hasScore?TH.green:status==="live"?TH.red:"transparent"}`,
-        transition:"background 0.2s",
-      }}>
-        <div onClick={()=>onTeam(m.h)} style={{flex:1,display:"flex",alignItems:"center",justifyContent:"flex-end",gap:8,cursor:"pointer"}}>
-          <span style={{fontFamily:HS,fontSize:14,fontWeight:500,color:TH.text,textAlign:"right",lineHeight:1.2}}>{tn(m.h,lang)}</span>
-          <Flag en={m.h} size={34}/>
-        </div>
-        <div style={{width:84,textAlign:"center",flexShrink:0,cursor:"pointer"}} onClick={()=>setShowScore(true)}>
-          {hasScore?(
-            <div style={{background:TH.greenBg,borderRadius:10,padding:"4px 8px",border:`1px solid ${TH.greenBdr}`}}>
-              <span style={{fontFamily:HS,fontSize:17,fontWeight:800,color:TH.green}}>{sc.hg}–{sc.ag}</span>
-            </div>
-          ):(
-            <div>
-              <div style={{display:"inline-flex",alignItems:"baseline",gap:2}}>
-                <span style={{fontFamily:HS,fontSize:15,fontWeight:700,color:status==="live"?TH.red:TH.text}}>{tn2}</span>
-                <span style={{fontFamily:HS,fontSize:9,fontWeight:700,color:TH.textM}}>{ap}</span>
+      <div style={{borderBottom:`1px solid ${TH.border}`,background:TH.surface,
+        borderLeft:`3px solid ${hasScore?TH.green:status==="live"?TH.red:"transparent"}`}}>
+        {/* Main row */}
+        <div style={{display:"flex",alignItems:"center",padding:"11px 12px",gap:4}}>
+          {/* Home */}
+          <div onClick={()=>onTeam(m.h)} style={{flex:1,display:"flex",alignItems:"center",justifyContent:"flex-end",gap:6,cursor:"pointer",minWidth:0}}>
+            <span style={{fontFamily:HS,fontSize:13,fontWeight:500,color:TH.text,textAlign:"right",lineHeight:1.2,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{tn(m.h,lang)}</span>
+            <Flag en={m.h} size={32}/>
+          </div>
+          {/* Time/Score */}
+          <div style={{width:76,textAlign:"center",flexShrink:0,cursor:"pointer"}} onClick={()=>setShowScore(true)}>
+            {hasScore?(
+              <div style={{background:TH.greenBg,borderRadius:8,padding:"3px 6px",border:`1px solid ${TH.greenBdr}`}}>
+                <span style={{fontFamily:HS,fontSize:15,fontWeight:800,color:TH.green}}>{sc.hg}–{sc.ag}</span>
               </div>
-              <div style={{fontFamily:HS,fontSize:10,color:TH.textM,marginTop:1}}>Grp {m.g}</div>
-            </div>
-          )}
+            ):(
+              <div>
+                <div style={{display:"inline-flex",alignItems:"baseline",gap:1}}>
+                  <span style={{fontFamily:HS,fontSize:14,fontWeight:700,color:status==="live"?TH.red:TH.text}}>{tn2}</span>
+                  <span style={{fontFamily:HS,fontSize:8,fontWeight:700,color:TH.textM}}>{ap}</span>
+                </div>
+                <div style={{fontFamily:HS,fontSize:9,color:TH.textM}}>Grp {m.g}</div>
+              </div>
+            )}
+          </div>
+          {/* Away */}
+          <div style={{flex:1,display:"flex",alignItems:"center",gap:6,minWidth:0}}>
+            <Flag en={m.a} size={32}/>
+            <span onClick={()=>onTeam(m.a)} style={{fontFamily:HS,fontSize:13,fontWeight:500,color:TH.text,lineHeight:1.2,cursor:"pointer",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{tn(m.a,lang)}</span>
+          </div>
+          {/* More button */}
+          <button onClick={()=>setShowActions(v=>!v)} style={{background:"transparent",border:"none",color:TH.textM,fontSize:18,cursor:"pointer",padding:"0 2px",flexShrink:0,lineHeight:1}}>⋯</button>
         </div>
-        <div style={{flex:1,display:"flex",alignItems:"center",justifyContent:"flex-start",gap:8}}>
-          <Flag en={m.a} size={34}/>
-          <span onClick={()=>onTeam(m.a)} style={{fontFamily:HS,fontSize:14,fontWeight:500,color:TH.text,lineHeight:1.2,cursor:"pointer"}}>{tn(m.a,lang)}</span>
-        </div>
-        <div style={{display:"flex",gap:3,marginLeft:6,flexShrink:0}}>
-          <button onClick={()=>setShowScore(true)} style={{background:TH.surface2,border:`1px solid ${TH.border}`,borderRadius:8,width:28,height:28,cursor:"pointer",fontSize:12,display:"flex",alignItems:"center",justifyContent:"center",color:TH.textS}}>✏️</button>
-          <button onClick={()=>addToGCal(m,lang)} style={{background:TH.surface2,border:`1px solid ${TH.border}`,borderRadius:8,width:28,height:28,cursor:"pointer",fontSize:12,display:"flex",alignItems:"center",justifyContent:"center"}}>📅</button>
-          <button onClick={()=>shareMatch(m,lang)} style={{background:TH.surface2,border:`1px solid ${TH.border}`,borderRadius:8,width:28,height:28,cursor:"pointer",fontSize:12,display:"flex",alignItems:"center",justifyContent:"center"}}>🔗</button>
-        </div>
+        {/* Action bar - shown on tap */}
+        {showActions&&(
+          <div style={{display:"flex",gap:8,padding:"8px 12px 10px",borderTop:`1px solid ${TH.border}`,background:TH.surface2}}>
+            <button onClick={()=>{setShowScore(true);setShowActions(false);}} style={{flex:1,display:"flex",alignItems:"center",justifyContent:"center",gap:4,background:TH.surface,border:`1px solid ${TH.border}`,borderRadius:10,padding:"7px",cursor:"pointer",fontFamily:HS,fontSize:12,color:TH.textS}}>
+              ✏️ <span style={{fontFamily:HS}}>{lang==="bn"?"স্কোর":"Score"}</span>
+            </button>
+            <button onClick={()=>{addToGCal(m,lang);setShowActions(false);}} style={{flex:1,display:"flex",alignItems:"center",justifyContent:"center",gap:4,background:TH.surface,border:`1px solid ${TH.border}`,borderRadius:10,padding:"7px",cursor:"pointer",fontFamily:HS,fontSize:12,color:TH.textS}}>
+              📅 <span style={{fontFamily:HS}}>{lang==="bn"?"ক্যালেন্ডার":"Calendar"}</span>
+            </button>
+            <button onClick={()=>{shareMatch(m,lang);setShowActions(false);}} style={{flex:1,display:"flex",alignItems:"center",justifyContent:"center",gap:4,background:TH.surface,border:`1px solid ${TH.border}`,borderRadius:10,padding:"7px",cursor:"pointer",fontFamily:HS,fontSize:12,color:TH.textS}}>
+              🔗 <span style={{fontFamily:HS}}>{lang==="bn"?"শেয়ার":"Share"}</span>
+            </button>
+          </div>
+        )}
       </div>
       {showScore&&<ScoreModal m={m} lang={lang} TH={TH} scores={scores} setScores={setScores} onClose={()=>setShowScore(false)}/>}
     </>
@@ -471,92 +523,213 @@ function TblTab({lang,TH,scores}){
 
 /* ── Knockout Tab (auto-fill from scores) ───────────────────────────────────── */
 function KOTab({lang,TH,scores}){
-  // Calculate group winners and runners-up from scores
+  const [activeRound, setActiveRound] = useState("R32");
+
+  // Slot labels
+  const slot = (s, lang) => {
+    if (!s) return lang==="bn"?"TBD":"TBD";
+    const map = {
+      "1A": lang==="bn"?"গ্রুপ A চ্যাম্পিয়ন":"Winner Group A",
+      "1B": lang==="bn"?"গ্রুপ B চ্যাম্পিয়ন":"Winner Group B",
+      "1C": lang==="bn"?"গ্রুপ C চ্যাম্পিয়ন":"Winner Group C",
+      "1D": lang==="bn"?"গ্রুপ D চ্যাম্পিয়ন":"Winner Group D",
+      "1E": lang==="bn"?"গ্রুপ E চ্যাম্পিয়ন":"Winner Group E",
+      "1F": lang==="bn"?"গ্রুপ F চ্যাম্পিয়ন":"Winner Group F",
+      "1G": lang==="bn"?"গ্রুপ G চ্যাম্পিয়ন":"Winner Group G",
+      "1H": lang==="bn"?"গ্রুপ H চ্যাম্পিয়ন":"Winner Group H",
+      "1I": lang==="bn"?"গ্রুপ I চ্যাম্পিয়ন":"Winner Group I",
+      "1J": lang==="bn"?"গ্রুপ J চ্যাম্পিয়ন":"Winner Group J",
+      "1K": lang==="bn"?"গ্রুপ K চ্যাম্পিয়ন":"Winner Group K",
+      "1L": lang==="bn"?"গ্রুপ L চ্যাম্পিয়ন":"Winner Group L",
+      "2A": lang==="bn"?"গ্রুপ A রানার্সআপ":"Runner-up A",
+      "2B": lang==="bn"?"গ্রুপ B রানার্সআপ":"Runner-up B",
+      "2C": lang==="bn"?"গ্রুপ C রানার্সআপ":"Runner-up C",
+      "2D": lang==="bn"?"গ্রুপ D রানার্সআপ":"Runner-up D",
+      "2E": lang==="bn"?"গ্রুপ E রানার্সআপ":"Runner-up E",
+      "2F": lang==="bn"?"গ্রুপ F রানার্সআপ":"Runner-up F",
+      "2G": lang==="bn"?"গ্রুপ G রানার্সআপ":"Runner-up G",
+      "2H": lang==="bn"?"গ্রুপ H রানার্সআপ":"Runner-up H",
+      "2I": lang==="bn"?"গ্রুপ I রানার্সআপ":"Runner-up I",
+      "2J": lang==="bn"?"গ্রুপ J রানার্সআপ":"Runner-up J",
+      "2K": lang==="bn"?"গ্রুপ K রানার্সআপ":"Runner-up K",
+      "2L": lang==="bn"?"গ্রুপ L রানার্সআপ":"Runner-up L",
+      "3ABCDF": lang==="bn"?"সেরা ৩য় (A/B/C/D/F)":"Best 3rd A/B/C/D/F",
+      "3CDFGH": lang==="bn"?"সেরা ৩য় (C/D/F/G/H)":"Best 3rd C/D/F/G/H",
+      "3CEFHI": lang==="bn"?"সেরা ৩য় (C/E/F/H/I)":"Best 3rd C/E/F/H/I",
+      "3EHIJK": lang==="bn"?"সেরা ৩য় (E/H/I/J/K)":"Best 3rd E/H/I/J/K",
+      "3BEFIJ": lang==="bn"?"সেরা ৩য় (B/E/F/I/J)":"Best 3rd B/E/F/I/J",
+      "3AEHIJ": lang==="bn"?"সেরা ৩য় (A/E/H/I/J)":"Best 3rd A/E/H/I/J",
+      "3BEFGJ": lang==="bn"?"সেরা ৩য় (B/E/F/G/J)":"Best 3rd B/E/F/G/J",
+      "3DEJIL": lang==="bn"?"সেরা ৩য় (D/E/I/J/L)":"Best 3rd D/E/I/J/L",
+    };
+    return map[s] || s;
+  };
+
+  // Computed qualified teams
   const qualified = useMemo(()=>{
-    const q = {};
+    const q={};
     Object.entries(GRP).forEach(([g,teams])=>{
-      const rows = calcStandings(teams, scores);
-      const allDone = RAW_MATCHES.filter(m=>teams.includes(m.h)).every(m=>{
-        const sc=scores[m.id]; return sc&&sc.hg!==""&&sc.ag!=="";
-      });
-      if(allDone) {
-        q[`W${g}`] = rows[0]?.en || null;
-        q[`R${g}`] = rows[1]?.en || null;
-      }
+      const rows=calcStandings(teams,scores);
+      const allDone=RAW_MATCHES.filter(m=>teams.includes(m.h)&&!m.r)
+        .every(m=>{const sc=scores[m.id];return sc&&sc.hg!==""&&sc.ag!=="";});
+      if(allDone){q["1"+g]=rows[0]?.en||null;q["2"+g]=rows[1]?.en||null;}
     });
     return q;
   },[scores]);
 
-  const slot = (key) => {
-    const en = qualified[key];
-    if(!en) return (
-      <div style={{display:"flex",alignItems:"center",gap:6}}>
-        <div style={{width:24,height:24,borderRadius:"50%",background:TH.surface2,border:`1px dashed ${TH.border}`}}/>
-        <span style={{fontFamily:HS,fontSize:12,color:TH.textM}}>{key}</span>
-      </div>
-    );
-    return (
-      <div style={{display:"flex",alignItems:"center",gap:6}}>
-        <Flag en={en} size={24}/>
-        <span style={{fontFamily:HS,fontSize:13,fontWeight:600,color:TH.text}}>{tn(en,lang)}</span>
-      </div>
-    );
+  const getTeam = (slotKey) => {
+    if (!slotKey) return null;
+    return qualified[slotKey] || null;
   };
 
-  const rounds=[
-    {l:lang==="bn"?"রাউন্ড অব ৩২":"Round of 32",d:"Jun 28–Jul 3",matches:[
-      {h:"RA",a:"RB"},{h:"WC",a:"RF"},{h:"WE",a:"3rd"},{h:"WF",a:"RC"},
-      {h:"RE",a:"RI"},{h:"WI",a:"3rd"},{h:"WA",a:"3rd"},{h:"WL",a:"3rd"},
-      {h:"WG",a:"3rd"},{h:"WD",a:"3rd"},{h:"WH",a:"RJ"},{h:"RK",a:"RL"},
-      {h:"WB",a:"3rd"},{h:"WJ",a:"RH"},{h:"WK",a:"3rd"},{h:"RD",a:"RG"},
-    ]},
-    {l:lang==="bn"?"রাউন্ড অব ১৬":"Round of 16",d:"Jul 4–7",matches:Array(8).fill(null)},
-    {l:lang==="bn"?"কোয়ার্টার ফাইনাল":"Quarter-Finals",d:"Jul 9–11",matches:Array(4).fill(null)},
-    {l:lang==="bn"?"সেমি ফাইনাল":"Semi-Finals",d:"Jul 14–15",matches:Array(2).fill(null)},
-    {l:lang==="bn"?"ফাইনাল":"Final",d:"Jul 19",matches:[null]},
+  // Round of 32 matchups (Wikipedia verified)
+  const r32 = [
+    {id:73,  h:"2A", a:"2B",      d:"2026-06-29", t:"1:00 AM",  venue:"Los Angeles"},
+    {id:74,  h:"1E", a:"3ABCDF",  d:"2026-06-29", t:"11:00 PM", venue:"Houston"},
+    {id:75,  h:"1E", a:"2C",      d:"2026-06-30", t:"2:30 AM",  venue:"Boston"},
+    {id:76,  h:"1F", a:"2C",      d:"2026-06-30", t:"7:00 AM",  venue:"Monterrey"},
+    {id:77,  h:"1I", a:"3CDFGH",  d:"2026-06-30", t:"11:00 PM", venue:"Dallas"},
+    {id:78,  h:"2E", a:"2I",      d:"2026-07-01", t:"3:00 AM",  venue:"New York–NJ"},
+    {id:79,  h:"1A", a:"3CEFHI",  d:"2026-07-01", t:"7:00 AM",  venue:"Mexico City"},
+    {id:80,  h:"1L", a:"3EHIJK",  d:"2026-07-01", t:"10:00 PM", venue:"Atlanta"},
+    {id:81,  h:"1D", a:"3BEFIJ",  d:"2026-07-02", t:"2:00 AM",  venue:"Seattle"},
+    {id:82,  h:"1G", a:"3AEHIJ",  d:"2026-07-02", t:"6:00 AM",  venue:"San Francisco"},
+    {id:83,  h:"2K", a:"2L",      d:"2026-07-03", t:"1:00 AM",  venue:"Los Angeles"},
+    {id:84,  h:"1H", a:"2J",      d:"2026-07-03", t:"5:00 AM",  venue:"Toronto"},
+    {id:85,  h:"1B", a:"3BEFGJ",  d:"2026-07-03", t:"9:00 AM",  venue:"Vancouver"},
+    {id:86,  h:"1J", a:"2H",      d:"2026-07-04", t:"12:00 AM", venue:"Dallas"},
+    {id:87,  h:"1K", a:"3DEJIL",  d:"2026-07-04", t:"4:00 AM",  venue:"Miami"},
+    {id:88,  h:"2D", a:"2G",      d:"2026-07-04", t:"8:00 AM",  venue:"Kansas City"},
   ];
 
-  return(
-    <div style={{padding:"12px 14px 90px"}}>
-      {Object.keys(qualified).length === 0 && (
-        <div style={{background:TH.goldBg,border:`1px solid ${TH.gold}33`,borderRadius:12,padding:"12px 16px",marginBottom:16,fontFamily:HS,fontSize:13,color:TH.gold}}>
-          💡 {lang==="bn"?"গ্রুপ পর্বের স্কোর দিলে নকআউটে দলের নাম অটো চলে আসবে":"Enter group stage scores to auto-fill knockout bracket"}
-        </div>
-      )}
-      {rounds.map((r,ri)=>(
-        <div key={ri} style={{background:TH.surface,borderRadius:16,border:`1px solid ${TH.border}`,marginBottom:12,overflow:"hidden",boxShadow:TH.cardGlow}}>
-          <div style={{background:ri===4?`linear-gradient(135deg,${TH.gold},#e67e00)`:`linear-gradient(135deg,${TH.green},#00a86b)`,padding:"10px 16px",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-            <span style={{fontFamily:HS,fontWeight:700,fontSize:14,color:"#fff"}}>{r.l}</span>
-            <span style={{fontFamily:HS,fontSize:11,color:"rgba(255,255,255,0.8)",background:"rgba(0,0,0,0.15)",padding:"2px 8px",borderRadius:10}}>{r.d}</span>
+  const laterRounds = [
+    {key:"R16", label:lang==="bn"?"রাউন্ড অব ১৬":"Round of 16",
+     matches:[
+       {id:89,d:"2026-07-05",t:"1:00 AM",venue:"TBD"},
+       {id:90,d:"2026-07-05",t:"11:00 PM",venue:"TBD"},
+       {id:91,d:"2026-07-06",t:"3:00 AM",venue:"TBD"},
+       {id:92,d:"2026-07-06",t:"7:00 AM",venue:"TBD"},
+       {id:93,d:"2026-07-07",t:"1:00 AM",venue:"TBD"},
+       {id:94,d:"2026-07-07",t:"11:00 PM",venue:"TBD"},
+       {id:95,d:"2026-07-08",t:"3:00 AM",venue:"TBD"},
+       {id:96,d:"2026-07-08",t:"7:00 AM",venue:"TBD"},
+     ]},
+    {key:"QF", label:lang==="bn"?"কোয়ার্টার ফাইনাল":"Quarter-Finals",
+     matches:[
+       {id:97,d:"2026-07-10",t:"1:00 AM",venue:"TBD"},
+       {id:98,d:"2026-07-10",t:"11:00 PM",venue:"TBD"},
+       {id:99,d:"2026-07-11",t:"3:00 AM",venue:"TBD"},
+       {id:100,d:"2026-07-11",t:"7:00 AM",venue:"TBD"},
+     ]},
+    {key:"SF", label:lang==="bn"?"সেমি ফাইনাল":"Semi-Finals",
+     matches:[
+       {id:101,d:"2026-07-15",t:"1:00 AM",venue:"Atlanta"},
+       {id:102,d:"2026-07-16",t:"1:00 AM",venue:"Dallas"},
+     ]},
+    {key:"3P", label:lang==="bn"?"তৃতীয় স্থান":"Third Place",
+     matches:[{id:103,d:"2026-07-19",t:"10:00 PM",venue:"Miami"}]},
+    {key:"F",  label:lang==="bn"?"🏆 ফাইনাল":"🏆 Final",
+     matches:[{id:104,d:"2026-07-20",t:"1:00 AM",venue:"New York–NJ"}]},
+  ];
+
+  const rounds = [
+    {key:"R32", label:lang==="bn"?"রাউন্ড অব ৩২":"Round of 32"},
+    {key:"R16", label:lang==="bn"?"রাউন্ড অব ১৬":"Round of 16"},
+    {key:"QF",  label:lang==="bn"?"কোয়ার্টার":"Quarter-Final"},
+    {key:"SF",  label:lang==="bn"?"সেমি":"Semi-Final"},
+    {key:"F",   label:lang==="bn"?"ফাইনাল":"Final"},
+  ];
+
+  function MatchRow({h, a, d, t, venue, id, isSlot=false}) {
+    const sc = scores[id];
+    const hasScore = sc&&sc.hg!==""&&sc.ag!=="";
+    const hTeam = isSlot ? getTeam(h) : null;
+    const aTeam = isSlot ? getTeam(a) : null;
+    const [tn2, ap] = t.split(" ");
+    return (
+      <div style={{padding:"11px 14px", borderBottom:`1px solid ${TH.border}`, background:TH.surface}}>
+        {/* Venue + time header */}
+        <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:8}}>
+          <span style={{fontFamily:HS, fontSize:11, color:TH.textM}}>📍 {venue}</span>
+          <div style={{display:"flex", alignItems:"center", gap:4}}>
+            {hasScore ? (
+              <span style={{fontFamily:HS, fontSize:13, fontWeight:800, color:TH.green, background:TH.greenBg, padding:"2px 10px", borderRadius:8}}>{sc.hg}–{sc.ag}</span>
+            ) : (
+              <span style={{fontFamily:HS, fontSize:13, fontWeight:700, color:TH.text}}>
+                {tn2} <span style={{fontSize:9, color:TH.textM}}>{ap}</span>
+              </span>
+            )}
           </div>
-          {r.matches.map((_,i)=>(
-            <div key={i} style={{display:"flex",alignItems:"center",padding:"10px 14px",borderBottom:i<r.matches.length-1?`1px solid ${TH.border}`:"none"}}>
-              <div style={{flex:1,display:"flex",alignItems:"center",justifyContent:"flex-end"}}>
-                {ri===0&&r.matches[i]?slot(r.matches[i].h):(
-                  <div style={{display:"flex",alignItems:"center",gap:6}}>
-                    <div style={{width:24,height:24,borderRadius:"50%",background:TH.surface2,border:`1px dashed ${TH.border}`}}/>
-                    <span style={{fontFamily:HS,fontSize:12,color:TH.textM}}>TBD</span>
-                  </div>
-                )}
-              </div>
-              <div style={{width:40,textAlign:"center",fontFamily:HS,fontSize:12,color:TH.textM,fontWeight:600}}>vs</div>
-              <div style={{flex:1,display:"flex",alignItems:"center"}}>
-                {ri===0&&r.matches[i]?slot(r.matches[i].a):(
-                  <div style={{display:"flex",alignItems:"center",gap:6}}>
-                    <div style={{width:24,height:24,borderRadius:"50%",background:TH.surface2,border:`1px dashed ${TH.border}`}}/>
-                    <span style={{fontFamily:HS,fontSize:12,color:TH.textM}}>TBD</span>
-                  </div>
-                )}
-              </div>
-            </div>
-          ))}
+          <div style={{display:"flex", gap:3}}>
+            <button onClick={()=>addToGCal({h:h,a:a,d,t,g:"KO"},lang)} style={{background:TH.surface2,border:`1px solid ${TH.border}`,borderRadius:6,width:24,height:24,cursor:"pointer",fontSize:11,display:"flex",alignItems:"center",justifyContent:"center"}}>📅</button>
+            <button onClick={()=>shareMatch({h:h,a:a,d,t,g:"KO"},lang)} style={{background:TH.surface2,border:`1px solid ${TH.border}`,borderRadius:6,width:24,height:24,cursor:"pointer",fontSize:11,display:"flex",alignItems:"center",justifyContent:"center"}}>🔗</button>
+          </div>
         </div>
-      ))}
+        {/* Teams */}
+        <div style={{display:"flex", alignItems:"center", gap:8}}>
+          <div style={{flex:1, display:"flex", alignItems:"center", justifyContent:"flex-end", gap:6}}>
+            {hTeam ? (
+              <><span style={{fontFamily:HS,fontSize:13,fontWeight:600,color:TH.text,textAlign:"right"}}>{tn(hTeam,lang)}</span><Flag en={hTeam} size={28}/></>
+            ) : (
+              <><span style={{fontFamily:HS,fontSize:11,color:TH.textM,textAlign:"right"}}>{slot(h,lang)}</span>
+              <div style={{width:28,height:28,borderRadius:"50%",background:TH.surface2,border:`1px dashed ${TH.border}`,flexShrink:0}}/></>
+            )}
+          </div>
+          <span style={{fontFamily:HS,fontSize:12,color:TH.textM,width:16,textAlign:"center"}}>vs</span>
+          <div style={{flex:1, display:"flex", alignItems:"center", gap:6}}>
+            {aTeam ? (
+              <><Flag en={aTeam} size={28}/><span style={{fontFamily:HS,fontSize:13,fontWeight:600,color:TH.text}}>{tn(aTeam,lang)}</span></>
+            ) : (
+              <><div style={{width:28,height:28,borderRadius:"50%",background:TH.surface2,border:`1px dashed ${TH.border}`,flexShrink:0}}/>
+              <span style={{fontFamily:HS,fontSize:11,color:TH.textM}}>{slot(a,lang)}</span></>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{fontFamily:HS}}>
+      {/* Round selector tabs */}
+      <div style={{display:"flex", gap:6, padding:"10px 14px", background:TH.surface, borderBottom:`1px solid ${TH.border}`, overflowX:"auto"}}>
+        {rounds.map(r=>(
+          <button key={r.key} onClick={()=>setActiveRound(r.key)} style={{
+            fontFamily:HS, fontSize:12, fontWeight:activeRound===r.key?700:400,
+            padding:"6px 14px", borderRadius:20, cursor:"pointer", border:"none",
+            background:activeRound===r.key?TH.green:TH.surface2,
+            color:activeRound===r.key?"#fff":TH.textS,
+            flexShrink:0, transition:"all 0.2s",
+          }}>{r.label}</button>
+        ))}
+      </div>
+
+      <div style={{paddingBottom:80}}>
+        {activeRound==="R32" && (
+          <div>
+            <div style={{fontFamily:HS,fontSize:11,color:TH.textM,padding:"8px 14px",background:TH.surface2}}>
+              {lang==="bn"?"জুন ২৯ – জুলাই ৪, ২০২৬":"June 29 – July 4, 2026"}
+            </div>
+            {r32.map(m=>(
+              <MatchRow key={m.id} h={m.h} a={m.a} d={m.d} t={m.t} venue={m.venue} id={m.id} isSlot={true}/>
+            ))}
+          </div>
+        )}
+        {laterRounds.filter(r=>r.key===activeRound).map(r=>(
+          <div key={r.key}>
+            <div style={{fontFamily:HS,fontSize:11,color:TH.textM,padding:"8px 14px",background:TH.surface2}}>
+              {dl(r.matches[0].d,lang)}
+            </div>
+            {r.matches.map(m=>(
+              <MatchRow key={m.id} h="TBD" a="TBD" d={m.d} t={m.t} venue={m.venue} id={m.id}/>
+            ))}
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
 
-/* ── Team Page ──────────────────────────────────────────────────────────────── */
 function TeamPg({en,lang,onBack,TH,scores,setScores}){
   const[showScore,setShowScore]=useState(null);
   const ms=RAW_MATCHES.filter(m=>m.h===en||m.a===en).sort((a,b)=>new Date(a.d)-new Date(b.d));
