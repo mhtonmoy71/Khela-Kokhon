@@ -31,6 +31,44 @@ async function savePrediction(name, matchId, hg, ag) {
   });
 }
 
+async function fetchScores() {
+  const data = await sbFetch("scores?select=*");
+  const map = {};
+  data.forEach(s=>{ map[s.match_id]={hg:String(s.home_score),ag:String(s.away_score)}; });
+  return map;
+}
+
+async function saveScore(matchId, hg, ag, adminKey) {
+  return sbFetch("scores", {
+    method: "POST",
+    extraHeaders: {
+      "Prefer": "resolution=merge-duplicates,return=representation",
+      "x-admin-key": adminKey,
+    },
+    body: JSON.stringify({match_id:matchId, home_score:hg, away_score:ag}),
+  });
+}
+
+async function calcAndSavePoints(matchId, hg, ag) {
+  // Get all predictions for this match
+  const preds = await sbFetch("predictions?match_id=eq."+matchId+"&select=*");
+  for(const p of preds) {
+    const ph=p.home_score, pa=p.away_score;
+    let pts=0;
+    if(ph===hg&&pa===ag) pts=3;
+    else {
+      const aRes=hg>ag?"h":hg<ag?"a":"d";
+      const pRes=ph>pa?"h":ph<pa?"a":"d";
+      if(aRes===pRes) pts=1;
+    }
+    await sbFetch("predictions?id=eq."+p.id, {
+      method: "PATCH",
+      extraHeaders: {"Prefer": "return=representation"},
+      body: JSON.stringify({points: pts}),
+    });
+  }
+}
+
 async function fetchLeaderboard() {
   const data = await sbFetch("predictions?select=predictor_name,points");
   const map = {};
@@ -407,12 +445,29 @@ function shareMatch(m,lang){
 }
 
 /* ── ScoreModal ────────────────────────────────────────────────────── */
-function ScoreModal({m,lang,T,scores,setScores,onClose}){
+function ScoreModal({m,lang,T,scores,setScores,onClose,isAdmin}){
   const sc=scores[m.id]||{hg:"",ag:""};
   const[hg,setHg]=useState(sc.hg);
   const[ag,setAg]=useState(sc.ag);
-  const save=()=>{setScores(s=>({...s,[m.id]:{hg,ag}}));onClose();};
-  const clear=()=>{setScores(s=>{const n={...s};delete n[m.id];return n;});onClose();};
+  const[saving,setSaving]=useState(false);
+  const ADMIN_KEY="khelakokhon2026admin";
+  const save=async()=>{
+    setSaving(true);
+    try {
+      if(isAdmin){
+        const hgN=parseInt(hg),agN=parseInt(ag);
+        await saveScore(m.id,hgN,agN,ADMIN_KEY);
+        await calcAndSavePoints(m.id,hgN,agN);
+      }
+      setScores(s=>({...s,[m.id]:{hg,ag}}));
+      onClose();
+    } catch(e){ alert("Error: "+e.message); }
+    setSaving(false);
+  };
+  const clear=async()=>{
+    setScores(s=>{const n={...s};delete n[m.id];return n;});
+    onClose();
+  };
   const inp={width:54,height:50,textAlign:"center",fontSize:22,fontWeight:800,
     border:`2px solid ${T.border}`,borderRadius:12,background:T.sur2,color:T.text,outline:"none",fontFamily:HS};
   return(
@@ -443,9 +498,9 @@ function ScoreModal({m,lang,T,scores,setScores,onClose}){
             background:T.sur2,color:T.textS,fontFamily:HS,fontSize:13,cursor:"pointer"}}>
             {lang==="bn"?"মুছুন":"Clear"}
           </button>
-          <button onClick={save} style={{flex:2,padding:11,borderRadius:12,border:"none",
-            background:T.green,color:"#fff",fontFamily:HS,fontSize:14,fontWeight:700,cursor:"pointer"}}>
-            {lang==="bn"?"সংরক্ষণ":"Save"}
+          <button onClick={save} disabled={saving} style={{flex:2,padding:11,borderRadius:12,border:"none",
+            background:saving?T.sur3:T.green,color:"#fff",fontFamily:HS,fontSize:14,fontWeight:700,cursor:"pointer"}}>
+            {saving?(lang==="bn"?"সংরক্ষণ...":"Saving..."):(lang==="bn"?"সংরক্ষণ":"Save")}
           </button>
         </div>
       </div>
@@ -454,7 +509,7 @@ function ScoreModal({m,lang,T,scores,setScores,onClose}){
 }
 
 /* ── FixRow ────────────────────────────────────────────────────────── */
-function FixRow({m,lang,onTeam,T,scores,setScores,myPreds,setPredictM,userName}){
+function FixRow({m,lang,onTeam,T,scores,setScores,myPreds,setPredictM,userName,isAdmin}){
   const[showScore,setShowScore]=useState(false);
   const[showAct,setShowAct]=useState(false);
   const sc=scores[m.id];const hasScore=sc&&sc.hg!==""&&sc.ag!=="";
@@ -492,10 +547,10 @@ function FixRow({m,lang,onTeam,T,scores,setScores,myPreds,setPredictM,userName})
               {tn(m.a,lang)}
             </span>
           </div>
-          <button onClick={()=>setShowAct(v=>!v)}
+          {isAdmin&&<button onClick={()=>setShowAct(v=>!v)}
             style={{background:"transparent",border:"none",color:T.textM,fontSize:18,cursor:"pointer",padding:"0 2px",flexShrink:0}}>
             ⋯
-          </button>
+          </button>}
         </div>
         {showAct&&(
           <div style={{display:"flex",gap:8,padding:"8px 10px 10px",borderTop:`1px solid ${T.border}`,background:T.sur2}}>
@@ -528,13 +583,13 @@ function FixRow({m,lang,onTeam,T,scores,setScores,myPreds,setPredictM,userName})
           </div>
         )}
       </div>
-      {showScore&&<ScoreModal m={m} lang={lang} T={T} scores={scores} setScores={setScores} onClose={()=>setShowScore(false)}/>}
+      {showScore&&<ScoreModal m={m} lang={lang} T={T} scores={scores} setScores={setScores} onClose={()=>setShowScore(false)} isAdmin={isAdmin}/>}
     </>
   );
 }
 
 /* ── GroupTab ──────────────────────────────────────────────────────── */
-function GroupTab({lang,onTeam,T,scores,setScores,myPreds,setMyPreds,userName,setPredictM}){
+function GroupTab({lang,onTeam,T,scores,setScores,myPreds,setMyPreds,userName,setPredictM,isAdmin}){
   const[ft,setFt]=useState(null);const[sf,setSf]=useState(false);const[sq,setSq]=useState("");
   const fil=ft?SORTED.filter(m=>m.h===ft||m.a===ft):SORTED;
   const grpd=useMemo(()=>{
@@ -568,7 +623,7 @@ function GroupTab({lang,onTeam,T,scores,setScores,myPreds,setMyPreds,userName,se
               background:T.sur2,padding:"8px 14px",borderBottom:`1px solid ${T.border}`}}>
               {dl(date,lang).toUpperCase()}
             </div>
-            {ms.map(m=><FixRow key={m.id} m={m} lang={lang} onTeam={onTeam} T={T} scores={scores} setScores={setScores} myPreds={myPreds} setPredictM={setPredictM} userName={userName}/>)}
+            {ms.map(m=><FixRow key={m.id} m={m} lang={lang} onTeam={onTeam} T={T} scores={scores} setScores={setScores} myPreds={myPreds} setPredictM={setPredictM} userName={userName} isAdmin={isAdmin}/>)}
           </div>
         ))}
       </div>
@@ -827,7 +882,7 @@ function TeamCountdown({m,lang,T}){
   );
 }
 
-function TeamPage({en,lang,onBack,T,scores,setScores}){
+function TeamPage({en,lang,onBack,T,scores,setScores,isAdmin}){
   const[showScore,setShowScore]=useState(null);
   const ms=MATCHES.filter(m=>m.h===en||m.a===en).sort((a,b)=>new Date(a.d)-new Date(b.d));
   const now2=new Date();now2.setHours(0,0,0,0);
@@ -890,19 +945,113 @@ function TeamPage({en,lang,onBack,T,scores,setScores}){
           </div>
         );
       })}
-      {showScore&&<ScoreModal m={showScore} lang={lang} T={T} scores={scores} setScores={setScores} onClose={()=>setShowScore(null)}/>}
+      {showScore&&<ScoreModal m={showScore} lang={lang} T={T} scores={scores} setScores={setScores} onClose={()=>setShowScore(null)} isAdmin={isAdmin}/>}
     </div>
   );
 }
 
 /* ── HomeTab ───────────────────────────────────────────────────────── */
-function HomeTab({lang,favs,setFavs,onTeam,setSM,T}){
+/* ── Today/Tomorrow Match Card ─────────────────────────────────────── */
+function DayMatchCard({m, lang, T, userName, myPreds, setPredictM, onTeam}) {
+  const cd = useCountdown(tSort(m).getTime());
+  const status = getStatus(m);
+  const[tn2,ap] = m.t.split(" ");
+  const pred = myPreds?.[m.id];
+  const isLocked = status !== "up";
+
+  return(
+    <div style={{background:T.surface,borderRadius:14,border:`1px solid ${T.border}`,
+      marginBottom:10,overflow:"hidden",boxShadow:T.glow,
+      borderLeft:`3px solid ${status==="live"?T.red:status==="ft"?T.textM:T.green}`}}>
+      <div style={{padding:"12px 14px"}}>
+        {/* Status + Time */}
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
+          <span style={{fontFamily:HS,fontSize:11,color:T.textM}}>⚽ {lang==="bn"?`গ্রুপ ${m.g}`:`Group ${m.g}`}</span>
+          {status==="live"?(
+            <div style={{display:"flex",alignItems:"center",gap:4}}>
+              <div style={{width:7,height:7,borderRadius:"50%",background:T.red,animation:"pulse 1s infinite"}}/>
+              <span style={{fontFamily:HS,fontSize:11,color:T.red,fontWeight:700}}>LIVE</span>
+            </div>
+          ):status==="ft"?(
+            <span style={{fontFamily:HS,fontSize:11,background:T.sur2,color:T.textM,padding:"2px 8px",borderRadius:20}}>FT</span>
+          ):(
+            <span style={{fontFamily:HS,fontSize:12,fontWeight:600,color:T.green}}>🕐 {m.t}</span>
+          )}
+        </div>
+
+        {/* Teams */}
+        <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:10}}>
+          <div onClick={()=>onTeam(m.h)} style={{flex:1,display:"flex",alignItems:"center",justifyContent:"flex-end",gap:6,cursor:"pointer"}}>
+            <span style={{fontFamily:HS,fontSize:14,fontWeight:600,color:T.text,textAlign:"right"}}>{tn(m.h,lang)}</span>
+            <Flag en={m.h} size={36}/>
+          </div>
+          <div style={{width:36,textAlign:"center",fontFamily:HS,fontSize:13,color:T.textM,fontWeight:600}}>vs</div>
+          <div onClick={()=>onTeam(m.a)} style={{flex:1,display:"flex",alignItems:"center",gap:6,cursor:"pointer"}}>
+            <Flag en={m.a} size={36}/>
+            <span style={{fontFamily:HS,fontSize:14,fontWeight:600,color:T.text}}>{tn(m.a,lang)}</span>
+          </div>
+        </div>
+
+        {/* Countdown */}
+        {!cd.done&&status==="up"&&(
+          <div style={{display:"flex",gap:6,justifyContent:"center",marginBottom:10}}>
+            {[{v:cd.days,l:lang==="bn"?"দিন":"d"},{v:cd.hours,l:lang==="bn"?"ঘ":"h"},{v:cd.mins,l:lang==="bn"?"মি":"m"},{v:cd.secs,l:lang==="bn"?"সে":"s"}].map(({v,l})=>(
+              <div key={l} style={{background:T.sur2,borderRadius:8,padding:"4px 10px",textAlign:"center",minWidth:40,border:`1px solid ${T.border}`}}>
+                <div style={{fontFamily:HS,fontSize:16,fontWeight:800,color:T.green,lineHeight:1}}>{String(v).padStart(2,"0")}</div>
+                <div style={{fontFamily:HS,fontSize:9,color:T.textM}}>{l}</div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Actions */}
+        <div style={{display:"flex",gap:6}}>
+          {userName&&!isLocked&&(
+            <button onClick={()=>setPredictM(m)} style={{
+              flex:1,display:"flex",alignItems:"center",justifyContent:"center",gap:4,
+              background:pred?T.greenBg:T.sur2,
+              border:`1.5px solid ${pred?T.greenBr:T.border}`,
+              borderRadius:10,padding:"8px",cursor:"pointer",
+              fontFamily:HS,fontSize:13,fontWeight:pred?700:400,
+              color:pred?T.green:T.textS}}>
+              🎯 {pred?`${pred.home_score}–${pred.away_score}`:(lang==="bn"?"প্রেডিক্ট":"Predict")}
+            </button>
+          )}
+          {isLocked&&userName&&(
+            <div style={{flex:1,display:"flex",alignItems:"center",justifyContent:"center",gap:4,
+              background:T.sur2,borderRadius:10,padding:"8px",
+              fontFamily:HS,fontSize:12,color:T.textM}}>
+              🔒 {pred?`${pred.home_score}–${pred.away_score}`:(lang==="bn"?"লক হয়েছে":"Locked")}
+            </div>
+          )}
+          <button onClick={()=>addToGCal(m,lang)} style={{background:T.sur2,border:`1px solid ${T.border}`,
+            borderRadius:10,width:38,height:38,cursor:"pointer",fontSize:14,display:"flex",alignItems:"center",justifyContent:"center"}}>📅</button>
+          <button onClick={()=>shareMatch(m,lang)} style={{background:T.sur2,border:`1px solid ${T.border}`,
+            borderRadius:10,width:38,height:38,cursor:"pointer",fontSize:14,display:"flex",alignItems:"center",justifyContent:"center"}}>🔗</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function HomeTab({lang,favs,setFavs,onTeam,setSM,T,userName,myPreds,setPredictM}){
   const pop=AT.filter(en=>TEAMS[en].pop);
+
+  // Today & Tomorrow matches
+  const now = new Date();
+  const todayStr = now.toISOString().split("T")[0];
+  const tom = new Date(now); tom.setDate(tom.getDate()+1);
+  const tomStr = tom.toISOString().split("T")[0];
+
+  const todayMatches = SORTED.filter(m=>m.d===todayStr);
+  const tomMatches = SORTED.filter(m=>m.d===tomStr);
+
   function gN(en){
-    const now=new Date();now.setHours(0,0,0,0);
-    return SORTED.filter(m=>(m.h===en||m.a===en)&&new Date(m.d+"T00:00:00")>=now)[0]||null;
+    const n=new Date();n.setHours(0,0,0,0);
+    return SORTED.filter(m=>(m.h===en||m.a===en)&&new Date(m.d+"T00:00:00")>=n)[0]||null;
   }
-  function Row({en}){
+
+  function FavRow({en}){
     const nx=gN(en),iF=favs.includes(en),opp=nx?(nx.h===en?nx.a:nx.h):null;
     const cd=useCountdown(nx?tSort(nx).getTime():null);
     const showCd=nx&&!cd.done&&cd.days<3;
@@ -922,10 +1071,10 @@ function HomeTab({lang,favs,setFavs,onTeam,setSM,T}){
                   📅 {dl(nx.d,lang)} · 🕐 <span style={{color:T.green,fontWeight:600}}>{nx.t}</span>
                 </div>
                 {showCd&&(
-                  <div style={{display:"flex",gap:6,marginTop:5}}>
-                    {[{v:cd.days,l:lang==="bn"?"দিন":"d"},{v:cd.hours,l:lang==="bn"?"ঘণ্টা":"h"},{v:cd.mins,l:lang==="bn"?"মিনিট":"m"},{v:cd.secs,l:lang==="bn"?"সেকেন্ড":"s"}].map(({v,l})=>(
+                  <div style={{display:"flex",gap:5,marginTop:5}}>
+                    {[{v:cd.days,l:lang==="bn"?"দিন":"d"},{v:cd.hours,l:lang==="bn"?"ঘ":"h"},{v:cd.mins,l:lang==="bn"?"মি":"m"},{v:cd.secs,l:lang==="bn"?"সে":"s"}].map(({v,l})=>(
                       <div key={l} style={{background:T.sur2,borderRadius:8,padding:"3px 7px",textAlign:"center",border:`1px solid ${T.border}`}}>
-                        <div style={{fontFamily:HS,fontSize:14,fontWeight:700,color:T.green,lineHeight:1}}>{String(v).padStart(2,"0")}</div>
+                        <div style={{fontFamily:HS,fontSize:13,fontWeight:700,color:T.green,lineHeight:1}}>{String(v).padStart(2,"0")}</div>
                         <div style={{fontFamily:HS,fontSize:9,color:T.textM}}>{l}</div>
                       </div>
                     ))}
@@ -952,20 +1101,57 @@ function HomeTab({lang,favs,setFavs,onTeam,setSM,T}){
       </div>
     );
   }
+
   return(
     <div style={{padding:"14px 14px 90px"}}>
+
+      {/* Today's Matches */}
+      {todayMatches.length>0&&(
+        <div style={{marginBottom:20}}>
+          <div style={{fontFamily:HS,fontWeight:700,fontSize:13,color:T.textS,marginBottom:10,display:"flex",alignItems:"center",gap:6}}>
+            <span style={{background:T.red,width:8,height:8,borderRadius:"50%",display:"inline-block",animation:"pulse 1s infinite"}}/>
+            {lang==="bn"?"আজকের ম্যাচ":"Today's Matches"}
+          </div>
+          {todayMatches.map(m=><DayMatchCard key={m.id} m={m} lang={lang} T={T} userName={userName} myPreds={myPreds} setPredictM={setPredictM} onTeam={onTeam}/>)}
+        </div>
+      )}
+
+      {/* Tomorrow's Matches */}
+      {tomMatches.length>0&&(
+        <div style={{marginBottom:20}}>
+          <div style={{fontFamily:HS,fontWeight:700,fontSize:13,color:T.textS,marginBottom:10}}>
+            📅 {lang==="bn"?"আগামীকালের ম্যাচ":"Tomorrow's Matches"}
+          </div>
+          {tomMatches.map(m=><DayMatchCard key={m.id} m={m} lang={lang} T={T} userName={userName} myPreds={myPreds} setPredictM={setPredictM} onTeam={onTeam}/>)}
+        </div>
+      )}
+
+      {/* No matches today/tomorrow */}
+      {todayMatches.length===0&&tomMatches.length===0&&(
+        <div style={{background:T.surface,borderRadius:14,padding:"20px 16px",textAlign:"center",marginBottom:20}}>
+          <div style={{fontSize:32,marginBottom:8}}>⚽</div>
+          <div style={{fontFamily:HS,fontSize:14,color:T.textM}}>
+            {lang==="bn"?"আজ ও আগামীকাল কোনো ম্যাচ নেই":"No matches today or tomorrow"}
+          </div>
+        </div>
+      )}
+
+      {/* Favorite Teams */}
       {favs.length>0&&(
         <div style={{marginBottom:20}}>
           <div style={{fontFamily:HS,fontWeight:700,fontSize:13,color:T.textS,marginBottom:10}}>
             ⭐ {lang==="bn"?"প্রিয় দল":"MY TEAMS"}
           </div>
-          {favs.map(en=><Row key={en} en={en}/>)}
+          {favs.map(en=><FavRow key={en} en={en}/>)}
         </div>
       )}
+
+      {/* Popular Teams */}
       <div style={{fontFamily:HS,fontWeight:700,fontSize:13,color:T.textS,marginBottom:10}}>
         🔥 {lang==="bn"?"জনপ্রিয় দল":"POPULAR TEAMS"}
       </div>
-      {pop.map(en=><Row key={en} en={en}/>)}
+      {pop.map(en=><FavRow key={en} en={en}/>)}
+
       <button onClick={()=>setSM(true)} style={{width:"100%",marginTop:8,background:T.surface,
         border:`1.5px dashed ${T.green}55`,borderRadius:14,padding:14,fontSize:14,
         color:T.green,cursor:"pointer",fontFamily:HS,fontWeight:600}}>
@@ -1247,46 +1433,78 @@ function PredictModal({m, T, lang, userName, onClose, myPreds, setMyPreds}) {
     setSaving(false);
   };
 
-  const inp={width:54,height:50,textAlign:"center",fontSize:22,fontWeight:800,
-    border:`2px solid ${T.border}`,borderRadius:12,background:T.sur2,color:T.text,outline:"none",fontFamily:HS};
+  const inp={
+    width:60,height:56,textAlign:"center",fontSize:26,fontWeight:800,
+    border:`2px solid ${T.border}`,borderRadius:14,background:T.sur2,
+    color:T.text,outline:"none",fontFamily:HS,
+  };
 
   return(
-    <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.7)",zIndex:999,
-      display:"flex",alignItems:"center",justifyContent:"center",padding:20}} onClick={onClose}>
-      <div style={{background:T.surface,borderRadius:20,padding:28,width:"100%",maxWidth:320}} onClick={e=>e.stopPropagation()}>
-        <div style={{fontFamily:HS,fontWeight:700,fontSize:17,color:T.text,textAlign:"center",marginBottom:4}}>
-          🎯 {lang==="bn"?"প্রেডিকশন":"Prediction"}
+    <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.75)",zIndex:999,
+      display:"flex",alignItems:"flex-end",padding:0}} onClick={onClose}>
+      <div style={{background:T.surface,borderRadius:"24px 24px 0 0",width:"100%",
+        padding:"24px 20px 32px"}} onClick={e=>e.stopPropagation()}>
+
+        {/* Handle */}
+        <div style={{width:40,height:4,background:T.border,borderRadius:2,margin:"0 auto 20px"}}/>
+
+        {/* Title */}
+        <div style={{fontFamily:HS,fontWeight:800,fontSize:18,color:T.text,textAlign:"center",marginBottom:4}}>
+          🎯 {lang==="bn"?"প্রেডিক্ট করুন":"Make Your Prediction"}
         </div>
-        <div style={{fontFamily:HS,fontSize:12,color:T.textM,textAlign:"center",marginBottom:20}}>
-          {tn(m.h,lang)} vs {tn(m.a,lang)}
+        <div style={{fontFamily:HS,fontSize:12,color:T.textM,textAlign:"center",marginBottom:24}}>
+          {dl(m.d,lang)} · {m.t}
         </div>
-        <div style={{display:"flex",alignItems:"center",justifyContent:"center",gap:16,marginBottom:20}}>
-          <div style={{textAlign:"center"}}>
-            <Flag en={m.h} size={40}/>
-            <div style={{fontFamily:HS,fontSize:11,color:T.textS,margin:"6px 0"}}>{tn(m.h,lang)}</div>
-            <input value={hg} onChange={e=>setHg(e.target.value)} style={inp} placeholder="0" maxLength={2} type="number"/>
+
+        {/* Teams + Score Input */}
+        <div style={{display:"flex",alignItems:"center",justifyContent:"center",gap:12,marginBottom:24}}>
+          {/* Home */}
+          <div style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",gap:8}}>
+            <Flag en={m.h} size={48}/>
+            <div style={{fontFamily:HS,fontSize:13,fontWeight:600,color:T.text,textAlign:"center",lineHeight:1.2}}>
+              {tn(m.h,lang)}
+            </div>
+            <input value={hg} onChange={e=>setHg(e.target.value.replace(/\D/g,""))}
+              style={inp} placeholder="0" maxLength={2} inputMode="numeric"/>
           </div>
-          <div style={{fontFamily:HS,fontSize:24,fontWeight:700,color:T.textM,paddingTop:24}}>–</div>
-          <div style={{textAlign:"center"}}>
-            <Flag en={m.a} size={40}/>
-            <div style={{fontFamily:HS,fontSize:11,color:T.textS,margin:"6px 0"}}>{tn(m.a,lang)}</div>
-            <input value={ag} onChange={e=>setAg(e.target.value)} style={inp} placeholder="0" maxLength={2} type="number"/>
+
+          {/* VS */}
+          <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:4,paddingTop:20}}>
+            <div style={{fontFamily:HS,fontSize:13,color:T.textM,fontWeight:600}}>vs</div>
+            <div style={{fontFamily:HS,fontSize:22,color:T.textM,fontWeight:700,lineHeight:1}}>–</div>
+          </div>
+
+          {/* Away */}
+          <div style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",gap:8}}>
+            <Flag en={m.a} size={48}/>
+            <div style={{fontFamily:HS,fontSize:13,fontWeight:600,color:T.text,textAlign:"center",lineHeight:1.2}}>
+              {tn(m.a,lang)}
+            </div>
+            <input value={ag} onChange={e=>setAg(e.target.value.replace(/\D/g,""))}
+              style={inp} placeholder="0" maxLength={2} inputMode="numeric"/>
           </div>
         </div>
-        <div style={{fontFamily:HS,fontSize:11,color:T.textM,textAlign:"center",marginBottom:16}}>
-          ✅ {lang==="bn"?"সঠিক ফলাফল = ১ পয়েন্ট | সঠিক স্কোর = ৩ পয়েন্ট":"Correct result = 1pt | Exact score = 3pts"}
+
+        {/* Points hint */}
+        <div style={{display:"flex",gap:8,marginBottom:20}}>
+          <div style={{flex:1,background:T.sur2,borderRadius:10,padding:"8px",textAlign:"center"}}>
+            <div style={{fontFamily:HS,fontSize:18,fontWeight:800,color:T.green}}>১</div>
+            <div style={{fontFamily:HS,fontSize:10,color:T.textM}}>{lang==="bn"?"সঠিক ফলাফল":"Correct result"}</div>
+          </div>
+          <div style={{flex:1,background:T.sur2,borderRadius:10,padding:"8px",textAlign:"center"}}>
+            <div style={{fontFamily:HS,fontSize:18,fontWeight:800,color:T.gold}}>৩</div>
+            <div style={{fontFamily:HS,fontSize:10,color:T.textM}}>{lang==="bn"?"সঠিক স্কোর":"Exact score"}</div>
+          </div>
         </div>
-        <div style={{display:"flex",gap:8}}>
-          <button onClick={onClose} style={{flex:1,padding:11,borderRadius:12,border:`1px solid ${T.border}`,
-            background:T.sur2,color:T.textS,fontFamily:HS,fontSize:13,cursor:"pointer"}}>
-            {lang==="bn"?"বাতিল":"Cancel"}
-          </button>
-          <button onClick={save} disabled={saving||hg===""||ag===""} style={{flex:2,padding:11,borderRadius:12,border:"none",
-            background:(saving||hg===""||ag==="")?T.sur3:T.green,color:"#fff",
-            fontFamily:HS,fontSize:14,fontWeight:700,cursor:"pointer"}}>
-            {saving?(lang==="bn"?"সংরক্ষণ...":"Saving..."):(lang==="bn"?"সংরক্ষণ":"Save")}
-          </button>
-        </div>
+
+        {/* Confirm button */}
+        <button onClick={save} disabled={saving||hg===""||ag===""} style={{
+          width:"100%",padding:16,borderRadius:14,border:"none",
+          background:(saving||hg===""||ag==="")?T.sur3:T.green,
+          color:"#fff",fontFamily:HS,fontSize:16,fontWeight:800,cursor:"pointer",
+          opacity:(saving||hg===""||ag==="")?0.6:1}}>
+          {saving?(lang==="bn"?"সংরক্ষণ হচ্ছে...":"Saving..."):(lang==="bn"?"✅ কনফার্ম করুন":"✅ Confirm")}
+        </button>
       </div>
     </div>
   );
@@ -1345,6 +1563,8 @@ function LeaderboardTab({T, lang, userName}) {
 }
 
 export default function App(){
+  const ADMIN_KEY = "khelakokhon2026admin";
+  const isAdmin = new URLSearchParams(window.location.search).get("admin") === ADMIN_KEY;
   const[dark,setDark]=useState(true);
   const[lang,setLang]=useState("bn");
   const[mt,setMt]=useState("home");
@@ -1358,6 +1578,11 @@ export default function App(){
   const[predictM,setPredictM]=useState(null);
   const T=mkT(dark);
   const aF=en=>setFavs(f=>f.includes(en)?f:[...f,en]);
+
+  // Load scores from Supabase
+  useEffect(()=>{
+    fetchScores().then(s=>setScores(s)).catch(()=>{});
+  },[]);
 
   // Load user's predictions on login
   useEffect(()=>{
@@ -1400,7 +1625,7 @@ export default function App(){
   if(tp) return(
     <>
       <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet"/>
-      <TeamPage en={tp} lang={lang} onBack={closeTeam} T={T} scores={scores} setScores={setScores}/>
+      <TeamPage en={tp} lang={lang} onBack={closeTeam} T={T} scores={scores} setScores={setScores} isAdmin={isAdmin}/>
     </>
   );
 
@@ -1421,7 +1646,7 @@ export default function App(){
                   {lang==="bn"?"খেলা কখন?":"Khela Kokhon?"}
                 </div>
                 <div style={{fontFamily:HS,fontSize:10,color:"rgba(255,255,255,0.5)",letterSpacing:1}}>
-                  FIFA WORLD CUP 2026
+                  {isAdmin?"🔑 ADMIN MODE":"FIFA WORLD CUP 2026"}
                 </div>
               </div>
             </div>
@@ -1465,11 +1690,11 @@ export default function App(){
         </div>
 
         {/* Body */}
-        {mt==="home"&&<HomeTab lang={lang} favs={favs} setFavs={setFavs} onTeam={openTeam} setSM={setSm} T={T}/>}
+        {mt==="home"&&<HomeTab lang={lang} favs={favs} setFavs={setFavs} onTeam={openTeam} setSM={setSm} T={T} userName={userName} myPreds={myPreds} setPredictM={setPredictM}/>}
         {mt==="predict"&&<PredictionTab T={T} lang={lang} userName={userName} onSave={handleNameSave} myPreds={myPreds} setMyPreds={setMyPreds} scores={scores} setPredictM={setPredictM}/>}
         {mt==="wc"&&wt==="table"&&<TableTab lang={lang} T={T} scores={scores}/>}
         {mt==="wc"&&wt==="knockout"&&<KnockoutTab lang={lang} T={T} scores={scores}/>}
-        {mt==="wc"&&wt==="fixture"&&<GroupTab lang={lang} onTeam={openTeam} T={T} scores={scores} setScores={setScores} myPreds={myPreds} setMyPreds={setMyPreds} userName={userName} setPredictM={setPredictM}/>}
+        {mt==="wc"&&wt==="fixture"&&<GroupTab lang={lang} onTeam={openTeam} T={T} scores={scores} setScores={setScores} myPreds={myPreds} setMyPreds={setMyPreds} userName={userName} setPredictM={setPredictM} isAdmin={isAdmin}/>}
         {mt==="wc"&&wt==="leaderboard"&&<LeaderboardTab T={T} lang={lang} userName={userName}/>}
 
         {sm&&<AddModal favs={favs} onAdd={aF} onClose={()=>setSm(false)} lang={lang} T={T}/>}
