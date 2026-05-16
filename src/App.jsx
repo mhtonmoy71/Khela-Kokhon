@@ -516,7 +516,7 @@ function FixRow({m,lang,onTeam,T,scores,setScores,myPreds,setPredictM,userName,i
   const hasScore=sc&&sc.hg!==""&&sc.ag!=="";
   const status=getStatus(m);
   const[tn2,ap]=m.t.split(" ");
-  const pred=myPreds?.[m.id];
+  const pred=myPreds?.[m.id]||myPreds?.[String(m.id)];
   const isUpcoming=status==="up";
 
   return(
@@ -983,7 +983,7 @@ function DayMatchCard({m, lang, T, userName, myPreds, setPredictM, onTeam}) {
   const cd = useCountdown(tSort(m).getTime());
   const status = getStatus(m);
   const[tn2,ap] = m.t.split(" ");
-  const pred = myPreds?.[m.id];
+  const pred = myPreds?.[m.id]||myPreds?.[String(m.id)];
   const isLocked = status !== "up";
 
   return(
@@ -1451,8 +1451,8 @@ async function deletePrediction(userName, matchId) {
 }
 
 function PredictModal({m, T, lang, userName, onClose, myPreds, setMyPreds}) {
-  const existing = myPreds[m.id];
-  const hasPred = existing!=null;
+  const existing = myPreds[m.id] || myPreds[String(m.id)];
+  const hasPred = existing!=null && existing.home_score!=null;
   const[hg, setHg] = useState(existing?.home_score!=null?String(existing.home_score):"");
   const[ag, setAg] = useState(existing?.away_score!=null?String(existing.away_score):"");
   const[saving, setSaving] = useState(false);
@@ -1464,7 +1464,8 @@ function PredictModal({m, T, lang, userName, onClose, myPreds, setMyPreds}) {
     setSaving(true);
     try {
       await savePrediction(userName, m.id, parseInt(hg), parseInt(ag));
-      setMyPreds(p=>({...p,[m.id]:{home_score:parseInt(hg),away_score:parseInt(ag)}}));
+      const newPred={home_score:parseInt(hg),away_score:parseInt(ag)};
+      setMyPreds(p=>({...p,[m.id]:newPred,[String(m.id)]:newPred}));
       onClose();
     } catch(e){ alert("Error: "+e.message); }
     setSaving(false);
@@ -1474,7 +1475,7 @@ function PredictModal({m, T, lang, userName, onClose, myPreds, setMyPreds}) {
     setDeleting(true);
     try {
       await deletePrediction(userName, m.id);
-      setMyPreds(p=>{const n={...p};delete n[m.id];return n;});
+      setMyPreds(p=>{const n={...p};delete n[m.id];delete n[String(m.id)];return n;});
       onClose();
     } catch(e){ alert("Error: "+e.message); }
     setDeleting(false);
@@ -1666,7 +1667,10 @@ export default function App(){
     if(!userName)return;
     getPredictions(userName).then(data=>{
       const map={};
-      data.forEach(p=>{map[p.match_id]={home_score:p.home_score,away_score:p.away_score,points:p.points};});
+      data.forEach(p=>{
+        map[p.match_id]={home_score:p.home_score,away_score:p.away_score,points:p.points};
+        map[String(p.match_id)]={home_score:p.home_score,away_score:p.away_score,points:p.points};
+      });
       setMyPreds(map);
     }).catch(()=>{});
   },[userName]);
