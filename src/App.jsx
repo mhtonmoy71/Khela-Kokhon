@@ -462,7 +462,6 @@ function PredictModal({m,T,lang,userName,myPreds,setMyPreds,onClose}){
 function NameModal({T,lang,onSave,inline=false,onClose}){
   const[step,setStep]=useState("email");
   const[email,setEmail]=useState("");
-  const[otp,setOtp]=useState("");
   const[name,setName]=useState("");
   const[accessToken,setAccessToken]=useState("");
   const[err,setErr]=useState("");
@@ -503,11 +502,19 @@ function NameModal({T,lang,onSave,inline=false,onClose}){
         <div style={{display:"flex",justifyContent:"center",gap:6,marginTop:10}}>{dots}</div>
       </div>
       {step==="email"&&<>
-        <div style={{fontFamily:HS,fontSize:13,color:T.textS,textAlign:"center",marginBottom:16}}>{lang==="bn"?"ইমেইল দাও, কোড পাঠানো হবে":"Enter email, we will send a code"}</div>
-        <input value={email} onChange={e=>setEmail(e.target.value)} onKeyDown={e=>e.key==="Enter"&&doSendOTP()} placeholder={lang==="bn"?"তোমার ইমেইল...":"Your email..."} type="email" style={inp} autoFocus/>
+        <div style={{fontFamily:HS,fontSize:13,color:T.textS,textAlign:"center",marginBottom:16}}>
+          {lang==="bn"?"তোমার ইমেইল দাও, সাইন-ইন লিংক পাঠানো হবে":"Enter your email to receive a sign-in link"}
+        </div>
+        <input value={email} onChange={e=>setEmail(e.target.value)}
+          onKeyDown={e=>e.key==="Enter"&&doSendLink()}
+          placeholder={lang==="bn"?"তোমার ইমেইল...":"Your email..."}
+          type="email" style={inp} autoFocus/>
         {err&&<div style={{fontFamily:HS,fontSize:12,color:T.red,textAlign:"center",marginBottom:8}}>{err}</div>}
-        <button onClick={doSendLink} disabled={loading||!email.includes("@")} style={{width:"100%",padding:13,borderRadius:12,border:"none",background:loading||!email.includes("@")?"#555":T.green,color:"#fff",fontFamily:HS,fontSize:15,fontWeight:700,cursor:"pointer"}}>
-          {loading?(lang==="bn"?"পাঠানো হচ্ছে...":"Sending..."):(lang==="bn"?"কোড পাঠাও 📧":"Send Code 📧")}
+        <button onClick={doSendLink} disabled={loading||!email.includes("@")}
+          style={{width:"100%",padding:13,borderRadius:12,border:"none",
+            background:loading||!email.includes("@")?"#555":T.green,
+            color:"#fff",fontFamily:HS,fontSize:15,fontWeight:700,cursor:"pointer"}}>
+          {loading?(lang==="bn"?"পাঠানো হচ্ছে...":"Sending..."):(lang==="bn"?"লিংক পাঠাও 📧":"Send Link 📧")}
         </button>
       </>}
       {step==="sent"&&<>
@@ -1424,10 +1431,7 @@ export default function App(){
     if(!tp) window.history.replaceState({page:"app",tab:mt,wt},"","");
   },[mt,wt,tp]);
 
-  const handlePredict=(m)=>{
-    if(!userName){setPredictM(m);}
-    else setPredictM(m);
-  };
+  const handlePredict=(m)=>{setPredictM(m);};
 
   if(tp) return(
     <>
