@@ -767,10 +767,10 @@ function MatchRow({m,T,lang,scores,myPreds,setPredictM,onTeam,isAdmin,setScoreM}
               </div>
             )}
           </div>
-          <div style={{flex:1,display:"flex",alignItems:"center",gap:6,minWidth:0}}>
+          <div onClick={()=>onTeam(m.a)} style={{flex:1,display:"flex",alignItems:"center",gap:6,minWidth:0,cursor:"pointer"}}>
             <Flag en={m.a} size={30}/>
-            <span onClick={()=>onTeam(m.a)} style={{fontFamily:HS,fontSize:13,fontWeight:500,color:T.text,
-              cursor:"pointer",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{tn(m.a,lang)}</span>
+            <span style={{fontFamily:HS,fontSize:13,fontWeight:500,color:T.text,
+              overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{tn(m.a,lang)}</span>
           </div>
           {st==="up"&&(
             <button onClick={()=>setPredictM(m)} style={{
