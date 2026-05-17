@@ -474,7 +474,7 @@ function NameModal({T,lang,onSave,inline=false,onClose}){
     try{
       await sendMagicLink(email.trim().toLowerCase());
       setStep("sent");
-    }catch(e){setErr(lang==="bn"?"ইমেইল পাঠানো যায়নি, আবার চেষ্টা করুন":"Failed to send email");}
+    }catch(e){setErr("Error: "+e.message);}
     setLoading(false);
   };
   const doSaveName=async()=>{
