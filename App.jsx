@@ -868,7 +868,7 @@ function KOCard({m,T,lang,scores,qualified}){
     <div style={{background:T.card,borderRadius:14,border:`1px solid ${T.border}`,marginBottom:10,overflow:"hidden",boxShadow:T.glow}}>
       <div style={{display:"flex",alignItems:"center",gap:6,padding:"8px 14px 6px",borderBottom:`1px solid ${T.border}`}}>
         <div style={{width:7,height:7,borderRadius:"50%",background:T.green,flexShrink:0}}/>
-        <span style={{fontFamily:HS,fontSize:11,fontWeight:600,color:T.textS}}>{m.label||m.venue}</span>
+        <span style={{fontFamily:HS,fontSize:11,fontWeight:600,color:T.textS}}>#{m.id} · {m.label||m.venue}</span>
       </div>
       <div style={{display:"flex",alignItems:"center",padding:"12px 14px",gap:8}}>
         <div style={{flex:1,display:"flex",flexDirection:"column",gap:8}}>
