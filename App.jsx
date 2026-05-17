@@ -1551,13 +1551,20 @@ export default function App(){
         {/* Sticky header */}
         <div style={{background:T.hdr,position:"sticky",top:0,zIndex:50,boxShadow:"0 2px 20px rgba(0,0,0,0.4)"}}>
           <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"14px 14px 12px"}}>
-            <div style={{display:"flex",alignItems:"center",gap:10}}>
-              <div style={{width:40,height:40,borderRadius:"50%",overflow:"hidden",border:"2px solid rgba(0,230,118,0.3)",flexShrink:0}}>
-                <img src={KK_LOGO} alt="" style={{width:"100%",height:"100%",objectFit:"contain"}}/>
+            <div style={{display:"flex",alignItems:"center",gap:0}}>
+              <div style={{background:"#00e676",borderRadius:"8px 0 0 8px",padding:"8px 10px",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
+                <svg width="22" height="22" viewBox="0 0 22 22">
+                  <rect x="1" y="4" width="20" height="12" rx="1.5" fill="none" stroke="#065f46" strokeWidth="1"/>
+                  <circle cx="11" cy="10" r="3" fill="none" stroke="#065f46" strokeWidth="1"/>
+                  <line x1="11" y1="4" x2="11" y2="16" stroke="#065f46" strokeWidth="1"/>
+                  <rect x="1" y="7" width="3" height="6" fill="none" stroke="#065f46" strokeWidth="0.8"/>
+                  <rect x="18" y="7" width="3" height="6" fill="none" stroke="#065f46" strokeWidth="0.8"/>
+                  <circle cx="11" cy="10" r="1.2" fill="#065f46"/>
+                </svg>
               </div>
-              <div>
-                <div style={{fontFamily:HS,fontSize:18,fontWeight:800,color:"#fff",lineHeight:1}}>{lang==="bn"?"খেলা কখন?":"Khela Kokhon?"}</div>
-                {isAdmin&&<div style={{fontFamily:HS,fontSize:9,color:"rgba(255,255,255,0.5)",letterSpacing:1}}>🔑 ADMIN MODE</div>}
+              <div style={{background:"rgba(0,230,118,0.1)",borderRadius:"0 8px 8px 0",padding:"8px 14px",border:"1px solid rgba(0,230,118,0.2)",borderLeft:"none"}}>
+                <div style={{fontFamily:HS,fontSize:18,fontWeight:800,color:"#fff",lineHeight:1,whiteSpace:"nowrap"}}>{lang==="bn"?"খেলা কখন?":"Khela Kokhon?"}</div>
+                {isAdmin&&<div style={{fontFamily:HS,fontSize:9,color:"#00e676",letterSpacing:1,marginTop:2}}>🔑 ADMIN MODE</div>}
               </div>
             </div>
             <div style={{display:"flex",gap:6}}>
