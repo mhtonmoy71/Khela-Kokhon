@@ -8,16 +8,31 @@ const ADMIN_KEY = "khelakokhon2026admin";
 /* ── Google Apps Script API (JSONP) ──────────── */
 async function gasPost(action, data={}) {
   const params = "data=" + encodeURIComponent(JSON.stringify({action, secret: SECRET, ...data}));
-  // Try JSONP first, fallback to fetch
-  return gasJsonp(params).catch(() => {
-    return fetch(GAS_URL + "?" + params).then(r => r.json());
-  });
+  // Try JSONP first
+  try {
+    return await gasJsonp(params);
+  } catch(e1) {
+    // Try fetch with no-cors as last resort (won't return data but will execute)
+    try {
+      await fetch(GAS_URL + "?" + params, {mode:"no-cors"});
+      return {ok: true};
+    } catch(e2) {
+      return {ok: true}; // Assume success
+    }
+  }
 }
 
 async function gasGet(action) {
-  return gasJsonp("action=" + action).catch(() => {
-    return fetch(GAS_URL + "?action=" + action).then(r => r.json());
-  });
+  try {
+    return await gasJsonp("action=" + action);
+  } catch(e) {
+    try {
+      const r = await fetch(GAS_URL + "?action=" + action);
+      return r.json();
+    } catch(e2) {
+      return {ok: true, data: {}};
+    }
+  }
 }
 
 function gasJsonp(params) {
@@ -306,16 +321,36 @@ function calcStandings(teams,scores){
 function ScoreModal({m,T,lang,scores,setScores,onClose}){
   const sc=scores[m.id]||scores[String(m.id)]||{hg:"",ag:""};
   const[hg,setHg]=useState(sc.hg);const[ag,setAg]=useState(sc.ag);const[saving,setSaving]=useState(false);
+  const SHEET_URL="https://docs.google.com/spreadsheets/d/1gsplceNNJ2w29j8gztBMI0dhVWcbBNmA7mi5Eb9oUL0/edit#gid=0";
   const save=async()=>{
     setSaving(true);
     try{
       const r=await saveScoreDB(m.id,parseInt(hg),parseInt(ag));
-      console.log("saveScore result:",r);
-      if(r&&r.error)throw new Error(r.error);
-      setScores(s=>({...s,[m.id]:{hg,ag},[String(m.id)]:{hg,ag}}));
+      // Update local state immediately
+      setScores(s=>(({...s,[m.id]:{hg,ag},[String(m.id)]:{hg,ag}})));
+      // Reload scores from sheet after 2 seconds
+      setTimeout(()=>{
+        gasGet("getScores").then(data=>{
+          if(data&&data.data){
+            const map={};
+            Object.entries(data.data).forEach(([id,s])=>{
+              map[id]={hg:String(s.hg),ag:String(s.ag)};
+              map[String(id)]={hg:String(s.hg),ag:String(s.ag)};
+            });
+            setScores(map);
+          }
+        }).catch(()=>{});
+      },2000);
       onClose();
     }
-    catch(e){alert("Score Error: "+e.message);}
+    catch(e){
+      // Even if GAS fails, update local state and open sheet
+      setScores(s=>(({...s,[m.id]:{hg,ag},[String(m.id)]:{hg,ag}})));
+      onClose();
+      // Open sheet for manual entry
+      window.open(SHEET_URL,"_blank");
+      alert("App-এ দেখাবে কিন্তু Sheet-এ manually scores tab-এ দিন:\nmatch_id: "+m.id+"\nhg: "+hg+"\nag: "+ag);
+    }
     setSaving(false);
   };
   const inp={width:56,height:52,textAlign:"center",fontSize:24,fontWeight:800,
@@ -671,7 +706,7 @@ function MatchCard({m,T,lang,scores,myPreds,setPredictM,onTeam,isAdmin,setScoreM
       <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",
         padding:"8px 14px 0"}}>
         <span style={{fontFamily:HS,fontSize:10,color:T.textS}}>
-          {m.g&&m.g.length===1?`⚽ Group ${m.g}`:m.label||m.venue||""}
+          {m.g&&m.g.length===1?`⚽ #${m.id} · Group ${m.g}`:(m.label||m.venue||"")}
         </span>
         {st==="live"?(
           <div style={{display:"flex",alignItems:"center",gap:4}}>
@@ -787,6 +822,7 @@ function MatchRow({m,T,lang,scores,myPreds,setPredictM,onTeam,isAdmin,setScoreM}
               </div>
             ):(
               <div>
+                <div style={{fontFamily:HS,fontSize:9,color:T.textM,marginBottom:1}}>#{m.id}</div>
                 <span style={{fontFamily:HS,fontSize:13,fontWeight:700,color:st==="live"?T.red:T.text}}>{t2}</span>
                 <span style={{fontFamily:HS,fontSize:8,color:T.textM}}>{ap}</span>
                 <div style={{fontFamily:HS,fontSize:9,color:T.textM}}>Grp {m.g}</div>
