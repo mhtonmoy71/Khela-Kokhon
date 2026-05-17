@@ -219,16 +219,8 @@ function getMatchesForDate(d){return[...MATCHES,...R32,...R16,...QF,...SF,...FIN
 /* ── Helpers ─────────────────────────────────── */
 
 async function getSessionFromURL(){ return null; }
-async function saveUserName(email,name,accessToken){
-  const nc=await sb("predictors?name=eq."+encodeURIComponent(name)+"&select=email");
-  if(nc.length>0&&nc[0].email!==email)throw new Error("name_taken");
-  await sb("predictors",{method:"POST",h:{"Prefer":"resolution=merge-duplicates"},
-    body:JSON.stringify({email,name})});
-}
-async function getUserByEmail(email){
-  const data=await sb("predictors?email=eq."+encodeURIComponent(email)+"&select=name");
-  return data.length>0?data[0].name:null;
-}
+
+
 
 function tMs(m){
   const[tm,ap]=m.t.split(" ");const[h,mn]=tm.split(":").map(Number);
