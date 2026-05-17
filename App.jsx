@@ -236,9 +236,10 @@ function getMatchesForDate(d){return[...MATCHES,...R32,...R16,...QF,...SF,...FIN
 /* ── Helpers ─────────────────────────────────── */
 /* ── Email Magic Link Auth ───────────────────── */
 async function sendMagicLink(email){
-  const res=await fetch(SB_URL+"/auth/v1/magiclink",{method:"POST",
+  // Try OTP endpoint first (sends 6-digit code)
+  const res=await fetch(SB_URL+"/auth/v1/otp",{method:"POST",
     headers:{"apikey":SB_KEY,"Content-Type":"application/json"},
-    body:JSON.stringify({email,create_user:true})});
+    body:JSON.stringify({email,create_user:true,options:{emailRedirectTo:"https://khela-kokhon.vercel.app"}})});
   if(!res.ok){const t=await res.text();throw new Error(t);}
 }
 async function getSessionFromURL(){
