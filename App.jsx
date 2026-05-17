@@ -234,6 +234,32 @@ const ALL_DATES=new Set([...MATCHES,...R32,...R16,...QF,...SF,...FINAL].map(m=>m
 function getMatchesForDate(d){return[...MATCHES,...R32,...R16,...QF,...SF,...FINAL].filter(m=>m.d===d);}
 
 /* ── Helpers ─────────────────────────────────── */
+/* ── Email OTP ───────────────────────────────── */
+async function sendOTP(email){
+  const res=await fetch(SB_URL+"/auth/v1/otp",{method:"POST",
+    headers:{"apikey":SB_KEY,"Content-Type":"application/json"},
+    body:JSON.stringify({email,create_user:true})});
+  if(!res.ok)throw new Error(await res.text());
+}
+async function verifyOTP(email,token){
+  const res=await fetch(SB_URL+"/auth/v1/verify",{method:"POST",
+    headers:{"apikey":SB_KEY,"Content-Type":"application/json"},
+    body:JSON.stringify({email,token,type:"email"})});
+  const data=await res.json();
+  if(!res.ok)throw new Error(data.error_description||"Invalid OTP");
+  return data;
+}
+async function saveUserName(email,name,accessToken){
+  const nc=await sb("predictors?name=eq."+encodeURIComponent(name)+"&select=email");
+  if(nc.length>0&&nc[0].email!==email)throw new Error("name_taken");
+  await sb("predictors",{method:"POST",h:{"Prefer":"resolution=merge-duplicates"},
+    body:JSON.stringify({email,name})});
+}
+async function getUserByEmail(email){
+  const data=await sb("predictors?email=eq."+encodeURIComponent(email)+"&select=name");
+  return data.length>0?data[0].name:null;
+}
+
 function tMs(m){
   const[tm,ap]=m.t.split(" ");const[h,mn]=tm.split(":").map(Number);
   let h2=h;if(ap==="PM"&&h!==12)h2+=12;if(ap==="AM"&&h===12)h2=0;
@@ -311,10 +337,7 @@ function ScoreModal({m,T,lang,scores,setScores,onClose}){
       display:"flex",alignItems:"flex-end"}} onClick={onClose}>
       <div style={{background:T.card,borderRadius:"20px 20px 0 0",width:"100%",padding:"20px 20px 32px"}}
         onClick={e=>e.stopPropagation()}>
-        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:14}}>
-          <div style={{width:36,height:4,background:T.border,borderRadius:2,margin:"0 auto"}}/>
-          <button onClick={onClose} style={{background:T.card2,border:"none",borderRadius:"50%",width:28,height:28,cursor:"pointer",fontSize:14,color:T.textS,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>✕</button>
-        </div>
+        <div style={{width:36,height:4,background:T.border,borderRadius:2,margin:"0 auto 16px"}}/>
         <div style={{fontFamily:HS,fontWeight:700,fontSize:16,color:T.text,textAlign:"center",marginBottom:4}}>🔑 স্কোর এন্ট্রি</div>
         <div style={{fontFamily:HS,fontSize:12,color:T.textS,textAlign:"center",marginBottom:20}}>{tn(m.h,lang)} vs {tn(m.a,lang)}</div>
         <div style={{display:"flex",alignItems:"center",justifyContent:"center",gap:16,marginBottom:20}}>
@@ -368,10 +391,7 @@ function PredictModal({m,T,lang,userName,myPreds,setMyPreds,onClose}){
       display:"flex",alignItems:"flex-end"}} onClick={onClose}>
       <div style={{background:T.card,borderRadius:"24px 24px 0 0",width:"100%",padding:"20px 20px 36px"}}
         onClick={e=>e.stopPropagation()}>
-        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:16}}>
-          <div style={{width:36,height:4,background:T.border,borderRadius:2,margin:"0 auto"}}/>
-          <button onClick={onClose} style={{background:T.card2,border:"none",borderRadius:"50%",width:28,height:28,cursor:"pointer",fontSize:14,color:T.textS,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>✕</button>
-        </div>
+        <div style={{width:36,height:4,background:T.border,borderRadius:2,margin:"0 auto 18px"}}/>
         <div style={{fontFamily:HS,fontWeight:800,fontSize:18,color:T.text,textAlign:"center",marginBottom:4}}>
           🎯 {lang==="bn"?"প্রেডিক্ট করুন":"Make Prediction"}
         </div>
@@ -426,41 +446,97 @@ function PredictModal({m,T,lang,userName,myPreds,setMyPreds,onClose}){
   );
 }
 
-/* ── Name Modal ──────────────────────────────── */
-function NameModal({T,lang,onSave,inline=false}){
-  const[name,setName]=useState("");const[err,setErr]=useState("");const[saving,setSaving]=useState(false);
-  const save=async()=>{
-    if(!name.trim())return;setSaving(true);setErr("");
-    try{const did=await getDeviceId();await registerUser(name.trim(),did);onSave(name.trim(),did);}
-    catch(e){setErr(e.message==="name_taken"?(lang==="bn"?"এই নামটি অন্য কেউ নিয়েছে":"Name already taken"):(lang==="bn"?"সমস্যা হয়েছে, আবার চেষ্টা করুন":"Error, try again"));}
-    setSaving(false);
+/* ── Auth Modal (Email OTP) ──────────────────── */
+function NameModal({T,lang,onSave,inline=false,onClose}){
+  const[step,setStep]=useState("email");
+  const[email,setEmail]=useState("");
+  const[otp,setOtp]=useState("");
+  const[name,setName]=useState("");
+  const[accessToken,setAccessToken]=useState("");
+  const[err,setErr]=useState("");
+  const[loading,setLoading]=useState(false);
+
+  const doSendOTP=async()=>{
+    if(!email.includes("@"))return setErr(lang==="bn"?"সঠিক ইমেইল দিন":"Enter valid email");
+    setLoading(true);setErr("");
+    try{await sendOTP(email.trim().toLowerCase());setStep("otp");}
+    catch(e){setErr(lang==="bn"?"ইমেইল পাঠানো যায়নি":"Failed to send email");}
+    setLoading(false);
   };
+  const doVerifyOTP=async()=>{
+    if(otp.length<6)return setErr(lang==="bn"?"৬ সংখ্যার কোড দিন":"Enter 6-digit code");
+    setLoading(true);setErr("");
+    try{
+      const data=await verifyOTP(email.trim().toLowerCase(),otp.trim());
+      const token=data.access_token;
+      setAccessToken(token);
+      const existingName=await getUserByEmail(email.trim().toLowerCase());
+      if(existingName){localStorage.setItem("kk_user",existingName);localStorage.setItem("kk_email",email.toLowerCase());onSave(existingName,token);}
+      else setStep("name");
+    }catch(e){setErr(lang==="bn"?"ভুল কোড":"Wrong code, try again");}
+    setLoading(false);
+  };
+  const doSaveName=async()=>{
+    if(!name.trim())return setErr(lang==="bn"?"নাম দিন":"Enter name");
+    setLoading(true);setErr("");
+    try{
+      await saveUserName(email.toLowerCase(),name.trim(),accessToken);
+      localStorage.setItem("kk_user",name.trim());localStorage.setItem("kk_email",email.toLowerCase());
+      onSave(name.trim(),accessToken);
+    }catch(e){setErr(e.message==="name_taken"?(lang==="bn"?"এই নামটি অন্য কেউ নিয়েছে":"Name taken"):(lang==="bn"?"সমস্যা হয়েছে":"Error"));}
+    setLoading(false);
+  };
+
+  const inp={width:"100%",boxSizing:"border-box",border:`2px solid ${T.border}`,borderRadius:12,
+    padding:"13px 14px",fontFamily:HS,fontSize:15,background:T.card2,color:T.text,outline:"none",marginBottom:8};
+
+  const dots=["email","otp","name"].map(s=>(
+    <div key={s} style={{width:8,height:8,borderRadius:"50%",background:step===s?T.green:T.border,transition:"background 0.3s"}}/>
+  ));
+
   const body=(
-    <>
-      <input value={name} onChange={e=>setName(e.target.value)} onKeyDown={e=>e.key==="Enter"&&save()}
-        placeholder={lang==="bn"?"তোমার নাম...":"Your name..."}
-        style={{width:"100%",boxSizing:"border-box",border:`2px solid ${T.border}`,borderRadius:12,
-          padding:"12px 14px",fontFamily:HS,fontSize:15,background:T.card2,color:T.text,outline:"none",marginBottom:8}}
-        autoFocus/>
-      {err&&<div style={{fontFamily:HS,fontSize:12,color:T.red,marginBottom:8,textAlign:"center"}}>{err}</div>}
-      <button onClick={save} disabled={saving||!name.trim()} style={{width:"100%",padding:13,borderRadius:12,border:"none",
-        background:(saving||!name.trim())?"#555":T.green,color:"#fff",fontFamily:HS,fontSize:15,fontWeight:700,cursor:"pointer"}}>
-        {saving?(lang==="bn"?"যাচাই করছি...":"Checking..."):(lang==="bn"?"যোগ দিন ✅":"Join ✅")}
-      </button>
-    </>
+    <div>
+      <div style={{textAlign:"center",marginBottom:20}}>
+        <div style={{fontSize:40,marginBottom:10}}>🎯</div>
+        <div style={{fontFamily:HS,fontSize:17,fontWeight:800,color:T.text,marginBottom:4}}>{lang==="bn"?"প্রেডিকশন কম্পিটিশন":"Prediction Competition"}</div>
+        <div style={{display:"flex",justifyContent:"center",gap:6,marginTop:10}}>{dots}</div>
+      </div>
+      {step==="email"&&<>
+        <div style={{fontFamily:HS,fontSize:13,color:T.textS,textAlign:"center",marginBottom:16}}>{lang==="bn"?"ইমেইল দাও, কোড পাঠানো হবে":"Enter email, we will send a code"}</div>
+        <input value={email} onChange={e=>setEmail(e.target.value)} onKeyDown={e=>e.key==="Enter"&&doSendOTP()} placeholder={lang==="bn"?"তোমার ইমেইল...":"Your email..."} type="email" style={inp} autoFocus/>
+        {err&&<div style={{fontFamily:HS,fontSize:12,color:T.red,textAlign:"center",marginBottom:8}}>{err}</div>}
+        <button onClick={doSendOTP} disabled={loading||!email.includes("@")} style={{width:"100%",padding:13,borderRadius:12,border:"none",background:loading||!email.includes("@")?"#555":T.green,color:"#fff",fontFamily:HS,fontSize:15,fontWeight:700,cursor:"pointer"}}>
+          {loading?(lang==="bn"?"পাঠানো হচ্ছে...":"Sending..."):(lang==="bn"?"কোড পাঠাও 📧":"Send Code 📧")}
+        </button>
+      </>}
+      {step==="otp"&&<>
+        <div style={{fontFamily:HS,fontSize:13,color:T.textS,textAlign:"center",marginBottom:4}}>{lang==="bn"?"কোড পাঠানো হয়েছে:":"Code sent to:"}</div>
+        <div style={{fontFamily:HS,fontSize:13,color:T.green,textAlign:"center",fontWeight:700,marginBottom:16}}>{email}</div>
+        <input value={otp} onChange={e=>setOtp(e.target.value.slice(0,6))} onKeyDown={e=>e.key==="Enter"&&doVerifyOTP()} placeholder="000000" maxLength={6} inputMode="numeric" style={{...inp,textAlign:"center",fontSize:26,fontWeight:800,letterSpacing:6}}/>
+        {err&&<div style={{fontFamily:HS,fontSize:12,color:T.red,textAlign:"center",marginBottom:8}}>{err}</div>}
+        <button onClick={doVerifyOTP} disabled={loading||otp.length<6} style={{width:"100%",padding:13,borderRadius:12,border:"none",background:loading||otp.length<6?"#555":T.green,color:"#fff",fontFamily:HS,fontSize:15,fontWeight:700,cursor:"pointer",marginBottom:8}}>
+          {loading?(lang==="bn"?"যাচাই করছি...":"Verifying..."):(lang==="bn"?"যাচাই করো ✅":"Verify ✅")}
+        </button>
+        <button onClick={()=>{setStep("email");setOtp("");setErr("");}} style={{width:"100%",padding:10,borderRadius:12,border:`1px solid ${T.border}`,background:"transparent",color:T.textS,fontFamily:HS,fontSize:13,cursor:"pointer"}}>{lang==="bn"?"← ইমেইল পরিবর্তন":"← Change email"}</button>
+      </>}
+      {step==="name"&&<>
+        <div style={{fontFamily:HS,fontSize:13,color:T.textS,textAlign:"center",marginBottom:16}}>{lang==="bn"?"লিডারবোর্ডে তোমার নাম:":"Your name on leaderboard:"}</div>
+        <input value={name} onChange={e=>setName(e.target.value)} onKeyDown={e=>e.key==="Enter"&&doSaveName()} placeholder={lang==="bn"?"তোমার নাম...":"Your name..."} style={inp} autoFocus/>
+        {err&&<div style={{fontFamily:HS,fontSize:12,color:T.red,textAlign:"center",marginBottom:8}}>{err}</div>}
+        <button onClick={doSaveName} disabled={loading||!name.trim()} style={{width:"100%",padding:13,borderRadius:12,border:"none",background:loading||!name.trim()?"#555":T.green,color:"#fff",fontFamily:HS,fontSize:15,fontWeight:700,cursor:"pointer"}}>
+          {loading?(lang==="bn"?"সংরক্ষণ...":"Saving..."):(lang==="bn"?"শুরু করো 🚀":"Start 🚀")}
+        </button>
+      </>}
+    </div>
   );
-  if(inline) return <div style={{background:T.card,borderRadius:16,padding:20}}>{body}</div>;
+
+  if(inline)return <div style={{background:T.card,borderRadius:16,padding:20}}>{body}</div>;
   return(
     <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.8)",zIndex:1000,display:"flex",alignItems:"flex-end"}}>
-      <div style={{background:T.card,borderRadius:"24px 24px 0 0",width:"100%",padding:"24px 20px 36px"}}>
+      <div style={{background:T.card,borderRadius:"24px 24px 0 0",width:"100%",padding:"24px 20px 36px",maxHeight:"90vh",overflowY:"auto"}}>
         <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:16}}>
-          <div style={{width:36,height:4,background:"rgba(255,255,255,0.2)",borderRadius:2,margin:"0 auto"}}/>
-          <button onClick={()=>{if(typeof onClose==="function")onClose();}} style={{background:"rgba(255,255,255,0.15)",border:"none",borderRadius:"50%",width:28,height:28,cursor:"pointer",fontSize:14,color:"#fff",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>✕</button>
-        </div>
-        <div style={{textAlign:"center",marginBottom:20}}>
-          <div style={{fontSize:36,marginBottom:8}}>🎯</div>
-          <div style={{fontFamily:HS,fontSize:18,fontWeight:800,color:T.text,marginBottom:6}}>{lang==="bn"?"প্রেডিকশন কম্পিটিশন":"Prediction Competition"}</div>
-          <div style={{fontFamily:HS,fontSize:13,color:T.textS}}>{lang==="bn"?"নাম দিয়ে যোগ দিন":"Enter your name to join"}</div>
+          <div style={{width:36,height:4,background:T.border,borderRadius:2}}/>
+          {onClose&&<button onClick={onClose} style={{background:T.card2,border:"none",borderRadius:"50%",width:28,height:28,cursor:"pointer",fontSize:14,color:T.textS,display:"flex",alignItems:"center",justifyContent:"center"}}>✕</button>}
         </div>
         {body}
       </div>
@@ -469,7 +545,7 @@ function NameModal({T,lang,onSave,inline=false}){
 }
 
 /* ── Compact Calendar ────────────────────────── */
-function CompactCal({T,lang,myPreds,setPredictM}){
+function CompactCal({T,lang}){
   const[vm,setVm]=useState(new Date(2026,5,1));
   const[pop,setPop]=useState(null);
   const today=new Date().toISOString().split("T")[0];
@@ -520,30 +596,17 @@ function CompactCal({T,lang,myPreds,setPredictM}){
               {popMs.map((m,i)=>{
                 const isG=m.g&&m.g.length===1;
                 const[t2,ap]=m.t.split(" ");
-                const pred=getPred(myPreds||{},m.id);
-                const isUp=status(m)==="up";
                 return(
-                  <div key={m.id||i} style={{background:T.card2,borderRadius:14,padding:"12px 14px",marginBottom:8,border:`1px solid ${T.border}`}}>
-                    <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
-                      <span style={{fontFamily:HS,fontSize:10,color:T.textS}}>
-                        {m.label||(isG?`Group ${m.g}`:m.venue||"")} · {t2}<span style={{fontSize:8,color:T.textM}}>{ap}</span>
-                      </span>
-                      {isG&&isUp&&(
-                        <button onClick={()=>{setPredictM&&setPredictM(m);setPop(null);}} style={{
-                          background:pred?T.greenBg:T.card,border:`1.5px solid ${pred?T.greenBr:T.border}`,
-                          borderRadius:8,padding:"4px 8px",cursor:"pointer",
-                          fontFamily:HS,fontSize:10,fontWeight:pred?700:400,
-                          color:pred?T.green:T.textS,whiteSpace:"nowrap"}}>
-                          {pred?`🎯 ${pred.home_score}–${pred.away_score}`:"🎯 প্রেডিক্ট করুন"}
-                        </button>
-                      )}
+                  <div key={m.id||i} style={{background:T.card2,borderRadius:12,padding:"12px",marginBottom:8}}>
+                    <div style={{fontFamily:HS,fontSize:10,color:T.textS,marginBottom:6}}>
+                      {m.label||(isG?`Group ${m.g}`:m.venue||m.g||"")} · {t2}<span style={{fontSize:8}}>{ap}</span>
                     </div>
                     <div style={{display:"flex",alignItems:"center",gap:8}}>
-                      {isG?<Flag en={m.h} size={28}/>:<div style={{width:28,height:28,borderRadius:"50%",background:T.card,border:`1px dashed ${T.border}`,flexShrink:0}}/>}
+                      {isG&&<Flag en={m.h} size={26}/>}
                       <span style={{fontFamily:HS,fontSize:13,fontWeight:600,color:T.text,flex:1}}>{isG?tn(m.h,lang):(m.h||"TBD")}</span>
-                      <span style={{fontFamily:HS,fontSize:11,color:T.textM,flexShrink:0}}>vs</span>
+                      <span style={{fontFamily:HS,fontSize:11,color:T.textM}}>vs</span>
                       <span style={{fontFamily:HS,fontSize:13,fontWeight:600,color:T.text,flex:1,textAlign:"right"}}>{isG?tn(m.a,lang):(m.a||"TBD")}</span>
-                      {isG?<Flag en={m.a} size={28}/>:<div style={{width:28,height:28,borderRadius:"50%",background:T.card,border:`1px dashed ${T.border}`,flexShrink:0}}/>}
+                      {isG&&<Flag en={m.a} size={26}/>}
                     </div>
                   </div>
                 );
@@ -557,7 +620,7 @@ function CompactCal({T,lang,myPreds,setPredictM}){
 }
 
 /* ── Match Card (full) ───────────────────────── */
-function MatchCard({m,T,lang,scores,myPreds,setPredictM,onTeam,isAdmin,setScoreM,showCountdown=true}){
+function MatchCard({m,T,lang,scores,myPreds,setPredictM,onTeam,isAdmin,setScoreM}){
   const sc=scores[m.id]||scores[String(m.id)];
   const hasScore=sc&&sc.hg!==""&&sc.ag!=="";
   const pred=getPred(myPreds,m.id);
@@ -630,8 +693,8 @@ function MatchCard({m,T,lang,scores,myPreds,setPredictM,onTeam,isAdmin,setScoreM
           ))}
         </div>
       )}
-      {/* Countdown timer */}
-      {showCountdown&&st==="up"&&!cd.done&&(
+      {/* Countdown */}
+      {st==="up"&&!cd.done&&(
         <div style={{display:"flex",gap:5,justifyContent:"center",padding:"0 14px 10px"}}>
           {[{v:cd.days,l:lang==="bn"?"দিন":"d"},{v:cd.hours,l:lang==="bn"?"ঘ":"h"},{v:cd.mins,l:lang==="bn"?"মি":"m"},{v:cd.secs,l:lang==="bn"?"সে":"s"}].map(({v,l})=>(
             <div key={l} style={{background:T.card2,borderRadius:8,padding:"4px 8px",textAlign:"center",minWidth:38,border:`1px solid ${T.border}`}}>
@@ -860,7 +923,7 @@ function HomeTab({T,lang,favs,setFavs,onTeam,setSM,scores,myPreds,setPredictM,se
           </div>
         </div>
         {/* Right: Compact Calendar */}
-        <div style={{width:152,flexShrink:0}}><CompactCal T={T} lang={lang} myPreds={myPreds} setPredictM={setPredictM}/></div>
+        <div style={{width:152,flexShrink:0}}><CompactCal T={T} lang={lang}/></div>
       </div>
 
       {/* Today full cards */}
@@ -967,10 +1030,7 @@ function GroupTab({T,lang,onTeam,scores,myPreds,setPredictM,isAdmin,setScoreM}){
         <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.6)",zIndex:999,display:"flex",alignItems:"flex-end"}} onClick={()=>setSf(false)}>
           <div style={{background:T.card,borderRadius:"20px 20px 0 0",width:"100%",maxHeight:"75vh",overflow:"hidden",display:"flex",flexDirection:"column"}} onClick={e=>e.stopPropagation()}>
             <div style={{padding:"12px 14px 10px",borderBottom:`1px solid ${T.border}`}}>
-              <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:10}}>
-                <div style={{width:36,height:4,background:T.border,borderRadius:2,margin:"0 auto"}}/>
-                <button onClick={()=>setSf(false)} style={{background:T.card2,border:"none",borderRadius:"50%",width:28,height:28,cursor:"pointer",fontSize:14,color:T.textS,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>✕</button>
-              </div>
+              <div style={{width:36,height:4,background:T.border,borderRadius:2,margin:"0 auto 12px"}}/>
               <input value={sq} onChange={e=>setSq(e.target.value)} placeholder={lang==="bn"?"দলের নাম...":"Search..."} style={{width:"100%",boxSizing:"border-box",border:`1.5px solid ${T.border}`,borderRadius:12,padding:"10px 14px",fontFamily:HS,fontSize:14,background:T.card2,color:T.text,outline:"none"}}/>
             </div>
             <div style={{overflowY:"auto",padding:"6px 14px 28px"}}>
@@ -1003,7 +1063,7 @@ function KnockoutTab({T,lang,scores}){
   },[scores]);
 
   const tabs=[{k:"R32",l:lang==="bn"?"রাউন্ড অব ৩২":"Round of 32"},{k:"R16",l:lang==="bn"?"রাউন্ড অব ১৬":"Round of 16"},{k:"QF",l:lang==="bn"?"কোয়ার্টার":"Quarter"},{k:"SF",l:lang==="bn"?"সেমি":"Semi"},{k:"F",l:lang==="bn"?"🏆 ফাইনাল":"🏆 Final"}];
-  const matchMap={R32,R16,QF,SF,F:FINAL,"3P":[FINAL[0]]};
+  const matchMap={R32,R16,QF,SF,F:FINAL};
   return(
     <div>
       <div style={{display:"flex",gap:6,padding:"10px 12px",background:T.card,borderBottom:`1px solid ${T.border}`,overflowX:"auto",scrollbarWidth:"none"}}>
@@ -1019,9 +1079,7 @@ function KnockoutTab({T,lang,scores}){
             <div style={{fontFamily:HS,fontSize:12,fontWeight:700,color:T.textS,margin:"12px 0 8px"}}>🏆 {lang==="bn"?"ফাইনাল":"Final"}</div>
             <KOCard m={FINAL[1]} T={T} lang={lang} scores={scores} qualified={qualified}/>
           </>
-        ):(
-          (matchMap[round]||[]).map(m=><KOCard key={m.id} m={m} T={T} lang={lang} scores={scores} qualified={qualified}/>)
-        )}
+        ):(matchMap[round]||[]).map(m=><KOCard key={m.id} m={m} T={T} lang={lang} scores={scores} qualified={qualified}/>)}
       </div>
     </div>
   );
@@ -1050,7 +1108,7 @@ function PredictionTab({T,lang,userName,onSave,myPreds,setMyPreds,scores,setPred
       <div style={{background:T.card,borderRadius:20,padding:24,textAlign:"center",marginBottom:16}}>
         <div style={{fontSize:44,marginBottom:12}}>🎯</div>
         <div style={{fontFamily:HS,fontSize:18,fontWeight:800,color:T.text,marginBottom:8}}>{lang==="bn"?"প্রেডিকশন কম্পিটিশন":"Prediction Competition"}</div>
-        <div style={{fontFamily:HS,fontSize:13,color:T.textS,marginBottom:20,lineHeight:1.6}}>{lang==="bn"?"ম্যাচের আগে স্কোর প্রেডিক্ট করো। সঠিক হলে পয়েন্ট পাবে!":"Predict scores before matches start. Earn points!"}</div>
+        <div style={{fontFamily:HS,fontSize:13,color:T.textS,marginBottom:20,lineHeight:1.6}}>{lang==="bn"?"ম্যাচের আগে স্কোর আন্দাজ করো। সঠিক হলে পয়েন্ট পাবে!":"Predict scores before matches start. Earn points!"}</div>
         <div style={{display:"flex",gap:10,justifyContent:"center",marginBottom:24}}>
           <div style={{background:T.card2,borderRadius:12,padding:"12px 16px",textAlign:"center"}}>
             <div style={{fontSize:22}}>✅</div>
@@ -1161,7 +1219,7 @@ function TeamPage({en,T,lang,onBack,scores,myPreds,setPredictM,isAdmin,setScoreM
         )}
       </div>
       <div style={{padding:"12px 12px 90px"}}>
-        {ms.map(m=><MatchCard key={m.id} m={m} T={T} lang={lang} scores={scores} myPreds={myPreds} setPredictM={setPredictM} onTeam={()=>{}} isAdmin={isAdmin} setScoreM={setScoreM} showCountdown={false}/>)}
+        {ms.map(m=><MatchCard key={m.id} m={m} T={T} lang={lang} scores={scores} myPreds={myPreds} setPredictM={setPredictM} onTeam={()=>{}} isAdmin={isAdmin} setScoreM={setScoreM}/>)}
       </div>
     </div>
   );
@@ -1193,25 +1251,6 @@ function AddModal({favs,onAdd,onClose,lang,T}){
 }
 
 /* ── App ─────────────────────────────────────── */
-/* ── FinalsTab (SF + Bronze + Final) ─────────── */
-function FinalsTab({T,lang,scores}){
-  const rounds=[
-    {label:lang==="bn"?"🏟️ সেমি-ফাইনাল":"🏟️ Semi-Finals", matches:SF},
-    {label:lang==="bn"?"🥉 তৃতীয় স্থান":"🥉 Third Place", matches:[FINAL[0]]},
-    {label:lang==="bn"?"🏆 ফাইনাল":"🏆 Final", matches:[FINAL[1]]},
-  ];
-  return(
-    <div style={{padding:"12px 12px 90px"}}>
-      {rounds.map((r,ri)=>(
-        <div key={ri} style={{marginBottom:16}}>
-          <div style={{fontFamily:HS,fontWeight:700,fontSize:13,color:T.textS,marginBottom:8}}>{r.label}</div>
-          {r.matches.map(m=><KOCard key={m.id} m={m} T={T} lang={lang} scores={scores} qualified={{}}/>)}
-        </div>
-      ))}
-    </div>
-  );
-}
-
 /* ── LeaderboardTab ───────────────────────────── */
 function LeaderboardTab({T,lang,userName}){
   const[lb,setLb]=useState([]);const[loading,setLoading]=useState(true);
@@ -1220,42 +1259,22 @@ function LeaderboardTab({T,lang,userName}){
       const map={};
       data.forEach(r=>{
         if(!map[r.predictor_name])map[r.predictor_name]={name:r.predictor_name,total:0,count:0};
-        map[r.predictor_name].total+=(r.points||0);
-        map[r.predictor_name].count+=1;
+        map[r.predictor_name].total+=(r.points||0);map[r.predictor_name].count+=1;
       });
-      setLb(Object.values(map).sort((a,b)=>b.total-a.total));
-      setLoading(false);
+      setLb(Object.values(map).sort((a,b)=>b.total-a.total));setLoading(false);
     }).catch(()=>setLoading(false));
   },[]);
   const medals=["🥇","🥈","🥉"];
   return(
     <div style={{padding:"12px 12px 90px"}}>
-      <div style={{fontFamily:HS,fontSize:13,color:T.textS,textAlign:"center",marginBottom:16}}>
-        {lang==="bn"?"সকলের পয়েন্ট":"All Predictions Leaderboard"}
-      </div>
-      {loading?(
-        <div style={{textAlign:"center",padding:40,fontFamily:HS,color:T.textM}}>লোড হচ্ছে...</div>
-      ):lb.length===0?(
-        <div style={{textAlign:"center",padding:40}}>
-          <div style={{fontSize:40,marginBottom:12}}>🏅</div>
-          <div style={{fontFamily:HS,fontSize:14,color:T.textM}}>{lang==="bn"?"এখনো কোনো প্রেডিকশন নেই":"No predictions yet"}</div>
-        </div>
-      ):lb.map((row,i)=>(
-        <div key={row.name} style={{background:T.card,borderRadius:14,
-          border:`1px solid ${row.name===userName?T.greenBr:T.border}`,
-          padding:"14px 16px",marginBottom:8,display:"flex",alignItems:"center",gap:12,
-          boxShadow:row.name===userName?`0 0 0 2px ${T.green}33`:T.glow}}>
-          <div style={{fontSize:24,width:36,textAlign:"center"}}>
-            {i<3?medals[i]:<span style={{fontFamily:HS,fontSize:14,color:T.textM,fontWeight:700}}>{i+1}</span>}
-          </div>
+      {loading?<div style={{textAlign:"center",padding:40,fontFamily:HS,color:T.textM}}>লোড হচ্ছে...</div>
+      :lb.length===0?<div style={{textAlign:"center",padding:40}}><div style={{fontSize:40,marginBottom:12}}>🏅</div><div style={{fontFamily:HS,fontSize:14,color:T.textM}}>এখনো কোনো প্রেডিকশন নেই</div></div>
+      :lb.map((row,i)=>(
+        <div key={row.name} style={{background:T.card,borderRadius:14,border:`1px solid ${row.name===userName?T.greenBr:T.border}`,padding:"14px 16px",marginBottom:8,display:"flex",alignItems:"center",gap:12,boxShadow:row.name===userName?`0 0 0 2px ${T.green}33`:T.glow}}>
+          <div style={{fontSize:24,width:36,textAlign:"center"}}>{i<3?medals[i]:<span style={{fontFamily:HS,fontSize:14,color:T.textM,fontWeight:700}}>{i+1}</span>}</div>
           <div style={{flex:1}}>
-            <div style={{fontFamily:HS,fontSize:15,fontWeight:row.name===userName?700:500,
-              color:row.name===userName?T.green:T.text}}>
-              {row.name}{row.name===userName&&(lang==="bn"?" (তুমি)":" (you)")}
-            </div>
-            <div style={{fontFamily:HS,fontSize:12,color:T.textS,marginTop:2}}>
-              {row.count} {lang==="bn"?"টি প্রেডিকশন":"predictions"}
-            </div>
+            <div style={{fontFamily:HS,fontSize:15,fontWeight:row.name===userName?700:500,color:row.name===userName?T.green:T.text}}>{row.name}{row.name===userName&&(lang==="bn"?" (তুমি)":" (you)")}</div>
+            <div style={{fontFamily:HS,fontSize:12,color:T.textS,marginTop:2}}>{row.count} predictions</div>
           </div>
           <div style={{textAlign:"right"}}>
             <div style={{fontFamily:HS,fontSize:26,fontWeight:800,color:T.green}}>{row.total}</div>
@@ -1280,55 +1299,49 @@ export default function App(){
   const[userName,setUserName]=useState(()=>localStorage.getItem("kk_user")||"");
   const[myPreds,setMyPreds]=useState({});
   const[predictM,setPredictM]=useState(null);
-  const[scoreM,setScoreM]=useState(null);
   const[showExit,setShowExit]=useState(false);
+  const[scoreM,setScoreM]=useState(null);
   const T=mkT(dark);
 
   useEffect(()=>{getScores().then(data=>{const m={};data.forEach(s=>{m[s.match_id]={hg:String(s.home_score),ag:String(s.away_score)};m[String(s.match_id)]={hg:String(s.home_score),ag:String(s.away_score)};});setScores(m);}).catch(()=>{});},[]);
   useEffect(()=>{if(!userName)return;getPreds(userName).then(data=>{const m={};data.forEach(p=>{m[p.match_id]={home_score:p.home_score,away_score:p.away_score,points:p.points};m[String(p.match_id)]={home_score:p.home_score,away_score:p.away_score,points:p.points};});setMyPreds(m);}).catch(()=>{});},[userName]);
-  useEffect(()=>{const n=localStorage.getItem("kk_user");if(n){setUserName(n);return;}getDeviceId().then(did=>checkDevice(did).then(d=>{if(d.length>0){localStorage.setItem("kk_user",d[0].name);setUserName(d[0].name);}}).catch(()=>{}));},[]);
-
-  const handleNameSave=(name,did)=>{localStorage.setItem("kk_user",name);if(did)localStorage.setItem("kk_did",did);setUserName(name);};
-  const openTeam=en=>{window.history.pushState({team:en},"","");setTp(en);};
-  const closeTeam=()=>setTp(null);
-  // History/back button management
   useEffect(()=>{
-    // Always keep 2 entries in history so back button is catchable
+    const n=localStorage.getItem("kk_user");if(n){setUserName(n);return;}
+    const em=localStorage.getItem("kk_email");
+    if(em){getUserByEmail(em).then(name=>{if(name){localStorage.setItem("kk_user",name);setUserName(name);}}).catch(()=>{});}
+  },[]);
+
+  const handleNameSave=(name)=>{setUserName(name);};
+  const openTeam=en=>{window.history.pushState({page:"app",team:en,tab:mt},"","");setTp(en);};
+  const closeTeam=()=>setTp(null);
+
+  // Init history
+  useEffect(()=>{
     window.history.replaceState({page:"base"},"","");
     window.history.pushState({page:"app",tab:"home"},"","");
   },[]);
 
+  // Back button handler
   useEffect(()=>{
     const onPop=(e)=>{
       const state=e.state||{};
-      // If we hit the "base" state, show exit dialog and push app state back
       if(state.page==="base"||!state.page){
-        if(tp){
-          setTp(null);
-          window.history.pushState({page:"app",tab:mt},"","");
-          return;
-        }
-        if(mt!=="home"){
-          setMt("home");
-          setWt("fixture");
-          window.history.pushState({page:"app",tab:"home"},"","");
-          return;
-        }
-        // At home — show exit popup, push app state back immediately
+        if(tp){setTp(null);window.history.pushState({page:"app",tab:mt},"","");return;}
+        if(mt!=="home"){setMt("home");setWt("fixture");window.history.pushState({page:"app",tab:"home"},"","");return;}
         window.history.pushState({page:"app",tab:"home"},"","");
         setShowExit(true);
+      } else if(state.team){
+        setTp(null);
       }
     };
     window.addEventListener("popstate",onPop);
     return()=>window.removeEventListener("popstate",onPop);
   },[tp,mt]);
 
-  // Push state when tab changes
+  // Update history on tab change
   useEffect(()=>{
-    // Keep base state below, push app state on top
-    // This ensures back button always hits base first
-    window.history.replaceState({page:"app",tab:mt,wt},"","");
-  },[mt,wt]);
+    if(!tp) window.history.replaceState({page:"app",tab:mt,wt},"","");
+  },[mt,wt,tp]);
 
   const handlePredict=(m)=>{
     if(!userName){setPredictM(m);}
@@ -1370,7 +1383,7 @@ export default function App(){
           </div>
           {/* Main tabs */}
           <div style={{display:"flex",borderTop:"1px solid rgba(255,255,255,0.1)"}}>
-            {[["home",lang==="bn"?"🏠 হোম":"🏠"],["wc",lang==="bn"?"🏆 বিশ্বকাপ":"🏆 WC"],["predict",lang==="bn"?"🎯 প্রেডিকশন":"🎯 Predict"],["lb",lang==="bn"?"🏅 লিডারবোর্ড":"🏅 Board"]].map(([id,lb])=>(
+            {[["home",lang==="bn"?"🏠 হোম":"🏠"],["wc",lang==="bn"?"🏆 বিশ্বকাপ":"🏆 WC"],["predict",lang==="bn"?"🎯 প্রেডিকশন":"🎯"],["lb",lang==="bn"?"🏅 লিডারবোর্ড":"🏅"]].map(([id,lb])=>(
               <button key={id} onClick={()=>setMt(id)} style={{flex:1,background:"transparent",border:"none",borderBottom:`2.5px solid ${mt===id?"#fff":"transparent"}`,color:mt===id?"#fff":"rgba(255,255,255,0.45)",fontFamily:HS,fontSize:11,fontWeight:mt===id?700:400,padding:"10px 0",cursor:"pointer"}}>{lb}</button>
             ))}
           </div>
@@ -1385,13 +1398,12 @@ export default function App(){
         </div>
 
         {/* Body */}
-        {mt==="home"&&<HomeTab T={T} lang={lang} favs={favs} setFavs={setFavs} onTeam={openTeam} setSM={setSm} scores={scores} myPreds={myPreds} setPredictM={handlePredict} setScoreM={setScoreM} isAdmin={isAdmin}/>}
+                {mt==="home"&&<HomeTab T={T} lang={lang} favs={favs} setFavs={setFavs} onTeam={openTeam} setSM={setSm} scores={scores} myPreds={myPreds} setPredictM={handlePredict} setScoreM={setScoreM} isAdmin={isAdmin}/>}
         {mt==="wc"&&wt==="fixture"&&<GroupTab T={T} lang={lang} onTeam={openTeam} scores={scores} myPreds={myPreds} setPredictM={handlePredict} isAdmin={isAdmin} setScoreM={setScoreM}/>}
         {mt==="wc"&&wt==="knockout"&&<KnockoutTab T={T} lang={lang} scores={scores}/>}
         {mt==="wc"&&wt==="table"&&<TableTab T={T} lang={lang} scores={scores}/>}
         {mt==="predict"&&<PredictionTab T={T} lang={lang} userName={userName} onSave={handleNameSave} myPreds={myPreds} setMyPreds={setMyPreds} scores={scores} setPredictM={setPredictM}/>}
         {mt==="lb"&&<LeaderboardTab T={T} lang={lang} userName={userName}/>}
-
         {sm&&<AddModal favs={favs} onAdd={en=>setFavs(f=>f.includes(en)?f:[...f,en])} onClose={()=>setSm(false)} lang={lang} T={T}/>}
         {predictM&&userName&&<PredictModal m={predictM} T={T} lang={lang} userName={userName} myPreds={myPreds} setMyPreds={setMyPreds} onClose={()=>setPredictM(null)}/>}
         {predictM&&!userName&&<NameModal T={T} lang={lang} onSave={(name,did)=>{handleNameSave(name,did);}}/>}
@@ -1404,38 +1416,15 @@ export default function App(){
 
         {/* Exit confirm */}
         {showExit&&(
-          <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.75)",zIndex:9999,
-            display:"flex",alignItems:"center",justifyContent:"center",padding:24}}>
+          <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.75)",zIndex:9999,display:"flex",alignItems:"center",justifyContent:"center",padding:24}}>
             <div style={{background:T.card,borderRadius:20,padding:28,width:"100%",maxWidth:300,textAlign:"center",position:"relative"}}>
-              <button onClick={()=>setShowExit(false)} style={{position:"absolute",top:12,right:12,
-                background:T.card2,border:"none",borderRadius:"50%",width:28,height:28,
-                cursor:"pointer",fontSize:14,color:T.textS,display:"flex",alignItems:"center",justifyContent:"center"}}>✕</button>
+              <button onClick={()=>setShowExit(false)} style={{position:"absolute",top:12,right:12,background:T.card2,border:"none",borderRadius:"50%",width:28,height:28,cursor:"pointer",fontSize:14,color:T.textS,display:"flex",alignItems:"center",justifyContent:"center"}}>✕</button>
               <div style={{fontSize:36,marginBottom:12}}>👋</div>
-              <div style={{fontFamily:HS,fontSize:17,fontWeight:800,color:T.text,marginBottom:8}}>
-                {lang==="bn"?"প্রস্থান করবেন?":"Exit App?"}
-              </div>
-              <div style={{fontFamily:HS,fontSize:13,color:T.textS,marginBottom:24}}>
-                {lang==="bn"?"খেলা কখন? থেকে বের হয়ে যেতে চাচ্ছেন?":"Do you want to leave Khela Kokhon?"}
-              </div>
+              <div style={{fontFamily:HS,fontSize:17,fontWeight:800,color:T.text,marginBottom:8}}>{lang==="bn"?"প্রস্থান করবেন?":"Exit App?"}</div>
+              <div style={{fontFamily:HS,fontSize:13,color:T.textS,marginBottom:24}}>{lang==="bn"?"খেলা কখন? থেকে বের হয়ে যেতে চাচ্ছেন?":"Do you want to leave Khela Kokhon?"}</div>
               <div style={{display:"flex",gap:10}}>
-                <button onClick={()=>setShowExit(false)} style={{flex:1,padding:13,borderRadius:12,
-                  border:`1px solid ${T.border}`,background:T.card2,color:T.text,
-                  fontFamily:HS,fontSize:14,fontWeight:600,cursor:"pointer"}}>
-                  {lang==="bn"?"থাকুন 🏠":"Stay 🏠"}
-                </button>
-                <button onClick={()=>{
-                  setShowExit(false);
-                  // Android PWA exit: navigate to about:blank or use history
-                  try{window.history.go(-(window.history.length));}catch(e){}
-                  try{window.open("","_self").close();}catch(e){}
-                  // Fallback: just go back multiple times
-                  setTimeout(()=>{window.history.back();},50);
-                  setTimeout(()=>{window.history.back();},150);
-                }} style={{flex:1,padding:13,borderRadius:12,
-                  border:"none",background:T.red,color:"#fff",
-                  fontFamily:HS,fontSize:14,fontWeight:700,cursor:"pointer"}}>
-                  {lang==="bn"?"প্রস্থান ❌":"Exit ❌"}
-                </button>
+                <button onClick={()=>setShowExit(false)} style={{flex:1,padding:13,borderRadius:12,border:`1px solid ${T.border}`,background:T.card2,color:T.text,fontFamily:HS,fontSize:14,fontWeight:600,cursor:"pointer"}}>{lang==="bn"?"থাকুন 🏠":"Stay 🏠"}</button>
+                <button onClick={()=>{setShowExit(false);setTimeout(()=>{window.history.back();window.history.back();},50);}} style={{flex:1,padding:13,borderRadius:12,border:"none",background:T.red,color:"#fff",fontFamily:HS,fontSize:14,fontWeight:700,cursor:"pointer"}}>{lang==="bn"?"প্রস্থান ❌":"Exit ❌"}</button>
               </div>
             </div>
           </div>
