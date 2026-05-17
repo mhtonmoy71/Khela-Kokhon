@@ -1412,8 +1412,8 @@ export default function App(){
   const isAdmin=new URLSearchParams(window.location.search).get("admin")===ADMIN_KEY;
   const[dark,setDark]=useState(true);
   const[lang,setLang]=useState("bn");
-  const[mt,setMt]=useState("home");
-  const[wt,setWt]=useState("fixture");
+  const[mt,setMt]=useState(()=>localStorage.getItem("kk_tab")||"home");
+  const[wt,setWt]=useState(()=>localStorage.getItem("kk_wt")||"fixture");
   const[favs,setFavs]=useState([]);
   const[tp,setTp]=useState(null);
   const[sm,setSm]=useState(false);
@@ -1504,7 +1504,11 @@ export default function App(){
 
   // Update history on tab change
   useEffect(()=>{
-    if(!tp) window.history.replaceState({page:"app",tab:mt,wt},"","");
+    if(!tp){
+      window.history.replaceState({page:"app",tab:mt,wt},"","");
+      localStorage.setItem("kk_tab", mt);
+      localStorage.setItem("kk_wt", wt);
+    }
   },[mt,wt,tp]);
 
   const handlePredict=(m)=>{setPredictM(m);};
