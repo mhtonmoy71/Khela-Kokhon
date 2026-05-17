@@ -1552,16 +1552,15 @@ export default function App(){
         <div style={{background:T.hdr,position:"sticky",top:0,zIndex:50,boxShadow:"0 2px 20px rgba(0,0,0,0.4)"}}>
           <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"14px 14px 12px"}}>
             <div style={{display:"flex",alignItems:"center",gap:10}}>
-              <div style={{width:44,height:44,borderRadius:10,background:"#00e676",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
-                <svg width="28" height="28" viewBox="0 0 28 28">
-                  <rect x="1" y="4" width="26" height="20" rx="2" fill="none" stroke="#065f46" strokeWidth="1.8"/>
-                  <circle cx="14" cy="14" r="5" fill="none" stroke="#065f46" strokeWidth="1.8"/>
-                  <line x1="14" y1="4" x2="14" y2="24" stroke="#065f46" strokeWidth="1.5"/>
-                  <rect x="1" y="8" width="5" height="12" fill="none" stroke="#065f46" strokeWidth="1.2"/>
-                  <rect x="22" y="8" width="5" height="12" fill="none" stroke="#065f46" strokeWidth="1.2"/>
-                  <circle cx="14" cy="14" r="2" fill="#065f46"/>
-                </svg>
-              </div>
+              <svg width="46" height="46" viewBox="0 0 180 180" style={{flexShrink:0}}>
+                <circle cx="90" cy="90" r="86" fill="#064e3b" stroke="#00e676" strokeWidth="6"/>
+                <rect x="28" y="48" width="124" height="74" rx="3" fill="none" stroke="rgba(255,255,255,0.5)" strokeWidth="2.5"/>
+                <line x1="90" y1="48" x2="90" y2="122" stroke="rgba(255,255,255,0.5)" strokeWidth="2.5"/>
+                <circle cx="90" cy="85" r="20" fill="none" stroke="rgba(255,255,255,0.5)" strokeWidth="2.5"/>
+                <rect x="28" y="62" width="20" height="46" fill="none" stroke="rgba(255,255,255,0.4)" strokeWidth="2"/>
+                <rect x="132" y="62" width="20" height="46" fill="none" stroke="rgba(255,255,255,0.4)" strokeWidth="2"/>
+                <circle cx="90" cy="85" r="5" fill="#00e676"/>
+              </svg>
               <div>
                 <div style={{fontFamily:HS,fontSize:18,fontWeight:800,color:"#fff",lineHeight:1}}>{lang==="bn"?"খেলা কখন?":"Khela Kokhon?"}</div>
                 {isAdmin&&<div style={{fontFamily:HS,fontSize:9,color:"rgba(255,255,255,0.5)",letterSpacing:1,marginTop:2}}>🔑 ADMIN MODE</div>}
