@@ -690,6 +690,23 @@ function CompactCal({T,lang}){
   );
 }
 
+function CalIcon({d,T,onClick}){
+  const dt=new Date(d+"T00:00:00");
+  const mon=dt.toLocaleString("en",{month:"short"}).toUpperCase();
+  const day=dt.getDate();
+  return(
+    <button onClick={onClick} style={{background:T.card2,border:`1px solid ${T.border}`,
+      borderRadius:10,width:34,height:34,cursor:"pointer",padding:2,
+      display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",overflow:"hidden"}}>
+      <div style={{background:"#e53e3e",width:"100%",borderRadius:"6px 6px 0 0",
+        display:"flex",alignItems:"center",justifyContent:"center",height:11}}>
+        <span style={{fontFamily:HS,fontSize:7,color:"#fff",fontWeight:700,letterSpacing:0.5}}>{mon}</span>
+      </div>
+      <div style={{fontFamily:HS,fontSize:13,fontWeight:800,color:T.text,lineHeight:1,marginTop:1}}>{day}</div>
+    </button>
+  );
+}
+
 /* ── Match Card (full) ───────────────────────── */
 function MatchCard({m,T,lang,scores,myPreds,setPredictM,onTeam,isAdmin,setScoreM}){
   const sc=scores[m.id]||scores[String(m.id)];
@@ -787,8 +804,7 @@ function MatchCard({m,T,lang,scores,myPreds,setPredictM,onTeam,isAdmin,setScoreM
           <button onClick={()=>setScoreM(m)} style={{background:T.card2,border:`1px solid ${T.border}`,
             borderRadius:10,width:34,height:34,cursor:"pointer",fontSize:13,display:"flex",alignItems:"center",justifyContent:"center"}}>✏️</button>
         )}
-        <button onClick={()=>addToGCal(m,lang)} style={{background:T.card2,border:`1px solid ${T.border}`,
-          borderRadius:10,width:34,height:34,cursor:"pointer",fontSize:13,display:"flex",alignItems:"center",justifyContent:"center"}}>📅</button>
+        <CalIcon d={m.d} T={T} onClick={()=>addToGCal(m,lang)}/>
         <button onClick={()=>shareM(m,lang)} style={{background:T.card2,border:`1px solid ${T.border}`,
           borderRadius:10,width:34,height:34,cursor:"pointer",fontSize:13,display:"flex",alignItems:"center",justifyContent:"center"}}>🔗</button>
       </div>
@@ -894,7 +910,7 @@ function KOCard({m,T,lang,scores,qualified}){
                 <span style={{fontFamily:HS,fontSize:9,color:T.textM}}>{ap}</span>
               </div>
               <div style={{fontFamily:HS,fontSize:10,color:T.textM}}>{dls(m.d,lang)}</div>
-              <button onClick={()=>addToGCal(m,lang)} style={{background:T.card2,border:`1px solid ${T.border}`,borderRadius:6,width:24,height:24,cursor:"pointer",fontSize:11,display:"flex",alignItems:"center",justifyContent:"center",margin:"5px auto 0"}}>📅</button>
+              <CalIcon d={m.d} T={T} onClick={()=>addToGCal(m,lang)}/>
             </>
           )}
         </div>
@@ -937,7 +953,7 @@ function HomeTab({T,lang,favs,setFavs,onTeam,setSM,scores,myPreds,setPredictM,se
           </div>
         </div>
         <div style={{display:"flex",flexDirection:"column",gap:5,flexShrink:0}}>
-          {nx&&<button onClick={e=>{e.stopPropagation();addToGCal(nx,lang);}} style={{background:T.card2,border:`1px solid ${T.border}`,borderRadius:8,width:30,height:30,cursor:"pointer",fontSize:13,display:"flex",alignItems:"center",justifyContent:"center"}}>📅</button>}
+          {nx&&<CalIcon d={nx.d} T={T} onClick={e=>{e.stopPropagation();addToGCal(nx,lang);}}/>}
           <button onClick={()=>iF?setFavs(f=>f.filter(x=>x!==en)):setFavs(f=>[...f,en])} style={{fontFamily:HS,fontSize:11,cursor:"pointer",borderRadius:20,padding:"4px 8px",background:iF?T.greenBg:T.card2,border:`1px solid ${iF?T.greenBr:T.border}`,color:iF?T.green:T.textS,whiteSpace:"nowrap"}}>{iF?"⭐":"+ ⭐"}</button>
         </div>
       </div>
