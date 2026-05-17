@@ -234,27 +234,33 @@ const ALL_DATES=new Set([...MATCHES,...R32,...R16,...QF,...SF,...FINAL].map(m=>m
 function getMatchesForDate(d){return[...MATCHES,...R32,...R16,...QF,...SF,...FINAL].filter(m=>m.d===d);}
 
 /* ── Helpers ─────────────────────────────────── */
-/* ── Email Magic Link Auth ───────────────────── */
+/* ── Supabase Client ─────────────────────────── */
+let _supabase=null;
+function getSupabase(){
+  if(_supabase)return _supabase;
+  if(window.supabase){
+    _supabase=window.supabase.createClient(SB_URL,SB_KEY);
+    return _supabase;
+  }
+  return null;
+}
+
 async function sendMagicLink(email){
-  // Try OTP endpoint first (sends 6-digit code)
-  const res=await fetch(SB_URL+"/auth/v1/otp",{method:"POST",
-    headers:{"apikey":SB_KEY,"Content-Type":"application/json"},
-    body:JSON.stringify({email,create_user:true,options:{emailRedirectTo:"https://khela-kokhon.vercel.app"}})});
-  if(!res.ok){const t=await res.text();throw new Error(t);}
+  const client=getSupabase();
+  if(!client)throw new Error("Supabase not loaded");
+  const{error}=await client.auth.signInWithOtp({
+    email,
+    options:{emailRedirectTo:"https://khela-kokhon.vercel.app"}
+  });
+  if(error)throw new Error(error.message);
 }
 async function getSessionFromURL(){
-  const hash=window.location.hash;
-  if(!hash)return null;
-  const params=new URLSearchParams(hash.substring(1));
-  const access_token=params.get("access_token");
-  const type=params.get("type");
-  if(!access_token||(type!=="magiclink"&&type!=="signup"&&type!=="recovery"))return null;
-  // Get user info
-  const res=await fetch(SB_URL+"/auth/v1/user",{
-    headers:{"apikey":SB_KEY,"Authorization":"Bearer "+access_token}});
-  if(!res.ok)return null;
-  const user=await res.json();
-  return {access_token, email:user.email};
+  const client=getSupabase();
+  if(!client)return null;
+  // Let supabase client handle the URL hash automatically
+  const{data:{session},error}=await client.auth.getSession();
+  if(error||!session)return null;
+  return{access_token:session.access_token,email:session.user.email};
 }
 async function saveUserName(email,name,accessToken){
   const nc=await sb("predictors?name=eq."+encodeURIComponent(name)+"&select=email");
