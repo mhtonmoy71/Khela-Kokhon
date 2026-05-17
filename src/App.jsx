@@ -548,7 +548,7 @@ function CompactCal({T,lang,myPreds,setPredictM}){
 }
 
 /* ── Match Card (full) ───────────────────────── */
-function MatchCard({m,T,lang,scores,myPreds,setPredictM,onTeam,isAdmin,setScoreM}){
+function MatchCard({m,T,lang,scores,myPreds,setPredictM,onTeam,isAdmin,setScoreM,showCountdown=true}){
   const sc=scores[m.id]||scores[String(m.id)];
   const hasScore=sc&&sc.hg!==""&&sc.ag!=="";
   const pred=getPred(myPreds,m.id);
@@ -622,7 +622,7 @@ function MatchCard({m,T,lang,scores,myPreds,setPredictM,onTeam,isAdmin,setScoreM
         </div>
       )}
       {/* Countdown timer */}
-      {st==="up"&&!cd.done&&(
+      {showCountdown&&st==="up"&&!cd.done&&(
         <div style={{display:"flex",gap:5,justifyContent:"center",padding:"0 14px 10px"}}>
           {[{v:cd.days,l:lang==="bn"?"দিন":"d"},{v:cd.hours,l:lang==="bn"?"ঘ":"h"},{v:cd.mins,l:lang==="bn"?"মি":"m"},{v:cd.secs,l:lang==="bn"?"সে":"s"}].map(({v,l})=>(
             <div key={l} style={{background:T.card2,borderRadius:8,padding:"4px 8px",textAlign:"center",minWidth:38,border:`1px solid ${T.border}`}}>
@@ -1149,7 +1149,7 @@ function TeamPage({en,T,lang,onBack,scores,myPreds,setPredictM,isAdmin,setScoreM
         )}
       </div>
       <div style={{padding:"12px 12px 90px"}}>
-        {ms.map(m=><MatchCard key={m.id} m={m} T={T} lang={lang} scores={scores} myPreds={myPreds} setPredictM={setPredictM} onTeam={()=>{}} isAdmin={isAdmin} setScoreM={setScoreM}/>)}
+        {ms.map(m=><MatchCard key={m.id} m={m} T={T} lang={lang} scores={scores} myPreds={myPreds} setPredictM={setPredictM} onTeam={()=>{}} isAdmin={isAdmin} setScoreM={setScoreM} showCountdown={false}/>)}
       </div>
     </div>
   );
@@ -1281,41 +1281,41 @@ export default function App(){
   const closeTeam=()=>setTp(null);
   // History/back button management
   useEffect(()=>{
-    // Push initial state
-    window.history.replaceState({tab:"home",wt:"fixture"},"","");
-    // Push a duplicate so first back shows exit popup
-    window.history.pushState({tab:"home",wt:"fixture"},"","");
+    // Always keep 2 entries in history so back button is catchable
+    window.history.replaceState({page:"base"},"","");
+    window.history.pushState({page:"app",tab:"home"},"","");
   },[]);
 
-  const mtRef = useCallback(()=>mt,[mt]);
   useEffect(()=>{
     const onPop=(e)=>{
-      if(tp){setTp(null);return;}
       const state=e.state||{};
-      const curMt=state.tab||"home";
-      if(state.tab&&state.tab!==mt){
-        setMt(state.tab);
-        if(state.wt) setWt(state.wt);
-      } else if(mt!=="home"||tp){
-        setMt("home");
-        setWt("fixture");
-        window.history.replaceState({tab:"home"},"","");
-      } else {
-        // Already at home - show exit confirm
+      // If we hit the "base" state, show exit dialog and push app state back
+      if(state.page==="base"||!state.page){
+        if(tp){
+          setTp(null);
+          window.history.pushState({page:"app",tab:mt},"","");
+          return;
+        }
+        if(mt!=="home"){
+          setMt("home");
+          setWt("fixture");
+          window.history.pushState({page:"app",tab:"home"},"","");
+          return;
+        }
+        // At home — show exit popup, push app state back immediately
+        window.history.pushState({page:"app",tab:"home"},"","");
         setShowExit(true);
-        window.history.pushState({tab:"home"},"","");
       }
     };
     window.addEventListener("popstate",onPop);
     return()=>window.removeEventListener("popstate",onPop);
-  },[tp,mt,setShowExit]);
+  },[tp,mt]);
 
   // Push state when tab changes
   useEffect(()=>{
-    if(mt==="home") window.history.pushState({tab:"home"},"","");
-    else if(mt==="wc") window.history.pushState({tab:"wc",wt},"","");
-    else if(mt==="predict") window.history.pushState({tab:"predict"},"","");
-    else if(mt==="lb") window.history.pushState({tab:"lb"},"","");
+    // Keep base state below, push app state on top
+    // This ensures back button always hits base first
+    window.history.replaceState({page:"app",tab:mt,wt},"","");
   },[mt,wt]);
 
   const handlePredict=(m)=>{
@@ -1408,7 +1408,7 @@ export default function App(){
                   fontFamily:HS,fontSize:14,fontWeight:600,cursor:"pointer"}}>
                   {lang==="bn"?"থাকুন":"Stay"}
                 </button>
-                <button onClick={()=>{setShowExit(false);setTimeout(()=>window.history.back(),100);}} style={{flex:1,padding:13,borderRadius:12,
+                <button onClick={()=>{setShowExit(false);window.history.replaceState({page:"base"},"","");window.history.go(-1);setTimeout(()=>window.close(),200);}} style={{flex:1,padding:13,borderRadius:12,
                   border:"none",background:T.red,color:"#fff",
                   fontFamily:HS,fontSize:14,fontWeight:700,cursor:"pointer"}}>
                   {lang==="bn"?"প্রস্থান":"Exit"}
