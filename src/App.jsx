@@ -621,6 +621,17 @@ function MatchCard({m,T,lang,scores,myPreds,setPredictM,onTeam,isAdmin,setScoreM
           ))}
         </div>
       )}
+      {/* Countdown timer */}
+      {st==="up"&&!cd.done&&(
+        <div style={{display:"flex",gap:5,justifyContent:"center",padding:"0 14px 10px"}}>
+          {[{v:cd.days,l:lang==="bn"?"দিন":"d"},{v:cd.hours,l:lang==="bn"?"ঘ":"h"},{v:cd.mins,l:lang==="bn"?"মি":"m"},{v:cd.secs,l:lang==="bn"?"সে":"s"}].map(({v,l})=>(
+            <div key={l} style={{background:T.card2,borderRadius:8,padding:"4px 8px",textAlign:"center",minWidth:38,border:`1px solid ${T.border}`}}>
+              <div style={{fontFamily:HS,fontSize:14,fontWeight:800,color:T.green,lineHeight:1}}>{String(v).padStart(2,"0")}</div>
+              <div style={{fontFamily:HS,fontSize:8,color:T.textM}}>{l}</div>
+            </div>
+          ))}
+        </div>
+      )}
       {/* Action bar */}
       <div style={{display:"flex",gap:6,padding:"8px 12px 12px"}}>
         {st==="up"&&(
@@ -991,9 +1002,7 @@ function KnockoutTab({T,lang,scores}){
       <div style={{padding:"12px 12px 90px"}}>
         {round==="F"?(
           <>
-            <div style={{fontFamily:HS,fontSize:12,fontWeight:700,color:T.textS,marginBottom:8}}>🏟️ {lang==="bn"?"সেমি-ফাইনাল":"Semi-Finals"}</div>
-            {SF.map(m=><KOCard key={m.id} m={m} T={T} lang={lang} scores={scores} qualified={qualified}/>)}
-            <div style={{fontFamily:HS,fontSize:12,fontWeight:700,color:T.textS,margin:"12px 0 8px"}}>🥉 {lang==="bn"?"তৃতীয় স্থান":"Third Place"}</div>
+            <div style={{fontFamily:HS,fontSize:12,fontWeight:700,color:T.textS,marginBottom:8}}>🥉 {lang==="bn"?"তৃতীয় স্থান":"Third Place"}</div>
             <KOCard m={FINAL[0]} T={T} lang={lang} scores={scores} qualified={qualified}/>
             <div style={{fontFamily:HS,fontSize:12,fontWeight:700,color:T.textS,margin:"12px 0 8px"}}>🏆 {lang==="bn"?"ফাইনাল":"Final"}</div>
             <KOCard m={FINAL[1]} T={T} lang={lang} scores={scores} qualified={qualified}/>
@@ -1273,17 +1282,21 @@ export default function App(){
   // History/back button management
   useEffect(()=>{
     // Push initial state
-    window.history.replaceState({tab:"home",wt:"table"},"","");
+    window.history.replaceState({tab:"home",wt:"fixture"},"","");
+    // Push a duplicate so first back shows exit popup
+    window.history.pushState({tab:"home",wt:"fixture"},"","");
   },[]);
 
+  const mtRef = useCallback(()=>mt,[mt]);
   useEffect(()=>{
     const onPop=(e)=>{
       if(tp){setTp(null);return;}
       const state=e.state||{};
-      if(state.tab){
+      const curMt=state.tab||"home";
+      if(state.tab&&state.tab!==mt){
         setMt(state.tab);
         if(state.wt) setWt(state.wt);
-      } else if(mt!=="home"){
+      } else if(mt!=="home"||tp){
         setMt("home");
         setWt("fixture");
         window.history.replaceState({tab:"home"},"","");
@@ -1295,7 +1308,7 @@ export default function App(){
     };
     window.addEventListener("popstate",onPop);
     return()=>window.removeEventListener("popstate",onPop);
-  },[tp,mt]);
+  },[tp,mt,setShowExit]);
 
   // Push state when tab changes
   useEffect(()=>{
@@ -1395,7 +1408,7 @@ export default function App(){
                   fontFamily:HS,fontSize:14,fontWeight:600,cursor:"pointer"}}>
                   {lang==="bn"?"থাকুন":"Stay"}
                 </button>
-                <button onClick={()=>window.history.go(-2)} style={{flex:1,padding:13,borderRadius:12,
+                <button onClick={()=>{setShowExit(false);setTimeout(()=>window.history.back(),100);}} style={{flex:1,padding:13,borderRadius:12,
                   border:"none",background:T.red,color:"#fff",
                   fontFamily:HS,fontSize:14,fontWeight:700,cursor:"pointer"}}>
                   {lang==="bn"?"প্রস্থান":"Exit"}
