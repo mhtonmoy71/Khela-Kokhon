@@ -1319,15 +1319,27 @@ function AddModal({favs,onAdd,onClose,lang,T}){
 /* ── LeaderboardTab ───────────────────────────── */
 function LeaderboardTab({T,lang,userName}){
   const[lb,setLb]=useState([]);const[loading,setLoading]=useState(true);
-  useEffect(()=>{
+  
+  const loadLB=()=>{
+    setLoading(true);
     getLB().then(data=>{
       setLb(data);
       setLoading(false);
     }).catch(()=>setLoading(false));
-  },[]);
+  };
+  
+  useEffect(()=>{loadLB();},[]);
   const medals=["🥇","🥈","🥉"];
   return(
     <div style={{padding:"12px 12px 90px"}}>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:12}}>
+        <div style={{fontFamily:HS,fontSize:13,color:T.textS}}>{lang==="bn"?"সর্বশেষ পয়েন্ট":"Latest Points"}</div>
+        <button onClick={loadLB} disabled={loading} style={{background:T.card,border:`1px solid ${T.border}`,
+          borderRadius:10,padding:"6px 14px",cursor:"pointer",fontFamily:HS,fontSize:12,color:T.green,
+          fontWeight:600}}>
+          {loading?"⏳":`🔄 ${lang==="bn"?"রিফ্রেশ":"Refresh"}`}
+        </button>
+      </div>
       {loading?<div style={{textAlign:"center",padding:40,fontFamily:HS,color:T.textM}}>লোড হচ্ছে...</div>
       :lb.length===0?<div style={{textAlign:"center",padding:40}}><div style={{fontSize:40,marginBottom:12}}>🏅</div><div style={{fontFamily:HS,fontSize:14,color:T.textM}}>এখনো কোনো প্রেডিকশন নেই</div></div>
       :lb.map((row,i)=>(
