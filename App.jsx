@@ -536,7 +536,12 @@ function NameModal({T,lang,onSave,inline=false,onClose}){
     </div>
   );
 
-  if(inline)return <div style={{background:T.card,borderRadius:16,padding:20}}>{body}</div>;
+  if(inline)return(
+    <div style={{background:T.card,borderRadius:16,padding:20,position:"relative"}}>
+      <button onClick={()=>onClose&&onClose()} style={{position:"absolute",top:8,right:8,background:T.card2,border:"none",borderRadius:"50%",width:28,height:28,cursor:"pointer",fontSize:13,color:T.textS,display:"flex",alignItems:"center",justifyContent:"center",zIndex:1}}>✕</button>
+      {body}
+    </div>
+  );
   return(
     <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.8)",zIndex:1000,display:"flex",alignItems:"flex-end"}}>
       <div style={{background:T.card,borderRadius:"24px 24px 0 0",width:"100%",padding:"24px 20px 36px",maxHeight:"90vh",overflowY:"auto"}}>
@@ -1131,7 +1136,7 @@ function PredictionTab({T,lang,userName,onSave,myPreds,setMyPreds,scores,setPred
           </div>
         </div>
       </div>
-      <NameModal T={T} lang={lang} onSave={onSave} inline={true}/>
+      <NameModal T={T} lang={lang} onSave={onSave} inline={true} onClose={()=>{}}/>
     </div>
   );
 
@@ -1363,7 +1368,7 @@ export default function App(){
       <style>{`@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}*{-webkit-tap-highlight-color:transparent;}`}</style>
       <TeamPage en={tp} T={T} lang={lang} onBack={closeTeam} scores={scores} myPreds={myPreds} setPredictM={setPredictM} isAdmin={isAdmin} setScoreM={setScoreM}/>
       {predictM&&userName&&<PredictModal m={predictM} T={T} lang={lang} userName={userName} myPreds={myPreds} setMyPreds={setMyPreds} onClose={()=>setPredictM(null)}/>}
-      {predictM&&!userName&&<NameModal T={T} lang={lang} onSave={handleNameSave}/>}
+      {predictM&&!userName&&<NameModal T={T} lang={lang} onSave={handleNameSave} onClose={()=>setPredictM(null)}/>}
       {scoreM&&isAdmin&&<ScoreModal m={scoreM} T={T} lang={lang} scores={scores} setScores={setScores} onClose={()=>setScoreM(null)}/>}
     </>
   );
