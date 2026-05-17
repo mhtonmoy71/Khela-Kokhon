@@ -311,7 +311,10 @@ function ScoreModal({m,T,lang,scores,setScores,onClose}){
       display:"flex",alignItems:"flex-end"}} onClick={onClose}>
       <div style={{background:T.card,borderRadius:"20px 20px 0 0",width:"100%",padding:"20px 20px 32px"}}
         onClick={e=>e.stopPropagation()}>
-        <div style={{width:36,height:4,background:T.border,borderRadius:2,margin:"0 auto 16px"}}/>
+        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:14}}>
+          <div style={{width:36,height:4,background:T.border,borderRadius:2,margin:"0 auto"}}/>
+          <button onClick={onClose} style={{background:T.card2,border:"none",borderRadius:"50%",width:28,height:28,cursor:"pointer",fontSize:14,color:T.textS,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>✕</button>
+        </div>
         <div style={{fontFamily:HS,fontWeight:700,fontSize:16,color:T.text,textAlign:"center",marginBottom:4}}>🔑 স্কোর এন্ট্রি</div>
         <div style={{fontFamily:HS,fontSize:12,color:T.textS,textAlign:"center",marginBottom:20}}>{tn(m.h,lang)} vs {tn(m.a,lang)}</div>
         <div style={{display:"flex",alignItems:"center",justifyContent:"center",gap:16,marginBottom:20}}>
@@ -365,7 +368,10 @@ function PredictModal({m,T,lang,userName,myPreds,setMyPreds,onClose}){
       display:"flex",alignItems:"flex-end"}} onClick={onClose}>
       <div style={{background:T.card,borderRadius:"24px 24px 0 0",width:"100%",padding:"20px 20px 36px"}}
         onClick={e=>e.stopPropagation()}>
-        <div style={{width:36,height:4,background:T.border,borderRadius:2,margin:"0 auto 18px"}}/>
+        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:16}}>
+          <div style={{width:36,height:4,background:T.border,borderRadius:2,margin:"0 auto"}}/>
+          <button onClick={onClose} style={{background:T.card2,border:"none",borderRadius:"50%",width:28,height:28,cursor:"pointer",fontSize:14,color:T.textS,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>✕</button>
+        </div>
         <div style={{fontFamily:HS,fontWeight:800,fontSize:18,color:T.text,textAlign:"center",marginBottom:4}}>
           🎯 {lang==="bn"?"প্রেডিক্ট করুন":"Make Prediction"}
         </div>
@@ -447,7 +453,10 @@ function NameModal({T,lang,onSave,inline=false}){
   return(
     <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.8)",zIndex:1000,display:"flex",alignItems:"flex-end"}}>
       <div style={{background:T.card,borderRadius:"24px 24px 0 0",width:"100%",padding:"24px 20px 36px"}}>
-        <div style={{width:36,height:4,background:T.border,borderRadius:2,margin:"0 auto 20px"}}/>
+        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:16}}>
+          <div style={{width:36,height:4,background:"rgba(255,255,255,0.2)",borderRadius:2,margin:"0 auto"}}/>
+          <button onClick={()=>{if(typeof onClose==="function")onClose();}} style={{background:"rgba(255,255,255,0.15)",border:"none",borderRadius:"50%",width:28,height:28,cursor:"pointer",fontSize:14,color:"#fff",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>✕</button>
+        </div>
         <div style={{textAlign:"center",marginBottom:20}}>
           <div style={{fontSize:36,marginBottom:8}}>🎯</div>
           <div style={{fontFamily:HS,fontSize:18,fontWeight:800,color:T.text,marginBottom:6}}>{lang==="bn"?"প্রেডিকশন কম্পিটিশন":"Prediction Competition"}</div>
@@ -958,7 +967,10 @@ function GroupTab({T,lang,onTeam,scores,myPreds,setPredictM,isAdmin,setScoreM}){
         <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.6)",zIndex:999,display:"flex",alignItems:"flex-end"}} onClick={()=>setSf(false)}>
           <div style={{background:T.card,borderRadius:"20px 20px 0 0",width:"100%",maxHeight:"75vh",overflow:"hidden",display:"flex",flexDirection:"column"}} onClick={e=>e.stopPropagation()}>
             <div style={{padding:"12px 14px 10px",borderBottom:`1px solid ${T.border}`}}>
-              <div style={{width:36,height:4,background:T.border,borderRadius:2,margin:"0 auto 12px"}}/>
+              <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:10}}>
+                <div style={{width:36,height:4,background:T.border,borderRadius:2,margin:"0 auto"}}/>
+                <button onClick={()=>setSf(false)} style={{background:T.card2,border:"none",borderRadius:"50%",width:28,height:28,cursor:"pointer",fontSize:14,color:T.textS,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>✕</button>
+              </div>
               <input value={sq} onChange={e=>setSq(e.target.value)} placeholder={lang==="bn"?"দলের নাম...":"Search..."} style={{width:"100%",boxSizing:"border-box",border:`1.5px solid ${T.border}`,borderRadius:12,padding:"10px 14px",fontFamily:HS,fontSize:14,background:T.card2,color:T.text,outline:"none"}}/>
             </div>
             <div style={{overflowY:"auto",padding:"6px 14px 28px"}}>
@@ -1392,9 +1404,12 @@ export default function App(){
 
         {/* Exit confirm */}
         {showExit&&(
-          <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.7)",zIndex:9999,
+          <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.75)",zIndex:9999,
             display:"flex",alignItems:"center",justifyContent:"center",padding:24}}>
-            <div style={{background:T.card,borderRadius:20,padding:28,width:"100%",maxWidth:300,textAlign:"center"}}>
+            <div style={{background:T.card,borderRadius:20,padding:28,width:"100%",maxWidth:300,textAlign:"center",position:"relative"}}>
+              <button onClick={()=>setShowExit(false)} style={{position:"absolute",top:12,right:12,
+                background:T.card2,border:"none",borderRadius:"50%",width:28,height:28,
+                cursor:"pointer",fontSize:14,color:T.textS,display:"flex",alignItems:"center",justifyContent:"center"}}>✕</button>
               <div style={{fontSize:36,marginBottom:12}}>👋</div>
               <div style={{fontFamily:HS,fontSize:17,fontWeight:800,color:T.text,marginBottom:8}}>
                 {lang==="bn"?"প্রস্থান করবেন?":"Exit App?"}
@@ -1406,12 +1421,20 @@ export default function App(){
                 <button onClick={()=>setShowExit(false)} style={{flex:1,padding:13,borderRadius:12,
                   border:`1px solid ${T.border}`,background:T.card2,color:T.text,
                   fontFamily:HS,fontSize:14,fontWeight:600,cursor:"pointer"}}>
-                  {lang==="bn"?"থাকুন":"Stay"}
+                  {lang==="bn"?"থাকুন 🏠":"Stay 🏠"}
                 </button>
-                <button onClick={()=>{setShowExit(false);window.history.replaceState({page:"base"},"","");window.history.go(-1);setTimeout(()=>window.close(),200);}} style={{flex:1,padding:13,borderRadius:12,
+                <button onClick={()=>{
+                  setShowExit(false);
+                  // Android PWA exit: navigate to about:blank or use history
+                  try{window.history.go(-(window.history.length));}catch(e){}
+                  try{window.open("","_self").close();}catch(e){}
+                  // Fallback: just go back multiple times
+                  setTimeout(()=>{window.history.back();},50);
+                  setTimeout(()=>{window.history.back();},150);
+                }} style={{flex:1,padding:13,borderRadius:12,
                   border:"none",background:T.red,color:"#fff",
                   fontFamily:HS,fontSize:14,fontWeight:700,cursor:"pointer"}}>
-                  {lang==="bn"?"প্রস্থান":"Exit"}
+                  {lang==="bn"?"প্রস্থান ❌":"Exit ❌"}
                 </button>
               </div>
             </div>
