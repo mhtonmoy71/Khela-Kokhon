@@ -1566,12 +1566,8 @@ export default function App(){
           </div>
           {/* Main tabs */}
           <div style={{display:"flex",borderTop:"1px solid rgba(255,255,255,0.1)"}}>
-            {[["home",lang==="bn"?"🏠 হোম":"🏠"],["wc","__WC__"],["predict",lang==="bn"?"🎯 প্রেডিকশন":"🎯"],["lb",lang==="bn"?"🏅 লিডারবোর্ড":"🏅"]].map(([id,lb])=>(
-              <button key={id} onClick={()=>setMt(id)} style={{flex:1,background:"transparent",border:"none",borderBottom:`2.5px solid ${mt===id?"#fff":"transparent"}`,color:mt===id?"#fff":"rgba(255,255,255,0.45)",fontFamily:HS,fontSize:11,fontWeight:mt===id?700:400,padding:"8px 0",cursor:"pointer",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",gap:1}}>
-                {lb==="__WC__"
-                  ?<><img src={WC_LOGO} alt="" style={{height:16,width:12,objectFit:"contain",opacity:mt===id?1:0.45}}/><span style={{fontSize:9}}>{lang==="bn"?"বিশ্বকাপ":"WC"}</span></>
-                  :lb}
-              </button>
+            {[["home",lang==="bn"?"🏠 হোম":"🏠"],["wc",lang==="bn"?"🏆 বিশ্বকাপ":"🏆 WC"],["predict",lang==="bn"?"🎯 প্রেডিকশন":"🎯"],["lb",lang==="bn"?"🏅 লিডারবোর্ড":"🏅"]].map(([id,lb])=>(
+              <button key={id} onClick={()=>setMt(id)} style={{flex:1,background:"transparent",border:"none",borderBottom:`2.5px solid ${mt===id?"#fff":"transparent"}`,color:mt===id?"#fff":"rgba(255,255,255,0.45)",fontFamily:HS,fontSize:11,fontWeight:mt===id?700:400,padding:"10px 0",cursor:"pointer"}}>{lb}</button>
             ))}
           </div>
           {/* WC sub-tabs */}
