@@ -1551,20 +1551,20 @@ export default function App(){
         {/* Sticky header */}
         <div style={{background:T.hdr,position:"sticky",top:0,zIndex:50,boxShadow:"0 2px 20px rgba(0,0,0,0.4)"}}>
           <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"14px 14px 12px"}}>
-            <div style={{display:"flex",alignItems:"center",gap:10}}>
-              <div style={{width:44,height:44,borderRadius:10,background:"#00e676",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
-                <svg width="28" height="28" viewBox="0 0 28 28">
-                  <rect x="1" y="4" width="26" height="20" rx="2" fill="none" stroke="#065f46" strokeWidth="1.8"/>
-                  <circle cx="14" cy="14" r="5" fill="none" stroke="#065f46" strokeWidth="1.8"/>
-                  <line x1="14" y1="4" x2="14" y2="24" stroke="#065f46" strokeWidth="1.5"/>
-                  <rect x="1" y="8" width="5" height="12" fill="none" stroke="#065f46" strokeWidth="1.2"/>
-                  <rect x="22" y="8" width="5" height="12" fill="none" stroke="#065f46" strokeWidth="1.2"/>
-                  <circle cx="14" cy="14" r="2" fill="#065f46"/>
+            <div style={{display:"flex",alignItems:"center",gap:0}}>
+              <div style={{background:"#00e676",borderRadius:"8px 0 0 8px",padding:"8px 10px",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
+                <svg width="22" height="22" viewBox="0 0 22 22">
+                  <rect x="1" y="4" width="20" height="14" rx="1.5" fill="none" stroke="#065f46" strokeWidth="1.5"/>
+                  <circle cx="11" cy="11" r="4" fill="none" stroke="#065f46" strokeWidth="1.5"/>
+                  <line x1="11" y1="4" x2="11" y2="18" stroke="#065f46" strokeWidth="1.2"/>
+                  <rect x="1" y="7" width="4" height="8" fill="none" stroke="#065f46" strokeWidth="1"/>
+                  <rect x="17" y="7" width="4" height="8" fill="none" stroke="#065f46" strokeWidth="1"/>
+                  <circle cx="11" cy="11" r="1.5" fill="#065f46"/>
                 </svg>
               </div>
-              <div>
-                <div style={{fontFamily:HS,fontSize:18,fontWeight:800,color:"#fff",lineHeight:1}}>{lang==="bn"?"খেলা কখন?":"Khela Kokhon?"}</div>
-                {isAdmin&&<div style={{fontFamily:HS,fontSize:9,color:"rgba(255,255,255,0.5)",letterSpacing:1,marginTop:2}}>🔑 ADMIN MODE</div>}
+              <div style={{background:"rgba(0,230,118,0.1)",borderRadius:"0 8px 8px 0",padding:"8px 14px",border:"1px solid rgba(0,230,118,0.2)",borderLeft:"none"}}>
+                <div style={{fontFamily:HS,fontSize:18,fontWeight:800,color:"#fff",lineHeight:1,whiteSpace:"nowrap"}}>{lang==="bn"?"খেলা কখন?":"Khela Kokhon?"}</div>
+                {isAdmin&&<div style={{fontFamily:HS,fontSize:9,color:"#00e676",letterSpacing:1,marginTop:2}}>🔑 ADMIN MODE</div>}
               </div>
             </div>
             <div style={{display:"flex",gap:6}}>
