@@ -860,7 +860,7 @@ function HomeTab({T,lang,favs,setFavs,onTeam,setSM,scores,myPreds,setPredictM,se
             <div style={{fontFamily:HS,fontSize:15,fontWeight:600,color:T.text}}>{tn(en,lang)}</div>
             {nx?(
               <>
-                <div style={{fontFamily:HS,fontSize:11,color:T.textS,marginTop:2}}>{lang==="bn"?"পরবর্তী: ":"Next: "}<b>{tn(opp,lang)}</b></div>
+                <div style={{fontFamily:HS,fontSize:11,color:T.textS,marginTop:2}}>{lang==="bn"?"পরবর্তী: ":"Next: "}<b onClick={e=>{e.stopPropagation();onTeam(opp);}} style={{cursor:"pointer",color:T.green}}>{tn(opp,lang)}</b></div>
                 <div style={{fontFamily:HS,fontSize:11,color:T.textS,marginTop:1}}>📅 {dls(nx.d,lang)} · <span style={{color:T.green,fontWeight:600}}>🕐 {nx.t}</span></div>
                 {showCd&&<div style={{display:"flex",gap:5,marginTop:5}}>
                   {[{v:cd.days,l:"d"},{v:cd.hours,l:"h"},{v:cd.mins,l:"m"},{v:cd.secs,l:"s"}].map(({v,l})=>(
@@ -1192,7 +1192,7 @@ function PredictionTab({T,lang,userName,onSave,myPreds,setMyPreds,scores,setPred
 }
 
 /* ── TeamPage ────────────────────────────────── */
-function TeamPage({en,T,lang,onBack,scores,myPreds,setPredictM,isAdmin,setScoreM}){
+function TeamPage({en,T,lang,onBack,onTeam,scores,myPreds,setPredictM,isAdmin,setScoreM}){
   const ms=MATCHES.filter(m=>m.h===en||m.a===en).sort((a,b)=>tMs(a)-tMs(b));
   const next=ms.find(m=>status(m)==="up");
   const cd=useCD(next?tMs(next):null);
@@ -1222,7 +1222,7 @@ function TeamPage({en,T,lang,onBack,scores,myPreds,setPredictM,isAdmin,setScoreM
         )}
       </div>
       <div style={{padding:"12px 12px 90px"}}>
-        {ms.map(m=><MatchCard key={m.id} m={m} T={T} lang={lang} scores={scores} myPreds={myPreds} setPredictM={setPredictM} onTeam={()=>{}} isAdmin={isAdmin} setScoreM={setScoreM}/>)}
+        {ms.map(m=><MatchCard key={m.id} m={m} T={T} lang={lang} scores={scores} myPreds={myPreds} setPredictM={setPredictM} onTeam={onTeam} isAdmin={isAdmin} setScoreM={setScoreM}/>)}
       </div>
     </div>
   );
@@ -1355,7 +1355,7 @@ export default function App(){
     <>
       <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet"/>
       <style>{`@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}*{-webkit-tap-highlight-color:transparent;}`}</style>
-      <TeamPage en={tp} T={T} lang={lang} onBack={closeTeam} scores={scores} myPreds={myPreds} setPredictM={setPredictM} isAdmin={isAdmin} setScoreM={setScoreM}/>
+      <TeamPage en={tp} T={T} lang={lang} onBack={closeTeam} onTeam={openTeam} scores={scores} myPreds={myPreds} setPredictM={setPredictM} isAdmin={isAdmin} setScoreM={setScoreM}/>
       {predictM&&userName&&<PredictModal m={predictM} T={T} lang={lang} userName={userName} myPreds={myPreds} setMyPreds={setMyPreds} onClose={()=>setPredictM(null)}/>}
       {predictM&&!userName&&<NameModal T={T} lang={lang} onSave={handleNameSave} onClose={()=>setPredictM(null)}/>}
       {scoreM&&isAdmin&&<ScoreModal m={scoreM} T={T} lang={lang} scores={scores} setScores={setScores} onClose={()=>setScoreM(null)}/>}
