@@ -6,6 +6,20 @@ const SECRET = "khelakokhon2026";
 const ADMIN_KEY = "khelakokhon2026admin";
 
 /* ── Google Apps Script API (JSONP) ──────────── */
+async function gasPost(action, data={}) {
+  const params = "data=" + encodeURIComponent(JSON.stringify({action, secret: SECRET, ...data}));
+  // Try JSONP first, fallback to fetch
+  return gasJsonp(params).catch(() => {
+    return fetch(GAS_URL + "?" + params).then(r => r.json());
+  });
+}
+
+async function gasGet(action) {
+  return gasJsonp("action=" + action).catch(() => {
+    return fetch(GAS_URL + "?action=" + action).then(r => r.json());
+  });
+}
+
 function gasJsonp(params) {
   return new Promise((resolve, reject) => {
     const cbName = "cb_" + Math.random().toString(36).slice(2);
@@ -13,7 +27,7 @@ function gasJsonp(params) {
     const timeout = setTimeout(() => {
       cleanup();
       reject(new Error("Timeout"));
-    }, 15000);
+    }, 12000);
     function cleanup() {
       clearTimeout(timeout);
       delete window[cbName];
@@ -24,15 +38,6 @@ function gasJsonp(params) {
     script.onerror = () => { cleanup(); reject(new Error("Script error")); };
     document.head.appendChild(script);
   });
-}
-
-async function gasPost(action, data={}) {
-  const params = "data=" + encodeURIComponent(JSON.stringify({action, secret: SECRET, ...data}));
-  return gasJsonp(params);
-}
-
-async function gasGet(action) {
-  return gasJsonp("action=" + action);
 }
 
 // Auth
@@ -506,7 +511,7 @@ function NameModal({T,lang,onSave,inline=false,onClose}){
       </div>
       {step==="email"&&<>
         <div style={{fontFamily:HS,fontSize:13,color:T.textS,textAlign:"center",marginBottom:16}}>
-          {lang==="bn"?"তোমার ইমেইল দাও, সাইন-ইন লিংক পাঠানো হবে":"Enter your email to receive a sign-in link"}
+          {lang==="bn"?"তোমার ইমেইল দাও, ৬ সংখ্যার কোড পাঠানো হবে":"Enter your email to receive a 6-digit code"}
         </div>
         <input value={email} onChange={e=>setEmail(e.target.value)}
           onKeyDown={e=>e.key==="Enter"&&doSendLink()}
@@ -517,7 +522,7 @@ function NameModal({T,lang,onSave,inline=false,onClose}){
           style={{width:"100%",padding:13,borderRadius:12,border:"none",
             background:loading||!email.includes("@")?"#555":T.green,
             color:"#fff",fontFamily:HS,fontSize:15,fontWeight:700,cursor:"pointer"}}>
-          {loading?(lang==="bn"?"পাঠানো হচ্ছে...":"Sending..."):(lang==="bn"?"লিংক পাঠাও 📧":"Send Link 📧")}
+          {loading?(lang==="bn"?"পাঠানো হচ্ছে...":"Sending..."):(lang==="bn"?"কোড পাঠাও 📧":"Send Code 📧")}
         </button>
       </>}
       {step==="otp"&&<>
