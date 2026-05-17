@@ -234,20 +234,26 @@ const ALL_DATES=new Set([...MATCHES,...R32,...R16,...QF,...SF,...FINAL].map(m=>m
 function getMatchesForDate(d){return[...MATCHES,...R32,...R16,...QF,...SF,...FINAL].filter(m=>m.d===d);}
 
 /* ── Helpers ─────────────────────────────────── */
-/* ── Email OTP ───────────────────────────────── */
-async function sendOTP(email){
-  const res=await fetch(SB_URL+"/auth/v1/otp",{method:"POST",
+/* ── Email Magic Link Auth ───────────────────── */
+async function sendMagicLink(email){
+  const res=await fetch(SB_URL+"/auth/v1/magiclink",{method:"POST",
     headers:{"apikey":SB_KEY,"Content-Type":"application/json"},
     body:JSON.stringify({email,create_user:true})});
-  if(!res.ok)throw new Error(await res.text());
+  if(!res.ok){const t=await res.text();throw new Error(t);}
 }
-async function verifyOTP(email,token){
-  const res=await fetch(SB_URL+"/auth/v1/verify",{method:"POST",
-    headers:{"apikey":SB_KEY,"Content-Type":"application/json"},
-    body:JSON.stringify({email,token,type:"email"})});
-  const data=await res.json();
-  if(!res.ok)throw new Error(data.error_description||"Invalid OTP");
-  return data;
+async function getSessionFromURL(){
+  const hash=window.location.hash;
+  if(!hash)return null;
+  const params=new URLSearchParams(hash.substring(1));
+  const access_token=params.get("access_token");
+  const type=params.get("type");
+  if(!access_token||(type!=="magiclink"&&type!=="signup"&&type!=="recovery"))return null;
+  // Get user info
+  const res=await fetch(SB_URL+"/auth/v1/user",{
+    headers:{"apikey":SB_KEY,"Authorization":"Bearer "+access_token}});
+  if(!res.ok)return null;
+  const user=await res.json();
+  return {access_token, email:user.email};
 }
 async function saveUserName(email,name,accessToken){
   const nc=await sb("predictors?name=eq."+encodeURIComponent(name)+"&select=email");
@@ -462,24 +468,13 @@ function NameModal({T,lang,onSave,inline=false,onClose}){
   const[err,setErr]=useState("");
   const[loading,setLoading]=useState(false);
 
-  const doSendOTP=async()=>{
+  const doSendLink=async()=>{
     if(!email.includes("@"))return setErr(lang==="bn"?"সঠিক ইমেইল দিন":"Enter valid email");
     setLoading(true);setErr("");
-    try{await sendOTP(email.trim().toLowerCase());setStep("otp");}
-    catch(e){setErr(lang==="bn"?"ইমেইল পাঠানো যায়নি":"Failed to send email");}
-    setLoading(false);
-  };
-  const doVerifyOTP=async()=>{
-    if(otp.length<6)return setErr(lang==="bn"?"৬ সংখ্যার কোড দিন":"Enter 6-digit code");
-    setLoading(true);setErr("");
     try{
-      const data=await verifyOTP(email.trim().toLowerCase(),otp.trim());
-      const token=data.access_token;
-      setAccessToken(token);
-      const existingName=await getUserByEmail(email.trim().toLowerCase());
-      if(existingName){localStorage.setItem("kk_user",existingName);localStorage.setItem("kk_email",email.toLowerCase());onSave(existingName,token);}
-      else setStep("name");
-    }catch(e){setErr(lang==="bn"?"ভুল কোড":"Wrong code, try again");}
+      await sendMagicLink(email.trim().toLowerCase());
+      setStep("sent");
+    }catch(e){setErr(lang==="bn"?"ইমেইল পাঠানো যায়নি, আবার চেষ্টা করুন":"Failed to send email");}
     setLoading(false);
   };
   const doSaveName=async()=>{
@@ -496,7 +491,7 @@ function NameModal({T,lang,onSave,inline=false,onClose}){
   const inp={width:"100%",boxSizing:"border-box",border:`2px solid ${T.border}`,borderRadius:12,
     padding:"13px 14px",fontFamily:HS,fontSize:15,background:T.card2,color:T.text,outline:"none",marginBottom:8};
 
-  const dots=["email","otp","name"].map(s=>(
+  const dots=["email","sent","name"].map(s=>(
     <div key={s} style={{width:8,height:8,borderRadius:"50%",background:step===s?T.green:T.border,transition:"background 0.3s"}}/>
   ));
 
@@ -511,19 +506,30 @@ function NameModal({T,lang,onSave,inline=false,onClose}){
         <div style={{fontFamily:HS,fontSize:13,color:T.textS,textAlign:"center",marginBottom:16}}>{lang==="bn"?"ইমেইল দাও, কোড পাঠানো হবে":"Enter email, we will send a code"}</div>
         <input value={email} onChange={e=>setEmail(e.target.value)} onKeyDown={e=>e.key==="Enter"&&doSendOTP()} placeholder={lang==="bn"?"তোমার ইমেইল...":"Your email..."} type="email" style={inp} autoFocus/>
         {err&&<div style={{fontFamily:HS,fontSize:12,color:T.red,textAlign:"center",marginBottom:8}}>{err}</div>}
-        <button onClick={doSendOTP} disabled={loading||!email.includes("@")} style={{width:"100%",padding:13,borderRadius:12,border:"none",background:loading||!email.includes("@")?"#555":T.green,color:"#fff",fontFamily:HS,fontSize:15,fontWeight:700,cursor:"pointer"}}>
+        <button onClick={doSendLink} disabled={loading||!email.includes("@")} style={{width:"100%",padding:13,borderRadius:12,border:"none",background:loading||!email.includes("@")?"#555":T.green,color:"#fff",fontFamily:HS,fontSize:15,fontWeight:700,cursor:"pointer"}}>
           {loading?(lang==="bn"?"পাঠানো হচ্ছে...":"Sending..."):(lang==="bn"?"কোড পাঠাও 📧":"Send Code 📧")}
         </button>
       </>}
-      {step==="otp"&&<>
-        <div style={{fontFamily:HS,fontSize:13,color:T.textS,textAlign:"center",marginBottom:4}}>{lang==="bn"?"কোড পাঠানো হয়েছে:":"Code sent to:"}</div>
-        <div style={{fontFamily:HS,fontSize:13,color:T.green,textAlign:"center",fontWeight:700,marginBottom:16}}>{email}</div>
-        <input value={otp} onChange={e=>setOtp(e.target.value.slice(0,6))} onKeyDown={e=>e.key==="Enter"&&doVerifyOTP()} placeholder="000000" maxLength={6} inputMode="numeric" style={{...inp,textAlign:"center",fontSize:26,fontWeight:800,letterSpacing:6}}/>
-        {err&&<div style={{fontFamily:HS,fontSize:12,color:T.red,textAlign:"center",marginBottom:8}}>{err}</div>}
-        <button onClick={doVerifyOTP} disabled={loading||otp.length<6} style={{width:"100%",padding:13,borderRadius:12,border:"none",background:loading||otp.length<6?"#555":T.green,color:"#fff",fontFamily:HS,fontSize:15,fontWeight:700,cursor:"pointer",marginBottom:8}}>
-          {loading?(lang==="bn"?"যাচাই করছি...":"Verifying..."):(lang==="bn"?"যাচাই করো ✅":"Verify ✅")}
+      {step==="sent"&&<>
+        <div style={{textAlign:"center",marginBottom:20}}>
+          <div style={{fontSize:48,marginBottom:12}}>📧</div>
+          <div style={{fontFamily:HS,fontSize:15,fontWeight:700,color:T.text,marginBottom:8}}>
+            {lang==="bn"?"ইমেইল চেক করো!":"Check your email!"}
+          </div>
+          <div style={{fontFamily:HS,fontSize:13,color:T.textS,marginBottom:4}}>
+            {lang==="bn"?"এই ঠিকানায় একটা লিংক পাঠানো হয়েছে:":"A sign-in link was sent to:"}
+          </div>
+          <div style={{fontFamily:HS,fontSize:14,color:T.green,fontWeight:700,marginBottom:16}}>{email}</div>
+          <div style={{fontFamily:HS,fontSize:12,color:T.textS,background:T.card2,borderRadius:12,padding:"10px 14px",marginBottom:16}}>
+            {lang==="bn"?"Gmail খুলে 'Sign in' লিংকে ক্লিক করো। ক্লিক করলে অটো লগইন হয়ে যাবে।":"Open Gmail and click the 'Sign in' link. You will be logged in automatically."}
+          </div>
+        </div>
+        <button onClick={()=>{setStep("email");setErr("");}} style={{width:"100%",padding:10,borderRadius:12,border:`1px solid ${T.border}`,background:"transparent",color:T.textS,fontFamily:HS,fontSize:13,cursor:"pointer",marginBottom:8}}>
+          {lang==="bn"?"← অন্য ইমেইল দিয়ে চেষ্টা করো":"← Try different email"}
         </button>
-        <button onClick={()=>{setStep("email");setOtp("");setErr("");}} style={{width:"100%",padding:10,borderRadius:12,border:`1px solid ${T.border}`,background:"transparent",color:T.textS,fontFamily:HS,fontSize:13,cursor:"pointer"}}>{lang==="bn"?"← ইমেইল পরিবর্তন":"← Change email"}</button>
+        <button onClick={doSendLink} disabled={loading} style={{width:"100%",padding:10,borderRadius:12,border:`1px solid ${T.border}`,background:"transparent",color:T.textS,fontFamily:HS,fontSize:13,cursor:"pointer"}}>
+          {loading?"পাঠানো হচ্ছে...":(lang==="bn"?"আবার পাঠাও":"Resend link")}
+        </button>
       </>}
       {step==="name"&&<>
         <div style={{fontFamily:HS,fontSize:13,color:T.textS,textAlign:"center",marginBottom:16}}>{lang==="bn"?"লিডারবোর্ডে তোমার নাম:":"Your name on leaderboard:"}</div>
@@ -1289,6 +1295,55 @@ function LeaderboardTab({T,lang,userName}){
   );
 }
 
+/* ── SetNameModal (after magic link) ─────────── */
+function SetNameModal({T,lang,email,token,onSave,onClose}){
+  const[name,setName]=useState("");
+  const[err,setErr]=useState("");
+  const[loading,setLoading]=useState(false);
+
+  const save=async()=>{
+    if(!name.trim())return setErr(lang==="bn"?"নাম দিন":"Enter name");
+    setLoading(true);setErr("");
+    try{
+      await saveUserName(email,name.trim(),token);
+      onSave(name.trim());
+    }catch(e){
+      setErr(e.message==="name_taken"
+        ?(lang==="bn"?"এই নামটি অন্য কেউ নিয়েছে":"Name already taken")
+        :(lang==="bn"?"সমস্যা হয়েছে":"Error"));
+    }
+    setLoading(false);
+  };
+
+  return(
+    <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.85)",zIndex:1000,
+      display:"flex",alignItems:"center",justifyContent:"center",padding:20}}>
+      <div style={{background:T.card,borderRadius:20,padding:28,width:"100%",maxWidth:320,textAlign:"center"}}>
+        <div style={{fontSize:40,marginBottom:12}}>🎉</div>
+        <div style={{fontFamily:HS,fontSize:17,fontWeight:800,color:T.text,marginBottom:8}}>
+          {lang==="bn"?"লগইন সফল!":"Login Successful!"}
+        </div>
+        <div style={{fontFamily:HS,fontSize:13,color:T.textS,marginBottom:20}}>
+          {lang==="bn"?"এখন লিডারবোর্ডে তোমার নাম দাও:":"Now set your display name:"}
+        </div>
+        <input value={name} onChange={e=>setName(e.target.value)}
+          onKeyDown={e=>e.key==="Enter"&&save()}
+          placeholder={lang==="bn"?"তোমার নাম...":"Your name..."}
+          style={{width:"100%",boxSizing:"border-box",border:`2px solid ${T.border}`,
+            borderRadius:12,padding:"13px 14px",fontFamily:HS,fontSize:15,
+            background:T.card2,color:T.text,outline:"none",marginBottom:8,textAlign:"center"}}
+          autoFocus/>
+        {err&&<div style={{fontFamily:HS,fontSize:12,color:T.red,marginBottom:8}}>{err}</div>}
+        <button onClick={save} disabled={loading||!name.trim()} style={{width:"100%",padding:13,
+          borderRadius:12,border:"none",background:loading||!name.trim()?"#555":T.green,
+          color:"#fff",fontFamily:HS,fontSize:15,fontWeight:700,cursor:"pointer"}}>
+          {loading?(lang==="bn"?"সংরক্ষণ...":"Saving..."):(lang==="bn"?"শুরু করো 🚀":"Start 🚀")}
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export default function App(){
   const isAdmin=new URLSearchParams(window.location.search).get("admin")===ADMIN_KEY;
   const[dark,setDark]=useState(true);
@@ -1303,12 +1358,35 @@ export default function App(){
   const[myPreds,setMyPreds]=useState({});
   const[predictM,setPredictM]=useState(null);
   const[showExit,setShowExit]=useState(false);
+  const[needName,setNeedName]=useState(null);
   const[scoreM,setScoreM]=useState(null);
   const T=mkT(dark);
 
   useEffect(()=>{getScores().then(data=>{const m={};data.forEach(s=>{m[s.match_id]={hg:String(s.home_score),ag:String(s.away_score)};m[String(s.match_id)]={hg:String(s.home_score),ag:String(s.away_score)};});setScores(m);}).catch(()=>{});},[]);
   useEffect(()=>{if(!userName)return;getPreds(userName).then(data=>{const m={};data.forEach(p=>{m[p.match_id]={home_score:p.home_score,away_score:p.away_score,points:p.points};m[String(p.match_id)]={home_score:p.home_score,away_score:p.away_score,points:p.points};});setMyPreds(m);}).catch(()=>{});},[userName]);
   useEffect(()=>{
+    // Check if returning from magic link
+    if(window.location.hash.includes("access_token")){
+      getSessionFromURL().then(async(session)=>{
+        if(!session)return;
+        const{email,access_token}=session;
+        // Clear hash from URL
+        window.history.replaceState({},"",window.location.pathname);
+        // Check if user has a name
+        const existingName=await getUserByEmail(email);
+        if(existingName){
+          localStorage.setItem("kk_user",existingName);
+          localStorage.setItem("kk_email",email);
+          setUserName(existingName);
+        } else {
+          // Need to set name - store token and email, show name modal
+          localStorage.setItem("kk_email",email);
+          localStorage.setItem("kk_token",access_token);
+          setNeedName({email,token:access_token});
+        }
+      }).catch(()=>{});
+      return;
+    }
     const n=localStorage.getItem("kk_user");if(n){setUserName(n);return;}
     const em=localStorage.getItem("kk_email");
     if(em){getUserByEmail(em).then(name=>{if(name){localStorage.setItem("kk_user",name);setUserName(name);}}).catch(()=>{});}
@@ -1357,7 +1435,8 @@ export default function App(){
       <style>{`@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}*{-webkit-tap-highlight-color:transparent;}`}</style>
       <TeamPage en={tp} T={T} lang={lang} onBack={closeTeam} onTeam={openTeam} scores={scores} myPreds={myPreds} setPredictM={setPredictM} isAdmin={isAdmin} setScoreM={setScoreM}/>
       {predictM&&userName&&<PredictModal m={predictM} T={T} lang={lang} userName={userName} myPreds={myPreds} setMyPreds={setMyPreds} onClose={()=>setPredictM(null)}/>}
-      {predictM&&!userName&&<NameModal T={T} lang={lang} onSave={handleNameSave} onClose={()=>setPredictM(null)}/>}
+      {predictM&&!userName&&!needName&&<NameModal T={T} lang={lang} onSave={handleNameSave} onClose={()=>setPredictM(null)}/>}
+        {needName&&<SetNameModal T={T} lang={lang} email={needName.email} token={needName.token} onSave={(name)=>{localStorage.setItem("kk_user",name);setUserName(name);setNeedName(null);}} onClose={()=>setNeedName(null)}/>}
       {scoreM&&isAdmin&&<ScoreModal m={scoreM} T={T} lang={lang} scores={scores} setScores={setScores} onClose={()=>setScoreM(null)}/>}
     </>
   );
