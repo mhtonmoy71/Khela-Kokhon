@@ -1553,7 +1553,7 @@ export default function App(){
           <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"14px 14px 12px"}}>
             <div style={{display:"flex",alignItems:"center",gap:10}}>
               <div style={{width:40,height:40,borderRadius:"50%",overflow:"hidden",border:"2px solid rgba(0,230,118,0.3)",flexShrink:0}}>
-                <img src={LOGO} alt="" style={{width:"100%",height:"100%",objectFit:"cover",filter:"brightness(1.3)"}}/>
+                <img src={KK_LOGO} alt="" style={{width:"100%",height:"100%",objectFit:"contain"}}/>
               </div>
               <div>
                 <div style={{fontFamily:HS,fontSize:18,fontWeight:800,color:"#fff",lineHeight:1}}>{lang==="bn"?"খেলা কখন?":"Khela Kokhon?"}</div>
