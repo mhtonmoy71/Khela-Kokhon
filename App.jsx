@@ -308,8 +308,14 @@ function ScoreModal({m,T,lang,scores,setScores,onClose}){
   const[hg,setHg]=useState(sc.hg);const[ag,setAg]=useState(sc.ag);const[saving,setSaving]=useState(false);
   const save=async()=>{
     setSaving(true);
-    try{await saveScoreDB(m.id,parseInt(hg),parseInt(ag));setScores(s=>({...s,[m.id]:{hg,ag},[String(m.id)]:{hg,ag}}));onClose();}
-    catch(e){alert("Error: "+e.message);}
+    try{
+      const r=await saveScoreDB(m.id,parseInt(hg),parseInt(ag));
+      console.log("saveScore result:",r);
+      if(r&&r.error)throw new Error(r.error);
+      setScores(s=>({...s,[m.id]:{hg,ag},[String(m.id)]:{hg,ag}}));
+      onClose();
+    }
+    catch(e){alert("Score Error: "+e.message);}
     setSaving(false);
   };
   const inp={width:56,height:52,textAlign:"center",fontSize:24,fontWeight:800,
