@@ -537,8 +537,7 @@ function NameModal({T,lang,onSave,inline=false,onClose}){
   );
 
   if(inline)return(
-    <div style={{background:T.card,borderRadius:16,padding:20,position:"relative"}}>
-      <button onClick={()=>onClose&&onClose()} style={{position:"absolute",top:8,right:8,background:T.card2,border:"none",borderRadius:"50%",width:28,height:28,cursor:"pointer",fontSize:13,color:T.textS,display:"flex",alignItems:"center",justifyContent:"center",zIndex:1}}>✕</button>
+    <div style={{background:T.card,borderRadius:16,padding:20}}>
       {body}
     </div>
   );
@@ -704,17 +703,7 @@ function MatchCard({m,T,lang,scores,myPreds,setPredictM,onTeam,isAdmin,setScoreM
           ))}
         </div>
       )}
-      {/* Countdown */}
-      {st==="up"&&!cd.done&&(
-        <div style={{display:"flex",gap:5,justifyContent:"center",padding:"0 14px 10px"}}>
-          {[{v:cd.days,l:lang==="bn"?"দিন":"d"},{v:cd.hours,l:lang==="bn"?"ঘ":"h"},{v:cd.mins,l:lang==="bn"?"মি":"m"},{v:cd.secs,l:lang==="bn"?"সে":"s"}].map(({v,l})=>(
-            <div key={l} style={{background:T.card2,borderRadius:8,padding:"4px 8px",textAlign:"center",minWidth:38,border:`1px solid ${T.border}`}}>
-              <div style={{fontFamily:HS,fontSize:14,fontWeight:800,color:T.green,lineHeight:1}}>{String(v).padStart(2,"0")}</div>
-              <div style={{fontFamily:HS,fontSize:8,color:T.textM}}>{l}</div>
-            </div>
-          ))}
-        </div>
-      )}
+
       {/* Action bar */}
       <div style={{display:"flex",gap:6,padding:"8px 12px 12px"}}>
         {st==="up"&&(
@@ -1136,7 +1125,7 @@ function PredictionTab({T,lang,userName,onSave,myPreds,setMyPreds,scores,setPred
           </div>
         </div>
       </div>
-      <NameModal T={T} lang={lang} onSave={onSave} inline={true} onClose={()=>{}}/>
+      <NameModal T={T} lang={lang} onSave={onSave} inline={true}/>
     </div>
   );
 
@@ -1420,7 +1409,7 @@ export default function App(){
         {mt==="lb"&&<LeaderboardTab T={T} lang={lang} userName={userName}/>}
         {sm&&<AddModal favs={favs} onAdd={en=>setFavs(f=>f.includes(en)?f:[...f,en])} onClose={()=>setSm(false)} lang={lang} T={T}/>}
         {predictM&&userName&&<PredictModal m={predictM} T={T} lang={lang} userName={userName} myPreds={myPreds} setMyPreds={setMyPreds} onClose={()=>setPredictM(null)}/>}
-        {predictM&&!userName&&<NameModal T={T} lang={lang} onSave={(name,did)=>{handleNameSave(name,did);}}/>}
+        {predictM&&!userName&&<NameModal T={T} lang={lang} onSave={(name,did)=>{handleNameSave(name,did);}} onClose={()=>setPredictM(null)}/>}
         {scoreM&&isAdmin&&<ScoreModal m={scoreM} T={T} lang={lang} scores={scores} setScores={setScores} onClose={()=>setScoreM(null)}/>}
 
         {/* Footer */}
