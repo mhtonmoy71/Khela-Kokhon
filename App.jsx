@@ -974,7 +974,7 @@ function HomeTab({T,lang,favs,setFavs,onTeam,setSM,scores,myPreds,setPredictM,se
                 {todayMs.length>0&&<div style={{width:7,height:7,borderRadius:"50%",background:T.red,flexShrink:0,animation:"pulse 1s infinite"}}/>}
                 <span style={{fontFamily:HS,fontSize:12,fontWeight:700,color:T.text}}>{lang==="bn"?"আজ":"Today"}</span>
               </div>
-              <CalIcon d={todayStr()} T={T} onClick={()=>{}}/>
+              <CalIcon d={tds} T={T} onClick={()=>{}}/>
             </div>
             {todayMs.length>0?todayMs.map(m=>{
               const[t2,ap]=m.t.split(" ");
@@ -992,7 +992,7 @@ function HomeTab({T,lang,favs,setFavs,onTeam,setSM,scores,myPreds,setPredictM,se
           <div style={{background:T.card,borderRadius:14,border:`1px solid ${T.border}`,padding:"10px 12px"}}>
             <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:8}}>
           <span style={{fontFamily:HS,fontSize:12,fontWeight:700,color:T.text}}>{lang==="bn"?"আগামীকাল":"Tomorrow"}</span>
-          <CalIcon d={tomStr()} T={T} onClick={()=>{}}/>
+          <CalIcon d={tms2} T={T} onClick={()=>{}}/>
         </div>
             {tomMs.length>0?tomMs.map(m=>{
               const[t2,ap]=m.t.split(" ");
