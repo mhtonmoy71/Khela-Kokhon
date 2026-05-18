@@ -992,7 +992,7 @@ function HomeTab({T,lang,favs,setFavs,onTeam,setSM,scores,myPreds,setPredictM,se
           <div style={{background:T.card,borderRadius:14,border:`1px solid ${T.border}`,padding:"10px 12px"}}>
             <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:8}}>
           <span style={{fontFamily:HS,fontSize:12,fontWeight:700,color:T.text}}>{lang==="bn"?"আগামীকাল":"Tomorrow"}</span>
-          {tomMs[0]&&<CalIcon d={tomMs[0].d} T={T} onClick={()=>{}}/>}
+          <CalIcon d={tomStr()} T={T} onClick={()=>{}}/>
         </div>
             {tomMs.length>0?tomMs.map(m=>{
               const[t2,ap]=m.t.split(" ");
