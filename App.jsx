@@ -1580,8 +1580,14 @@ export default function App(){
                 const hPt=toXY(hDeg,13);
                 const mPt=toXY(mDeg,21);
                 const sPt=toXY(sDeg,24);
+                const[showTime,setShowTime]=useState(false);
+                const timeStr=`${String(now.getHours()).padStart(2,"0")}:${String(now.getMinutes()).padStart(2,"0")}:${String(now.getSeconds()).padStart(2,"0")}`;
                 return(
-                  <svg width="46" height="46" viewBox="0 0 80 80" style={{flexShrink:0}}>
+                  <div style={{position:"relative",flexShrink:0}}>
+                  {showTime&&<div style={{position:"absolute",top:52,left:"50%",transform:"translateX(-50%)",background:"#0a1020",border:"1px solid #00e676",borderRadius:8,padding:"6px 12px",zIndex:100,whiteSpace:"nowrap",boxShadow:"0 4px 16px rgba(0,0,0,0.5)"}}>
+                    <div style={{fontFamily:"monospace",fontSize:16,fontWeight:700,color:"#00e676",letterSpacing:2}}>{timeStr}</div>
+                  </div>}
+                  <svg width="46" height="46" viewBox="0 0 80 80" style={{cursor:"pointer"}} onClick={()=>setShowTime(v=>!v)}>
                     <circle cx="40" cy="40" r="38" fill="#064e3b" stroke="#00e676" strokeWidth="3"/>
                     <text x="32" y="50" fontFamily="'Hind Siliguri',sans-serif" fontSize="34" fontWeight="800" fill="rgba(255,255,255,0.18)">খ</text>
                     <text x="54" y="62" fontFamily="'Hind Siliguri',sans-serif" fontSize="22" fontWeight="800" fill="#f59e0b" opacity="0.9">?</text>
@@ -1603,6 +1609,7 @@ export default function App(){
                     <circle cx="40" cy="40" r="3" fill="#e11d48"/>
                     <circle cx="40" cy="40" r="1.5" fill="#064e3b"/>
                   </svg>
+                  </div>
                 );
               })()}
               <div>
