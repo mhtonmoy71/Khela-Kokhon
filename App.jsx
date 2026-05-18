@@ -969,10 +969,12 @@ function HomeTab({T,lang,favs,setFavs,onTeam,setSM,scores,myPreds,setPredictM,se
         {/* Left: Today & Tomorrow info */}
         <div style={{flex:1,minWidth:0}}>
           <div style={{background:T.card,borderRadius:14,border:`1px solid ${T.border}`,padding:"10px 12px",marginBottom:8}}>
-            <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:8}}>
-              {todayMs.length>0&&<div style={{width:7,height:7,borderRadius:"50%",background:T.red,flexShrink:0,animation:"pulse 1s infinite"}}/>}
+            <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:8}}>
+              <div style={{display:"flex",alignItems:"center",gap:5}}>
+                {todayMs.length>0&&<div style={{width:7,height:7,borderRadius:"50%",background:T.red,flexShrink:0,animation:"pulse 1s infinite"}}/>}
+                <span style={{fontFamily:HS,fontSize:12,fontWeight:700,color:T.text}}>{lang==="bn"?"আজ":"Today"}</span>
+              </div>
               <CalIcon d={todayStr()} T={T} onClick={()=>{}}/>
-              <span style={{fontFamily:HS,fontSize:12,fontWeight:700,color:T.text}}>{lang==="bn"?"আজ":"Today"}</span>
             </div>
             {todayMs.length>0?todayMs.map(m=>{
               const[t2,ap]=m.t.split(" ");
@@ -988,9 +990,9 @@ function HomeTab({T,lang,favs,setFavs,onTeam,setSM,scores,myPreds,setPredictM,se
             }):<div style={{fontFamily:HS,fontSize:10,color:T.textM,textAlign:"center"}}>{lang==="bn"?"কোনো ম্যাচ নেই":"No matches"}</div>}
           </div>
           <div style={{background:T.card,borderRadius:14,border:`1px solid ${T.border}`,padding:"10px 12px"}}>
-            <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:8}}>
-          {tomMs[0]&&<CalIcon d={tomMs[0].d} T={T} onClick={()=>{}}/>}
+            <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:8}}>
           <span style={{fontFamily:HS,fontSize:12,fontWeight:700,color:T.text}}>{lang==="bn"?"আগামীকাল":"Tomorrow"}</span>
+          {tomMs[0]&&<CalIcon d={tomMs[0].d} T={T} onClick={()=>{}}/>}
         </div>
             {tomMs.length>0?tomMs.map(m=>{
               const[t2,ap]=m.t.split(" ");
