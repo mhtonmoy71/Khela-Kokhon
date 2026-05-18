@@ -1583,10 +1583,18 @@ export default function App(){
                     <circle cx="40" cy="40" r="38" fill="#064e3b" stroke="#00e676" strokeWidth="3"/>
                     <text x="32" y="50" fontFamily="'Hind Siliguri',sans-serif" fontSize="34" fontWeight="800" fill="rgba(255,255,255,0.18)">খ</text>
                     <text x="54" y="62" fontFamily="'Hind Siliguri',sans-serif" fontSize="22" fontWeight="800" fill="#f59e0b" opacity="0.9">?</text>
-                    <line x1="40" y1="6" x2="40" y2="13" stroke="rgba(255,255,255,0.35)" strokeWidth="2"/>
-                    <line x1="68" y1="40" x2="61" y2="40" stroke="rgba(255,255,255,0.35)" strokeWidth="2"/>
-                    <line x1="12" y1="40" x2="19" y2="40" stroke="rgba(255,255,255,0.35)" strokeWidth="2"/>
-                    <line x1="40" y1="74" x2="40" y2="67" stroke="rgba(255,255,255,0.35)" strokeWidth="2"/>
+                    <line x1="40" y1="4" x2="40" y2="12" stroke="rgba(255,255,255,0.5)" strokeWidth="2.5"/>
+                    <line x1="76" y1="40" x2="68" y2="40" stroke="rgba(255,255,255,0.5)" strokeWidth="2.5"/>
+                    <line x1="4" y1="40" x2="12" y2="40" stroke="rgba(255,255,255,0.5)" strokeWidth="2.5"/>
+                    <line x1="40" y1="76" x2="40" y2="68" stroke="rgba(255,255,255,0.5)" strokeWidth="2.5"/>
+                    <line x1="59" y1="8.5" x2="56" y2="13.5" stroke="rgba(255,255,255,0.2)" strokeWidth="1.5"/>
+                    <line x1="71.5" y1="21" x2="66.5" y2="24" stroke="rgba(255,255,255,0.2)" strokeWidth="1.5"/>
+                    <line x1="71.5" y1="59" x2="66.5" y2="56" stroke="rgba(255,255,255,0.2)" strokeWidth="1.5"/>
+                    <line x1="59" y1="71.5" x2="56" y2="66.5" stroke="rgba(255,255,255,0.2)" strokeWidth="1.5"/>
+                    <line x1="21" y1="71.5" x2="24" y2="66.5" stroke="rgba(255,255,255,0.2)" strokeWidth="1.5"/>
+                    <line x1="8.5" y1="59" x2="13.5" y2="56" stroke="rgba(255,255,255,0.2)" strokeWidth="1.5"/>
+                    <line x1="8.5" y1="21" x2="13.5" y2="24" stroke="rgba(255,255,255,0.2)" strokeWidth="1.5"/>
+                    <line x1="21" y1="8.5" x2="24" y2="13.5" stroke="rgba(255,255,255,0.2)" strokeWidth="1.5"/>
                     <line x1="40" y1="40" x2={hPt.x} y2={hPt.y} stroke="#fff" strokeWidth="5" strokeLinecap="round"/>
                     <line x1="40" y1="40" x2={mPt.x} y2={mPt.y} stroke="#00e676" strokeWidth="3" strokeLinecap="round"/>
                     <circle cx="40" cy="40" r="3.5" fill="#00e676"/>
