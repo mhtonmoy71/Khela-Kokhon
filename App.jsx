@@ -1575,9 +1575,11 @@ export default function App(){
                 const h=now.getHours()%12,m=now.getMinutes(),s=now.getSeconds();
                 const hDeg=(h/12)*360+(m/60)*30;
                 const mDeg=(m/60)*360+(s/60)*6;
+                const sDeg=(s/60)*360;
                 const toXY=(deg,r)=>{const rad=(deg-90)*Math.PI/180;return{x:40+r*Math.cos(rad),y:40+r*Math.sin(rad)};};
                 const hPt=toXY(hDeg,13);
                 const mPt=toXY(mDeg,21);
+                const sPt=toXY(sDeg,24);
                 return(
                   <svg width="46" height="46" viewBox="0 0 80 80" style={{flexShrink:0}}>
                     <circle cx="40" cy="40" r="38" fill="#064e3b" stroke="#00e676" strokeWidth="3"/>
@@ -1597,7 +1599,8 @@ export default function App(){
                     <line x1="21" y1="8.5" x2="24" y2="13.5" stroke="rgba(255,255,255,0.2)" strokeWidth="1.5"/>
                     <line x1="40" y1="40" x2={hPt.x} y2={hPt.y} stroke="#fff" strokeWidth="5" strokeLinecap="round"/>
                     <line x1="40" y1="40" x2={mPt.x} y2={mPt.y} stroke="#00e676" strokeWidth="3" strokeLinecap="round"/>
-                    <circle cx="40" cy="40" r="3.5" fill="#00e676"/>
+                    <line x1="40" y1="40" x2={sPt.x} y2={sPt.y} stroke="#e11d48" strokeWidth="1.5" strokeLinecap="round"/>
+                    <circle cx="40" cy="40" r="3" fill="#e11d48"/>
                     <circle cx="40" cy="40" r="1.5" fill="#064e3b"/>
                   </svg>
                 );
