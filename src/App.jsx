@@ -121,7 +121,7 @@ const TEAMS={
   "Scotland":{bn:"স্কটল্যান্ড",pop:false},"Bosnia":{bn:"বসনিয়া",pop:false},"Paraguay":{bn:"প্যারাগুয়ে",pop:false},
   "Ecuador":{bn:"ইকুয়েডর",pop:false},"Ghana":{bn:"ঘানা",pop:false},"Panama":{bn:"পানামা",pop:false},
   "Egypt":{bn:"মিশর",pop:false},"Cape Verde":{bn:"কেপ ভার্দে",pop:false},"Saudi Arabia":{bn:"সৌদি আরব",pop:false},
-  "South Africa":{bn:"দক্ষিণ আফ্রিকা",pop:false},"Haiti":{bn:"হাইতি",pop:false},"Czechia":{bn:"চেকিয়া",pop:false},
+  "South Africa":{bn:"দক্ষিণ আফ্রিকা",pop:false},"Haiti":{bn:"হাইতি",pop:false},"Czechia":{bn:"চেক প্রজাতন্ত্র",pop:false},
   "Qatar":{bn:"কাতার",pop:false},"Iraq":{bn:"ইরাক",pop:false},"Algeria":{bn:"আলজেরিয়া",pop:false},
   "Austria":{bn:"অস্ট্রিয়া",pop:false},"Jordan":{bn:"জর্ডান",pop:false},"DR Congo":{bn:"DR কঙ্গো",pop:false},
   "Uzbekistan":{bn:"উজবেকিস্তান",pop:false},"Ivory Coast":{bn:"আইভোরি কোস্ট",pop:false},
@@ -923,7 +923,16 @@ function KOCard({m,T,lang,scores,qualified}){
 
 /* ── HomeTab ─────────────────────────────────── */
 function HomeTab({T,lang,favs,setFavs,onTeam,setSM,scores,myPreds,setPredictM,setScoreM,isAdmin}){
-  const now=new Date(),tds=todayStr(),tms2=tomStr();
+  const[today,setToday]=useState(todayStr());
+  const[tom,setTom]=useState(tomStr());
+  useEffect(()=>{
+    const id=setInterval(()=>{
+      const newToday=todayStr();
+      if(newToday!==today){setToday(newToday);setTom(tomStr());}
+    },10000);
+    return()=>clearInterval(id);
+  },[today]);
+  const now=new Date(),tds=today,tms2=tom;
   const todayMs=SORTED.filter(m=>m.d===tds);
   const tomMs=SORTED.filter(m=>m.d===tms2);
   const pop=AT.filter(en=>TEAMS[en].pop);
@@ -974,7 +983,7 @@ function HomeTab({T,lang,favs,setFavs,onTeam,setSM,scores,myPreds,setPredictM,se
                 {todayMs.length>0&&<div style={{width:7,height:7,borderRadius:"50%",background:T.red,flexShrink:0,animation:"pulse 1s infinite"}}/>}
                 <span style={{fontFamily:HS,fontSize:12,fontWeight:700,color:T.text}}>{lang==="bn"?"আজ":"Today"}</span>
               </div>
-              <CalIcon d={tds} T={T} onClick={()=>{}}/>
+              <CalIcon d={today} T={T} onClick={()=>{}}/>
             </div>
             {todayMs.length>0?todayMs.map(m=>{
               const[t2,ap]=m.t.split(" ");
@@ -992,7 +1001,7 @@ function HomeTab({T,lang,favs,setFavs,onTeam,setSM,scores,myPreds,setPredictM,se
           <div style={{background:T.card,borderRadius:14,border:`1px solid ${T.border}`,padding:"10px 12px"}}>
             <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:8}}>
           <span style={{fontFamily:HS,fontSize:12,fontWeight:700,color:T.text}}>{lang==="bn"?"আগামীকাল":"Tomorrow"}</span>
-          <CalIcon d={tms2} T={T} onClick={()=>{}}/>
+          <CalIcon d={tom} T={T} onClick={()=>{}}/>
         </div>
             {tomMs.length>0?tomMs.map(m=>{
               const[t2,ap]=m.t.split(" ");
@@ -1564,9 +1573,7 @@ export default function App(){
                 <text x="54" y="62" fontFamily="'Hind Siliguri',sans-serif" fontSize="22" fontWeight="800" fill="#f59e0b" opacity="0.9">?</text>
                 <line x1="40" y1="6" x2="40" y2="13" stroke="rgba(255,255,255,0.35)" strokeWidth="2"/>
                 <line x1="68" y1="40" x2="61" y2="40" stroke="rgba(255,255,255,0.35)" strokeWidth="2"/>
-                             <line x1="40" y1="74" x2="40" y2="67" stroke="rgba(255,255,255,0.35)" strokeWidth="2"/>
                 <line x1="12" y1="40" x2="19" y2="40" stroke="rgba(255,255,255,0.35)" strokeWidth="2"/>
-                             <line x1="40" y1="74" x2="40" y2="67" stroke="rgba(255,255,255,0.35)" strokeWidth="2"/>
                 <path d="M40 16 L40 40 L55 32" fill="none" stroke="#00e676" strokeWidth="3.5" strokeLinecap="round"/>
                 <circle cx="40" cy="40" r="4.5" fill="#00e676"/>
                 <circle cx="40" cy="40" r="2" fill="#064e3b"/>
