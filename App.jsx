@@ -955,6 +955,7 @@ function HomeTab({T,lang,favs,setFavs,onTeam,setSM,scores,myPreds,setPredictM,se
           </div>
         </div>
         <div style={{display:"flex",flexDirection:"column",gap:5,flexShrink:0}}>
+          {nx&&<CalIcon d={nx.d} T={T} onClick={e=>{e.stopPropagation();addToGCal(nx,lang);}}/>}
           <button onClick={()=>iF?setFavs(f=>f.filter(x=>x!==en)):setFavs(f=>[...f,en])} style={{fontFamily:HS,fontSize:11,cursor:"pointer",borderRadius:20,padding:"4px 8px",background:iF?T.greenBg:T.card2,border:`1px solid ${iF?T.greenBr:T.border}`,color:iF?T.green:T.textS,whiteSpace:"nowrap"}}>{iF?"⭐":"+ ⭐"}</button>
         </div>
       </div>
@@ -986,7 +987,10 @@ function HomeTab({T,lang,favs,setFavs,onTeam,setSM,scores,myPreds,setPredictM,se
             }):<div style={{fontFamily:HS,fontSize:10,color:T.textM,textAlign:"center"}}>{lang==="bn"?"কোনো ম্যাচ নেই":"No matches"}</div>}
           </div>
           <div style={{background:T.card,borderRadius:14,border:`1px solid ${T.border}`,padding:"10px 12px"}}>
-            <div style={{fontFamily:HS,fontSize:12,fontWeight:700,color:T.text,marginBottom:8}}>📅 {lang==="bn"?"আগামীকাল":"Tomorrow"}</div>
+            <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:8}}>
+          {tomMs[0]&&<CalIcon d={tomMs[0].d} T={T} onClick={()=>{}}/>}
+          <span style={{fontFamily:HS,fontSize:12,fontWeight:700,color:T.text}}>{lang==="bn"?"আগামীকাল":"Tomorrow"}</span>
+        </div>
             {tomMs.length>0?tomMs.map(m=>{
               const[t2,ap]=m.t.split(" ");
               return(
