@@ -928,10 +928,12 @@ function HomeTab({T,lang,favs,setFavs,onTeam,setSM,scores,myPreds,setPredictM,se
   useEffect(()=>{
     const id=setInterval(()=>{
       const newToday=todayStr();
-      if(newToday!==today){setToday(newToday);setTom(tomStr());}
+      const newTom=tomStr();
+      setToday(newToday);
+      setTom(newTom);
     },10000);
     return()=>clearInterval(id);
-  },[today]);
+  },[]);
   const now=new Date(),tds=today,tms2=tom;
   const todayMs=SORTED.filter(m=>m.d===tds);
   const tomMs=SORTED.filter(m=>m.d===tms2);
@@ -1574,6 +1576,7 @@ export default function App(){
                 <line x1="40" y1="6" x2="40" y2="13" stroke="rgba(255,255,255,0.35)" strokeWidth="2"/>
                 <line x1="68" y1="40" x2="61" y2="40" stroke="rgba(255,255,255,0.35)" strokeWidth="2"/>
                 <line x1="12" y1="40" x2="19" y2="40" stroke="rgba(255,255,255,0.35)" strokeWidth="2"/>
+                <line x1="40" y1="74" x2="40" y2="67" stroke="rgba(255,255,255,0.35)" strokeWidth="2"/>
                 <path d="M40 16 L40 40 L55 32" fill="none" stroke="#00e676" strokeWidth="3.5" strokeLinecap="round"/>
                 <circle cx="40" cy="40" r="4.5" fill="#00e676"/>
                 <circle cx="40" cy="40" r="2" fill="#064e3b"/>
