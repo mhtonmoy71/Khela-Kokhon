@@ -1569,18 +1569,31 @@ export default function App(){
         <div style={{background:T.hdr,position:"sticky",top:0,zIndex:50,boxShadow:"0 2px 20px rgba(0,0,0,0.4)"}}>
           <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"14px 14px 12px"}}>
             <div style={{display:"flex",alignItems:"center",gap:10}}>
-                           <svg width="46" height="46" viewBox="0 0 80 80" style={{flexShrink:0}}>
-                <circle cx="40" cy="40" r="38" fill="#064e3b" stroke="#00e676" strokeWidth="3"/>
-                <text x="32" y="50" fontFamily="'Hind Siliguri',sans-serif" fontSize="34" fontWeight="800" fill="rgba(255,255,255,0.18)">খ</text>
-                <text x="54" y="62" fontFamily="'Hind Siliguri',sans-serif" fontSize="22" fontWeight="800" fill="#f59e0b" opacity="0.9">?</text>
-                <line x1="40" y1="6" x2="40" y2="13" stroke="rgba(255,255,255,0.35)" strokeWidth="2"/>
-                <line x1="68" y1="40" x2="61" y2="40" stroke="rgba(255,255,255,0.35)" strokeWidth="2"/>
-                <line x1="12" y1="40" x2="19" y2="40" stroke="rgba(255,255,255,0.35)" strokeWidth="2"/>
-                <line x1="40" y1="74" x2="40" y2="67" stroke="rgba(255,255,255,0.35)" strokeWidth="2"/>
-                <path d="M40 16 L40 40 L55 32" fill="none" stroke="#00e676" strokeWidth="3.5" strokeLinecap="round"/>
-                <circle cx="40" cy="40" r="4.5" fill="#00e676"/>
-                <circle cx="40" cy="40" r="2" fill="#064e3b"/>
-              </svg>
+             {(()=>{
+                const[now,setNow]=useState(new Date());
+                useEffect(()=>{const id=setInterval(()=>setNow(new Date()),1000);return()=>clearInterval(id);},[]);
+                const h=now.getHours()%12,m=now.getMinutes(),s=now.getSeconds();
+                const hDeg=h*30+m*0.5;
+                const mDeg=m*6+s*0.1;
+                const toXY=(deg,r)=>{const rad=(deg-90)*Math.PI/180;return{x:40+r*Math.cos(rad),y:40+r*Math.sin(rad)};};
+                const hPt=toXY(hDeg,16);
+                const mPt=toXY(mDeg,22);
+                return(
+                  <svg width="46" height="46" viewBox="0 0 80 80" style={{flexShrink:0}}>
+                    <circle cx="40" cy="40" r="38" fill="#064e3b" stroke="#00e676" strokeWidth="3"/>
+                    <text x="32" y="50" fontFamily="'Hind Siliguri',sans-serif" fontSize="34" fontWeight="800" fill="rgba(255,255,255,0.18)">খ</text>
+                    <text x="54" y="62" fontFamily="'Hind Siliguri',sans-serif" fontSize="22" fontWeight="800" fill="#f59e0b" opacity="0.9">?</text>
+                    <line x1="40" y1="6" x2="40" y2="13" stroke="rgba(255,255,255,0.35)" strokeWidth="2"/>
+                    <line x1="68" y1="40" x2="61" y2="40" stroke="rgba(255,255,255,0.35)" strokeWidth="2"/>
+                    <line x1="12" y1="40" x2="19" y2="40" stroke="rgba(255,255,255,0.35)" strokeWidth="2"/>
+                    <line x1="40" y1="74" x2="40" y2="67" stroke="rgba(255,255,255,0.35)" strokeWidth="2"/>
+                    <line x1="40" y1="40" x2={hPt.x} y2={hPt.y} stroke="#fff" strokeWidth="4" strokeLinecap="round"/>
+                    <line x1="40" y1="40" x2={mPt.x} y2={mPt.y} stroke="#00e676" strokeWidth="3" strokeLinecap="round"/>
+                    <circle cx="40" cy="40" r="3.5" fill="#00e676"/>
+                    <circle cx="40" cy="40" r="1.5" fill="#064e3b"/>
+                  </svg>
+                );
+              })()}
               <div>
                 <div style={{fontFamily:HS,fontSize:18,fontWeight:800,color:"#fff",lineHeight:1}}>{lang==="bn"?"খেলা কখন?":"Khela Kokhon?"}</div>
                 {isAdmin&&<div style={{fontFamily:HS,fontSize:9,color:"#00e676",letterSpacing:1,marginTop:2}}>🔑 ADMIN MODE</div>}
