@@ -1557,19 +1557,20 @@ export default function App(){
         {/* Sticky header */}
         <div style={{background:T.hdr,position:"sticky",top:0,zIndex:50,boxShadow:"0 2px 20px rgba(0,0,0,0.4)"}}>
           <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"14px 14px 12px"}}>
-            <div style={{display:"flex",alignItems:"center",gap:0}}>
-              <div style={{background:"#00e676",borderRadius:"8px 0 0 8px",padding:"8px 10px",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
-                <svg width="22" height="22" viewBox="0 0 22 22">
-                  <rect x="1" y="4" width="20" height="14" rx="1.5" fill="none" stroke="#065f46" strokeWidth="1.5"/>
-                  <circle cx="11" cy="11" r="4" fill="none" stroke="#065f46" strokeWidth="1.5"/>
-                  <line x1="11" y1="4" x2="11" y2="18" stroke="#065f46" strokeWidth="1.2"/>
-                  <rect x="1" y="7" width="4" height="8" fill="none" stroke="#065f46" strokeWidth="1"/>
-                  <rect x="17" y="7" width="4" height="8" fill="none" stroke="#065f46" strokeWidth="1"/>
-                  <circle cx="11" cy="11" r="1.5" fill="#065f46"/>
-                </svg>
-              </div>
-              <div style={{background:"rgba(0,230,118,0.1)",borderRadius:"0 8px 8px 0",padding:"8px 14px",border:"1px solid rgba(0,230,118,0.2)",borderLeft:"none"}}>
-                <div style={{fontFamily:HS,fontSize:18,fontWeight:800,color:"#fff",lineHeight:1,whiteSpace:"nowrap"}}>{lang==="bn"?"খেলা কখন?":"Khela Kokhon?"}</div>
+            <div style={{display:"flex",alignItems:"center",gap:10}}>
+                           <svg width="46" height="46" viewBox="0 0 80 80" style={{flexShrink:0}}>
+                <circle cx="40" cy="40" r="38" fill="#064e3b" stroke="#00e676" strokeWidth="3"/>
+                <text x="32" y="50" fontFamily="'Hind Siliguri',sans-serif" fontSize="34" fontWeight="800" fill="rgba(255,255,255,0.18)">খ</text>
+                <text x="54" y="62" fontFamily="'Hind Siliguri',sans-serif" fontSize="22" fontWeight="800" fill="#f59e0b" opacity="0.9">?</text>
+                <line x1="40" y1="6" x2="40" y2="13" stroke="rgba(255,255,255,0.35)" strokeWidth="2"/>
+                <line x1="68" y1="40" x2="61" y2="40" stroke="rgba(255,255,255,0.35)" strokeWidth="2"/>
+                <line x1="12" y1="40" x2="19" y2="40" stroke="rgba(255,255,255,0.35)" strokeWidth="2"/>
+                <path d="M40 16 L40 40 L55 32" fill="none" stroke="#00e676" strokeWidth="3.5" strokeLinecap="round"/>
+                <circle cx="40" cy="40" r="4.5" fill="#00e676"/>
+                <circle cx="40" cy="40" r="2" fill="#064e3b"/>
+              </svg>
+              <div>
+                <div style={{fontFamily:HS,fontSize:18,fontWeight:800,color:"#fff",lineHeight:1}}>{lang==="bn"?"খেলা কখন?":"Khela Kokhon?"}</div>
                 {isAdmin&&<div style={{fontFamily:HS,fontSize:9,color:"#00e676",letterSpacing:1,marginTop:2}}>🔑 ADMIN MODE</div>}
               </div>
             </div>
