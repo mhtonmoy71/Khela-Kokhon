@@ -941,7 +941,7 @@ function HomeTab({T,lang,favs,setFavs,onTeam,setSM,scores,myPreds,setPredictM,se
             {nx?(
               <>
                 <div style={{fontFamily:HS,fontSize:11,color:T.textS,marginTop:2}}>{lang==="bn"?"পরবর্তী: ":"Next: "}<b onClick={e=>{e.stopPropagation();onTeam(opp);}} style={{cursor:"pointer",color:T.green}}>{tn(opp,lang)}</b></div>
-                <div style={{fontFamily:HS,fontSize:11,color:T.textS,marginTop:1}}>📅 {dls(nx.d,lang)} · <span style={{color:T.green,fontWeight:600}}>🕐 {nx.t}</span></div>
+                <div style={{fontFamily:HS,fontSize:11,color:T.textS,marginTop:1}}>{dls(nx.d,lang)} · <span style={{color:T.green,fontWeight:600}}>🕐 {nx.t}</span></div>
                 {showCd&&<div style={{display:"flex",gap:5,marginTop:5}}>
                   {[{v:cd.days,l:"d"},{v:cd.hours,l:"h"},{v:cd.mins,l:"m"},{v:cd.secs,l:"s"}].map(({v,l})=>(
                     <div key={l} style={{background:T.card2,borderRadius:6,padding:"2px 6px",textAlign:"center",border:`1px solid ${T.border}`}}>
@@ -969,8 +969,9 @@ function HomeTab({T,lang,favs,setFavs,onTeam,setSM,scores,myPreds,setPredictM,se
         {/* Left: Today & Tomorrow info */}
         <div style={{flex:1,minWidth:0}}>
           <div style={{background:T.card,borderRadius:14,border:`1px solid ${T.border}`,padding:"10px 12px",marginBottom:8}}>
-            <div style={{display:"flex",alignItems:"center",gap:5,marginBottom:8}}>
+            <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:8}}>
               {todayMs.length>0&&<div style={{width:7,height:7,borderRadius:"50%",background:T.red,flexShrink:0,animation:"pulse 1s infinite"}}/>}
+              <CalIcon d={todayStr()} T={T} onClick={()=>{}}/>
               <span style={{fontFamily:HS,fontSize:12,fontWeight:700,color:T.text}}>{lang==="bn"?"আজ":"Today"}</span>
             </div>
             {todayMs.length>0?todayMs.map(m=>{
