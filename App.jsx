@@ -938,7 +938,7 @@ function HomeTab({T,lang,favs,setFavs,onTeam,setSM,scores,myPreds,setPredictM,se
   const todayMs=SORTED.filter(m=>m.d===tds);
   const tomMs=SORTED.filter(m=>m.d===tms2);
   const pop=AT.filter(en=>TEAMS[en].pop);
-  function gN(en){const n=new Date();n.setHours(0,0,0,0);return SORTED.find(m=>(m.h===en||m.a===en)&&new Date(m.d+"T00:00:00")>=n)||null;}
+  function gN(en){return SORTED.find(m=>(m.h===en||m.a===en)&&status(m)==="up")||null;}
 
   function FavRow({en}){
     const nx=gN(en),iF=favs.includes(en),opp=nx?(nx.h===en?nx.a:nx.h):null;
