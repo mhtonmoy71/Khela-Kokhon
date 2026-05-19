@@ -1581,7 +1581,8 @@ export default function App(){
                 const mPt=toXY(mDeg,21);
                 const sPt=toXY(sDeg,24);
                 const[showTime,setShowTime]=useState(false);
-                const timeStr=`${String(now.getHours()).padStart(2,"0")}:${String(now.getMinutes()).padStart(2,"0")}:${String(now.getSeconds()).padStart(2,"0")}`;
+                const hrs=now.getHours(),ampm=hrs>=12?"PM":"AM",hrs12=hrs%12||12;
+                const timeStr=`${String(hrs12).padStart(2,"0")}:${String(now.getMinutes()).padStart(2,"0")}:${String(now.getSeconds()).padStart(2,"0")} ${ampm}`;
                 return(
                   <div style={{position:"relative",flexShrink:0}}>
                   {showTime&&<div style={{position:"absolute",top:52,left:"50%",transform:"translateX(-50%)",background:"#0a1020",border:"1px solid #00e676",borderRadius:8,padding:"6px 12px",zIndex:100,whiteSpace:"nowrap",boxShadow:"0 4px 16px rgba(0,0,0,0.5)"}}>
