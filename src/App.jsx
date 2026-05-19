@@ -942,7 +942,7 @@ function HomeTab({T,lang,favs,setFavs,onTeam,setSM,scores,myPreds,setPredictM,se
 
   function FavRow({en}){
     const nx=gN(en),iF=favs.includes(en),opp=nx?(nx.h===en?nx.a:nx.h):null;
-    const cd=useCD(nx?tMs(nx):null);const showCd=nx&&!cd.done&&cd.days<3;
+    const cd=useCD(nx?tMs(nx):null);const showCd=nx&&!cd.done;
     return(
       <div style={{background:T.card,borderRadius:14,border:`1px solid ${T.border}`,padding:"12px",marginBottom:8,display:"flex",alignItems:"center",gap:10,boxShadow:T.glow}}>
         <div onClick={()=>onTeam(en)} style={{display:"flex",alignItems:"center",gap:10,flex:1,cursor:"pointer",minWidth:0}}>
