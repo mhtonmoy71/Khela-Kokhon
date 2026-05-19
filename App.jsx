@@ -1452,10 +1452,17 @@ function LiveClockText(){
   return <div style={{fontFamily:"monospace",fontSize:11,fontWeight:700,color:"#00e676",letterSpacing:1.5,marginTop:2}}>{timeStr}</div>;
 }
 
-function LiveClock({T}){
+function ClockTimeDisplay(){
   const[now,setNow]=useState(new Date());
   useEffect(()=>{const id=setInterval(()=>setNow(new Date()),1000);return()=>clearInterval(id);},[]);
-  const[showTime,setShowTime]=useState(false);
+  const h=now.getHours(),ampm=h>=12?"PM":"AM",h12=h%12||12;
+  const timeStr=`${String(h12).padStart(2,"0")}:${String(now.getMinutes()).padStart(2,"0")}:${String(now.getSeconds()).padStart(2,"0")} ${ampm}`;
+  return <div style={{fontFamily:"monospace",fontSize:11,fontWeight:700,color:"#00e676",letterSpacing:1.5,marginTop:2,lineHeight:1}}>{timeStr}</div>;
+}
+
+function LiveClock({T,onToggle}){
+  const[now,setNow]=useState(new Date());
+  useEffect(()=>{const id=setInterval(()=>setNow(new Date()),1000);return()=>clearInterval(id);},[]);
   const h=now.getHours()%12,m=now.getMinutes(),s=now.getSeconds();
   const hDeg=(h/12)*360+(m/60)*30;
   const mDeg=(m/60)*360+(s/60)*6;
@@ -1498,6 +1505,7 @@ function LiveClock({T}){
 export default function App(){
   const isAdmin=new URLSearchParams(window.location.search).get("admin")===ADMIN_KEY;
   const[dark,setDark]=useState(true);
+  const[showClockTime,setShowClockTime]=useState(false);
   const[lang,setLang]=useState("bn");
   const[mt,setMt]=useState(()=>localStorage.getItem("kk_tab")||"home");
   const[wt,setWt]=useState(()=>localStorage.getItem("kk_wt")||"fixture");
@@ -1621,7 +1629,7 @@ export default function App(){
         <div style={{background:T.hdr,position:"sticky",top:0,zIndex:50,boxShadow:"0 2px 20px rgba(0,0,0,0.4)"}}>
           <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"14px 14px 12px"}}>
             <div style={{display:"flex",alignItems:"center",gap:10}}>
-             <LiveClock T={T}/>
+             <LiveClock T={T} onToggle={()=>setShowClockTime(v=>!v)}/>
               <div>
                 <div style={{fontFamily:HS,fontSize:18,fontWeight:800,color:"#fff",lineHeight:1}}>{lang==="bn"?"খেলা কখন?":"Khela Kokhon?"}</div>
                 <LiveClockText/>
