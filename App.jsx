@@ -1476,7 +1476,7 @@ function LiveClock({T,onToggle}){
   return(
     <div style={{position:"relative",flexShrink:0}}>
 
-      <svg width="46" height="46" viewBox="0 0 80 80">
+      <svg width="46" height="46" viewBox="0 0 80 80" style={{cursor:"pointer"}} onClick={onToggle}>
         <circle cx="40" cy="40" r="38" fill="#064e3b" stroke="#00e676" strokeWidth="3"/>
         <text x="32" y="50" fontFamily="'Hind Siliguri',sans-serif" fontSize="34" fontWeight="800" fill="rgba(255,255,255,0.18)">খ</text>
         <text x="54" y="62" fontFamily="'Hind Siliguri',sans-serif" fontSize="22" fontWeight="800" fill="#f59e0b" opacity="0.9">?</text>
