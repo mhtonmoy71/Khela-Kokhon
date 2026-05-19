@@ -1632,7 +1632,7 @@ export default function App(){
              <LiveClock T={T} onToggle={()=>setShowClockTime(v=>!v)}/>
               <div>
                 <div style={{fontFamily:HS,fontSize:18,fontWeight:800,color:"#fff",lineHeight:1}}>{lang==="bn"?"খেলা কখন?":"Khela Kokhon?"}</div>
-                <LiveClockText/>
+                {showClockTime&&<div style={{fontFamily:"monospace",fontSize:12,fontWeight:700,color:"#00e676",letterSpacing:1.5,marginTop:3,lineHeight:1}}><ClockTimeDisplay/></div>}
                 {isAdmin&&<div style={{fontFamily:HS,fontSize:9,color:"#00e676",letterSpacing:1,marginTop:2}}>🔑 ADMIN MODE</div>}
               </div>
             </div>
