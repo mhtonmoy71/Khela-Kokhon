@@ -1443,6 +1443,52 @@ function SetNameModal({T,lang,email,token,onSave,onClose}){
   );
 }
 
+/* ── LiveClock ───────────────────────────────── */
+function LiveClock({T}){
+  const[now,setNow]=useState(new Date());
+  useEffect(()=>{const id=setInterval(()=>setNow(new Date()),1000);return()=>clearInterval(id);},[]);
+  const[showTime,setShowTime]=useState(false);
+  const h=now.getHours()%12,m=now.getMinutes(),s=now.getSeconds();
+  const hDeg=(h/12)*360+(m/60)*30;
+  const mDeg=(m/60)*360+(s/60)*6;
+  const sDeg=(s/60)*360;
+  const toXY=(deg,r)=>{const rad=(deg-90)*Math.PI/180;return{x:40+r*Math.cos(rad),y:40+r*Math.sin(rad)};};
+  const hPt=toXY(hDeg,13);
+  const mPt=toXY(mDeg,21);
+  const sPt=toXY(sDeg,24);
+  const hrs=now.getHours(),ampm=hrs>=12?"PM":"AM",hrs12=hrs%12||12;
+  const timeStr=`${String(hrs12).padStart(2,"0")}:${String(now.getMinutes()).padStart(2,"0")}:${String(now.getSeconds()).padStart(2,"0")} ${ampm}`;
+  return(
+    <div style={{position:"relative",flexShrink:0}}>
+      {showTime&&<div style={{position:"absolute",top:52,left:"50%",transform:"translateX(-50%)",background:"#0a1020",border:"1px solid #00e676",borderRadius:8,padding:"6px 12px",zIndex:100,whiteSpace:"nowrap",boxShadow:"0 4px 16px rgba(0,0,0,0.5)"}}>
+        <div style={{fontFamily:"monospace",fontSize:16,fontWeight:700,color:"#00e676",letterSpacing:2}}>{timeStr}</div>
+      </div>}
+      <svg width="46" height="46" viewBox="0 0 80 80" style={{cursor:"pointer"}} onClick={()=>setShowTime(v=>!v)}>
+        <circle cx="40" cy="40" r="38" fill="#064e3b" stroke="#00e676" strokeWidth="3"/>
+        <text x="32" y="50" fontFamily="'Hind Siliguri',sans-serif" fontSize="34" fontWeight="800" fill="rgba(255,255,255,0.18)">খ</text>
+        <text x="54" y="62" fontFamily="'Hind Siliguri',sans-serif" fontSize="22" fontWeight="800" fill="#f59e0b" opacity="0.9">?</text>
+        <line x1="40" y1="4" x2="40" y2="12" stroke="rgba(255,255,255,0.5)" strokeWidth="2.5"/>
+        <line x1="76" y1="40" x2="68" y2="40" stroke="rgba(255,255,255,0.5)" strokeWidth="2.5"/>
+        <line x1="4" y1="40" x2="12" y2="40" stroke="rgba(255,255,255,0.5)" strokeWidth="2.5"/>
+        <line x1="40" y1="76" x2="40" y2="68" stroke="rgba(255,255,255,0.5)" strokeWidth="2.5"/>
+        <line x1="59" y1="8.5" x2="56" y2="13.5" stroke="rgba(255,255,255,0.2)" strokeWidth="1.5"/>
+        <line x1="71.5" y1="21" x2="66.5" y2="24" stroke="rgba(255,255,255,0.2)" strokeWidth="1.5"/>
+        <line x1="71.5" y1="59" x2="66.5" y2="56" stroke="rgba(255,255,255,0.2)" strokeWidth="1.5"/>
+        <line x1="59" y1="71.5" x2="56" y2="66.5" stroke="rgba(255,255,255,0.2)" strokeWidth="1.5"/>
+        <line x1="21" y1="71.5" x2="24" y2="66.5" stroke="rgba(255,255,255,0.2)" strokeWidth="1.5"/>
+        <line x1="8.5" y1="59" x2="13.5" y2="56" stroke="rgba(255,255,255,0.2)" strokeWidth="1.5"/>
+        <line x1="8.5" y1="21" x2="13.5" y2="24" stroke="rgba(255,255,255,0.2)" strokeWidth="1.5"/>
+        <line x1="21" y1="8.5" x2="24" y2="13.5" stroke="rgba(255,255,255,0.2)" strokeWidth="1.5"/>
+        <line x1="40" y1="40" x2={hPt.x} y2={hPt.y} stroke="#fff" strokeWidth="5" strokeLinecap="round"/>
+        <line x1="40" y1="40" x2={mPt.x} y2={mPt.y} stroke="#00e676" strokeWidth="3" strokeLinecap="round"/>
+        <line x1="40" y1="40" x2={sPt.x} y2={sPt.y} stroke="#e11d48" strokeWidth="1.5" strokeLinecap="round"/>
+        <circle cx="40" cy="40" r="3" fill="#e11d48"/>
+        <circle cx="40" cy="40" r="1.5" fill="#064e3b"/>
+      </svg>
+    </div>
+  );
+}
+
 export default function App(){
   const isAdmin=new URLSearchParams(window.location.search).get("admin")===ADMIN_KEY;
   const[dark,setDark]=useState(true);
@@ -1569,50 +1615,7 @@ export default function App(){
         <div style={{background:T.hdr,position:"sticky",top:0,zIndex:50,boxShadow:"0 2px 20px rgba(0,0,0,0.4)"}}>
           <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"14px 14px 12px"}}>
             <div style={{display:"flex",alignItems:"center",gap:10}}>
-             {(()=>{
-                const[now,setNow]=useState(new Date());
-                useEffect(()=>{const id=setInterval(()=>setNow(new Date()),1000);return()=>clearInterval(id);},[]);
-                const h=now.getHours()%12,m=now.getMinutes(),s=now.getSeconds();
-                const hDeg=(h/12)*360+(m/60)*30;
-                const mDeg=(m/60)*360+(s/60)*6;
-                const sDeg=(s/60)*360;
-                const toXY=(deg,r)=>{const rad=(deg-90)*Math.PI/180;return{x:40+r*Math.cos(rad),y:40+r*Math.sin(rad)};};
-                const hPt=toXY(hDeg,13);
-                const mPt=toXY(mDeg,21);
-                const sPt=toXY(sDeg,24);
-                const[showTime,setShowTime]=useState(false);
-                const hrs=now.getHours(),ampm=hrs>=12?"PM":"AM",hrs12=hrs%12||12;
-                const timeStr=`${String(hrs12).padStart(2,"0")}:${String(now.getMinutes()).padStart(2,"0")}:${String(now.getSeconds()).padStart(2,"0")} ${ampm}`;
-                return(
-                  <div style={{position:"relative",flexShrink:0}}>
-                  {showTime&&<div style={{position:"absolute",top:52,left:"50%",transform:"translateX(-50%)",background:"#0a1020",border:"1px solid #00e676",borderRadius:8,padding:"6px 12px",zIndex:100,whiteSpace:"nowrap",boxShadow:"0 4px 16px rgba(0,0,0,0.5)"}}>
-                    <div style={{fontFamily:"monospace",fontSize:16,fontWeight:700,color:"#00e676",letterSpacing:2}}>{timeStr}</div>
-                  </div>}
-                  <svg width="46" height="46" viewBox="0 0 80 80" style={{cursor:"pointer"}} onClick={()=>setShowTime(v=>!v)}>
-                    <circle cx="40" cy="40" r="38" fill="#064e3b" stroke="#00e676" strokeWidth="3"/>
-                    <text x="32" y="50" fontFamily="'Hind Siliguri',sans-serif" fontSize="34" fontWeight="800" fill="rgba(255,255,255,0.18)">খ</text>
-                    <text x="54" y="62" fontFamily="'Hind Siliguri',sans-serif" fontSize="22" fontWeight="800" fill="#f59e0b" opacity="0.9">?</text>
-                    <line x1="40" y1="4" x2="40" y2="12" stroke="rgba(255,255,255,0.5)" strokeWidth="2.5"/>
-                    <line x1="76" y1="40" x2="68" y2="40" stroke="rgba(255,255,255,0.5)" strokeWidth="2.5"/>
-                    <line x1="4" y1="40" x2="12" y2="40" stroke="rgba(255,255,255,0.5)" strokeWidth="2.5"/>
-                    <line x1="40" y1="76" x2="40" y2="68" stroke="rgba(255,255,255,0.5)" strokeWidth="2.5"/>
-                    <line x1="59" y1="8.5" x2="56" y2="13.5" stroke="rgba(255,255,255,0.2)" strokeWidth="1.5"/>
-                    <line x1="71.5" y1="21" x2="66.5" y2="24" stroke="rgba(255,255,255,0.2)" strokeWidth="1.5"/>
-                    <line x1="71.5" y1="59" x2="66.5" y2="56" stroke="rgba(255,255,255,0.2)" strokeWidth="1.5"/>
-                    <line x1="59" y1="71.5" x2="56" y2="66.5" stroke="rgba(255,255,255,0.2)" strokeWidth="1.5"/>
-                    <line x1="21" y1="71.5" x2="24" y2="66.5" stroke="rgba(255,255,255,0.2)" strokeWidth="1.5"/>
-                    <line x1="8.5" y1="59" x2="13.5" y2="56" stroke="rgba(255,255,255,0.2)" strokeWidth="1.5"/>
-                    <line x1="8.5" y1="21" x2="13.5" y2="24" stroke="rgba(255,255,255,0.2)" strokeWidth="1.5"/>
-                    <line x1="21" y1="8.5" x2="24" y2="13.5" stroke="rgba(255,255,255,0.2)" strokeWidth="1.5"/>
-                    <line x1="40" y1="40" x2={hPt.x} y2={hPt.y} stroke="#fff" strokeWidth="5" strokeLinecap="round"/>
-                    <line x1="40" y1="40" x2={mPt.x} y2={mPt.y} stroke="#00e676" strokeWidth="3" strokeLinecap="round"/>
-                    <line x1="40" y1="40" x2={sPt.x} y2={sPt.y} stroke="#e11d48" strokeWidth="1.5" strokeLinecap="round"/>
-                    <circle cx="40" cy="40" r="3" fill="#e11d48"/>
-                    <circle cx="40" cy="40" r="1.5" fill="#064e3b"/>
-                  </svg>
-                  </div>
-                );
-              })()}
+             <LiveClock T={T}/>
               <div>
                 <div style={{fontFamily:HS,fontSize:18,fontWeight:800,color:"#fff",lineHeight:1}}>{lang==="bn"?"খেলা কখন?":"Khela Kokhon?"}</div>
                 {isAdmin&&<div style={{fontFamily:HS,fontSize:9,color:"#00e676",letterSpacing:1,marginTop:2}}>🔑 ADMIN MODE</div>}
