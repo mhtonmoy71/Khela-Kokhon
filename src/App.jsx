@@ -1444,6 +1444,19 @@ function SetNameModal({T,lang,email,token,onSave,onClose}){
 }
 
 /* ── LiveClock ───────────────────────────────── */
+function DigitalTime(){
+  const[now,setNow]=useState(new Date());
+  useEffect(()=>{const id=setInterval(()=>setNow(new Date()),1000);return()=>clearInterval(id);},[]);
+  const h=now.getHours(),ampm=h>=12?"PM":"AM",h12=h%12||12;
+  const m=String(now.getMinutes()).padStart(2,"0");
+  const s=String(now.getSeconds()).padStart(2,"0");
+  return(
+    <div style={{fontFamily:"monospace",fontSize:11,color:"#00e676",letterSpacing:1,marginTop:2,lineHeight:1}}>
+      {String(h12).padStart(2,"0")}:{m}:{s} <span style={{fontSize:9,opacity:0.7}}>{ampm}</span>
+    </div>
+  );
+}
+
 function LiveClock({T}){
   const[now,setNow]=useState(new Date());
   useEffect(()=>{const id=setInterval(()=>setNow(new Date()),1000);return()=>clearInterval(id);},[]);
@@ -1618,6 +1631,7 @@ export default function App(){
              <LiveClock T={T}/>
               <div>
                 <div style={{fontFamily:HS,fontSize:18,fontWeight:800,color:"#fff",lineHeight:1}}>{lang==="bn"?"খেলা কখন?":"Khela Kokhon?"}</div>
+                <DigitalTime/>
                 {isAdmin&&<div style={{fontFamily:HS,fontSize:9,color:"#00e676",letterSpacing:1,marginTop:2}}>🔑 ADMIN MODE</div>}
               </div>
             </div>
