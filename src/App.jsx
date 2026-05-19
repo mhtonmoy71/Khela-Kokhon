@@ -1290,7 +1290,7 @@ function PredictionTab({T,lang,userName,onSave,myPreds,setMyPreds,scores,setPred
 
 /* ── TeamPage ────────────────────────────────── */
 function TeamPage({en,T,lang,onBack,onTeam,scores,myPreds,setPredictM,isAdmin,setScoreM}){
-  const ms=MATCHES.filter(m=>m.h===en||m.a===en).sort((a,b)=>tMs(a)-tMs(b));
+  const ms=[...MATCHES,...R32,...R16,...QF,...SF,...FINAL].filter(m=>m.h===en||m.a===en).sort((a,b)=>tMs(a)-tMs(b));
   const next=ms.find(m=>status(m)==="up");
   const cd=useCD(next?tMs(next):null);
   return(
