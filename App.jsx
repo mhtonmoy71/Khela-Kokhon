@@ -619,7 +619,7 @@ function NameModal({T,lang,onSave,inline=false,onClose}){
 
 /* ── Compact Calendar ────────────────────────── */
 function CompactCal({T,lang}){
-  const[vm,setVm]=useState(new Date(2026,5,1));
+  const[vm,setVm]=useState(new Date());
   const[pop,setPop]=useState(null);
   const today=new Date().toISOString().split("T")[0];
   const y=vm.getFullYear(),mo=vm.getMonth();
@@ -636,7 +636,7 @@ function CompactCal({T,lang}){
           <button onClick={()=>setVm(new Date(y,mo+1,1))} style={{background:"rgba(255,255,255,0.2)",border:"none",borderRadius:6,width:24,height:24,cursor:"pointer",color:"#fff",fontSize:14,display:"flex",alignItems:"center",justifyContent:"center"}}>›</button>
         </div>
         <div style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",background:T.card2,padding:"3px 4px"}}>
-          {dh.map((d,i)=><div key={i} style={{textAlign:"center",fontFamily:HS,fontSize:8,color:T.textM,fontWeight:700}}>{d}</div>)}
+          {dh.map((d,i)=><div key={i} style={{textAlign:"center",fontFamily:HS,fontSize:8,color:T.textS,fontWeight:700}}>{d}</div>)}
         </div>
         <div style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",gap:1,padding:"3px 4px 5px",background:T.card}}>
           {days.map((d,i)=>{
@@ -778,7 +778,7 @@ function MatchCard({m,T,lang,scores,myPreds,setPredictM,onTeam,isAdmin,setScoreM
             <div key={l} style={{background:T.card2,borderRadius:8,padding:"4px 8px",textAlign:"center",
               minWidth:38,border:`1px solid ${T.border}`}}>
               <div style={{fontFamily:HS,fontSize:14,fontWeight:800,color:T.green,lineHeight:1}}>{String(v).padStart(2,"0")}</div>
-              <div style={{fontFamily:HS,fontSize:8,color:T.textM}}>{l}</div>
+              <div style={{fontFamily:HS,fontSize:9,color:T.textS,fontWeight:600}}>{l}</div>
             </div>
           ))}
         </div>
@@ -957,7 +957,7 @@ function HomeTab({T,lang,favs,setFavs,onTeam,setSM,scores,myPreds,setPredictM,se
                   {[{v:cd.days,l:"d"},{v:cd.hours,l:"h"},{v:cd.mins,l:"m"},{v:cd.secs,l:"s"}].map(({v,l})=>(
                     <div key={l} style={{background:T.card2,borderRadius:6,padding:"2px 6px",textAlign:"center",border:`1px solid ${T.border}`}}>
                       <div style={{fontFamily:HS,fontSize:12,fontWeight:700,color:T.green,lineHeight:1}}>{String(v).padStart(2,"0")}</div>
-                      <div style={{fontFamily:HS,fontSize:8,color:T.textM}}>{l}</div>
+                      <div style={{fontFamily:HS,fontSize:9,color:T.textS,fontWeight:600}}>{l}</div>
                     </div>
                   ))}
                 </div>}
@@ -979,7 +979,7 @@ function HomeTab({T,lang,favs,setFavs,onTeam,setSM,scores,myPreds,setPredictM,se
       <div style={{display:"flex",gap:10,marginBottom:14,alignItems:"flex-start"}}>
         {/* Left: Today & Tomorrow info */}
         <div style={{flex:1,minWidth:0}}>
-          <div style={{background:T.card,borderRadius:14,border:`1px solid ${T.border}`,padding:"10px 12px",marginBottom:8}}>
+          <div style={{background:T.card,borderRadius:14,border:`1px solid ${T.border}`,padding:"8px 10px",marginBottom:8}}>
             <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:8}}>
               <div style={{display:"flex",alignItems:"center",gap:5}}>
                 {todayMs.length>0&&<div style={{width:7,height:7,borderRadius:"50%",background:T.red,flexShrink:0,animation:"pulse 1s infinite"}}/>}
@@ -998,7 +998,7 @@ function HomeTab({T,lang,favs,setFavs,onTeam,setSM,scores,myPreds,setPredictM,se
                   <Flag en={m.a} size={16}/>
                 </div>
               );
-            }):<div style={{fontFamily:HS,fontSize:10,color:T.textM,textAlign:"center"}}>{lang==="bn"?"কোনো ম্যাচ নেই":"No matches"}</div>}
+            }):<div style={{fontFamily:HS,fontSize:11,color:T.textS,textAlign:"center"}}>{lang==="bn"?"কোনো ম্যাচ নেই":"No matches"}</div>}
           </div>
           <div style={{background:T.card,borderRadius:14,border:`1px solid ${T.border}`,padding:"10px 12px"}}>
             <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:8}}>
@@ -1016,7 +1016,7 @@ function HomeTab({T,lang,favs,setFavs,onTeam,setSM,scores,myPreds,setPredictM,se
                   <Flag en={m.a} size={16}/>
                 </div>
               );
-            }):<div style={{fontFamily:HS,fontSize:10,color:T.textM,textAlign:"center"}}>{lang==="bn"?"কোনো ম্যাচ নেই":"No matches"}</div>}
+            }):<div style={{fontFamily:HS,fontSize:11,color:T.textS,textAlign:"center"}}>{lang==="bn"?"কোনো ম্যাচ নেই":"No matches"}</div>}
           </div>
         </div>
         {/* Right: Compact Calendar */}
@@ -1504,9 +1504,9 @@ function LiveClock({T,onToggle}){
 
 export default function App(){
   const isAdmin=new URLSearchParams(window.location.search).get("admin")===ADMIN_KEY;
-  const[dark,setDark]=useState(true);
+  const[dark,setDark]=useState(()=>localStorage.getItem("kk_dark")!=="false");
   const[showClockTime,setShowClockTime]=useState(false);
-  const[lang,setLang]=useState("bn");
+  const[lang,setLang]=useState(()=>localStorage.getItem("kk_lang")||"bn");
   const[mt,setMt]=useState(()=>localStorage.getItem("kk_tab")||"home");
   const[wt,setWt]=useState(()=>localStorage.getItem("kk_wt")||"fixture");
   const[favs,setFavs]=useState([]);
@@ -1637,8 +1637,8 @@ export default function App(){
               </div>
             </div>
             <div style={{display:"flex",gap:6}}>
-              <button onClick={()=>setDark(d=>!d)} style={{background:"rgba(255,255,255,0.12)",border:"1px solid rgba(255,255,255,0.2)",color:"#fff",borderRadius:20,width:36,height:36,cursor:"pointer",fontSize:16,display:"flex",alignItems:"center",justifyContent:"center"}}>{dark?"☀️":"🌙"}</button>
-              <button onClick={()=>setLang(l=>l==="bn"?"en":"bn")} style={{fontFamily:HS,background:"rgba(255,255,255,0.12)",border:"1px solid rgba(255,255,255,0.2)",color:"#fff",borderRadius:20,padding:"0 12px",height:36,fontSize:12,fontWeight:700,cursor:"pointer"}}>{lang==="bn"?"EN":"বাং"}</button>
+              <button onClick={()=>{setDark(d=>{localStorage.setItem("kk_dark",String(!d));return !d;})}} style={{background:"rgba(255,255,255,0.12)",border:"1px solid rgba(255,255,255,0.2)",color:"#fff",borderRadius:20,width:36,height:36,cursor:"pointer",fontSize:16,display:"flex",alignItems:"center",justifyContent:"center"}}>{dark?"☀️":"🌙"}</button>
+              <button onClick={()=>{setLang(l=>{const nl=l==="bn"?"en":"bn";localStorage.setItem("kk_lang",nl);return nl;})}} style={{fontFamily:HS,background:"rgba(255,255,255,0.12)",border:"1px solid rgba(255,255,255,0.2)",color:"#fff",borderRadius:20,padding:"0 12px",height:36,fontSize:12,fontWeight:700,cursor:"pointer"}}>{lang==="bn"?"EN":"বাং"}</button>
             </div>
           </div>
           {/* Main tabs */}
