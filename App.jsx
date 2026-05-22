@@ -621,7 +621,8 @@ function NameModal({T,lang,onSave,inline=false,onClose}){
 function CompactCal({T,lang}){
   const[vm,setVm]=useState(new Date());
   const[pop,setPop]=useState(null);
-  const today=new Date().toISOString().split("T")[0];
+  const[today,setToday]=useState(todayStr());
+  useEffect(()=>{const id=setInterval(()=>setToday(todayStr()),10000);return()=>clearInterval(id);},[]);
   const y=vm.getFullYear(),mo=vm.getMonth();
   const fd=new Date(y,mo,1).getDay(),dim=new Date(y,mo+1,0).getDate();
   const days=[];for(let i=0;i<fd;i++)days.push(null);for(let d=1;d<=dim;d++)days.push(d);
@@ -954,7 +955,7 @@ function HomeTab({T,lang,favs,setFavs,onTeam,setSM,scores,myPreds,setPredictM,se
                 <div style={{fontFamily:HS,fontSize:11,color:T.textS,marginTop:2}}>{lang==="bn"?"পরবর্তী: ":"Next: "}<b onClick={e=>{e.stopPropagation();onTeam(opp);}} style={{cursor:"pointer",color:T.green}}>{tn(opp,lang)}</b></div>
                 <div style={{fontFamily:HS,fontSize:11,color:T.textS,marginTop:1}}>{dls(nx.d,lang)} · <span style={{color:T.green,fontWeight:600}}>🕐 {nx.t}</span></div>
                 {showCd&&<div style={{display:"flex",gap:5,marginTop:5}}>
-                  {[{v:cd.days,l:"d"},{v:cd.hours,l:"h"},{v:cd.mins,l:"m"},{v:cd.secs,l:"s"}].map(({v,l})=>(
+                  {[{v:cd.days,l:lang==="bn"?"দিন":"d"},{v:cd.hours,l:lang==="bn"?"ঘ":"h"},{v:cd.mins,l:lang==="bn"?"মি":"m"},{v:cd.secs,l:lang==="bn"?"সে":"s"}].map(({v,l})=>(
                     <div key={l} style={{background:T.card2,borderRadius:6,padding:"2px 6px",textAlign:"center",border:`1px solid ${T.border}`}}>
                       <div style={{fontFamily:HS,fontSize:12,fontWeight:700,color:T.green,lineHeight:1}}>{String(v).padStart(2,"0")}</div>
                       <div style={{fontFamily:HS,fontSize:9,color:T.textS,fontWeight:600}}>{l}</div>
@@ -1308,7 +1309,7 @@ function TeamPage({en,T,lang,onBack,onTeam,scores,myPreds,setPredictM,isAdmin,se
           <div style={{background:"rgba(255,255,255,0.1)",borderRadius:14,padding:"12px 16px",border:"1px solid rgba(255,255,255,0.15)"}}>
             <div style={{fontFamily:HS,fontSize:11,color:"rgba(255,255,255,0.7)",marginBottom:8,textAlign:"center"}}>{lang==="bn"?"পরবর্তী ম্যাচ শুরু হতে":"Next match in"}</div>
             <div style={{display:"flex",justifyContent:"center",gap:16}}>
-              {[{v:cd.days,l:lang==="bn"?"দিন":"Days"},{v:cd.hours,l:lang==="bn"?"ঘণ্টা":"Hrs"},{v:cd.mins,l:"Min"},{v:cd.secs,l:"Sec"}].map(({v,l})=>(
+              {[{v:cd.days,l:lang==="bn"?"দিন":"Days"},{v:cd.hours,l:lang==="bn"?"ঘণ্টা":"Hrs"},{v:cd.mins,l:lang==="bn"?"মিনিট":"Min"},{v:cd.secs,l:lang==="bn"?"সেকেন্ড":"Sec"}].map(({v,l})=>(
                 <div key={l} style={{textAlign:"center"}}>
                   <div style={{fontFamily:HS,fontSize:22,fontWeight:800,color:"#fff",lineHeight:1}}>{String(v).padStart(2,"0")}</div>
                   <div style={{fontFamily:HS,fontSize:10,color:"rgba(255,255,255,0.6)",marginTop:2}}>{l}</div>
