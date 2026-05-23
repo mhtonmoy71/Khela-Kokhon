@@ -1894,10 +1894,7 @@ export default function App(){
         {predictM&&!userName&&<NameModal T={T} lang={lang} onSave={(name,did)=>{handleNameSave(name,did);}} onClose={()=>setPredictM(null)}/>}
         {scoreM&&isAdmin&&<ScoreModal m={scoreM} T={T} lang={lang} scores={scores} setScores={setScores} onClose={()=>setScoreM(null)}/>}
 
-        {/* Footer */}
-        <div style={{position:"fixed",bottom:0,left:0,right:0,background:T.card,borderTop:`1px solid ${T.border}`,padding:"10px 16px",textAlign:"center",zIndex:30}}>
-          <div style={{fontFamily:HS,fontSize:11,color:T.textM}}>{lang==="bn"?"ডেভেলপ করেছেন ":"Developed by "}<span style={{fontWeight:700,color:T.textS}}>{lang==="bn"?"মাহবুব হাসান তন্ময়":"Mahbub Hasan Tonmoy"}</span></div>
-        </div>
+
 
         {/* Exit confirm */}
         
