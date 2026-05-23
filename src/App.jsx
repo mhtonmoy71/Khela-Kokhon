@@ -68,6 +68,14 @@ const getPreds = (name) => gasPost("getPredictions", {name}).then(r => r.data||[
 const upsertPred = (name, matchId, hg, ag) => gasPost("savePrediction", {name, matchId, hg, ag});
 const deletePred = (name, matchId) => gasPost("deletePrediction", {name, matchId});
 
+// News & Comments
+const getNews = () => gasGet("getNews").then(r=>r.data||[]);
+const getComments = (news_id) => gasPost("getComments", {news_id}).then(r=>r.data||[]);
+const addComment = (news_id, name, comment) => gasPost("addComment", {news_id, name, comment});
+
+// Delete user
+const deleteUser = (email, name) => gasPost("deleteUser", {email, name});
+
 // Scores & Leaderboard
 const getScores = () => gasGet("getScores").then(r => r.data||{});
 const getLB = () => gasGet("getLeaderboard").then(r => r.data||[]);
@@ -549,7 +557,7 @@ function NameModal({T,lang,onSave,inline=false,onClose}){
     <div>
       <div style={{textAlign:"center",marginBottom:20}}>
         <div style={{fontSize:40,marginBottom:10}}>🎯</div>
-        <div style={{fontFamily:HS,fontSize:17,fontWeight:800,color:T.text,marginBottom:4}}>{lang==="bn"?"প্রেডিকশন কম্পিটিশন":"Prediction Competition"}</div>
+        <div style={{fontFamily:HS,fontSize:17,fontWeight:800,color:T.text,marginBottom:4}}>{lang==="bn"?"প্রেডিকশন মাস্টার":"Prediction Master"}</div>
         <div style={{display:"flex",justifyContent:"center",gap:6,marginTop:10}}>{dots}</div>
       </div>
       {step==="email"&&<>
@@ -1187,6 +1195,30 @@ function KnockoutTab({T,lang,scores}){
 }
 
 /* ── PredictionTab ───────────────────────────── */
+function DeleteAccountBtn({T,lang}){
+  const[confirm,setConfirm]=useState(false);
+  if(confirm) return(
+    <div style={{background:T.card2,border:`1px solid ${T.red}44`,borderRadius:12,padding:"10px 12px",textAlign:"center"}}>
+      <div style={{fontFamily:HS,fontSize:12,color:T.text,marginBottom:8}}>{lang==="bn"?"একাউন্ট মুছে ফেলবেন?":"Delete account?"}</div>
+      <div style={{display:"flex",gap:6}}>
+        <button onClick={()=>setConfirm(false)} style={{flex:1,padding:"7px",borderRadius:8,border:`1px solid ${T.border}`,background:T.card,color:T.textS,fontFamily:HS,fontSize:12,cursor:"pointer"}}>{lang==="bn"?"না":"No"}</button>
+        <button onClick={async()=>{
+                const email=localStorage.getItem("kk_email");
+                const name=localStorage.getItem("kk_user");
+                if(email&&name) await deleteUser(email,name).catch(()=>{});
+                localStorage.removeItem("kk_user");
+                localStorage.removeItem("kk_email");
+                localStorage.removeItem("kk_did");
+                window.location.reload();
+              }} style={{flex:1,padding:"7px",borderRadius:8,border:"none",background:T.red,color:"#fff",fontFamily:HS,fontSize:12,fontWeight:700,cursor:"pointer"}}>{lang==="bn"?"হ্যাঁ, মুছুন":"Yes, delete"}</button>
+      </div>
+    </div>
+  );
+  return(
+    <button onClick={()=>setConfirm(true)} style={{background:T.card2,border:`1px solid ${T.red}44`,borderRadius:10,padding:"6px 12px",cursor:"pointer",fontFamily:HS,fontSize:11,color:T.red}}>🗑️ {lang==="bn"?"একাউন্ট মুছুন":"Delete account"}</button>
+  );
+}
+
 function PredictionTab({T,lang,userName,onSave,myPreds,setMyPreds,scores,setPredictM}){
   const[sub,setSub]=useState("matches");
   const[lb,setLb]=useState([]);const[lbLoad,setLbLoad]=useState(false);
@@ -1208,8 +1240,8 @@ function PredictionTab({T,lang,userName,onSave,myPreds,setMyPreds,scores,setPred
     <div style={{padding:"20px 12px 90px"}}>
       <div style={{background:T.card,borderRadius:20,padding:24,textAlign:"center",marginBottom:16}}>
         <div style={{fontSize:44,marginBottom:12}}>🎯</div>
-        <div style={{fontFamily:HS,fontSize:18,fontWeight:800,color:T.text,marginBottom:8}}>{lang==="bn"?"প্রেডিকশন কম্পিটিশন":"Prediction Competition"}</div>
-        <div style={{fontFamily:HS,fontSize:13,color:T.textS,marginBottom:20,lineHeight:1.6}}>{lang==="bn"?"ম্যাচের আগে স্কোর আন্দাজ করো। সঠিক হলে পয়েন্ট পাবে!":"Predict scores before matches start. Earn points!"}</div>
+        <div style={{fontFamily:HS,fontSize:18,fontWeight:800,color:T.text,marginBottom:8}}>{lang==="bn"?"প্রেডিকশন মাস্টার":"Prediction Master"}</div>
+        <div style={{fontFamily:HS,fontSize:13,color:T.textS,marginBottom:20,lineHeight:1.6}}>{lang==="bn"?"প্রেডিক্ট করো। পয়েন্ট জেতো। লিডারবোর্ডে দেখিয়ে দাও তোমার নাম!":"Predict. Score. Climb the leaderboard."}</div>
         <div style={{display:"flex",gap:10,justifyContent:"center",marginBottom:24}}>
           <div style={{background:T.card2,borderRadius:12,padding:"12px 16px",textAlign:"center"}}>
             <div style={{fontSize:22}}>✅</div>
@@ -1242,7 +1274,7 @@ function PredictionTab({T,lang,userName,onSave,myPreds,setMyPreds,scores,setPred
               <div style={{fontFamily:HS,fontSize:15,fontWeight:700,color:T.text}}>{userName}</div>
               <div style={{fontFamily:HS,fontSize:12,color:T.textS}}>{Object.keys(myPreds).length} {lang==="bn"?"টি প্রেডিকশন":"predictions"} · <span style={{color:T.green,fontWeight:700}}>{myPts} pts</span></div>
             </div>
-            <button onClick={()=>{localStorage.removeItem("kk_user");localStorage.removeItem("kk_did");window.location.reload();}} style={{background:T.card2,border:`1px solid ${T.border}`,borderRadius:10,padding:"6px 12px",cursor:"pointer",fontFamily:HS,fontSize:11,color:T.textM}}>{lang==="bn"?"পরিবর্তন":"Change"}</button>
+            <DeleteAccountBtn T={T} lang={lang}/>
           </div>
           {upcoming.map(m=>{
             const pred=getPred(myPreds,m.id);const[t2,ap]=m.t.split(" ");
@@ -1353,6 +1385,104 @@ function AddModal({favs,onAdd,onClose,lang,T}){
 
 /* ── App ─────────────────────────────────────── */
 /* ── LeaderboardTab ───────────────────────────── */
+/* ── NewsTab ─────────────────────────────────── */
+function NewsTab({T,lang,userName}){
+  const[news,setNews]=useState([]);
+  const[loading,setLoading]=useState(true);
+  const[openId,setOpenId]=useState(null);
+  const[comments,setComments]=useState({});
+  const[newComment,setNewComment]=useState("");
+  const[posting,setPosting]=useState(false);
+
+  useEffect(()=>{
+    getNews().then(data=>{setNews(data);setLoading(false);}).catch(()=>setLoading(false));
+  },[]);
+
+  const loadComments=async(id)=>{
+    if(comments[id])return;
+    const data=await getComments(id).catch(()=>[]);
+    setComments(c=>({...c,[id]:data}));
+  };
+
+  const togglePost=(id)=>{
+    if(openId===id){setOpenId(null);}
+    else{setOpenId(id);loadComments(id);}
+  };
+
+  const submitComment=async(newsId)=>{
+    if(!newComment.trim()||!userName)return;
+    setPosting(true);
+    await addComment(newsId,userName,newComment.trim()).catch(()=>{});
+    setComments(c=>({...c,[newsId]:[...(c[newsId]||[]),{name:userName,comment:newComment.trim(),date:new Date().toISOString()}]}));
+    setNewComment("");
+    setPosting(false);
+  };
+
+  const fmtDate=(d)=>{
+    try{const dt=new Date(d);return `${dt.getDate()} ${lang==="bn"?BNMs[dt.getMonth()]:ENMs[dt.getMonth()]} ${dt.getFullYear()}`;}
+    catch{return d;}
+  };
+
+  if(loading)return<div style={{textAlign:"center",padding:60,fontFamily:HS,color:T.textM}}>লোড হচ্ছে...</div>;
+
+  return(
+    <div style={{padding:"12px 12px 90px"}}>
+      {news.length===0&&(
+        <div style={{textAlign:"center",padding:60}}>
+          <div style={{fontSize:40,marginBottom:12}}>📰</div>
+          <div style={{fontFamily:HS,fontSize:14,color:T.textM}}>{lang==="bn"?"এখনো কোনো নিউজ নেই":"No news yet"}</div>
+        </div>
+      )}
+      {news.map(n=>(
+        <div key={n.id} style={{background:T.card,borderRadius:16,border:`1px solid ${T.border}`,marginBottom:12,overflow:"hidden",boxShadow:T.glow}}>
+          {n.image_url&&<img src={n.image_url} alt="" style={{width:"100%",maxHeight:200,objectFit:"cover"}}/>}
+          <div style={{padding:"14px 14px 10px"}}>
+            <div style={{fontFamily:HS,fontSize:11,color:T.textS,marginBottom:6}}>{fmtDate(n.date)}</div>
+            <div style={{fontFamily:HS,fontSize:17,fontWeight:700,color:T.text,marginBottom:8,lineHeight:1.4}}>{n.title}</div>
+            <div style={{fontFamily:HS,fontSize:13,color:T.textS,lineHeight:1.6,marginBottom:10}}>{n.text}</div>
+            <button onClick={()=>togglePost(n.id)} style={{background:T.card2,border:`1px solid ${T.border}`,borderRadius:10,padding:"7px 14px",cursor:"pointer",fontFamily:HS,fontSize:12,color:T.textS}}>
+              💬 {lang==="bn"?"মন্তব্য":"Comments"} {comments[n.id]?`(${comments[n.id].length})`:""}
+            </button>
+          </div>
+          {openId===n.id&&(
+            <div style={{borderTop:`1px solid ${T.border}`,padding:"12px 14px"}}>
+              {(comments[n.id]||[]).length===0&&(
+                <div style={{fontFamily:HS,fontSize:12,color:T.textM,textAlign:"center",padding:"8px 0",marginBottom:8}}>{lang==="bn"?"প্রথম মন্তব্য করুন!":"Be the first to comment!"}</div>
+              )}
+              {(comments[n.id]||[]).map((c,i)=>(
+                <div key={i} style={{background:T.card2,borderRadius:10,padding:"10px 12px",marginBottom:8}}>
+                  <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:4}}>
+                    <div style={{width:26,height:26,borderRadius:"50%",background:T.greenBg,border:`1px solid ${T.greenBr}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:12}}>👤</div>
+                    <div style={{fontFamily:HS,fontSize:12,fontWeight:700,color:T.green}}>{c.name}</div>
+                    <div style={{fontFamily:HS,fontSize:10,color:T.textM,marginLeft:"auto"}}>{fmtDate(c.date)}</div>
+                  </div>
+                  <div style={{fontFamily:HS,fontSize:13,color:T.text,lineHeight:1.5}}>{c.comment}</div>
+                </div>
+              ))}
+              {userName?(
+                <div style={{display:"flex",gap:8,marginTop:8}}>
+                  <input value={newComment} onChange={e=>setNewComment(e.target.value)}
+                    onKeyDown={e=>e.key==="Enter"&&submitComment(n.id)}
+                    placeholder={lang==="bn"?"মন্তব্য লিখুন...":"Write a comment..."}
+                    style={{flex:1,border:`1.5px solid ${T.border}`,borderRadius:10,padding:"9px 12px",fontFamily:HS,fontSize:13,background:T.card2,color:T.text,outline:"none"}}/>
+                  <button onClick={()=>submitComment(n.id)} disabled={posting||!newComment.trim()}
+                    style={{background:T.green,border:"none",borderRadius:10,padding:"9px 16px",cursor:"pointer",fontFamily:HS,fontSize:13,fontWeight:700,color:"#fff",opacity:posting||!newComment.trim()?0.5:1}}>
+                    {posting?"...":(lang==="bn"?"পাঠান":"Send")}
+                  </button>
+                </div>
+              ):(
+                <div style={{fontFamily:HS,fontSize:12,color:T.textM,textAlign:"center",padding:"8px 0"}}>
+                  {lang==="bn"?"মন্তব্য করতে প্রেডিকশন ট্যাবে লগইন করুন":"Login in Predictions tab to comment"}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
+
 function LeaderboardTab({T,lang,userName}){
   const[lb,setLb]=useState([]);const[loading,setLoading]=useState(true);
   
@@ -1517,7 +1647,6 @@ export default function App(){
   const[userName,setUserName]=useState(()=>localStorage.getItem("kk_user")||"");
   const[myPreds,setMyPreds]=useState({});
   const[predictM,setPredictM]=useState(null);
-  const[showExit,setShowExit]=useState(false);
   const[needName,setNeedName]=useState(null);
   const[scoreM,setScoreM]=useState(null);
   const T=mkT(dark);
@@ -1589,7 +1718,6 @@ export default function App(){
         if(tp){setTp(null);window.history.pushState({page:"app",tab:mt},"","");return;}
         if(mt!=="home"){setMt("home");setWt("fixture");window.history.pushState({page:"app",tab:"home"},"","");return;}
         window.history.pushState({page:"app",tab:"home"},"","");
-        setShowExit(true);
       } else if(state.team){
         setTp(null);
       }
@@ -1644,7 +1772,7 @@ export default function App(){
           </div>
           {/* Main tabs */}
           <div style={{display:"flex",borderTop:"1px solid rgba(255,255,255,0.1)"}}>
-            {[["home",lang==="bn"?"🏠 হোম":"🏠"],["wc",lang==="bn"?"🏆 বিশ্বকাপ":"🏆 WC"],["predict",lang==="bn"?"🎯 প্রেডিকশন":"🎯"],["lb",lang==="bn"?"🏅 লিডারবোর্ড":"🏅"]].map(([id,lb])=>(
+            {[["home",lang==="bn"?"🏠 হোম":"🏠"],["wc",lang==="bn"?"🏆 বিশ্বকাপ":"🏆 WC"],["predict",lang==="bn"?"🎯 প্রেডিকশন":"🎯"],["lb",lang==="bn"?"🏅 লিডারবোর্ড":"🏅"],["news",lang==="bn"?"📰 নিউজ":"📰"]].map(([id,lb])=>(
               <button key={id} onClick={()=>setMt(id)} style={{flex:1,background:"transparent",border:"none",borderBottom:`2.5px solid ${mt===id?"#fff":"transparent"}`,color:mt===id?"#fff":"rgba(255,255,255,0.45)",fontFamily:HS,fontSize:11,fontWeight:mt===id?700:400,padding:"10px 0",cursor:"pointer"}}>{lb}</button>
             ))}
           </div>
@@ -1665,6 +1793,7 @@ export default function App(){
         {mt==="wc"&&wt==="table"&&<TableTab T={T} lang={lang} scores={scores}/>}
         {mt==="predict"&&<PredictionTab T={T} lang={lang} userName={userName} onSave={handleNameSave} myPreds={myPreds} setMyPreds={setMyPreds} scores={scores} setPredictM={setPredictM}/>}
         {mt==="lb"&&<LeaderboardTab T={T} lang={lang} userName={userName}/>}
+        {mt==="news"&&<NewsTab T={T} lang={lang} userName={userName}/>}
         {sm&&<AddModal favs={favs} onAdd={en=>setFavs(f=>f.includes(en)?f:[...f,en])} onClose={()=>setSm(false)} lang={lang} T={T}/>}
         {predictM&&userName&&<PredictModal m={predictM} T={T} lang={lang} userName={userName} myPreds={myPreds} setMyPreds={setMyPreds} onClose={()=>setPredictM(null)}/>}
         {predictM&&!userName&&<NameModal T={T} lang={lang} onSave={(name,did)=>{handleNameSave(name,did);}} onClose={()=>setPredictM(null)}/>}
@@ -1676,20 +1805,7 @@ export default function App(){
         </div>
 
         {/* Exit confirm */}
-        {showExit&&(
-          <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.75)",zIndex:9999,display:"flex",alignItems:"center",justifyContent:"center",padding:24}}>
-            <div style={{background:T.card,borderRadius:20,padding:28,width:"100%",maxWidth:300,textAlign:"center",position:"relative"}}>
-              <button onClick={()=>setShowExit(false)} style={{position:"absolute",top:12,right:12,background:T.card2,border:"none",borderRadius:"50%",width:28,height:28,cursor:"pointer",fontSize:14,color:T.textS,display:"flex",alignItems:"center",justifyContent:"center"}}>✕</button>
-              <div style={{fontSize:36,marginBottom:12}}>👋</div>
-              <div style={{fontFamily:HS,fontSize:17,fontWeight:800,color:T.text,marginBottom:8}}>{lang==="bn"?"প্রস্থান করবেন?":"Exit App?"}</div>
-              <div style={{fontFamily:HS,fontSize:13,color:T.textS,marginBottom:24}}>{lang==="bn"?"খেলা কখন? থেকে বের হয়ে যেতে চাচ্ছেন?":"Do you want to leave Khela Kokhon?"}</div>
-              <div style={{display:"flex",gap:10}}>
-                <button onClick={()=>setShowExit(false)} style={{flex:1,padding:13,borderRadius:12,border:`1px solid ${T.border}`,background:T.card2,color:T.text,fontFamily:HS,fontSize:14,fontWeight:600,cursor:"pointer"}}>{lang==="bn"?"থাকুন 🏠":"Stay 🏠"}</button>
-                <button onClick={()=>{setShowExit(false);setTimeout(()=>{window.history.back();window.history.back();},50);}} style={{flex:1,padding:13,borderRadius:12,border:"none",background:T.red,color:"#fff",fontFamily:HS,fontSize:14,fontWeight:700,cursor:"pointer"}}>{lang==="bn"?"প্রস্থান ❌":"Exit ❌"}</button>
-              </div>
-            </div>
-          </div>
-        )}
+        
       </div>
     </>
   );
