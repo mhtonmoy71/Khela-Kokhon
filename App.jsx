@@ -318,13 +318,7 @@ function addToGCal(m,lang){
   const title=`⚽ ${m.h} vs ${m.a} — FIFA WC 2026`;
   window.open(`https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(title)}&dates=${fmt(start)}/${fmt(end)}`,"_blank");
 }
-function roundRect(ctx,x,y,w,h,r){
-  ctx.beginPath();ctx.moveTo(x+r,y);ctx.lineTo(x+w-r,y);
-  ctx.quadraticCurveTo(x+w,y,x+w,y+r);ctx.lineTo(x+w,y+h-r);
-  ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);ctx.lineTo(x+r,y+h);
-  ctx.quadraticCurveTo(x,y+h,x,y+h-r);ctx.lineTo(x,y+r);
-  ctx.quadraticCurveTo(x,y,x+r,y);ctx.closePath();
-}
+
 function getTwemojiUrl(cc){
   if(!cc||cc.length!==2)return "";
   try{
@@ -369,9 +363,10 @@ async function shareM(m,lang){
   ctx.fillStyle="rgba(0,230,118,0.2)";ctx.fillRect(0,0,4,H);ctx.fillRect(W-4,0,4,H);
 
   // Team boxes
+  const rr=(x,y,w,h,r)=>{ctx.beginPath();ctx.moveTo(x+r,y);ctx.lineTo(x+w-r,y);ctx.quadraticCurveTo(x+w,y,x+w,y+r);ctx.lineTo(x+w,y+h-r);ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);ctx.lineTo(x+r,y+h);ctx.quadraticCurveTo(x,y+h,x,y+h-r);ctx.lineTo(x,y+r);ctx.quadraticCurveTo(x,y,x+r,y);ctx.closePath();};
   ctx.fillStyle="rgba(255,255,255,0.03)";ctx.strokeStyle="rgba(255,255,255,0.06)";ctx.lineWidth=1;
-  ctx.beginPath();ctx.roundRect(40,90,430,380,20);ctx.fill();ctx.stroke();
-  ctx.beginPath();ctx.roundRect(730,90,430,380,20);ctx.fill();ctx.stroke();
+  rr(40,90,430,380,20);ctx.fill();ctx.stroke();
+  rr(730,90,430,380,20);ctx.fill();ctx.stroke();
 
   // VS circle
   ctx.beginPath();ctx.arc(W/2,H/2-20,70,0,Math.PI*2);
@@ -400,14 +395,14 @@ async function shareM(m,lang){
 
   // Date/time pill
   ctx.fillStyle="rgba(0,230,118,0.1)";ctx.strokeStyle="rgba(0,230,118,0.4)";ctx.lineWidth=1.5;
-  ctx.beginPath();ctx.roundRect(350,490,500,60,30);ctx.fill();ctx.stroke();
+  rr(350,490,500,60,30);ctx.fill();ctx.stroke();
   ctx.fillStyle="#00e676";ctx.font="bold 22px Arial";ctx.textAlign="center";ctx.textBaseline="middle";
-  ctx.fillText(`${dateStr}  ·  ${timeStr}`,W/2,520);
+  ctx.fillText(dateStr+"  ·  "+timeStr,W/2,520);
 
   // Group
   if(grp){
     ctx.fillStyle="rgba(255,255,255,0.07)";
-    ctx.beginPath();ctx.roundRect(W/2-70,395,140,32,16);ctx.fill();
+    rr(W/2-70,395,140,32,16);ctx.fill();
     ctx.fillStyle="rgba(255,255,255,0.4)";ctx.font="15px Arial";
     ctx.fillText(grp,W/2,411);
   }
@@ -433,7 +428,7 @@ async function shareM(m,lang){
   // Match number
   ctx.fillStyle="rgba(255,255,255,0.2)";ctx.font="14px Arial";
   ctx.textAlign="right";ctx.textBaseline="middle";
-  ctx.fillText(`#${m.id}`,W-30,36);
+  ctx.fillText("#"+m.id,W-30,36);
 
   // URL
   ctx.fillStyle="rgba(255,255,255,0.2)";ctx.font="14px Arial";
