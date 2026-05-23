@@ -325,14 +325,18 @@ function roundRect(ctx,x,y,w,h,r){
   ctx.quadraticCurveTo(x,y+h,x,y+h-r);ctx.lineTo(x,y+r);
   ctx.quadraticCurveTo(x,y,x+r,y);ctx.closePath();
 }
-function getFlagEmoji(code){
-  if(!code||code.length!==2)return "⚽";
-  return String.fromCodePoint(...[...code.toUpperCase()].map(c=>0x1F1E6+c.charCodeAt(0)-65));
+function getTwemojiUrl(cc){
+  if(!cc||cc.length!==2)return "";
+  try{
+    const c1=(0x1F1E6+cc.toUpperCase().charCodeAt(0)-65).toString(16);
+    const c2=(0x1F1E6+cc.toUpperCase().charCodeAt(1)-65).toString(16);
+    return `https://cdn.jsdelivr.net/npm/twemoji@14.0.2/assets/svg/${c1}-${c2}.svg`;
+  }catch{return "";}
 }
 function shareM(m,lang){
   const homeEN=m.h||"TBD", awayEN=m.a||"TBD";
   const homeBN=tn(m.h,"bn")||homeEN, awayBN=tn(m.a,"bn")||awayEN;
-  const homeFl=getFlagEmoji(m.h), awayFl=getFlagEmoji(m.a);
+  const homeFl=getTwemojiUrl(m.h), awayFl=getTwemojiUrl(m.a);
   const dateStr=dl(m.d,lang), timeStr=`${m.t} BST`;
   const grp=m.g?`Group ${m.g}`:(m.id>72?"Knockout":"");
 
@@ -368,18 +372,18 @@ function shareM(m,lang){
   <text x="600" y="308" font-family="Arial Black,Arial" font-size="36" font-weight="900" fill="#00e676" text-anchor="middle">VS</text>
 
   <!-- Home flag -->
-  <text x="255" y="265" font-family="Segoe UI Emoji,Apple Color Emoji,Noto Color Emoji,sans-serif" font-size="120" text-anchor="middle">${homeFl}</text>
+  <image href="${homeFl}" x="135" y="130" width="120" height="120"/>
   <!-- Home name EN -->
-  <text x="255" y="345" font-family="Arial Black,Arial" font-size="38" font-weight="900" fill="#ffffff" text-anchor="middle">${homeEN}</text>
+  <text x="255" y="300" font-family="Arial Black,Arial" font-size="38" font-weight="900" fill="#ffffff" text-anchor="middle">${homeEN}</text>
   <!-- Home name BN -->
-  <text x="255" y="390" font-family="Arial" font-size="24" fill="rgba(255,255,255,0.5)" text-anchor="middle">${homeBN}</text>
+  <text x="255" y="340" font-family="Arial" font-size="24" fill="rgba(255,255,255,0.5)" text-anchor="middle">${homeBN}</text>
 
   <!-- Away flag -->
-  <text x="945" y="265" font-family="Segoe UI Emoji,Apple Color Emoji,Noto Color Emoji,sans-serif" font-size="120" text-anchor="middle">${awayFl}</text>
+  <image href="${awayFl}" x="885" y="130" width="120" height="120"/>
   <!-- Away name EN -->
-  <text x="945" y="345" font-family="Arial Black,Arial" font-size="38" font-weight="900" fill="#ffffff" text-anchor="middle">${awayEN}</text>
+  <text x="945" y="300" font-family="Arial Black,Arial" font-size="38" font-weight="900" fill="#ffffff" text-anchor="middle">${awayEN}</text>
   <!-- Away name BN -->
-  <text x="945" y="390" font-family="Arial" font-size="24" fill="rgba(255,255,255,0.5)" text-anchor="middle">${awayBN}</text>
+  <text x="945" y="340" font-family="Arial" font-size="24" fill="rgba(255,255,255,0.5)" text-anchor="middle">${awayBN}</text>
 
   <!-- Date/time pill -->
   <rect x="350" y="495" width="500" height="60" rx="30" fill="url(#pill)" stroke="rgba(0,230,118,0.4)" stroke-width="1.5"/>
