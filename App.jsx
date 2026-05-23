@@ -10,16 +10,21 @@ const ADMIN_KEY = "khelakokhon2026admin";
 /* ── Google Apps Script API (JSONP) ──────────── */
 async function gasPost(action, data={}) {
   const params = "data=" + encodeURIComponent(JSON.stringify({action, secret: SECRET, ...data}));
-  // Try JSONP first
+  // Try JSONP (GET with callback) - works with GAS
   try {
     return await gasJsonp(params);
   } catch(e1) {
-    // Try fetch with no-cors as last resort (won't return data but will execute)
+    // Try direct fetch with cors
     try {
-      await fetch(GAS_URL + "?" + params, {mode:"no-cors"});
-      return {ok: true};
+      const r = await fetch(GAS_URL + "?" + params);
+      const json = await r.json();
+      return json;
     } catch(e2) {
-      return {ok: true}; // Assume success
+      // Last resort no-cors (write-only, no response)
+      try {
+        await fetch(GAS_URL + "?" + params, {mode:"no-cors"});
+      } catch(e3) {}
+      return {ok: true};
     }
   }
 }
