@@ -1035,6 +1035,8 @@ function MatchRow({m,T,lang,scores,myPreds,predsLoaded,setPredictM,onTeam,isAdmi
           <div style={{display:"flex",gap:8,padding:"8px 10px 10px",borderTop:`1px solid ${T.border}`,background:T.card2}}>
             <button onClick={()=>{setScoreM(m);setShowAct(false);}} style={{flex:1,display:"flex",alignItems:"center",justifyContent:"center",gap:4,background:T.card,border:`1px solid ${T.border}`,borderRadius:10,padding:7,cursor:"pointer",fontFamily:HS,fontSize:12,color:T.textS}}>✏️ <span style={{fontFamily:HS}}>স্কোর</span></button>
             <button onClick={()=>{addToGCal(m,lang);setShowAct(false);}} style={{flex:1,display:"flex",alignItems:"center",justifyContent:"center",gap:4,background:T.card,border:`1px solid ${T.border}`,borderRadius:10,padding:7,cursor:"pointer",fontFamily:HS,fontSize:12,color:T.textS}}>📅</button>
+            <button onClick={()=>{onTeam(m.h);setShowAct(false);}} style={{flex:1,display:"flex",alignItems:"center",justifyContent:"center",gap:4,background:T.card,border:`1px solid ${T.border}`,borderRadius:10,padding:7,cursor:"pointer",fontFamily:HS,fontSize:12,color:T.textS}}><Flag en={m.h} size={16}/></button>
+            <button onClick={()=>{onTeam(m.a);setShowAct(false);}} style={{flex:1,display:"flex",alignItems:"center",justifyContent:"center",gap:4,background:T.card,border:`1px solid ${T.border}`,borderRadius:10,padding:7,cursor:"pointer",fontFamily:HS,fontSize:12,color:T.textS}}><Flag en={m.a} size={16}/></button>
             <button onClick={()=>{shareM(m,lang);setShowAct(false);}} style={{flex:1,display:"flex",alignItems:"center",justifyContent:"center",gap:4,background:T.card,border:`1px solid ${T.border}`,borderRadius:10,padding:7,cursor:"pointer",color:T.textS}}>
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
                 <span style={{fontFamily:HS,fontSize:11}}>{lang==="bn"?"শেয়ার":"Share"}</span>
@@ -1123,7 +1125,7 @@ function HomeTab({T,lang,favs,setFavs,onTeam,setSM,scores,myPreds,setPredictM,se
   const pop=AT.filter(en=>TEAMS[en].pop);
   function gN(en){const n=Date.now();return SORTED.find(m=>(m.h===en||m.a===en)&&tMs(m)>n)||null;}
 
-  function FavRow({en}){
+  function FavRow({en,onTeam}){
     const nx=gN(en),iF=favs.includes(en),opp=nx?(nx.h===en?nx.a:nx.h):null;
     const cd=useCD(nx?tMs(nx):null);const showCd=nx&&!cd.done;
     return(
@@ -1228,12 +1230,12 @@ function HomeTab({T,lang,favs,setFavs,onTeam,setSM,scores,myPreds,setPredictM,se
       {/* Favs */}
       {favs.length>0&&<div style={{marginBottom:14}}>
         <div style={{fontFamily:HS,fontWeight:700,fontSize:12,color:T.textS,marginBottom:8}}>⭐ {lang==="bn"?"প্রিয় দল":"MY TEAMS"}</div>
-        {favs.map(en=><FavRow key={en} en={en}/>)}
+        {favs.map(en=><FavRow key={en} en={en} onTeam={onTeam}/>)}
       </div>}
 
       {/* Popular */}
       <div style={{fontFamily:HS,fontWeight:700,fontSize:12,color:T.textS,marginBottom:8}}>🔥 {lang==="bn"?"জনপ্রিয় দল":"POPULAR"}</div>
-      {pop.map(en=><FavRow key={en} en={en}/>)}
+      {pop.map(en=><FavRow key={en} en={en} onTeam={onTeam}/>)}
       <button onClick={()=>setSM(true)} style={{width:"100%",marginTop:8,background:T.card,border:`1.5px dashed ${T.green}55`,borderRadius:14,padding:13,fontSize:13,color:T.green,cursor:"pointer",fontFamily:HS,fontWeight:600}}>
         {lang==="bn"?"+ অন্য দল যোগ করুন":"+ Add Another Team"}
       </button>
