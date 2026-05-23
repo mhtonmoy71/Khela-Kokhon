@@ -73,6 +73,12 @@ const getNews = () => gasGet("getNews").then(r=>r.data||[]);
 const getComments = (news_id) => gasPost("getComments", {news_id}).then(r=>r.data||[]);
 const addComment = (news_id, name, comment) => gasPost("addComment", {news_id, name, comment});
 
+// Like post
+const likePost = (news_id, name) => gasPost("likePost", {news_id, name});
+// Edit/Delete comment
+const editComment = (comment_id, name, comment) => gasPost("editComment", {comment_id, name, comment});
+const deleteComment = (comment_id, name) => gasPost("deleteComment", {comment_id, name});
+
 // Delete user
 const deleteUser = (email, name) => gasPost("deleteUser", {email, name});
 
@@ -1393,6 +1399,9 @@ function NewsTab({T,lang,userName}){
   const[comments,setComments]=useState({});
   const[newComment,setNewComment]=useState("");
   const[posting,setPosting]=useState(false);
+  const[editingId,setEditingId]=useState(null);
+  const[editText,setEditText]=useState("");
+  const[likedPosts,setLikedPosts]=useState({});
 
   useEffect(()=>{
     getNews().then(data=>{setNews(data);setLoading(false);}).catch(()=>setLoading(false));
@@ -1455,8 +1464,28 @@ function NewsTab({T,lang,userName}){
                     <div style={{width:26,height:26,borderRadius:"50%",background:T.greenBg,border:`1px solid ${T.greenBr}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:12}}>👤</div>
                     <div style={{fontFamily:HS,fontSize:12,fontWeight:700,color:T.green}}>{c.name}</div>
                     <div style={{fontFamily:HS,fontSize:10,color:T.textM,marginLeft:"auto"}}>{fmtDate(c.date)}</div>
+                    {userName===c.name&&<>
+                      <button onClick={()=>{setEditingId(c.comment_id);setEditText(c.comment);}} style={{background:"transparent",border:"none",cursor:"pointer",fontSize:12,color:T.textM}}>✏️</button>
+                      <button onClick={async()=>{
+                        await deleteComment(c.comment_id,userName).catch(()=>{});
+                        setComments(prev=>({...prev,[n.id]:prev[n.id].filter((_,j)=>j!==i)}));
+                      }} style={{background:"transparent",border:"none",cursor:"pointer",fontSize:12,color:T.red}}>🗑️</button>
+                    </>}
                   </div>
-                  <div style={{fontFamily:HS,fontSize:13,color:T.text,lineHeight:1.5}}>{c.comment}</div>
+                  {editingId===c.comment_id?(
+                    <div style={{display:"flex",gap:6,marginTop:4}}>
+                      <input value={editText} onChange={e=>setEditText(e.target.value)}
+                        style={{flex:1,border:`1px solid ${T.border}`,borderRadius:8,padding:"6px 10px",fontFamily:HS,fontSize:12,background:T.card,color:T.text,outline:"none"}}/>
+                      <button onClick={async()=>{
+                        await editComment(c.comment_id,userName,editText).catch(()=>{});
+                        setComments(prev=>({...prev,[n.id]:prev[n.id].map((cm,j)=>j===i?{...cm,comment:editText}:cm)}));
+                        setEditingId(null);
+                      }} style={{background:T.green,border:"none",borderRadius:8,padding:"6px 12px",cursor:"pointer",fontFamily:HS,fontSize:12,color:"#fff",fontWeight:700}}>✅</button>
+                      <button onClick={()=>setEditingId(null)} style={{background:T.card2,border:`1px solid ${T.border}`,borderRadius:8,padding:"6px 10px",cursor:"pointer",fontFamily:HS,fontSize:12,color:T.textS}}>✕</button>
+                    </div>
+                  ):(
+                    <div style={{fontFamily:HS,fontSize:13,color:T.text,lineHeight:1.5}}>{c.comment}</div>
+                  )}
                 </div>
               ))}
               {userName?(
