@@ -1311,7 +1311,7 @@ function GroupTab({T,lang,onTeam,scores,myPreds,setPredictM,isAdmin,setScoreM}){
           {search&&<button onClick={()=>setSearch("")} style={{background:"transparent",border:"none",cursor:"pointer",fontSize:14,color:T.textM}}>✕</button>}
         </div>
       </div>
-      {search?(
+      {search&&(
         <div style={{padding:"8px 12px"}}>
           {matchedTeams.length===0?(
             <div style={{fontFamily:HS,fontSize:13,color:T.textM,textAlign:"center",padding:20}}>{lang==="bn"?"কোনো দল পাওয়া যায়নি":"No teams found"}</div>
@@ -1325,7 +1325,8 @@ function GroupTab({T,lang,onTeam,scores,myPreds,setPredictM,isAdmin,setScoreM}){
             </div>
           ))}
         </div>
-      ):(
+      )}
+      {!search&&(
       <div style={{background:T.card,padding:"10px 12px",borderBottom:`1px solid ${T.border}`}}>
         <div style={{display:"flex",gap:8}}>
           <button onClick={()=>{setSf(true);setSq("");}} style={{display:"flex",alignItems:"center",gap:6,background:ft?T.greenBg:T.card2,border:`1.5px solid ${ft?T.greenBr:T.border}`,borderRadius:20,padding:"7px 14px",cursor:"pointer",fontFamily:HS,fontSize:13,fontWeight:ft?700:400,color:ft?T.green:T.textS}}>
@@ -1365,7 +1366,7 @@ function GroupTab({T,lang,onTeam,scores,myPreds,setPredictM,isAdmin,setScoreM}){
         </div>
       )}
     </div>
-    )}
+      )}
     </div>
   );
 }
