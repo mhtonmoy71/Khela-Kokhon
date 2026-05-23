@@ -327,7 +327,7 @@ function getTwemojiUrl(cc){
     return `https://cdn.jsdelivr.net/npm/twemoji@14.0.2/assets/svg/${c1}-${c2}.svg`;
   }catch{return "";}
 }
-async function shareM(m,lang){
+function shareM(m,lang){
   const homeEN=m.h||"TBD", awayEN=m.a||"TBD";
   const homeBN=tn(m.h,"bn")||homeEN, awayBN=tn(m.a,"bn")||awayEN;
   const homeFl=getTwemojiUrl(m.h), awayFl=getTwemojiUrl(m.a);
@@ -341,10 +341,10 @@ async function shareM(m,lang){
     i.src=url;
   });
 
-  const [hImg,aImg]=await Promise.all([
+  Promise.all([
     homeFl?loadImg(homeFl):Promise.resolve(null),
     awayFl?loadImg(awayFl):Promise.resolve(null)
-  ]);
+  ]).then(([hImg,aImg])=>{
 
   // Draw on canvas directly (no SVG)
   const canvas=document.createElement("canvas");
@@ -457,13 +457,7 @@ async function shareM(m,lang){
         a.click();
       }
     },"image/png");
-  };
-  img.onerror=()=>{
-    // Fallback to text share
-    const shareText=`⚽ ${homeEN} vs ${awayEN}\n📅 ${dateStr} · 🕐 ${timeStr}\nkhelakokhon.com`;
-    if(navigator.share)navigator.share({title:"খেলা কখন?",text:shareText,url:"https://khelakokhon.com"}).catch(()=>{});
-  };
-  img.src=url;
+  }); // end Promise.all
 }
 
 function getPred(myPreds,id){return myPreds[id]||myPreds[String(id)]||myPreds[Number(id)];}
