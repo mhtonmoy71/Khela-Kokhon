@@ -1408,7 +1408,6 @@ function NewsTab({T,lang,userName}){
   },[]);
 
   const loadComments=async(id)=>{
-    if(comments[id])return;
     const data=await getComments(id).catch(()=>[]);
     setComments(c=>({...c,[id]:data}));
   };
@@ -1417,6 +1416,13 @@ function NewsTab({T,lang,userName}){
     if(openId===id){setOpenId(null);}
     else{setOpenId(id);loadComments(id);}
   };
+
+  // Auto-refresh comments every 15s when open
+  useEffect(()=>{
+    if(!openId)return;
+    const id=setInterval(()=>loadComments(openId),15000);
+    return()=>clearInterval(id);
+  },[openId]);
 
   const submitComment=async(newsId)=>{
     if(!newComment.trim()||!userName)return;
@@ -1454,16 +1460,17 @@ function NewsTab({T,lang,userName}){
             </button>
           </div>
           {openId===n.id&&(
-            <div style={{borderTop:`1px solid ${T.border}`,padding:"12px 14px"}}>
+            <div style={{borderTop:`1px solid ${T.border}`}}>
               {(comments[n.id]||[]).length===0&&(
-                <div style={{fontFamily:HS,fontSize:12,color:T.textM,textAlign:"center",padding:"8px 0",marginBottom:8}}>{lang==="bn"?"প্রথম মন্তব্য করুন!":"Be the first to comment!"}</div>
+                <div style={{fontFamily:HS,fontSize:12,color:T.textM,textAlign:"center",padding:"12px 0"}}>{lang==="bn"?"প্রথম মন্তব্য করুন!":"Be the first to comment!"}</div>
               )}
               {(comments[n.id]||[]).map((c,i)=>(
-                <div key={i} style={{background:T.card2,borderRadius:10,padding:"10px 12px",marginBottom:8}}>
-                  <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:4}}>
-                    <div style={{width:26,height:26,borderRadius:"50%",background:T.greenBg,border:`1px solid ${T.greenBr}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:12}}>👤</div>
-                    <div style={{fontFamily:HS,fontSize:12,fontWeight:700,color:T.green}}>{c.name}</div>
-                    <div style={{fontFamily:HS,fontSize:10,color:T.textM,marginLeft:"auto"}}>{fmtDate(c.date)}</div>
+                <div key={i} style={{display:"flex",gap:10,padding:"10px 16px",borderBottom:`1px solid ${T.border}`}}>
+                  <div style={{width:32,height:32,borderRadius:"50%",background:T.card2,border:`1px solid ${T.border}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:14,flexShrink:0}}>👤</div>
+                  <div style={{flex:1,minWidth:0}}>
+                  <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:3}}>
+                    <div style={{fontFamily:HS,fontSize:13,fontWeight:700,color:T.text}}>{c.name}</div>
+                    <div style={{fontFamily:HS,fontSize:11,color:T.textM}}>{fmtDate(c.date)}</div>
                     {userName===c.name&&<>
                       <button onClick={()=>{setEditingId(c.comment_id);setEditText(c.comment);}} style={{background:"transparent",border:"none",cursor:"pointer",fontSize:12,color:T.textM}}>✏️</button>
                       <button onClick={async()=>{
@@ -1486,22 +1493,25 @@ function NewsTab({T,lang,userName}){
                   ):(
                     <div style={{fontFamily:HS,fontSize:13,color:T.text,lineHeight:1.5}}>{c.comment}</div>
                   )}
+                  </div>
                 </div>
               ))}
               {userName?(
-                <div style={{display:"flex",gap:8,marginTop:8}}>
+                <div style={{display:"flex",gap:10,padding:"10px 16px",alignItems:"center"}}>
+                  <div style={{width:32,height:32,borderRadius:"50%",background:T.greenBg,border:`1px solid ${T.greenBr}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:14,flexShrink:0}}>👤</div>
                   <input value={newComment} onChange={e=>setNewComment(e.target.value)}
                     onKeyDown={e=>e.key==="Enter"&&submitComment(n.id)}
                     placeholder={lang==="bn"?"মন্তব্য লিখুন...":"Write a comment..."}
-                    style={{flex:1,border:`1.5px solid ${T.border}`,borderRadius:10,padding:"9px 12px",fontFamily:HS,fontSize:13,background:T.card2,color:T.text,outline:"none"}}/>
+                    style={{flex:1,border:`1px solid ${T.border}`,borderRadius:20,padding:"8px 14px",fontFamily:HS,fontSize:13,background:T.card2,color:T.text,outline:"none"}}/>
                   <button onClick={()=>submitComment(n.id)} disabled={posting||!newComment.trim()}
-                    style={{background:T.green,border:"none",borderRadius:10,padding:"9px 16px",cursor:"pointer",fontFamily:HS,fontSize:13,fontWeight:700,color:"#fff",opacity:posting||!newComment.trim()?0.5:1}}>
-                    {posting?"...":(lang==="bn"?"পাঠান":"Send")}
+                    style={{background:newComment.trim()?T.green:"transparent",border:`1px solid ${newComment.trim()?T.green:T.border}`,borderRadius:20,padding:"7px 14px",cursor:"pointer",fontFamily:HS,fontSize:12,fontWeight:700,color:newComment.trim()?"#fff":T.textM,opacity:posting?0.5:1,flexShrink:0,transition:"all 0.2s"}}>
+                    {posting?"...":(lang==="bn"?"পাঠান":"Reply")}
                   </button>
                 </div>
               ):(
-                <div style={{fontFamily:HS,fontSize:12,color:T.textM,textAlign:"center",padding:"8px 0"}}>
-                  {lang==="bn"?"মন্তব্য করতে প্রেডিকশন ট্যাবে লগইন করুন":"Login in Predictions tab to comment"}
+                <div style={{display:"flex",gap:10,padding:"10px 16px",alignItems:"center"}}>
+                  <div style={{width:32,height:32,borderRadius:"50%",background:T.card2,display:"flex",alignItems:"center",justifyContent:"center",fontSize:14,flexShrink:0,opacity:0.4}}>👤</div>
+                  <div style={{fontFamily:HS,fontSize:12,color:T.textM}}>{lang==="bn"?"মন্তব্য করতে প্রেডিকশন ট্যাবে লগইন করুন":"Login in Predictions tab to comment"}</div>
                 </div>
               )}
             </div>
