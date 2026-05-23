@@ -1917,8 +1917,20 @@ export default function App(){
   const[sm,setSm]=useState(false);
   const[scores,setScores]=useState({});
   const[userName,setUserName]=useState(()=>localStorage.getItem("kk_user")||"");
-  const[myPreds,setMyPreds]=useState({});
-  const[predsLoaded,setPredsLoaded]=useState(false);
+  const[myPreds,setMyPreds]=useState(()=>{
+    try{
+      const u=localStorage.getItem("kk_user");
+      if(u){const c=localStorage.getItem("kk_preds_"+u);if(c)return JSON.parse(c);}
+    }catch(e){}
+    return {};
+  });
+  const[predsLoaded,setPredsLoaded]=useState(()=>{
+    try{
+      const u=localStorage.getItem("kk_user");
+      if(u&&localStorage.getItem("kk_preds_"+u))return true;
+    }catch(e){}
+    return false;
+  });
   const[predictM,setPredictM]=useState(null);
   const[needName,setNeedName]=useState(null);
   const[scoreM,setScoreM]=useState(null);
