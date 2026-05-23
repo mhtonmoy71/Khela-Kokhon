@@ -1243,7 +1243,6 @@ function HomeTab({T,lang,favs,setFavs,onTeam,setSM,scores,myPreds,setPredictM,se
         {lang==="bn"?"+ অন্য দল যোগ করুন":"+ Add Another Team"}
       </button>
       <Footer T={T} lang={lang}/>
-    </>}
     </div>
   );
 }
