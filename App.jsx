@@ -92,9 +92,9 @@ const saveScoreDB = (matchId, hg, ag, status="") => gasPost("saveScore", {matchI
 const mkT=d=>({
   bg:d?"#080b12":"#eef1f6", card:d?"#10152a":"#ffffff",
   card2:d?"#161c30":"#f4f6fb", card3:d?"#1c2338":"#e8ecf2",
-  border:d?"rgba(255,255,255,0.06)":"rgba(0,0,0,0.06)",
-  text:d?"#e8ecf8":"#0d1117", textS:d?"#7a87a8":"#5a6580",
-  textM:d?"#3d4a66":"#9aa3b8",
+  border:d?"rgba(255,255,255,0.06)":"rgba(0,0,0,0.1)",
+  text:d?"#e8ecf8":"#0d1117", textS:d?"#7a87a8":"#3d4a66",
+  textM:d?"#3d4a66":"#6b7694",
   green:d?"#00e676":"#00875a", greenBg:d?"rgba(0,230,118,0.08)":"#e8faf0",
   greenBr:d?"rgba(0,230,118,0.2)":"rgba(0,135,90,0.2)",
   gold:"#f5a623", red:d?"#ff4f4f":"#e53e3e",
@@ -960,6 +960,12 @@ function MatchCard({m,T,lang,scores,myPreds,setPredictM,onTeam,isAdmin,setScoreM
       )}
 
       {/* Action bar */}
+      {st==="up"&&cd&&!cd.done&&cd.days===0&&cd.hours===0&&cd.mins<30&&(
+        <div style={{background:"rgba(245,158,11,0.1)",border:"1px solid rgba(245,158,11,0.3)",borderRadius:10,margin:"0 12px 6px",padding:"6px 12px",display:"flex",alignItems:"center",gap:6}}>
+          <span style={{fontSize:14}}>⚠️</span>
+          <span style={{fontFamily:HS,fontSize:11,color:"#f59e0b",fontWeight:600}}>{lang==="bn"?`ম্যাচ শুরু হতে মাত্র ${cd.mins} মিনিট ${cd.secs} সেকেন্ড বাকি!`:`Only ${cd.mins}m ${cd.secs}s left to predict!`}</span>
+        </div>
+      )}
       <div style={{display:"flex",gap:6,padding:"8px 12px 12px"}}>
         {st==="up"&&(
           <button onClick={()=>setPredictM(m)} style={{
@@ -1248,6 +1254,7 @@ function HomeTab({T,lang,favs,setFavs,onTeam,setSM,scores,myPreds,setPredictM,se
         {lang==="bn"?"+ অন্য দল যোগ করুন":"+ Add Another Team"}
       </button>
       <Footer T={T} lang={lang}/>
+    </>}
     </div>
   );
 }
@@ -1299,8 +1306,38 @@ function GroupTab({T,lang,onTeam,scores,myPreds,setPredictM,isAdmin,setScoreM}){
   const fil=ft?SORTED.filter(m=>m.h===ft||m.a===ft):SORTED;
   const grpd=useMemo(()=>{const mp={};fil.forEach(m=>{(mp[m.d]=mp[m.d]||[]).push(m);});return Object.entries(mp).sort((a,b)=>new Date(a[0])-new Date(b[0]));},[fil]);
   const sr=AT.filter(en=>en.toLowerCase().includes(sq.toLowerCase())||(TEAMS[en]?.bn||"").includes(sq));
+  const searchLower=search.toLowerCase();
+  const matchedTeams=search?Object.keys(TEAMS).filter(k=>
+    (TEAMS[k]?.en||k).toLowerCase().includes(searchLower)||(TEAMS[k]?.bn||"").includes(search)
+  ):[];
+
   return(
     <div>
+      {/* Search bar */}
+      <div style={{padding:"10px 12px 0"}}>
+        <div style={{display:"flex",alignItems:"center",gap:8,background:T.card2,border:`1px solid ${T.border}`,borderRadius:12,padding:"8px 12px"}}>
+          <span style={{fontSize:14,opacity:0.5}}>🔍</span>
+          <input value={search} onChange={e=>setSearch(e.target.value)}
+            placeholder={lang==="bn"?"দল বা ম্যাচ খুঁজুন...":"Search teams or matches..."}
+            style={{flex:1,background:"transparent",border:"none",outline:"none",fontFamily:HS,fontSize:13,color:T.text}}/>
+          {search&&<button onClick={()=>setSearch("")} style={{background:"transparent",border:"none",cursor:"pointer",fontSize:14,color:T.textM}}>✕</button>}
+        </div>
+      </div>
+      {search?(
+        <div style={{padding:"8px 12px"}}>
+          {matchedTeams.length===0?(
+            <div style={{fontFamily:HS,fontSize:13,color:T.textM,textAlign:"center",padding:20}}>{lang==="bn"?"কোনো দল পাওয়া যায়নি":"No teams found"}</div>
+          ):matchedTeams.map(k=>(
+            <div key={k} onClick={()=>onTeam(k)} style={{display:"flex",alignItems:"center",gap:10,background:T.card,borderRadius:12,padding:"10px 12px",marginBottom:6,cursor:"pointer",border:`1px solid ${T.border}`}}>
+              <Flag en={k} size={32}/>
+              <div>
+                <div style={{fontFamily:HS,fontSize:14,fontWeight:600,color:T.text}}>{tn(k,lang)}</div>
+                <div style={{fontFamily:HS,fontSize:11,color:T.textM}}>Group {TEAMS[k]?.g||""}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      ):(
       <div style={{background:T.card,padding:"10px 12px",borderBottom:`1px solid ${T.border}`}}>
         <div style={{display:"flex",gap:8}}>
           <button onClick={()=>{setSf(true);setSq("");}} style={{display:"flex",alignItems:"center",gap:6,background:ft?T.greenBg:T.card2,border:`1.5px solid ${ft?T.greenBr:T.border}`,borderRadius:20,padding:"7px 14px",cursor:"pointer",fontFamily:HS,fontSize:13,fontWeight:ft?700:400,color:ft?T.green:T.textS}}>
@@ -1339,6 +1376,8 @@ function GroupTab({T,lang,onTeam,scores,myPreds,setPredictM,isAdmin,setScoreM}){
           </div>
         </div>
       )}
+    </div>
+    )}
     </div>
   );
 }
