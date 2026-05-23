@@ -318,10 +318,100 @@ function addToGCal(m,lang){
   const title=`⚽ ${m.h} vs ${m.a} — FIFA WC 2026`;
   window.open(`https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(title)}&dates=${fmt(start)}/${fmt(end)}`,"_blank");
 }
+function roundRect(ctx,x,y,w,h,r){
+  ctx.beginPath();ctx.moveTo(x+r,y);ctx.lineTo(x+w-r,y);
+  ctx.quadraticCurveTo(x+w,y,x+w,y+r);ctx.lineTo(x+w,y+h-r);
+  ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);ctx.lineTo(x+r,y+h);
+  ctx.quadraticCurveTo(x,y+h,x,y+h-r);ctx.lineTo(x,y+r);
+  ctx.quadraticCurveTo(x,y,x+r,y);ctx.closePath();
+}
+function getFlagEmoji(code){
+  if(!code||code.length!==2)return "⚽";
+  return String.fromCodePoint(...[...code.toUpperCase()].map(c=>0x1F1E6+c.charCodeAt(0)-65));
+}
 function shareM(m,lang){
-  const text=`⚽ ${tn(m.h,lang)} vs ${tn(m.a,lang)}\n📅 ${dl(m.d,lang)}\n🕐 ${m.t} BST`;
-  if(navigator.share)navigator.share({text}).catch(()=>{});
-  else{navigator.clipboard?.writeText(text);alert(lang==="bn"?"কপি হয়েছে!":"Copied!");}
+  // Generate match card image using Canvas
+  const canvas=document.createElement("canvas");
+  canvas.width=1080;canvas.height=566;
+  const ctx=canvas.getContext("2d");
+
+  // Background
+  const bg=ctx.createLinearGradient(0,0,1080,566);
+  bg.addColorStop(0,"#060910");bg.addColorStop(0.5,"#0d1a2e");bg.addColorStop(1,"#091420");
+  ctx.fillStyle=bg;ctx.fillRect(0,0,1080,566);
+
+  // Green top/bottom lines
+  ctx.fillStyle="#00e676";ctx.fillRect(0,0,1080,6);ctx.fillRect(0,560,1080,6);
+
+  // Center divider
+  ctx.strokeStyle="rgba(0,230,118,0.2)";ctx.lineWidth=1;
+  ctx.beginPath();ctx.moveTo(540,80);ctx.lineTo(540,486);ctx.stroke();
+
+  // VS circle
+  ctx.fillStyle="#0d1a2e";ctx.strokeStyle="#00e676";ctx.lineWidth=2;
+  ctx.beginPath();ctx.arc(540,283,48,0,Math.PI*2);ctx.fill();ctx.stroke();
+  ctx.fillStyle="#00e676";ctx.font="bold 28px Arial";ctx.textAlign="center";
+  ctx.fillText("VS",540,293);
+
+  // Home team flag emoji + name
+  ctx.font="bold 120px serif";ctx.textAlign="center";
+  ctx.fillText(getFlagEmoji(m.h),270,320);
+  ctx.fillStyle="#ffffff";ctx.font="bold 38px Arial";
+  ctx.fillText(m.h,270,390);
+  ctx.fillStyle="rgba(255,255,255,0.5)";ctx.font="22px Arial";
+  ctx.fillText(lang==="bn"?tn(m.h,"bn"):m.h,270,426);
+
+  // Away team
+  ctx.font="bold 120px serif";ctx.fillStyle="#fff";
+  ctx.fillText(getFlagEmoji(m.a),810,320);
+  ctx.fillStyle="#ffffff";ctx.font="bold 38px Arial";
+  ctx.fillText(m.a,810,390);
+  ctx.fillStyle="rgba(255,255,255,0.5)";ctx.font="22px Arial";
+  ctx.fillText(lang==="bn"?tn(m.a,"bn"):m.a,810,426);
+
+  // Match info box
+  ctx.fillStyle="rgba(0,230,118,0.08)";
+  ctx.strokeStyle="rgba(0,230,118,0.3)";ctx.lineWidth=1;
+  roundRect(ctx,340,460,400,60,10);ctx.fill();ctx.stroke();
+  ctx.fillStyle="#00e676";ctx.font="bold 20px Arial";ctx.textAlign="center";
+  ctx.fillText(`📅 ${dl(m.d,lang)}  ·  🕐 ${m.t} BST`,540,496);
+
+  // Branding top
+  ctx.fillStyle="#00e676";ctx.font="bold 24px Arial";ctx.textAlign="left";
+  ctx.fillText("খেলা কখন?",40,46);
+  ctx.fillStyle="rgba(255,255,255,0.3)";ctx.font="16px Arial";
+  ctx.fillText("FIFA World Cup 2026",40,72);
+
+  // URL bottom right
+  ctx.fillStyle="rgba(255,255,255,0.25)";ctx.font="16px Arial";ctx.textAlign="right";
+  ctx.fillText("khelakokhon.com",1040,540);
+
+  // Group/Round info
+  if(m.g){
+    ctx.fillStyle="rgba(255,255,255,0.4)";ctx.font="18px Arial";ctx.textAlign="right";
+    ctx.fillText(`Group ${m.g}`,1040,46);
+  }
+
+  // Convert to blob and share
+  canvas.toBlob(async blob=>{
+    if(!blob)return;
+    const file=new File([blob],"match-card.png",{type:"image/png"});
+    const text=`⚽ ${tn(m.h,lang)} vs ${tn(m.a,lang)} | ${dl(m.d,lang)} ${m.t} BST\nkhelakokhon.com`;
+    try{
+      if(navigator.share&&navigator.canShare&&navigator.canShare({files:[file]})){
+        await navigator.share({files:[file],text});
+      } else if(navigator.share){
+        await navigator.share({text,url:"https://khelakokhon.com"});
+      } else {
+        // Download as fallback
+        const a=document.createElement("a");a.href=URL.createObjectURL(blob);
+        a.download=`${m.h}-vs-${m.a}.png`;a.click();
+      }
+    }catch(e){
+      const a=document.createElement("a");a.href=URL.createObjectURL(blob);
+      a.download=`${m.h}-vs-${m.a}.png`;a.click();
+    }
+  },"image/png");
 }
 function getPred(myPreds,id){return myPreds[id]||myPreds[String(id)]||myPreds[Number(id)];}
 
