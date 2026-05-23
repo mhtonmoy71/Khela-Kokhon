@@ -537,7 +537,7 @@ function ScoreModal({m,T,lang,scores,setScores,onClose}){
         </div>
         <div style={{display:"flex",gap:8}}>
           <button onClick={onClose} style={{flex:1,padding:12,borderRadius:12,border:`1px solid ${T.border}`,background:T.card2,color:T.textS,fontFamily:HS,fontSize:13,cursor:"pointer"}}>{lang==="bn"?"বাতিল":"Cancel"}</button>
-          <button onClick={()=>save(false)} disabled={saving} style={{flex:1,padding:12,borderRadius:12,border:"none",background:T.green,color:"#fff",fontFamily:HS,fontSize:13,fontWeight:700,cursor:"pointer"}}>{saving?"...":"💾 সংরক্ষণ"}</button>
+          <button onClick={()=>save(false)} disabled={saving} style={{flex:1,padding:12,borderRadius:12,border:"none",background:T.green,color:"#fff",fontFamily:HS,fontSize:13,fontWeight:700,cursor:"pointer"}}>{saving?"...":"সংরক্ষণ"}</button>
           <button onClick={()=>save(true)} disabled={saving} style={{flex:1,padding:12,borderRadius:12,border:"none",background:"#e11d48",color:"#fff",fontFamily:HS,fontSize:13,fontWeight:700,cursor:"pointer"}}>{saving?"...":"🏁 শেষ"}</button>
         </div>
       </div>
@@ -591,7 +591,7 @@ function PredictModal({m,T,lang,userName,myPreds,setMyPreds,onClose}){
           <button onClick={onClose} style={{background:T.card2,border:"none",borderRadius:"50%",width:32,height:32,cursor:"pointer",fontSize:16,color:T.textS,display:"flex",alignItems:"center",justifyContent:"center"}}>✕</button>
         </div>
         <div style={{fontFamily:HS,fontWeight:800,fontSize:18,color:T.text,textAlign:"center",marginBottom:4}}>
-          🎯 {lang==="bn"?"প্রেডিক্ট করুন":"Make Prediction"}
+          {lang==="bn"?"প্রেডিক্ট করুন":"Make Prediction"}
         </div>
         <div style={{fontFamily:HS,fontSize:12,color:T.textS,textAlign:"center",marginBottom:20}}>
           {dl(m.d,lang)} · {m.t} BST
@@ -715,7 +715,7 @@ function NameModal({T,lang,onSave,inline=false,onClose}){
   const body=(
     <div>
       <div style={{textAlign:"center",marginBottom:20}}>
-        <div style={{fontSize:40,marginBottom:10}}>🎯</div>
+        
         <div style={{fontFamily:HS,fontSize:17,fontWeight:800,color:T.text,marginBottom:4}}>{lang==="bn"?"প্রেডিকশন মাস্টার":"Prediction Master"}</div>
         <div style={{display:"flex",justifyContent:"center",gap:6,marginTop:10}}>{dots}</div>
       </div>
@@ -732,7 +732,7 @@ function NameModal({T,lang,onSave,inline=false,onClose}){
           style={{width:"100%",padding:13,borderRadius:12,border:"none",
             background:loading||!email.includes("@")?"#555":T.green,
             color:"#fff",fontFamily:HS,fontSize:15,fontWeight:700,cursor:"pointer"}}>
-          {loading?(lang==="bn"?"পাঠানো হচ্ছে...":"Sending..."):(lang==="bn"?"কোড পাঠাও 📧":"Send Code 📧")}
+          {loading?(lang==="bn"?"পাঠানো হচ্ছে...":"Sending..."):(lang==="bn"?"কোড পাঠাও":"Send Code")}
         </button>
       </>}
       {step==="otp"&&<>
@@ -760,7 +760,7 @@ function NameModal({T,lang,onSave,inline=false,onClose}){
         <input value={name} onChange={e=>setName(e.target.value)} onKeyDown={e=>e.key==="Enter"&&doSaveName()} placeholder={lang==="bn"?"তোমার নাম...":"Your name..."} style={inp} autoFocus/>
         {err&&<div style={{fontFamily:HS,fontSize:12,color:T.red,textAlign:"center",marginBottom:8}}>{err}</div>}
         <button onClick={doSaveName} disabled={loading||!name.trim()} style={{width:"100%",padding:13,borderRadius:12,border:"none",background:loading||!name.trim()?"#555":T.green,color:"#fff",fontFamily:HS,fontSize:15,fontWeight:700,cursor:"pointer"}}>
-          {loading?(lang==="bn"?"সংরক্ষণ...":"Saving..."):(lang==="bn"?"শুরু করো 🚀":"Start 🚀")}
+          {loading?(lang==="bn"?"সংরক্ষণ...":"Saving..."):(lang==="bn"?"শুরু করো":"Start")}
         </button>
       </>}
     </div>
@@ -903,7 +903,7 @@ function MatchCard({m,T,lang,scores,myPreds,predsLoaded,setPredictM,onTeam,isAdm
         ):st==="ft"?(
           <span style={{fontFamily:HS,fontSize:10,background:T.card2,color:T.textM,padding:"2px 8px",borderRadius:20}}>FT</span>
         ):(
-          <span style={{fontFamily:HS,fontSize:11,fontWeight:600,color:T.green}}>🕐 {m.t}</span>
+          <span style={{fontFamily:HS,fontSize:11,fontWeight:600,color:T.green}}>{m.t}</span>
         )}
       </div>
       {/* Teams row */}
@@ -966,13 +966,13 @@ function MatchCard({m,T,lang,scores,myPreds,predsLoaded,setPredictM,onTeam,isAdm
             background:pred?T.greenBg:T.card2,border:`1.5px solid ${pred?T.greenBr:T.border}`,
             borderRadius:10,padding:"7px",cursor:"pointer",
             fontFamily:HS,fontSize:12,fontWeight:pred?700:400,color:pred?T.green:T.textS}}>
-            {pred?`🎯 ${pred.home_score}–${pred.away_score}`:(lang==="bn"?"🎯 প্রেডিক্ট করুন":"🎯 Predict")}
+            {pred?`${pred.home_score}–${pred.away_score}`:(lang==="bn"?"প্রেডিক্ট করুন":"Predict")}
           </button>
         )}
         {st!=="up"&&pred&&(
           <div style={{flex:1,display:"flex",alignItems:"center",justifyContent:"center",gap:4,
             background:T.greenBg,borderRadius:10,padding:"7px",border:`1px solid ${T.greenBr}`}}>
-            <span style={{fontFamily:HS,fontSize:12,fontWeight:700,color:T.green}}>🎯 {pred.home_score}–{pred.away_score}</span>
+            <span style={{fontFamily:HS,fontSize:12,fontWeight:700,color:T.green}}>{pred.home_score}–{pred.away_score}</span>
             <span style={{fontFamily:HS,fontSize:10,color:T.textM}}>🔒</span>
           </div>
         )}
@@ -991,7 +991,7 @@ function MatchCard({m,T,lang,scores,myPreds,predsLoaded,setPredictM,onTeam,isAdm
 }
 
 /* ── Compact Match Row (for fixture list) ────── */
-function MatchRow({m,T,lang,scores,myPreds,setPredictM,onTeam,isAdmin,setScoreM}){
+function MatchRow({m,T,lang,scores,myPreds,predsLoaded,setPredictM,onTeam,isAdmin,setScoreM}){
   const[showAct,setShowAct]=useState(false);
   const sc=scores[m.id]||scores[String(m.id)];
   const hasScore=sc&&sc.hg!==""&&sc.ag!=="";
@@ -1028,14 +1028,14 @@ function MatchRow({m,T,lang,scores,myPreds,setPredictM,onTeam,isAdmin,setScoreM}
             <span style={{fontFamily:HS,fontSize:13,fontWeight:500,color:T.text,
               overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{tn(m.a,lang)}</span>
           </div>
-          {st==="up"&&(
+          {st==="up"&&predsLoaded&&(
             <button onClick={()=>setPredictM(m)} style={{
               flexShrink:0,background:pred?T.greenBg:T.card2,
               border:`1.5px solid ${pred?T.greenBr:T.border}`,
               borderRadius:8,padding:"4px 7px",cursor:"pointer",
               fontFamily:HS,fontSize:10,fontWeight:pred?700:400,
               color:pred?T.green:T.textS,whiteSpace:"nowrap"}}>
-              {pred?`🎯${pred.home_score}-${pred.away_score}`:(lang==="bn"?"🎯 প্রেডিক্ট":"🎯")}
+              {pred?`${pred.home_score}-${pred.away_score}`:(lang==="bn"?"প্রেডিক্ট":"Predict")}
             </button>
           )}
           {isAdmin&&<button onClick={()=>setShowAct(v=>!v)} style={{background:"transparent",border:"none",color:T.textM,fontSize:18,cursor:"pointer",padding:"0 2px",flexShrink:0}}>⋯</button>}
@@ -1107,7 +1107,7 @@ function Footer({T,lang}){
       <div style={{fontFamily:HS,fontSize:11,color:T.textS,fontWeight:600,marginBottom:4}}>{lang==="bn"?"ডেভেলপ করেছেন মাহবুব হাসান তন্ময়":"Developed by Mahbub Hasan Tonmoy"}</div>
       <div style={{fontFamily:HS,fontSize:10,color:T.textM,marginBottom:4}}>
         {lang==="bn"?"যেকোনো পরামর্শ, অভিযোগ বা যোগাযোগ: ":"For suggestions, complaints or contact: "}
-        <a href="mailto:khelakokhon@gmail.com" style={{color:T.green,textDecoration:"none",fontWeight:600}}>📧 khelakokhon@gmail.com</a>
+        <a href="mailto:khelakokhon@gmail.com" style={{color:T.green,textDecoration:"none",fontWeight:600}}>khelakokhon@gmail.com</a>
       </div>
       <div style={{fontFamily:HS,fontSize:10,color:T.textM}}>{lang==="bn"?"© ২০২৬ খেলা কখন? — সর্বস্বত্ব সংরক্ষিত।":"© 2026 Khela Kokhon? — All rights reserved."}</div>
     </div>
@@ -1293,7 +1293,7 @@ function TableTab({T,lang,scores}){
 }
 
 /* ── GroupTab ────────────────────────────────── */
-function GroupTab({T,lang,onTeam,scores,myPreds,setPredictM,isAdmin,setScoreM}){
+function GroupTab({T,lang,onTeam,scores,myPreds,predsLoaded,setPredictM,isAdmin,setScoreM}){
   const[ft,setFt]=useState(null);const[sf,setSf]=useState(false);const[sq,setSq]=useState("");
   const fil=ft?SORTED.filter(m=>m.h===ft||m.a===ft):SORTED;
   const grpd=useMemo(()=>{const mp={};fil.forEach(m=>{(mp[m.d]=mp[m.d]||[]).push(m);});return Object.entries(mp).sort((a,b)=>new Date(a[0])-new Date(b[0]));},[fil]);
@@ -1399,7 +1399,7 @@ function DeleteAccountBtn({T,lang}){
     </div>
   );
   return(
-    <button onClick={()=>setConfirm(true)} style={{background:T.card2,border:`1px solid ${T.red}44`,borderRadius:10,padding:"6px 12px",cursor:"pointer",fontFamily:HS,fontSize:11,color:T.red}}>🗑️ {lang==="bn"?"একাউন্ট মুছুন":"Delete account"}</button>
+    <button onClick={()=>setConfirm(true)} style={{background:T.card2,border:`1px solid ${T.red}44`,borderRadius:10,padding:"6px 12px",cursor:"pointer",fontFamily:HS,fontSize:11,color:T.red}}>{lang==="bn"?"একাউন্ট মুছুন":"Delete account"}</button>
   );
 }
 
@@ -1417,7 +1417,7 @@ function PredictionTab({T,lang,userName,onSave,myPreds,setMyPreds,scores,setPred
   if(!userName) return(
     <div style={{padding:"20px 12px 90px"}}>
       <div style={{background:T.card,borderRadius:20,padding:24,textAlign:"center",marginBottom:16}}>
-        <div style={{fontSize:44,marginBottom:12}}>🎯</div>
+        <div style={{fontSize:44,marginBottom:12}}>⚽</div>
         <div style={{fontFamily:HS,fontSize:18,fontWeight:800,color:T.text,marginBottom:8}}>{lang==="bn"?"প্রেডিকশন মাস্টার":"Prediction Master"}</div>
         <div style={{fontFamily:HS,fontSize:13,color:T.textS,marginBottom:20,lineHeight:1.6}}>{lang==="bn"?"প্রেডিক্ট করো। পয়েন্ট জেতো। লিডারবোর্ডে দেখিয়ে দাও তোমার নাম!":"Predict. Score. Climb the leaderboard."}</div>
         <div style={{display:"flex",gap:10,justifyContent:"center",marginBottom:24}}>
@@ -1427,7 +1427,7 @@ function PredictionTab({T,lang,userName,onSave,myPreds,setMyPreds,scores,setPred
             <div style={{fontFamily:HS,fontSize:16,fontWeight:800,color:T.green}}>১ পয়েন্ট</div>
           </div>
           <div style={{background:T.card2,borderRadius:12,padding:"12px 16px",textAlign:"center"}}>
-            <div style={{fontSize:22}}>🎯</div>
+            <div style={{fontSize:22}}>⚽</div>
             <div style={{fontFamily:HS,fontSize:11,color:T.textS,marginTop:4}}>{lang==="bn"?"সঠিক স্কোর":"Exact score"}</div>
             <div style={{fontFamily:HS,fontSize:16,fontWeight:800,color:T.gold}}>৩ পয়েন্ট</div>
           </div>
@@ -1466,7 +1466,7 @@ function PredictionTab({T,lang,userName,onSave,myPreds,setMyPreds,scores,setPred
                   <Flag en={m.h} size={30}/>
                   <span style={{fontFamily:HS,fontSize:13,fontWeight:500,color:T.text,flex:1}}>{tn(m.h,lang)}</span>
                   <button onClick={()=>setPredictM(m)} style={{background:pred?T.greenBg:T.card2,border:`1.5px solid ${pred?T.greenBr:T.border}`,borderRadius:10,padding:"6px 14px",cursor:"pointer",fontFamily:HS,fontSize:13,fontWeight:pred?700:400,color:pred?T.green:T.textS,minWidth:90,textAlign:"center"}}>
-                    {pred?`🎯 ${pred.home_score}–${pred.away_score}`:(lang==="bn"?"🎯 প্রেডিক্ট":"🎯 Predict")}
+                    {pred?`${pred.home_score}–${pred.away_score}`:(lang==="bn"?"প্রেডিক্ট":"Predict")}
                   </button>
                   <span style={{fontFamily:HS,fontSize:13,fontWeight:500,color:T.text,flex:1,textAlign:"right"}}>{tn(m.a,lang)}</span>
                   <Flag en={m.a} size={30}/>
@@ -1839,7 +1839,7 @@ function SetNameModal({T,lang,email,token,onSave,onClose}){
         <button onClick={save} disabled={loading||!name.trim()} style={{width:"100%",padding:13,
           borderRadius:12,border:"none",background:loading||!name.trim()?"#555":T.green,
           color:"#fff",fontFamily:HS,fontSize:15,fontWeight:700,cursor:"pointer"}}>
-          {loading?(lang==="bn"?"সংরক্ষণ...":"Saving..."):(lang==="bn"?"শুরু করো 🚀":"Start 🚀")}
+          {loading?(lang==="bn"?"সংরক্ষণ...":"Saving..."):(lang==="bn"?"শুরু করো":"Start")}
         </button>
       </div>
     </div>
@@ -2052,7 +2052,7 @@ export default function App(){
           </div>
           {/* Main tabs */}
           <div style={{display:"flex",borderTop:"1px solid rgba(255,255,255,0.1)"}}>
-            {[["home",lang==="bn"?"🏠 হোম":"🏠"],["wc",lang==="bn"?"🏆 বিশ্বকাপ":"🏆 WC"],["predict",lang==="bn"?"🎯 প্রেডিকশন":"🎯"],["lb",lang==="bn"?"🏅 লিডারবোর্ড":"🏅"]].map(([id,lb])=>(
+            {[["home",lang==="bn"?"🏠 হোম":"🏠"],["wc",lang==="bn"?"🏆 বিশ্বকাপ":"🏆 WC"],["predict",lang==="bn"?"🎯 প্রেডিকশন":"Predict"],["lb",lang==="bn"?"🏅 লিডারবোর্ড":"🏅"]].map(([id,lb])=>(
               <button key={id} onClick={()=>setMt(id)} style={{flex:1,background:"transparent",border:"none",borderBottom:`2.5px solid ${mt===id?"#fff":"transparent"}`,color:mt===id?"#fff":"rgba(255,255,255,0.45)",fontFamily:HS,fontSize:11,fontWeight:mt===id?700:400,padding:"10px 0",cursor:"pointer"}}>{lb}</button>
             ))}
           </div>
@@ -2068,7 +2068,7 @@ export default function App(){
 
         {/* Body */}
                 {mt==="home"&&<HomeTab T={T} lang={lang} favs={favs} setFavs={setFavs} onTeam={openTeam} setSM={setSm} scores={scores} myPreds={myPreds} setPredictM={handlePredict} setScoreM={setScoreM} isAdmin={isAdmin}/>}
-        {mt==="wc"&&wt==="fixture"&&<GroupTab T={T} lang={lang} onTeam={openTeam} scores={scores} myPreds={myPreds} setPredictM={handlePredict} isAdmin={isAdmin} setScoreM={setScoreM}/>}
+        {mt==="wc"&&wt==="fixture"&&<GroupTab T={T} lang={lang} onTeam={openTeam} scores={scores} myPreds={myPreds} predsLoaded={predsLoaded} setPredictM={handlePredict} isAdmin={isAdmin} setScoreM={setScoreM}/>}
         {mt==="wc"&&wt==="knockout"&&<KnockoutTab T={T} lang={lang} scores={scores}/>}
         {mt==="wc"&&wt==="table"&&<TableTab T={T} lang={lang} scores={scores}/>}
         {mt==="predict"&&<PredictionTab T={T} lang={lang} userName={userName} onSave={handleNameSave} myPreds={myPreds} setMyPreds={setMyPreds} scores={scores} setPredictM={setPredictM}/>}
