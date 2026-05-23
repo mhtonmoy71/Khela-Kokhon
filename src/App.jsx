@@ -1230,14 +1230,8 @@ function PredictionTab({T,lang,userName,onSave,myPreds,setMyPreds,scores,setPred
   const[lb,setLb]=useState([]);const[lbLoad,setLbLoad]=useState(false);
   useEffect(()=>{if(sub==="lb"){setLbLoad(true);getLB().then(data=>{const map={};data.forEach(r=>{if(!map[r.predictor_name])map[r.predictor_name]={name:r.predictor_name,total:0,count:0};map[r.predictor_name].total+=(r.points||0);map[r.predictor_name].count+=1;});setLb(Object.values(map).sort((a,b)=>b.total-a.total));setLbLoad(false);}).catch(()=>setLbLoad(false));};},[sub]);
 
-  const myPts=Object.entries(myPreds).reduce((sum,[mid,pred])=>{
-    const sc=scores[parseInt(mid)]||scores[mid];
-    if(!sc||sc.hg===""||sc.ag==="")return sum;
-    const ah=parseInt(sc.hg),aa=parseInt(sc.ag),ph=pred.home_score,pa=pred.away_score;
-    if(ph===ah&&pa===aa)return sum+3;
-    const ar=ah>aa?"h":ah<aa?"a":"d",pr=ph>pa?"h":ph<pa?"a":"d";
-    return ar===pr?sum+1:sum;
-  },0);
+  // Use points from Sheet directly (more accurate after auto-calculation)
+  const myPts=Object.values(myPreds).reduce((sum,pred)=>sum+(pred.points||0),0);
 
   const upcoming=SORTED.filter(m=>status(m)==="up");
   const medals=["🥇","🥈","🥉"];
