@@ -561,11 +561,9 @@ function PredictModal({m,T,lang,userName,myPreds,setMyPreds,onClose}){
     try{
       await upsertPred(userName,m.id,parseInt(hg),parseInt(ag));
       const np={home_score:parseInt(hg),away_score:parseInt(ag),points:0};
-      setMyPreds(p=>{
-        const nm={...p,[m.id]:np,[String(m.id)]:np};
-        try{localStorage.setItem("kk_preds_"+userName,JSON.stringify(nm));}catch(e){}
-        return nm;
-      });
+      const newPreds={...myPreds,[m.id]:np,[String(m.id)]:np,[Number(m.id)]:np};
+      setMyPreds(newPreds);
+      try{localStorage.setItem("kk_preds_"+userName,JSON.stringify(newPreds));}catch(e){}
       onClose();
     }catch(e){alert("Error: "+e.message);}
     setSaving(false);
@@ -1917,20 +1915,8 @@ export default function App(){
   const[sm,setSm]=useState(false);
   const[scores,setScores]=useState({});
   const[userName,setUserName]=useState(()=>localStorage.getItem("kk_user")||"");
-  const[myPreds,setMyPreds]=useState(()=>{
-    try{
-      const u=localStorage.getItem("kk_user");
-      if(u){const c=localStorage.getItem("kk_preds_"+u);if(c)return JSON.parse(c);}
-    }catch(e){}
-    return {};
-  });
-  const[predsLoaded,setPredsLoaded]=useState(()=>{
-    try{
-      const u=localStorage.getItem("kk_user");
-      if(u&&localStorage.getItem("kk_preds_"+u))return true;
-    }catch(e){}
-    return false;
-  });
+  const[myPreds,setMyPreds]=useState({});
+  const[predsLoaded,setPredsLoaded]=useState(false);
   const[predictM,setPredictM]=useState(null);
   const[needName,setNeedName]=useState(null);
   const[scoreM,setScoreM]=useState(null);
@@ -1948,16 +1934,6 @@ export default function App(){
   },[]);
   useEffect(()=>{
     if(!userName){setPredsLoaded(true);return;}
-    // Load from localStorage instantly
-    try{
-      const cached=localStorage.getItem("kk_preds_"+userName);
-      if(cached){
-        const cm=JSON.parse(cached);
-        setMyPreds(cm);
-        setPredsLoaded(true);
-      }
-    }catch(e){}
-    // Sync from Sheet in background
     getPreds(userName).then(data=>{
       const m={};
       data.forEach(p=>{
@@ -1968,7 +1944,6 @@ export default function App(){
       });
       setMyPreds(m);
       setPredsLoaded(true);
-      try{localStorage.setItem("kk_preds_"+userName,JSON.stringify(m));}catch(e){}
     }).catch(()=>setPredsLoaded(true));
   },[userName]);
   useEffect(()=>{
