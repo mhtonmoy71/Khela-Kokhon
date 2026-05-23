@@ -330,121 +330,131 @@ function getFlagEmoji(code){
   return String.fromCodePoint(...[...code.toUpperCase()].map(c=>0x1F1E6+c.charCodeAt(0)-65));
 }
 function shareM(m,lang){
-  const canvas=document.createElement("canvas");
-  const W=800,H=420;
-  canvas.width=W;canvas.height=H;
-  const ctx=canvas.getContext("2d");
+  const homeEN=m.h||"TBD", awayEN=m.a||"TBD";
+  const homeBN=tn(m.h,"bn")||homeEN, awayBN=tn(m.a,"bn")||awayEN;
+  const homeFl=getFlagEmoji(m.h), awayFl=getFlagEmoji(m.a);
+  const dateStr=dl(m.d,lang), timeStr=`${m.t} BST`;
+  const grp=m.g?`Group ${m.g}`:(m.id>72?"Knockout":"");
 
-  // Background gradient
-  const bg=ctx.createLinearGradient(0,0,W,H);
-  bg.addColorStop(0,"#060c18");bg.addColorStop(1,"#0d1f35");
-  ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
+  // SVG card — 1200×630 (OG standard, high res)
+  const svg=`<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1200" y2="630" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#060c18"/>
+      <stop offset="100%" stop-color="#0d1f35"/>
+    </linearGradient>
+    <linearGradient id="pill" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#00e676" stop-opacity="0.15"/>
+      <stop offset="100%" stop-color="#059669" stop-opacity="0.15"/>
+    </linearGradient>
+  </defs>
 
-  // Top green bar
-  ctx.fillStyle="#00e676";ctx.fillRect(0,0,W,5);
-  ctx.fillRect(0,H-5,W,5);
+  <!-- BG -->
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <!-- Green bars -->
+  <rect width="1200" height="7" fill="#00e676"/>
+  <rect y="623" width="1200" height="7" fill="#00e676"/>
+  <!-- Side accents -->
+  <rect width="4" height="630" fill="rgba(0,230,118,0.2)"/>
+  <rect x="1196" width="4" height="630" fill="rgba(0,230,118,0.2)"/>
 
-  // Side accent lines
-  ctx.fillStyle="rgba(0,230,118,0.15)";
-  ctx.fillRect(0,0,3,H);ctx.fillRect(W-3,0,3,H);
+  <!-- Home team box -->
+  <rect x="40" y="90" width="430" height="380" rx="20" fill="rgba(255,255,255,0.03)" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
+  <!-- Away team box -->
+  <rect x="730" y="90" width="430" height="380" rx="20" fill="rgba(255,255,255,0.03)" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
 
-  // Center circle VS
-  ctx.beginPath();ctx.arc(W/2,H/2,55,0,Math.PI*2);
-  ctx.fillStyle="rgba(0,230,118,0.08)";ctx.fill();
-  ctx.strokeStyle="#00e676";ctx.lineWidth=1.5;ctx.stroke();
-  ctx.fillStyle="#00e676";ctx.font="bold 26px 'Arial'";
-  ctx.textAlign="center";ctx.textBaseline="middle";
-  ctx.fillText("VS",W/2,H/2);
+  <!-- VS circle -->
+  <circle cx="600" cy="295" r="70" fill="rgba(0,230,118,0.06)" stroke="#00e676" stroke-width="2"/>
+  <text x="600" y="308" font-family="Arial Black,Arial" font-size="36" font-weight="900" fill="#00e676" text-anchor="middle">VS</text>
 
-  // Home team box
-  ctx.fillStyle="rgba(255,255,255,0.04)";
-  ctx.beginPath();ctx.roundRect(30,80,330,260,16);ctx.fill();
+  <!-- Home flag -->
+  <text x="255" y="265" font-family="Segoe UI Emoji,Apple Color Emoji,Noto Color Emoji,sans-serif" font-size="120" text-anchor="middle">${homeFl}</text>
+  <!-- Home name EN -->
+  <text x="255" y="345" font-family="Arial Black,Arial" font-size="38" font-weight="900" fill="#ffffff" text-anchor="middle">${homeEN}</text>
+  <!-- Home name BN -->
+  <text x="255" y="390" font-family="Arial" font-size="24" fill="rgba(255,255,255,0.5)" text-anchor="middle">${homeBN}</text>
 
-  // Away team box
-  ctx.beginPath();ctx.roundRect(W-360,80,330,260,16);ctx.fill();
+  <!-- Away flag -->
+  <text x="945" y="265" font-family="Segoe UI Emoji,Apple Color Emoji,Noto Color Emoji,sans-serif" font-size="120" text-anchor="middle">${awayFl}</text>
+  <!-- Away name EN -->
+  <text x="945" y="345" font-family="Arial Black,Arial" font-size="38" font-weight="900" fill="#ffffff" text-anchor="middle">${awayEN}</text>
+  <!-- Away name BN -->
+  <text x="945" y="390" font-family="Arial" font-size="24" fill="rgba(255,255,255,0.5)" text-anchor="middle">${awayBN}</text>
 
-  // Team names
-  const homeEN=m.h||"TBD";
-  const awayEN=m.a||"TBD";
-  const homeBN=tn(m.h,"bn")||homeEN;
-  const awayBN=tn(m.a,"bn")||awayEN;
+  <!-- Date/time pill -->
+  <rect x="350" y="495" width="500" height="60" rx="30" fill="url(#pill)" stroke="rgba(0,230,118,0.4)" stroke-width="1.5"/>
+  <text x="600" y="532" font-family="Arial" font-size="22" font-weight="700" fill="#00e676" text-anchor="middle">📅 ${dateStr}  ·  🕐 ${timeStr}</text>
 
-  // Home team
-  ctx.fillStyle="#ffffff";ctx.font="bold 36px Arial";
-  ctx.textAlign="center";ctx.textBaseline="middle";
-  ctx.fillText(homeEN,195,185);
-  ctx.fillStyle="rgba(255,255,255,0.5)";ctx.font="20px Arial";
-  ctx.fillText(homeBN,195,225);
+  <!-- Group badge -->
+  ${grp?`<rect x="520" y="405" width="160" height="32" rx="16" fill="rgba(255,255,255,0.07)"/>
+  <text x="600" y="426" font-family="Arial" font-size="15" fill="rgba(255,255,255,0.4)" text-anchor="middle">${grp}</text>`:""}
 
-  // Away team
-  ctx.fillStyle="#ffffff";ctx.font="bold 36px Arial";
-  ctx.fillText(awayEN,W-195,185);
-  ctx.fillStyle="rgba(255,255,255,0.5)";ctx.font="20px Arial";
-  ctx.fillText(awayBN,W-195,225);
+  <!-- KK Logo top left -->
+  <circle cx="52" cy="44" r="28" fill="#064e3b" stroke="#00e676" stroke-width="2"/>
+  <text x="46" y="56" font-family="sans-serif" font-size="28" font-weight="900" fill="rgba(255,255,255,0.2)">খ</text>
+  <text x="62" y="64" font-family="Arial" font-size="16" font-weight="900" fill="#f59e0b">?</text>
+  <!-- Lines on clock -->
+  <line x1="52" y1="18" x2="52" y2="24" stroke="rgba(255,255,255,0.4)" stroke-width="2"/>
+  <line x1="52" y1="64" x2="52" y2="70" stroke="rgba(255,255,255,0.4)" stroke-width="2"/>
+  <line x1="26" y1="44" x2="32" y2="44" stroke="rgba(255,255,255,0.4)" stroke-width="2"/>
+  <line x1="72" y1="44" x2="78" y2="44" stroke="rgba(255,255,255,0.4)" stroke-width="2"/>
+  <!-- Clock hands -->
+  <line x1="52" y1="44" x2="52" y2="30" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/>
+  <line x1="52" y1="44" x2="62" y2="38" stroke="#00e676" stroke-width="2" stroke-linecap="round"/>
+  <circle cx="52" cy="44" r="2.5" fill="#00e676"/>
 
-  // Match time box
-  const timeText=`${dl(m.d,lang)}  ·  ${m.t} BST`;
-  ctx.fillStyle="rgba(0,230,118,0.1)";
-  ctx.strokeStyle="rgba(0,230,118,0.4)";ctx.lineWidth=1;
-  ctx.beginPath();ctx.roundRect(W/2-200,H-100,400,50,25);
-  ctx.fill();ctx.stroke();
-  ctx.fillStyle="#00e676";ctx.font="bold 18px Arial";
-  ctx.textAlign="center";ctx.textBaseline="middle";
-  ctx.fillText(timeText,W/2,H-75);
+  <!-- Brand name -->
+  <text x="92" y="38" font-family="Arial Black,Arial" font-size="22" font-weight="900" fill="#00e676">খেলা কখন?</text>
+  <text x="92" y="60" font-family="Arial" font-size="14" fill="rgba(255,255,255,0.3)">FIFA World Cup 2026</text>
 
-  // Group/Round badge
-  if(m.g){
-    ctx.fillStyle="rgba(255,255,255,0.08)";
-    ctx.beginPath();ctx.roundRect(W/2-60,H/2+70,120,30,15);ctx.fill();
-    ctx.fillStyle="rgba(255,255,255,0.4)";ctx.font="13px Arial";
-    ctx.fillText(`Group ${m.g}`,W/2,H/2+85);
-  }
+  <!-- Match number -->
+  <text x="1160" y="38" font-family="Arial" font-size="14" fill="rgba(255,255,255,0.25)" text-anchor="end">#${m.id}</text>
 
-  // Branding
-  ctx.fillStyle="#00e676";ctx.font="bold 20px Arial";
-  ctx.textAlign="left";ctx.textBaseline="middle";
-  ctx.fillText("খেলা কখন?",24,30);
-  ctx.fillStyle="rgba(255,255,255,0.25)";ctx.font="13px Arial";
-  ctx.fillText("FIFA World Cup 2026",24,52);
+  <!-- URL -->
+  <text x="1160" y="614" font-family="Arial" font-size="15" fill="rgba(255,255,255,0.2)" text-anchor="end">khelakokhon.com</text>
+</svg>`;
 
-  // URL
-  ctx.fillStyle="rgba(255,255,255,0.2)";ctx.font="13px Arial";
-  ctx.textAlign="right";
-  ctx.fillText("khelakokhon.com",W-24,H-20);
-
-  // Match number
-  if(m.id){
-    ctx.fillStyle="rgba(255,255,255,0.2)";ctx.font="13px Arial";
-    ctx.textAlign="right";ctx.textBaseline="middle";
-    ctx.fillText(`#${m.id}`,W-24,30);
-  }
-
-  // Share
-  canvas.toBlob(async blob=>{
-    if(!blob)return;
-    const file=new File([blob],"khelakokhon-match.png",{type:"image/png"});
-    const shareText=`⚽ ${homeEN} vs ${awayEN}
-📅 ${dl(m.d,lang)} · 🕐 ${m.t} BST
-khelakokhon.com`;
-    try{
-      if(navigator.share&&navigator.canShare&&navigator.canShare({files:[file]})){
-        await navigator.share({files:[file],title:"খেলা কখন?",text:shareText});
-      } else if(navigator.share){
-        await navigator.share({title:"খেলা কখন?",text:shareText,url:"https://khelakokhon.com"});
-      } else {
+  // SVG → Canvas → PNG
+  const svgBlob=new Blob([svg],{type:"image/svg+xml;charset=utf-8"});
+  const url=URL.createObjectURL(svgBlob);
+  const img=new Image();
+  img.onload=async()=>{
+    const canvas=document.createElement("canvas");
+    canvas.width=1200;canvas.height=630;
+    const ctx=canvas.getContext("2d");
+    ctx.drawImage(img,0,0,1200,630);
+    URL.revokeObjectURL(url);
+    canvas.toBlob(async blob=>{
+      if(!blob)return;
+      const file=new File([blob],"khelakokhon-match.png",{type:"image/png"});
+      const shareText=`⚽ ${homeEN} vs ${awayEN}\n📅 ${dateStr} · 🕐 ${timeStr}\nkhelakokhon.com`;
+      try{
+        if(navigator.share&&navigator.canShare&&navigator.canShare({files:[file]})){
+          await navigator.share({files:[file],title:"খেলা কখন?",text:shareText});
+        } else if(navigator.share){
+          await navigator.share({title:"খেলা কখন?",text:shareText,url:"https://khelakokhon.com"});
+        } else {
+          const a=document.createElement("a");
+          a.href=URL.createObjectURL(blob);
+          a.download=`${homeEN}-vs-${awayEN}.png`;
+          a.click();
+        }
+      }catch(e){
         const a=document.createElement("a");
         a.href=URL.createObjectURL(blob);
         a.download=`${homeEN}-vs-${awayEN}.png`;
         a.click();
       }
-    }catch(e){
-      const a=document.createElement("a");
-      a.href=URL.createObjectURL(blob);
-      a.download=`${homeEN}-vs-${awayEN}.png`;
-      a.click();
-    }
-  },"image/png");
+    },"image/png");
+  };
+  img.onerror=()=>{
+    // Fallback to text share
+    const shareText=`⚽ ${homeEN} vs ${awayEN}\n📅 ${dateStr} · 🕐 ${timeStr}\nkhelakokhon.com`;
+    if(navigator.share)navigator.share({title:"খেলা কখন?",text:shareText,url:"https://khelakokhon.com"}).catch(()=>{});
+  };
+  img.src=url;
 }
+
 function getPred(myPreds,id){return myPreds[id]||myPreds[String(id)]||myPreds[Number(id)];}
 
 /* ── Standings ───────────────────────────────── */
