@@ -1294,39 +1294,8 @@ function GroupTab({T,lang,onTeam,scores,myPreds,setPredictM,isAdmin,setScoreM}){
   const fil=ft?SORTED.filter(m=>m.h===ft||m.a===ft):SORTED;
   const grpd=useMemo(()=>{const mp={};fil.forEach(m=>{(mp[m.d]=mp[m.d]||[]).push(m);});return Object.entries(mp).sort((a,b)=>new Date(a[0])-new Date(b[0]));},[fil]);
   const sr=AT.filter(en=>en.toLowerCase().includes(sq.toLowerCase())||(TEAMS[en]?.bn||"").includes(sq));
-  const searchLower=search.toLowerCase();
-  const matchedTeams=search?Object.keys(TEAMS).filter(k=>
-    (TEAMS[k]?.en||k).toLowerCase().includes(searchLower)||(TEAMS[k]?.bn||"").includes(search)
-  ):[];
-
   return(
     <div>
-      {/* Search bar */}
-      <div style={{padding:"10px 12px 0"}}>
-        <div style={{display:"flex",alignItems:"center",gap:8,background:T.card2,border:`1px solid ${T.border}`,borderRadius:12,padding:"8px 12px"}}>
-          <span style={{fontSize:14,opacity:0.5}}>🔍</span>
-          <input value={search} onChange={e=>setSearch(e.target.value)}
-            placeholder={lang==="bn"?"দল বা ম্যাচ খুঁজুন...":"Search teams or matches..."}
-            style={{flex:1,background:"transparent",border:"none",outline:"none",fontFamily:HS,fontSize:13,color:T.text}}/>
-          {search&&<button onClick={()=>setSearch("")} style={{background:"transparent",border:"none",cursor:"pointer",fontSize:14,color:T.textM}}>✕</button>}
-        </div>
-      </div>
-      {search&&(
-        <div style={{padding:"8px 12px"}}>
-          {matchedTeams.length===0?(
-            <div style={{fontFamily:HS,fontSize:13,color:T.textM,textAlign:"center",padding:20}}>{lang==="bn"?"কোনো দল পাওয়া যায়নি":"No teams found"}</div>
-          ):matchedTeams.map(k=>(
-            <div key={k} onClick={()=>onTeam(k)} style={{display:"flex",alignItems:"center",gap:10,background:T.card,borderRadius:12,padding:"10px 12px",marginBottom:6,cursor:"pointer",border:`1px solid ${T.border}`}}>
-              <Flag en={k} size={32}/>
-              <div>
-                <div style={{fontFamily:HS,fontSize:14,fontWeight:600,color:T.text}}>{tn(k,lang)}</div>
-                <div style={{fontFamily:HS,fontSize:11,color:T.textM}}>Group {TEAMS[k]?.g||""}</div>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-      {!search&&(
       <div style={{background:T.card,padding:"10px 12px",borderBottom:`1px solid ${T.border}`}}>
         <div style={{display:"flex",gap:8}}>
           <button onClick={()=>{setSf(true);setSq("");}} style={{display:"flex",alignItems:"center",gap:6,background:ft?T.greenBg:T.card2,border:`1.5px solid ${ft?T.greenBr:T.border}`,borderRadius:20,padding:"7px 14px",cursor:"pointer",fontFamily:HS,fontSize:13,fontWeight:ft?700:400,color:ft?T.green:T.textS}}>
@@ -1366,7 +1335,6 @@ function GroupTab({T,lang,onTeam,scores,myPreds,setPredictM,isAdmin,setScoreM}){
         </div>
       )}
     </div>
-      )}
     </div>
   );
 }
