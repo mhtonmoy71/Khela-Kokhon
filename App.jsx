@@ -1327,7 +1327,7 @@ function GroupTab({T,lang,onTeam,scores,myPreds,setPredictM,isAdmin,setScoreM}){
                 <div key={en} onClick={()=>{setFt(en);setSf(false);}} style={{display:"flex",alignItems:"center",gap:12,padding:"10px 4px",borderBottom:`1px solid ${T.border}`,cursor:"pointer",background:ft===en?T.greenBg:"transparent",borderRadius:ft===en?8:0}}>
                   <Flag en={en} size={36}/>
                   <span style={{fontFamily:HS,fontSize:15,color:T.text,fontWeight:ft===en?700:400}}>{tn(en,lang)}</span>
-                  {ft===en&&<span style={{marginLeft:"auto",color:T.green,fontSize:18}}>✓</span>}
+                  {ft===en&&<span style={{marginLeft:"auto",color:T.green,fontSize:18}}>&#10003;</span>}
                 </div>
               ))}
             </div>
