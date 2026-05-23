@@ -49,7 +49,7 @@ function gasJsonp(params) {
     const timeout = setTimeout(() => {
       cleanup();
       reject(new Error("Timeout"));
-    }, 12000);
+    }, 3000);
     function cleanup() {
       clearTimeout(timeout);
       delete window[cbName];
