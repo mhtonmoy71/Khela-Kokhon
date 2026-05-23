@@ -1404,7 +1404,17 @@ function NewsTab({T,lang,userName}){
   const[likedPosts,setLikedPosts]=useState({});
 
   useEffect(()=>{
-    getNews().then(data=>{setNews(data);setLoading(false);}).catch(()=>setLoading(false));
+    getNews().then(async data=>{
+      setNews(data);
+      setLoading(false);
+      // Load all comments at once
+      const allComments = {};
+      await Promise.all(data.map(async n=>{
+        const c = await getComments(n.id).catch(()=>[]);
+        allComments[n.id] = c;
+      }));
+      setComments(allComments);
+    }).catch(()=>setLoading(false));
   },[]);
 
   const loadComments=async(id)=>{
