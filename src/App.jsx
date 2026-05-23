@@ -1262,7 +1262,7 @@ function PredictionTab({T,lang,userName,onSave,myPreds,setMyPreds,scores,setPred
   return(
     <div>
       <div style={{display:"flex",background:T.card,borderBottom:`1px solid ${T.border}`}}>
-        {[["matches",lang==="bn"?"ম্যাচ":"Matches"],["lb",lang==="bn"?"লিডারবোর্ড":"Leaderboard"]].map(([k,l])=>(
+        {[["matches",lang==="bn"?"ম্যাচ":"Matches"],["history",lang==="bn"?"ইতিহাস":"History"],["lb",lang==="bn"?"লিডারবোর্ড":"Leaderboard"]].map(([k,l])=>(
           <button key={k} onClick={()=>setSub(k)} style={{flex:1,background:"transparent",border:"none",borderBottom:`2.5px solid ${sub===k?T.green:"transparent"}`,color:sub===k?T.green:T.textM,fontFamily:HS,fontSize:13,fontWeight:sub===k?700:400,padding:"11px 0",cursor:"pointer"}}>{l}</button>
         ))}
       </div>
@@ -1292,6 +1292,57 @@ function PredictionTab({T,lang,userName,onSave,myPreds,setMyPreds,scores,setPred
                   </button>
                   <span style={{fontFamily:HS,fontSize:13,fontWeight:500,color:T.text,flex:1,textAlign:"right"}}>{tn(m.a,lang)}</span>
                   <Flag en={m.a} size={30}/>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+      {sub==="history"&&(
+        <div style={{paddingBottom:90}}>
+          <div style={{background:T.card,padding:"12px 14px",marginBottom:6,display:"flex",alignItems:"center",gap:10}}>
+            <div style={{width:42,height:42,borderRadius:"50%",background:T.greenBg,border:`2px solid ${T.greenBr}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,flexShrink:0}}>👤</div>
+            <div style={{flex:1}}>
+              <div style={{fontFamily:HS,fontSize:15,fontWeight:700,color:T.text}}>{userName}</div>
+              <div style={{fontFamily:HS,fontSize:12,color:T.textS}}>{Object.keys(myPreds).filter(k=>!isNaN(k)).length} {lang==="bn"?"টি প্রেডিকশন":"predictions"} · <span style={{color:T.green,fontWeight:700}}>{myPts} pts</span></div>
+            </div>
+          </div>
+          {Object.entries(myPreds).filter(([mid])=>!isNaN(mid)).length===0&&(
+            <div style={{textAlign:"center",padding:40,fontFamily:HS,color:T.textM}}>{lang==="bn"?"কোনো প্রেডিকশন নেই":"No predictions yet"}</div>
+          )}
+          {Object.entries(myPreds).filter(([mid])=>!isNaN(Number(mid))).map(([mid,pred])=>{
+            const m=[...MATCHES,...R32,...R16,...QF,...SF,...FINAL].find(x=>String(x.id)===String(mid));
+            if(!m)return null;
+            const sc=scores[mid]||scores[String(mid)];
+            const hasScore=sc&&sc.hg!==""&&sc.ag!=="";
+            const pts=pred.points||0;
+            const isExact=hasScore&&Number(sc.hg)===pred.home_score&&Number(sc.ag)===pred.away_score;
+            const isCorrect=hasScore&&!isExact&&pts>0;
+            return(
+              <div key={mid} style={{background:T.card,marginBottom:6,padding:"12px 14px",borderLeft:`3px solid ${pts===3?T.gold:pts===1?T.green:hasScore?"#e53935":"transparent"}`}}>
+                <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
+                  <span style={{fontFamily:HS,fontSize:11,color:T.textM}}>{m.g&&m.g.length===1?`Group ${m.g}`:m.venue||""} · {dls(m.d,lang)}</span>
+                  {hasScore?(
+                    <span style={{fontFamily:HS,fontSize:12,fontWeight:700,background:pts===3?`rgba(245,166,35,0.15)`:pts===1?T.greenBg:"rgba(229,57,53,0.1)",color:pts===3?T.gold:pts===1?T.green:"#e53935",padding:"2px 10px",borderRadius:20}}>
+                      {pts===3?"🎯 +3":pts===1?"✅ +1":"❌ 0"} pts
+                    </span>
+                  ):(
+                    <span style={{fontFamily:HS,fontSize:11,background:T.card2,color:T.textM,padding:"2px 10px",borderRadius:20}}>⏳ {lang==="bn"?"অপেক্ষায়":"Pending"}</span>
+                  )}
+                </div>
+                <div style={{display:"flex",alignItems:"center",gap:8}}>
+                  {TEAMS[m.h]&&<Flag en={m.h} size={28}/>}
+                  <div style={{flex:1}}>
+                    <span style={{fontFamily:HS,fontSize:13,fontWeight:500,color:T.text}}>{m.g&&m.g.length===1?tn(m.h,lang):(m.h||"TBD")}</span>
+                  </div>
+                  <div style={{textAlign:"center",minWidth:80}}>
+                    <div style={{fontFamily:HS,fontSize:13,fontWeight:700,color:T.textM}}>{lang==="bn"?"আমার":"My"}: <span style={{color:T.green}}>{pred.home_score}–{pred.away_score}</span></div>
+                    {hasScore&&<div style={{fontFamily:HS,fontSize:11,color:T.textS}}>{lang==="bn"?"ফলাফল":"Result"}: <span style={{color:T.text,fontWeight:600}}>{sc.hg}–{sc.ag}</span></div>}
+                  </div>
+                  <div style={{flex:1,textAlign:"right"}}>
+                    <span style={{fontFamily:HS,fontSize:13,fontWeight:500,color:T.text}}>{m.g&&m.g.length===1?tn(m.a,lang):(m.a||"TBD")}</span>
+                  </div>
+                  {TEAMS[m.a]&&<Flag en={m.a} size={28}/>}
                 </div>
               </div>
             );
