@@ -960,7 +960,7 @@ function MatchCard({m,T,lang,scores,myPreds,setPredictM,onTeam,isAdmin,setScoreM
       )}
 
       {/* Action bar */}
-      {st==="up"&&cd&&!cd.done&&cd.days===0&&cd.hours===0&&cd.mins<30&&(
+      {st==="up"&&cd&&cd.done===false&&cd.days===0&&cd.hours===0&&cd.mins<30&&(
         <div style={{background:"rgba(245,158,11,0.1)",border:"1px solid rgba(245,158,11,0.3)",borderRadius:10,margin:"0 12px 6px",padding:"6px 12px",display:"flex",alignItems:"center",gap:6}}>
           <span style={{fontSize:14}}>⚠️</span>
           <span style={{fontFamily:HS,fontSize:11,color:"#f59e0b",fontWeight:600}}>{lang==="bn"?`ম্যাচ শুরু হতে মাত্র ${cd.mins} মিনিট ${cd.secs} সেকেন্ড বাকি!`:`Only ${cd.mins}m ${cd.secs}s left to predict!`}</span>
