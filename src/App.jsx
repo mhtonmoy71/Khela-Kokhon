@@ -333,102 +333,114 @@ function getTwemojiUrl(cc){
     return `https://cdn.jsdelivr.net/npm/twemoji@14.0.2/assets/svg/${c1}-${c2}.svg`;
   }catch{return "";}
 }
-function shareM(m,lang){
+async function shareM(m,lang){
   const homeEN=m.h||"TBD", awayEN=m.a||"TBD";
   const homeBN=tn(m.h,"bn")||homeEN, awayBN=tn(m.a,"bn")||awayEN;
   const homeFl=getTwemojiUrl(m.h), awayFl=getTwemojiUrl(m.a);
   const dateStr=dl(m.d,lang), timeStr=`${m.t} BST`;
   const grp=m.g?`Group ${m.g}`:(m.id>72?"Knockout":"");
 
-  // SVG card — 1200×630 (OG standard, high res)
-  const svg=`<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
-  <defs>
-    <linearGradient id="bg" x1="0" y1="0" x2="1200" y2="630" gradientUnits="userSpaceOnUse">
-      <stop offset="0%" stop-color="#060c18"/>
-      <stop offset="100%" stop-color="#0d1f35"/>
-    </linearGradient>
-    <linearGradient id="pill" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0%" stop-color="#00e676" stop-opacity="0.15"/>
-      <stop offset="100%" stop-color="#059669" stop-opacity="0.15"/>
-    </linearGradient>
-  </defs>
+  // Load flags first, then render SVG
+  const loadImg=url=>new Promise((res)=>{
+    const i=new Image();i.crossOrigin="anonymous";
+    i.onload=()=>res(i);i.onerror=()=>res(null);
+    i.src=url;
+  });
 
-  <!-- BG -->
-  <rect width="1200" height="630" fill="url(#bg)"/>
-  <!-- Green bars -->
-  <rect width="1200" height="7" fill="#00e676"/>
-  <rect y="623" width="1200" height="7" fill="#00e676"/>
-  <!-- Side accents -->
-  <rect width="4" height="630" fill="rgba(0,230,118,0.2)"/>
-  <rect x="1196" width="4" height="630" fill="rgba(0,230,118,0.2)"/>
+  const [hImg,aImg]=await Promise.all([
+    homeFl?loadImg(homeFl):Promise.resolve(null),
+    awayFl?loadImg(awayFl):Promise.resolve(null)
+  ]);
 
-  <!-- Home team box -->
-  <rect x="40" y="90" width="430" height="380" rx="20" fill="rgba(255,255,255,0.03)" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
-  <!-- Away team box -->
-  <rect x="730" y="90" width="430" height="380" rx="20" fill="rgba(255,255,255,0.03)" stroke="rgba(255,255,255,0.06)" stroke-width="1"/>
+  // Draw on canvas directly (no SVG)
+  const canvas=document.createElement("canvas");
+  const W=1200,H=630;canvas.width=W;canvas.height=H;
+  const ctx=canvas.getContext("2d");
 
-  <!-- VS circle -->
-  <circle cx="600" cy="295" r="70" fill="rgba(0,230,118,0.06)" stroke="#00e676" stroke-width="2"/>
-  <text x="600" y="308" font-family="Arial Black,Arial" font-size="36" font-weight="900" fill="#00e676" text-anchor="middle">VS</text>
+  // BG gradient
+  const bgG=ctx.createLinearGradient(0,0,W,H);
+  bgG.addColorStop(0,"#060c18");bgG.addColorStop(1,"#0d1f35");
+  ctx.fillStyle=bgG;ctx.fillRect(0,0,W,H);
 
-  <!-- Home flag -->
-  <image href="${homeFl}" x="135" y="130" width="120" height="120"/>
-  <!-- Home name EN -->
-  <text x="255" y="300" font-family="Arial Black,Arial" font-size="38" font-weight="900" fill="#ffffff" text-anchor="middle">${homeEN}</text>
-  <!-- Home name BN -->
-  <text x="255" y="340" font-family="Arial" font-size="24" fill="rgba(255,255,255,0.5)" text-anchor="middle">${homeBN}</text>
+  // Green bars
+  ctx.fillStyle="#00e676";ctx.fillRect(0,0,W,7);ctx.fillRect(0,H-7,W,7);
 
-  <!-- Away flag -->
-  <image href="${awayFl}" x="885" y="130" width="120" height="120"/>
-  <!-- Away name EN -->
-  <text x="945" y="300" font-family="Arial Black,Arial" font-size="38" font-weight="900" fill="#ffffff" text-anchor="middle">${awayEN}</text>
-  <!-- Away name BN -->
-  <text x="945" y="340" font-family="Arial" font-size="24" fill="rgba(255,255,255,0.5)" text-anchor="middle">${awayBN}</text>
+  // Side accents
+  ctx.fillStyle="rgba(0,230,118,0.2)";ctx.fillRect(0,0,4,H);ctx.fillRect(W-4,0,4,H);
 
-  <!-- Date/time pill -->
-  <rect x="350" y="495" width="500" height="60" rx="30" fill="url(#pill)" stroke="rgba(0,230,118,0.4)" stroke-width="1.5"/>
-  <text x="600" y="532" font-family="Arial" font-size="22" font-weight="700" fill="#00e676" text-anchor="middle">📅 ${dateStr}  ·  🕐 ${timeStr}</text>
+  // Team boxes
+  ctx.fillStyle="rgba(255,255,255,0.03)";ctx.strokeStyle="rgba(255,255,255,0.06)";ctx.lineWidth=1;
+  ctx.beginPath();ctx.roundRect(40,90,430,380,20);ctx.fill();ctx.stroke();
+  ctx.beginPath();ctx.roundRect(730,90,430,380,20);ctx.fill();ctx.stroke();
 
-  <!-- Group badge -->
-  ${grp?`<rect x="520" y="405" width="160" height="32" rx="16" fill="rgba(255,255,255,0.07)"/>
-  <text x="600" y="426" font-family="Arial" font-size="15" fill="rgba(255,255,255,0.4)" text-anchor="middle">${grp}</text>`:""}
+  // VS circle
+  ctx.beginPath();ctx.arc(W/2,H/2-20,70,0,Math.PI*2);
+  ctx.fillStyle="rgba(0,230,118,0.06)";ctx.fill();
+  ctx.strokeStyle="#00e676";ctx.lineWidth=2;ctx.stroke();
+  ctx.fillStyle="#00e676";ctx.font="bold 34px Arial Black,Arial";
+  ctx.textAlign="center";ctx.textBaseline="middle";ctx.fillText("VS",W/2,H/2-20);
 
-  <!-- KK Logo top left -->
-  <circle cx="52" cy="44" r="28" fill="#064e3b" stroke="#00e676" stroke-width="2"/>
-  <text x="46" y="56" font-family="sans-serif" font-size="28" font-weight="900" fill="rgba(255,255,255,0.2)">খ</text>
-  <text x="62" y="64" font-family="Arial" font-size="16" font-weight="900" fill="#f59e0b">?</text>
-  <!-- Lines on clock -->
-  <line x1="52" y1="18" x2="52" y2="24" stroke="rgba(255,255,255,0.4)" stroke-width="2"/>
-  <line x1="52" y1="64" x2="52" y2="70" stroke="rgba(255,255,255,0.4)" stroke-width="2"/>
-  <line x1="26" y1="44" x2="32" y2="44" stroke="rgba(255,255,255,0.4)" stroke-width="2"/>
-  <line x1="72" y1="44" x2="78" y2="44" stroke="rgba(255,255,255,0.4)" stroke-width="2"/>
-  <!-- Clock hands -->
-  <line x1="52" y1="44" x2="52" y2="30" stroke="#fff" stroke-width="2.5" stroke-linecap="round"/>
-  <line x1="52" y1="44" x2="62" y2="38" stroke="#00e676" stroke-width="2" stroke-linecap="round"/>
-  <circle cx="52" cy="44" r="2.5" fill="#00e676"/>
+  // Flags
+  if(hImg)ctx.drawImage(hImg,135,110,130,130);
+  else{ctx.fillStyle="rgba(255,255,255,0.1)";ctx.beginPath();ctx.arc(200,175,65,0,Math.PI*2);ctx.fill();}
+  if(aImg)ctx.drawImage(aImg,935,110,130,130);
+  else{ctx.fillStyle="rgba(255,255,255,0.1)";ctx.beginPath();ctx.arc(1000,175,65,0,Math.PI*2);ctx.fill();}
 
-  <!-- Brand name -->
-  <text x="92" y="38" font-family="Arial Black,Arial" font-size="22" font-weight="900" fill="#00e676">খেলা কখন?</text>
-  <text x="92" y="60" font-family="Arial" font-size="14" fill="rgba(255,255,255,0.3)">FIFA World Cup 2026</text>
+  // Team names
+  ctx.textBaseline="alphabetic";
+  ctx.fillStyle="#ffffff";ctx.font="bold 40px Arial Black,Arial";ctx.textAlign="center";
+  ctx.fillText(homeEN,255,305);
+  ctx.fillStyle="rgba(255,255,255,0.5)";ctx.font="24px Arial";
+  ctx.fillText(homeBN,255,345);
 
-  <!-- Match number -->
-  <text x="1160" y="38" font-family="Arial" font-size="14" fill="rgba(255,255,255,0.25)" text-anchor="end">#${m.id}</text>
+  ctx.fillStyle="#ffffff";ctx.font="bold 40px Arial Black,Arial";
+  ctx.fillText(awayEN,945,305);
+  ctx.fillStyle="rgba(255,255,255,0.5)";ctx.font="24px Arial";
+  ctx.fillText(awayBN,945,345);
 
-  <!-- URL -->
-  <text x="1160" y="614" font-family="Arial" font-size="15" fill="rgba(255,255,255,0.2)" text-anchor="end">khelakokhon.com</text>
-</svg>`;
+  // Date/time pill
+  ctx.fillStyle="rgba(0,230,118,0.1)";ctx.strokeStyle="rgba(0,230,118,0.4)";ctx.lineWidth=1.5;
+  ctx.beginPath();ctx.roundRect(350,490,500,60,30);ctx.fill();ctx.stroke();
+  ctx.fillStyle="#00e676";ctx.font="bold 22px Arial";ctx.textAlign="center";ctx.textBaseline="middle";
+  ctx.fillText(`${dateStr}  ·  ${timeStr}`,W/2,520);
 
-  // SVG → Canvas → PNG
-  const svgBlob=new Blob([svg],{type:"image/svg+xml;charset=utf-8"});
-  const url=URL.createObjectURL(svgBlob);
-  const img=new Image();
-  img.onload=async()=>{
-    const canvas=document.createElement("canvas");
-    canvas.width=1200;canvas.height=630;
-    const ctx=canvas.getContext("2d");
-    ctx.drawImage(img,0,0,1200,630);
-    URL.revokeObjectURL(url);
-    canvas.toBlob(async blob=>{
+  // Group
+  if(grp){
+    ctx.fillStyle="rgba(255,255,255,0.07)";
+    ctx.beginPath();ctx.roundRect(W/2-70,395,140,32,16);ctx.fill();
+    ctx.fillStyle="rgba(255,255,255,0.4)";ctx.font="15px Arial";
+    ctx.fillText(grp,W/2,411);
+  }
+
+  // KK Logo circle
+  ctx.beginPath();ctx.arc(50,44,26,0,Math.PI*2);
+  ctx.fillStyle="#064e3b";ctx.fill();
+  ctx.strokeStyle="#00e676";ctx.lineWidth=2;ctx.stroke();
+  // Clock hands
+  ctx.strokeStyle="#ffffff";ctx.lineWidth=2.5;
+  ctx.beginPath();ctx.moveTo(50,44);ctx.lineTo(50,28);ctx.stroke();
+  ctx.strokeStyle="#00e676";ctx.lineWidth=2;
+  ctx.beginPath();ctx.moveTo(50,44);ctx.lineTo(60,38);ctx.stroke();
+  ctx.fillStyle="#00e676";ctx.beginPath();ctx.arc(50,44,3,0,Math.PI*2);ctx.fill();
+
+  // Brand text
+  ctx.fillStyle="#00e676";ctx.font="bold 22px Arial Black,Arial";
+  ctx.textAlign="left";ctx.textBaseline="middle";
+  ctx.fillText("Khela Kokhon?",88,36);
+  ctx.fillStyle="rgba(255,255,255,0.3)";ctx.font="14px Arial";
+  ctx.fillText("FIFA World Cup 2026",88,58);
+
+  // Match number
+  ctx.fillStyle="rgba(255,255,255,0.2)";ctx.font="14px Arial";
+  ctx.textAlign="right";ctx.textBaseline="middle";
+  ctx.fillText(`#${m.id}`,W-30,36);
+
+  // URL
+  ctx.fillStyle="rgba(255,255,255,0.2)";ctx.font="14px Arial";
+  ctx.textAlign="right";ctx.textBaseline="alphabetic";
+  ctx.fillText("khelakokhon.com",W-30,H-18);
+
+  canvas.toBlob(async blob=>{
       if(!blob)return;
       const file=new File([blob],"khelakokhon-match.png",{type:"image/png"});
       const shareText=`⚽ ${homeEN} vs ${awayEN}\n📅 ${dateStr} · 🕐 ${timeStr}\nkhelakokhon.com`;
