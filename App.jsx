@@ -869,7 +869,7 @@ function CalIcon({d,T,onClick}){
 }
 
 /* ── Match Card (full) ───────────────────────── */
-function MatchCard({m,T,lang,scores,myPreds,predsLoaded,setPredictM,onTeam,isAdmin,setScoreM}){
+function MatchCard({m,T,lang,scores,myPreds,setPredictM,onTeam,isAdmin,setScoreM}){
   const sc=scores[m.id]||scores[String(m.id)];
   const hasScore=sc&&sc.hg!==""&&sc.ag!=="";
   const pred=getPred(myPreds,m.id);
@@ -951,7 +951,7 @@ function MatchCard({m,T,lang,scores,myPreds,predsLoaded,setPredictM,onTeam,isAdm
         </div>
       )}
       <div style={{display:"flex",gap:6,padding:"8px 12px 12px"}}>
-        {st==="up"&&predsLoaded&&(
+        {st==="up"&&(
           <button onClick={()=>setPredictM(m)} style={{
             flex:1,display:"flex",alignItems:"center",justifyContent:"center",gap:4,
             background:pred?T.greenBg:T.card2,border:`1.5px solid ${pred?T.greenBr:T.border}`,
@@ -982,7 +982,7 @@ function MatchCard({m,T,lang,scores,myPreds,predsLoaded,setPredictM,onTeam,isAdm
 }
 
 /* ── Compact Match Row (for fixture list) ────── */
-function MatchRow({m,T,lang,scores,myPreds,predsLoaded,setPredictM,onTeam,isAdmin,setScoreM}){
+function MatchRow({m,T,lang,scores,myPreds,setPredictM,onTeam,isAdmin,setScoreM}){
   const[showAct,setShowAct]=useState(false);
   const sc=scores[m.id]||scores[String(m.id)];
   const hasScore=sc&&sc.hg!==""&&sc.ag!=="";
@@ -1019,7 +1019,7 @@ function MatchRow({m,T,lang,scores,myPreds,predsLoaded,setPredictM,onTeam,isAdmi
             <span style={{fontFamily:HS,fontSize:13,fontWeight:500,color:T.text,
               overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{tn(m.a,lang)}</span>
           </div>
-          {st==="up"&&predsLoaded&&(
+          {st==="up"&&(
             <button onClick={()=>setPredictM(m)} style={{
               flexShrink:0,background:pred?T.greenBg:T.card2,
               border:`1.5px solid ${pred?T.greenBr:T.border}`,
@@ -1215,7 +1215,7 @@ function HomeTab({T,lang,favs,setFavs,onTeam,setSM,scores,myPreds,setPredictM,se
             <div style={{width:7,height:7,borderRadius:"50%",background:T.red,animation:"pulse 1s infinite"}}/>
             {lang==="bn"?"আজকের ম্যাচ":"Today's Matches"}
           </div>
-          {todayMs.map(m=><MatchCard key={m.id} m={m} T={T} lang={lang} scores={scores} myPreds={myPreds} predsLoaded={predsLoaded} setPredictM={setPredictM} onTeam={onTeam} isAdmin={isAdmin} setScoreM={setScoreM}/>)}
+          {todayMs.map(m=><MatchCard key={m.id} m={m} T={T} lang={lang} scores={scores} myPreds={myPreds} setPredictM={setPredictM} onTeam={onTeam} isAdmin={isAdmin} setScoreM={setScoreM}/>)}
         </div>
       )}
 
@@ -1223,7 +1223,7 @@ function HomeTab({T,lang,favs,setFavs,onTeam,setSM,scores,myPreds,setPredictM,se
       {tomMs.length>0&&(
         <div style={{marginBottom:14}}>
           <div style={{fontFamily:HS,fontWeight:700,fontSize:12,color:T.textS,marginBottom:8}}>📅 {lang==="bn"?"আগামীকালের ম্যাচ":"Tomorrow's Matches"}</div>
-          {tomMs.map(m=><MatchCard key={m.id} m={m} T={T} lang={lang} scores={scores} myPreds={myPreds} predsLoaded={predsLoaded} setPredictM={setPredictM} onTeam={onTeam} isAdmin={isAdmin} setScoreM={setScoreM}/>)}
+          {tomMs.map(m=><MatchCard key={m.id} m={m} T={T} lang={lang} scores={scores} myPreds={myPreds} setPredictM={setPredictM} onTeam={onTeam} isAdmin={isAdmin} setScoreM={setScoreM}/>)}
         </div>
       )}
 
@@ -1286,7 +1286,7 @@ function TableTab({T,lang,scores}){
 }
 
 /* ── GroupTab ────────────────────────────────── */
-function GroupTab({T,lang,onTeam,scores,myPreds,predsLoaded,setPredictM,isAdmin,setScoreM}){
+function GroupTab({T,lang,onTeam,scores,myPreds,setPredictM,isAdmin,setScoreM}){
   const[ft,setFt]=useState(null);const[sf,setSf]=useState(false);const[sq,setSq]=useState("");
   const fil=ft?SORTED.filter(m=>m.h===ft||m.a===ft):SORTED;
   const grpd=useMemo(()=>{const mp={};fil.forEach(m=>{(mp[m.d]=mp[m.d]||[]).push(m);});return Object.entries(mp).sort((a,b)=>new Date(a[0])-new Date(b[0]));},[fil]);
@@ -1305,7 +1305,7 @@ function GroupTab({T,lang,onTeam,scores,myPreds,predsLoaded,setPredictM,isAdmin,
         {grpd.map(([date,ms])=>(
           <div key={date}>
             <div style={{fontFamily:HS,fontWeight:700,fontSize:12,color:T.textS,background:T.card2,padding:"7px 14px",borderBottom:`1px solid ${T.border}`}}>{dl(date,lang).toUpperCase()}</div>
-            {ms.map(m=><MatchRow key={m.id} m={m} T={T} lang={lang} scores={scores} myPreds={myPreds} predsLoaded={predsLoaded} setPredictM={setPredictM} onTeam={onTeam} isAdmin={isAdmin} setScoreM={setScoreM}/>)}
+            {ms.map(m=><MatchRow key={m.id} m={m} T={T} lang={lang} scores={scores} myPreds={myPreds} setPredictM={setPredictM} onTeam={onTeam} isAdmin={isAdmin} setScoreM={setScoreM}/>)}
           </div>
         ))}
       </div>
@@ -1545,7 +1545,8 @@ function PredictionTab({T,lang,userName,onSave,myPreds,setMyPreds,scores,setPred
 
 /* ── TeamPage ────────────────────────────────── */
 function TeamPage({en,T,lang,onBack,onTeam,scores,myPreds,setPredictM,isAdmin,setScoreM}){
-  const ms=[...MATCHES,...R32,...R16,...QF,...SF,...FINAL].filter(m=>m.h===en||m.a===en).sort((a,b)=>tMs(a)-tMs(b));
+  const allM=[...MATCHES,...R32,...R16,...QF,...SF,...FINAL];
+  const ms=allM.filter(m=>m.h===en||m.a===en).sort((a,b)=>tMs(a)-tMs(b));
   const next=ms.find(m=>status(m,scores)==="up");
   const cd=useCD(next?tMs(next):null);
   return(
@@ -1574,7 +1575,7 @@ function TeamPage({en,T,lang,onBack,onTeam,scores,myPreds,setPredictM,isAdmin,se
         )}
       </div>
       <div style={{padding:"12px 12px 90px"}}>
-        {ms.map(m=><MatchCard key={m.id} m={m} T={T} lang={lang} scores={scores} myPreds={myPreds} predsLoaded={predsLoaded} setPredictM={setPredictM} onTeam={onTeam} isAdmin={isAdmin} setScoreM={setScoreM}/>)}
+        {ms.map(m=><MatchCard key={m.id} m={m} T={T} lang={lang} scores={scores} myPreds={myPreds} setPredictM={setPredictM} onTeam={onTeam} isAdmin={isAdmin} setScoreM={setScoreM}/>)}
       </div>
     </div>
   );
@@ -1911,7 +1912,6 @@ export default function App(){
   const[scores,setScores]=useState({});
   const[userName,setUserName]=useState(()=>localStorage.getItem("kk_user")||"");
   const[myPreds,setMyPreds]=useState({});
-  const[predsLoaded,setPredsLoaded]=useState(false);
   const[predictM,setPredictM]=useState(null);
   const[needName,setNeedName]=useState(null);
   const[scoreM,setScoreM]=useState(null);
@@ -1928,7 +1928,7 @@ export default function App(){
     }).catch(()=>{});
   },[]);
   useEffect(()=>{
-    if(!userName){setPredsLoaded(true);return;}
+    if(!userName){return;}
     getPreds(userName).then(data=>{
       const m={};
       data.forEach(p=>{
@@ -1938,7 +1938,7 @@ export default function App(){
         m[Number(mid)]=pred;
       });
       setMyPreds(m);
-      setPredsLoaded(true);
+      
     }).catch(()=>setPredsLoaded(true));
   },[userName]);
   useEffect(()=>{
@@ -2014,7 +2014,7 @@ export default function App(){
     <>
       <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet"/>
       <style>{`@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}*{-webkit-tap-highlight-color:transparent;}`}</style>
-      <TeamPage en={tp} T={T} lang={lang} onBack={closeTeam} onTeam={openTeam} scores={scores} myPreds={myPreds} predsLoaded={predsLoaded} setPredictM={setPredictM} isAdmin={isAdmin} setScoreM={setScoreM}/>
+      <TeamPage en={tp} T={T} lang={lang} onBack={closeTeam} onTeam={openTeam} scores={scores} myPreds={myPreds} setPredictM={setPredictM} isAdmin={isAdmin} setScoreM={setScoreM}/>
       {predictM&&userName&&<PredictModal m={predictM} T={T} lang={lang} userName={userName} myPreds={myPreds} setMyPreds={setMyPreds} onClose={()=>setPredictM(null)}/>}
       {predictM&&!userName&&!needName&&<NameModal T={T} lang={lang} onSave={handleNameSave} onClose={()=>setPredictM(null)}/>}
         {needName&&<SetNameModal T={T} lang={lang} email={needName.email} token={needName.token} onSave={(name)=>{localStorage.setItem("kk_user",name);setUserName(name);setNeedName(null);}} onClose={()=>setNeedName(null)}/>}
@@ -2061,7 +2061,7 @@ export default function App(){
 
         {/* Body */}
                 {mt==="home"&&<HomeTab T={T} lang={lang} favs={favs} setFavs={setFavs} onTeam={openTeam} setSM={setSm} scores={scores} myPreds={myPreds} setPredictM={handlePredict} setScoreM={setScoreM} isAdmin={isAdmin}/>}
-        {mt==="wc"&&wt==="fixture"&&<GroupTab T={T} lang={lang} onTeam={openTeam} scores={scores} myPreds={myPreds} predsLoaded={predsLoaded} setPredictM={handlePredict} isAdmin={isAdmin} setScoreM={setScoreM}/>}
+        {mt==="wc"&&wt==="fixture"&&<GroupTab T={T} lang={lang} onTeam={openTeam} scores={scores} myPreds={myPreds} setPredictM={handlePredict} isAdmin={isAdmin} setScoreM={setScoreM}/>}
         {mt==="wc"&&wt==="knockout"&&<KnockoutTab T={T} lang={lang} scores={scores}/>}
         {mt==="wc"&&wt==="table"&&<TableTab T={T} lang={lang} scores={scores}/>}
         {mt==="predict"&&<PredictionTab T={T} lang={lang} userName={userName} onSave={handleNameSave} myPreds={myPreds} setMyPreds={setMyPreds} scores={scores} setPredictM={setPredictM}/>}
