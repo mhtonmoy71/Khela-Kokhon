@@ -1936,6 +1936,16 @@ export default function App(){
   },[]);
   useEffect(()=>{
     if(!userName){setPredsLoaded(true);return;}
+    // Load from localStorage instantly
+    try{
+      const cached=localStorage.getItem("kk_preds_"+userName);
+      if(cached){
+        const cm=JSON.parse(cached);
+        setMyPreds(cm);
+        setPredsLoaded(true);
+      }
+    }catch(e){}
+    // Sync from Sheet in background
     getPreds(userName).then(data=>{
       const m={};
       data.forEach(p=>{
@@ -1946,6 +1956,7 @@ export default function App(){
       });
       setMyPreds(m);
       setPredsLoaded(true);
+      try{localStorage.setItem("kk_preds_"+userName,JSON.stringify(m));}catch(e){}
     }).catch(()=>setPredsLoaded(true));
   },[userName]);
   useEffect(()=>{
