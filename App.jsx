@@ -630,7 +630,7 @@ function PredictModal({m,T,lang,userName,myPreds,setMyPreds,onClose}){
               border:`1px solid ${T.red}44`,background:T.card2,color:T.red,fontSize:16,cursor:"pointer"}}>🗑️</button>
           )}
           <button onClick={save} disabled={saving||hg===""||ag===""} style={{flex:1,padding:14,borderRadius:14,border:"none",
-            background:(saving||hg===""||ag==="")?T.card3:T.green,color:"#fff",fontFamily:HS,fontSize:16,fontWeight:800,cursor:"pointer",
+            background:(saving||hg===""||ag==="")?T.card2:T.green,color:(saving||hg===""||ag==="")?T.textS:"#fff",fontFamily:HS,fontSize:16,fontWeight:800,cursor:"pointer",
             opacity:(saving||hg===""||ag==="")?0.5:1}}>
             {saving?"সংরক্ষণ...":hasPred?(lang==="bn"?"✅ আপডেট":"✅ Update"):(lang==="bn"?"✅ কনফার্ম":"✅ Confirm")}
           </button>
@@ -1382,13 +1382,13 @@ function DeleteAccountBtn({T,lang}){
       <div style={{fontFamily:HS,fontSize:12,color:T.text,marginBottom:8}}>{lang==="bn"?"একাউন্ট মুছে ফেলবেন?":"Delete account?"}</div>
       <div style={{display:"flex",gap:6}}>
         <button onClick={()=>setConfirm(false)} style={{flex:1,padding:"7px",borderRadius:8,border:`1px solid ${T.border}`,background:T.card,color:T.textS,fontFamily:HS,fontSize:12,cursor:"pointer"}}>{lang==="bn"?"না":"No"}</button>
-        <button onClick={async()=>{
+        <button onClick={()=>{
                 const email=localStorage.getItem("kk_email");
                 const name=localStorage.getItem("kk_user");
-                if(email&&name) await deleteUser(email,name).catch(()=>{});
                 localStorage.removeItem("kk_user");
                 localStorage.removeItem("kk_email");
                 localStorage.removeItem("kk_did");
+                if(email&&name) deleteUser(email,name).catch(()=>{});
                 window.location.reload();
               }} style={{flex:1,padding:"7px",borderRadius:8,border:"none",background:T.red,color:"#fff",fontFamily:HS,fontSize:12,fontWeight:700,cursor:"pointer"}}>{lang==="bn"?"হ্যাঁ, মুছুন":"Yes, delete"}</button>
       </div>
