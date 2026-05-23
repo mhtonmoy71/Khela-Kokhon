@@ -834,8 +834,10 @@ function MatchCard({m,T,lang,scores,myPreds,setPredictM,onTeam,isAdmin,setScoreM
             borderRadius:10,width:34,height:34,cursor:"pointer",fontSize:13,display:"flex",alignItems:"center",justifyContent:"center"}}>✏️</button>
         )}
         <CalIcon d={m.d} T={T} onClick={()=>addToGCal(m,lang)}/>
-        <button onClick={()=>shareM(m,lang)} style={{background:T.card2,border:`1px solid ${T.border}`,
-          borderRadius:10,width:34,height:34,cursor:"pointer",fontSize:13,display:"flex",alignItems:"center",justifyContent:"center"}}>🔗</button>
+        <button onClick={()=>shareM(m,lang)} style={{display:"flex",alignItems:"center",gap:5,background:"rgba(255,255,255,0.08)",border:"1px solid rgba(255,255,255,0.12)",borderRadius:20,padding:"7px 12px",cursor:"pointer",color:"rgba(255,255,255,0.7)"}}>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+          <span style={{fontFamily:HS,fontSize:11}}>{lang==="bn"?"শেয়ার":"Share"}</span>
+        </button>
       </div>
     </div>
   );
@@ -895,7 +897,10 @@ function MatchRow({m,T,lang,scores,myPreds,setPredictM,onTeam,isAdmin,setScoreM}
           <div style={{display:"flex",gap:8,padding:"8px 10px 10px",borderTop:`1px solid ${T.border}`,background:T.card2}}>
             <button onClick={()=>{setScoreM(m);setShowAct(false);}} style={{flex:1,display:"flex",alignItems:"center",justifyContent:"center",gap:4,background:T.card,border:`1px solid ${T.border}`,borderRadius:10,padding:7,cursor:"pointer",fontFamily:HS,fontSize:12,color:T.textS}}>✏️ <span style={{fontFamily:HS}}>স্কোর</span></button>
             <button onClick={()=>{addToGCal(m,lang);setShowAct(false);}} style={{flex:1,display:"flex",alignItems:"center",justifyContent:"center",gap:4,background:T.card,border:`1px solid ${T.border}`,borderRadius:10,padding:7,cursor:"pointer",fontFamily:HS,fontSize:12,color:T.textS}}>📅</button>
-            <button onClick={()=>{shareM(m,lang);setShowAct(false);}} style={{flex:1,display:"flex",alignItems:"center",justifyContent:"center",gap:4,background:T.card,border:`1px solid ${T.border}`,borderRadius:10,padding:7,cursor:"pointer",fontFamily:HS,fontSize:12,color:T.textS}}>🔗</button>
+            <button onClick={()=>{shareM(m,lang);setShowAct(false);}} style={{flex:1,display:"flex",alignItems:"center",justifyContent:"center",gap:4,background:T.card,border:`1px solid ${T.border}`,borderRadius:10,padding:7,cursor:"pointer",color:T.textS}}>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+                <span style={{fontFamily:HS,fontSize:11}}>{lang==="bn"?"শেয়ার":"Share"}</span>
+              </button>
           </div>
         )}
       </div>
