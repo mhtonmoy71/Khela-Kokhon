@@ -937,6 +937,19 @@ function KOCard({m,T,lang,scores,qualified}){
 }
 
 /* ── HomeTab ─────────────────────────────────── */
+function Footer({T,lang}){
+  return(
+    <div style={{textAlign:"center",padding:"24px 16px 16px",borderTop:`1px solid ${T.border}`,marginTop:8}}>
+      <div style={{fontFamily:HS,fontSize:11,color:T.textS,fontWeight:600,marginBottom:4}}>{lang==="bn"?"ডেভেলপ করেছেন মাহবুব হাসান তন্ময়":"Developed by Mahbub Hasan Tonmoy"}</div>
+      <div style={{fontFamily:HS,fontSize:10,color:T.textM,marginBottom:4}}>
+        {lang==="bn"?"যেকোনো পরামর্শ, অভিযোগ বা যোগাযোগ: ":"For suggestions, complaints or contact: "}
+        <a href="mailto:khelakokhon@gmail.com" style={{color:T.green,textDecoration:"none",fontWeight:600}}>📧 khelakokhon@gmail.com</a>
+      </div>
+      <div style={{fontFamily:HS,fontSize:10,color:T.textM}}>{lang==="bn"?"© ২০২৬ খেলা কখন? — সর্বস্বত্ব সংরক্ষিত।":"© 2026 Khela Kokhon? — All rights reserved."}</div>
+    </div>
+  );
+}
+
 function HomeTab({T,lang,favs,setFavs,onTeam,setSM,scores,myPreds,setPredictM,setScoreM,isAdmin}){
   const[today,setToday]=useState(todayStr());
   const[tom,setTom]=useState(tomStr());
@@ -989,7 +1002,7 @@ function HomeTab({T,lang,favs,setFavs,onTeam,setSM,scores,myPreds,setPredictM,se
   }
 
   return(
-    <div style={{padding:"12px 12px 90px"}}>
+    <div style={{padding:"12px 12px 16px"}}>
       {/* Today + Calendar row */}
       <div style={{display:"flex",gap:10,marginBottom:14,alignItems:"flex-start"}}>
         {/* Left: Today & Tomorrow info */}
@@ -1069,6 +1082,7 @@ function HomeTab({T,lang,favs,setFavs,onTeam,setSM,scores,myPreds,setPredictM,se
       <button onClick={()=>setSM(true)} style={{width:"100%",marginTop:8,background:T.card,border:`1.5px dashed ${T.green}55`,borderRadius:14,padding:13,fontSize:13,color:T.green,cursor:"pointer",fontFamily:HS,fontWeight:600}}>
         {lang==="bn"?"+ অন্য দল যোগ করুন":"+ Add Another Team"}
       </button>
+      <Footer T={T} lang={lang}/>
     </div>
   );
 }
