@@ -1110,7 +1110,7 @@ function Footer({T,lang}){
           khelakokhon
         </a>
       </div>
-      <div style={{fontFamily:"Arial,sans-serif",fontSize:10,color:T.textM}}>© 2026 খেলা কখন? All rights reserved.</div>
+      <div style={{fontFamily:"Arial,sans-serif",fontSize:10,color:T.textM}}>{lang==="bn"?"© ২০২৬ খেলা কখন? সকল স্বত্ব সংরক্ষিত।":"© 2026 Khela Kokhon? All rights reserved."}</div>
     </div>
   );
 }
@@ -2058,7 +2058,7 @@ export default function App(){
           </div>
           {/* Main tabs */}
           <div style={{display:"flex",borderTop:"1px solid rgba(255,255,255,0.1)"}}>
-            {[["home",lang==="bn"?"🏠 হোম":"🏠"],["wc",lang==="bn"?"🏆 বিশ্বকাপ":"🏆 WC"],["predict",lang==="bn"?"🎯 প্রেডিকশন":"Predict"],["lb",lang==="bn"?"🏅 লিডারবোর্ড":"🏅"]].map(([id,lb])=>(
+            {[["home",lang==="bn"?"🏠 হোম":"Home"],["wc",lang==="bn"?"🏆 বিশ্বকাপ":"🏆 WC"],["predict",lang==="bn"?"🎯 প্রেডিকশন":"🎯 Prediction"],["lb",lang==="bn"?"🏅 লিডারবোর্ড":"🏅 Leaderboard"]].map(([id,lb])=>(
               <button key={id} onClick={()=>setMt(id)} style={{flex:1,background:"transparent",border:"none",borderBottom:`2.5px solid ${mt===id?"#fff":"transparent"}`,color:mt===id?"#fff":"rgba(255,255,255,0.45)",fontFamily:HS,fontSize:11,fontWeight:mt===id?700:400,padding:"10px 0",cursor:"pointer"}}>{lb}</button>
             ))}
           </div>
