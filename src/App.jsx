@@ -303,13 +303,23 @@ function useCD(ms){
 }
 
 function addToGCal(m,lang){
-  const[tm,ap]=m.t.split(" ");const[h,mn]=tm.split(":").map(Number);
-  let h24=h;if(ap==="PM"&&h!==12)h24+=12;if(ap==="AM"&&h===12)h24=0;
-  const start=new Date(tMs(m)-6*3600000);
+  const start=new Date(tMs(m));
   const end=new Date(start.getTime()+7200000);
   const fmt=dt=>dt.toISOString().replace(/[-:]/g,"").split(".")[0]+"Z";
-  const title=`⚽ ${m.h} vs ${m.a} — FIFA WC 2026`;
-  window.open(`https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(title)}&dates=${fmt(start)}/${fmt(end)}`,"_blank");
+  const hn=lang==="bn"?(TEAMS[m.h]?.bn||m.h):m.h;
+  const an=lang==="bn"?(TEAMS[m.a]?.bn||m.a):m.a;
+  const title=`⚽ ${m.h} vs ${m.a} — FIFA World Cup 2026`;
+  const desc=lang==="bn"
+    ?`${hn} বনাম ${an}\nFIFA বিশ্বকাপ ২০২৬${m.g?" · গ্রুপ "+m.g:""}\n\n⏰ বাংলাদেশ সময়: ${m.t}\n\n🌐 khelakokhon.com`
+    :`${m.h} vs ${m.a}\nFIFA World Cup 2026${m.g?" · Group "+m.g:""}\n\n⏰ Bangladesh Time: ${m.t}\n\n🌐 khelakokhon.com`;
+  const loc=m.venue||"USA/Canada/Mexico";
+  const url=`https://calendar.google.com/calendar/render?action=TEMPLATE`+
+    `&text=${encodeURIComponent(title)}`+
+    `&dates=${fmt(start)}/${fmt(end)}`+
+    `&details=${encodeURIComponent(desc)}`+
+    `&location=${encodeURIComponent(loc)}`+
+    `&crm=AVAILABLE`;
+  window.open(url,"_blank");
 }
 
 function getTwemojiUrl(cc){
