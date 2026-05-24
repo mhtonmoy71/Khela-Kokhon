@@ -6,6 +6,15 @@
     <meta name="theme-color" content="#064e3b" />
     <meta name="description" content="FIFA বিশ্বকাপ ২০২৬ ফিক্সচার ট্র্যাকার - বাংলাদেশ সময়ে সময়সূচি, কাউন্টডাউন, প্রেডিকশন ও লিডারবোর্ড" />
 
+    <!-- Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-7WDKCYBV99"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-7WDKCYBV99');
+    </script>
+
     <!-- PWA -->
     <link rel="manifest" href="/manifest.json"/>
     <link rel="apple-touch-icon" href="/icon-192x192.png"/>
@@ -33,14 +42,13 @@
 
     <title>খেলা কখন? - FIFA World Cup 2026</title>
 
-    <!-- Favicon — transparent background -->
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 80'><circle cx='40' cy='40' r='38' fill='%23064e3b' stroke='%2300e676' stroke-width='3'/><line x1='40' y1='4' x2='40' y2='12' stroke='rgba(255,255,255,0.5)' stroke-width='2.5'/><line x1='76' y1='40' x2='68' y2='40' stroke='rgba(255,255,255,0.5)' stroke-width='2.5'/><line x1='4' y1='40' x2='12' y2='40' stroke='rgba(255,255,255,0.5)' stroke-width='2.5'/><line x1='40' y1='76' x2='40' y2='68' stroke='rgba(255,255,255,0.5)' stroke-width='2.5'/><line x1='59' y1='8.5' x2='56' y2='13.5' stroke='rgba(255,255,255,0.2)' stroke-width='1.5'/><line x1='71.5' y1='21' x2='66.5' y2='24' stroke='rgba(255,255,255,0.2)' stroke-width='1.5'/><line x1='71.5' y1='59' x2='66.5' y2='56' stroke='rgba(255,255,255,0.2)' stroke-width='1.5'/><line x1='59' y1='71.5' x2='56' y2='66.5' stroke='rgba(255,255,255,0.2)' stroke-width='1.5'/><line x1='21' y1='71.5' x2='24' y2='66.5' stroke='rgba(255,255,255,0.2)' stroke-width='1.5'/><line x1='8.5' y1='59' x2='13.5' y2='56' stroke='rgba(255,255,255,0.2)' stroke-width='1.5'/><line x1='8.5' y1='21' x2='13.5' y2='24' stroke='rgba(255,255,255,0.2)' stroke-width='1.5'/><line x1='21' y1='8.5' x2='24' y2='13.5' stroke='rgba(255,255,255,0.2)' stroke-width='1.5'/><line x1='40' y1='40' x2='40' y2='24' stroke='white' stroke-width='5' stroke-linecap='round'/><line x1='40' y1='40' x2='55' y2='32' stroke='%2300e676' stroke-width='3' stroke-linecap='round'/><line x1='40' y1='40' x2='62' y2='22' stroke='%23e11d48' stroke-width='1.5' stroke-linecap='round'/><circle cx='40' cy='40' r='3' fill='%23e11d48'/><circle cx='40' cy='40' r='1.5' fill='%23064e3b'/></svg>"/>
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 80'><circle cx='40' cy='40' r='38' fill='%23064e3b' stroke='%2300e676' stroke-width='3'/><line x1='40' y1='4' x2='40' y2='12' stroke='rgba(255,255,255,0.5)' stroke-width='2.5'/><line x1='76' y1='40' x2='68' y2='40' stroke='rgba(255,255,255,0.5)' stroke-width='2.5'/><line x1='4' y1='40' x2='12' y2='40' stroke='rgba(255,255,255,0.5)' stroke-width='2.5'/><line x1='40' y1='76' x2='40' y2='68' stroke='rgba(255,255,255,0.5)' stroke-width='2.5'/><line x1='40' y1='40' x2='40' y2='24' stroke='white' stroke-width='5' stroke-linecap='round'/><line x1='40' y1='40' x2='55' y2='32' stroke='%2300e676' stroke-width='3' stroke-linecap='round'/><line x1='40' y1='40' x2='62' y2='22' stroke='%23e11d48' stroke-width='1.5' stroke-linecap='round'/><circle cx='40' cy='40' r='3' fill='%23e11d48'/></svg>"/>
 
     <style>
       * { margin: 0; padding: 0; box-sizing: border-box; }
       body { font-family: 'Hind Siliguri', sans-serif; -webkit-tap-highlight-color: transparent; }
 
-      /* Splash screen */
       #splash {
         position: fixed; inset: 0;
         background: linear-gradient(160deg, #060910 0%, #064e3b 60%, #0a1020 100%);
@@ -50,7 +58,23 @@
         transition: opacity 0.5s ease;
       }
       #splash.hide { opacity: 0; pointer-events: none; }
-      #splash svg { animation: splashPulse 1.2s ease-in-out infinite alternate; }
+      #splash-logo { animation: splashPulse 1.2s ease-in-out infinite alternate; position: relative; width: 100px; height: 100px; }
+      #splash-logo svg { display: block; }
+      #splash-kha {
+        position: absolute; top: 50%; left: 50%;
+        transform: translate(-58%, -52%);
+        font-family: 'Hind Siliguri', sans-serif;
+        font-size: 30px; font-weight: 800;
+        color: rgba(255,255,255,0.18);
+        pointer-events: none;
+      }
+      #splash-q {
+        position: absolute; bottom: 16px; right: 12px;
+        font-family: Arial, sans-serif;
+        font-size: 20px; font-weight: 800;
+        color: #f59e0b;
+        pointer-events: none;
+      }
       @keyframes splashPulse {
         from { transform: scale(0.92); opacity: 0.85; }
         to   { transform: scale(1.04); opacity: 1; }
@@ -58,8 +82,7 @@
       #splash-title {
         font-family: 'Hind Siliguri', sans-serif;
         font-size: 28px; font-weight: 800;
-        color: #fff; margin-top: 20px;
-        letter-spacing: 1px;
+        color: #fff; margin-top: 20px; letter-spacing: 1px;
       }
       #splash-sub {
         font-family: Arial, sans-serif;
@@ -81,26 +104,30 @@
 
     <!-- Splash Screen -->
     <div id="splash">
-      <svg width="100" height="100" viewBox="0 0 80 80">
-        <circle cx="40" cy="40" r="38" fill="#064e3b" stroke="#00e676" stroke-width="3"/>
-        <line x1="40" y1="4" x2="40" y2="12" stroke="rgba(255,255,255,0.5)" stroke-width="2.5"/>
-        <line x1="76" y1="40" x2="68" y2="40" stroke="rgba(255,255,255,0.5)" stroke-width="2.5"/>
-        <line x1="4" y1="40" x2="12" y2="40" stroke="rgba(255,255,255,0.5)" stroke-width="2.5"/>
-        <line x1="40" y1="76" x2="40" y2="68" stroke="rgba(255,255,255,0.5)" stroke-width="2.5"/>
-        <line x1="59" y1="8.5" x2="56" y2="13.5" stroke="rgba(255,255,255,0.2)" stroke-width="1.5"/>
-        <line x1="71.5" y1="21" x2="66.5" y2="24" stroke="rgba(255,255,255,0.2)" stroke-width="1.5"/>
-        <line x1="71.5" y1="59" x2="66.5" y2="56" stroke="rgba(255,255,255,0.2)" stroke-width="1.5"/>
-        <line x1="59" y1="71.5" x2="56" y2="66.5" stroke="rgba(255,255,255,0.2)" stroke-width="1.5"/>
-        <line x1="21" y1="71.5" x2="24" y2="66.5" stroke="rgba(255,255,255,0.2)" stroke-width="1.5"/>
-        <line x1="8.5" y1="59" x2="13.5" y2="56" stroke="rgba(255,255,255,0.2)" stroke-width="1.5"/>
-        <line x1="8.5" y1="21" x2="13.5" y2="24" stroke="rgba(255,255,255,0.2)" stroke-width="1.5"/>
-        <line x1="21" y1="8.5" x2="24" y2="13.5" stroke="rgba(255,255,255,0.2)" stroke-width="1.5"/>
-        <line x1="40" y1="40" x2="40" y2="24" stroke="#ffffff" stroke-width="5" stroke-linecap="round"/>
-        <line x1="40" y1="40" x2="55" y2="32" stroke="#00e676" stroke-width="3" stroke-linecap="round"/>
-        <line x1="40" y1="40" x2="62" y2="22" stroke="#e11d48" stroke-width="1.5" stroke-linecap="round"/>
-        <circle cx="40" cy="40" r="3" fill="#e11d48"/>
-        <circle cx="40" cy="40" r="1.5" fill="#064e3b"/>
-      </svg>
+      <div id="splash-logo">
+        <svg width="100" height="100" viewBox="0 0 80 80">
+          <circle cx="40" cy="40" r="38" fill="#064e3b" stroke="#00e676" stroke-width="3"/>
+          <line x1="40" y1="4" x2="40" y2="12" stroke="rgba(255,255,255,0.5)" stroke-width="2.5"/>
+          <line x1="76" y1="40" x2="68" y2="40" stroke="rgba(255,255,255,0.5)" stroke-width="2.5"/>
+          <line x1="4" y1="40" x2="12" y2="40" stroke="rgba(255,255,255,0.5)" stroke-width="2.5"/>
+          <line x1="40" y1="76" x2="40" y2="68" stroke="rgba(255,255,255,0.5)" stroke-width="2.5"/>
+          <line x1="59" y1="8.5" x2="56" y2="13.5" stroke="rgba(255,255,255,0.2)" stroke-width="1.5"/>
+          <line x1="71.5" y1="21" x2="66.5" y2="24" stroke="rgba(255,255,255,0.2)" stroke-width="1.5"/>
+          <line x1="71.5" y1="59" x2="66.5" y2="56" stroke="rgba(255,255,255,0.2)" stroke-width="1.5"/>
+          <line x1="59" y1="71.5" x2="56" y2="66.5" stroke="rgba(255,255,255,0.2)" stroke-width="1.5"/>
+          <line x1="21" y1="71.5" x2="24" y2="66.5" stroke="rgba(255,255,255,0.2)" stroke-width="1.5"/>
+          <line x1="8.5" y1="59" x2="13.5" y2="56" stroke="rgba(255,255,255,0.2)" stroke-width="1.5"/>
+          <line x1="8.5" y1="21" x2="13.5" y2="24" stroke="rgba(255,255,255,0.2)" stroke-width="1.5"/>
+          <line x1="21" y1="8.5" x2="24" y2="13.5" stroke="rgba(255,255,255,0.2)" stroke-width="1.5"/>
+          <line x1="40" y1="40" x2="40" y2="24" stroke="#ffffff" stroke-width="5" stroke-linecap="round"/>
+          <line x1="40" y1="40" x2="55" y2="32" stroke="#00e676" stroke-width="3" stroke-linecap="round"/>
+          <line x1="40" y1="40" x2="62" y2="22" stroke="#e11d48" stroke-width="1.5" stroke-linecap="round"/>
+          <circle cx="40" cy="40" r="3" fill="#e11d48"/>
+          <circle cx="40" cy="40" r="1.5" fill="#064e3b"/>
+        </svg>
+        <div id="splash-kha">খ</div>
+        <div id="splash-q">?</div>
+      </div>
       <div id="splash-title">খেলা কখন?</div>
       <div id="splash-sub">FIFA WORLD CUP 2026</div>
       <div id="splash-dot"></div>
@@ -109,7 +136,6 @@
     <div id="root"></div>
     <script type="module" src="./src/main.jsx"></script>
     <script>
-      // Hide splash when React loads
       window.addEventListener('load', () => {
         setTimeout(() => {
           const splash = document.getElementById('splash');
@@ -119,8 +145,6 @@
           }
         }, 1200);
       });
-
-      // Service Worker
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', () => {
           navigator.serviceWorker.register('/sw.js').catch(() => {});
