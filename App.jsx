@@ -303,13 +303,23 @@ function useCD(ms){
 }
 
 function addToGCal(m,lang){
-  const[tm,ap]=m.t.split(" ");const[h,mn]=tm.split(":").map(Number);
-  let h24=h;if(ap==="PM"&&h!==12)h24+=12;if(ap==="AM"&&h===12)h24=0;
-  const start=new Date(tMs(m)-6*3600000);
+  const start=new Date(tMs(m));
   const end=new Date(start.getTime()+7200000);
   const fmt=dt=>dt.toISOString().replace(/[-:]/g,"").split(".")[0]+"Z";
-  const title=`⚽ ${m.h} vs ${m.a} — FIFA WC 2026`;
-  window.open(`https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(title)}&dates=${fmt(start)}/${fmt(end)}`,"_blank");
+  const hn=lang==="bn"?(TEAMS[m.h]?.bn||m.h):m.h;
+  const an=lang==="bn"?(TEAMS[m.a]?.bn||m.a):m.a;
+  const title=`⚽ ${m.h} vs ${m.a} — FIFA World Cup 2026`;
+  const desc=lang==="bn"
+    ?`${hn} বনাম ${an}\nFIFA বিশ্বকাপ ২০২৬${m.g?" · গ্রুপ "+m.g:""}\n\n⏰ বাংলাদেশ সময়: ${m.t}\n\n🌐 khelakokhon.com`
+    :`${m.h} vs ${m.a}\nFIFA World Cup 2026${m.g?" · Group "+m.g:""}\n\n⏰ Bangladesh Time: ${m.t}\n\n🌐 khelakokhon.com`;
+  const loc=m.venue||"USA/Canada/Mexico";
+  const url=`https://calendar.google.com/calendar/render?action=TEMPLATE`+
+    `&text=${encodeURIComponent(title)}`+
+    `&dates=${fmt(start)}/${fmt(end)}`+
+    `&details=${encodeURIComponent(desc)}`+
+    `&location=${encodeURIComponent(loc)}`+
+    `&crm=AVAILABLE`;
+  window.open(url,"_blank");
 }
 
 function getTwemojiUrl(cc){
@@ -1110,7 +1120,7 @@ function Footer({T,lang}){
           khelakokhon
         </a>
       </div>
-      <div style={{fontFamily:"Arial,sans-serif",fontSize:10,color:T.textM}}>© 2026 খেলা কখন? All rights reserved.</div>
+      <div style={{fontFamily:"Arial,sans-serif",fontSize:10,color:T.textM}}>{lang==="bn"?"© ২০২৬ খেলা কখন? সকল স্বত্ব সংরক্ষিত।":"© 2026 Khela Kokhon? All rights reserved."}</div>
     </div>
   );
 }
@@ -2058,7 +2068,7 @@ export default function App(){
           </div>
           {/* Main tabs */}
           <div style={{display:"flex",borderTop:"1px solid rgba(255,255,255,0.1)"}}>
-            {[["home",lang==="bn"?"🏠 হোম":"🏠"],["wc",lang==="bn"?"🏆 বিশ্বকাপ":"🏆 WC"],["predict",lang==="bn"?"🎯 প্রেডিকশন":"Predict"],["lb",lang==="bn"?"🏅 লিডারবোর্ড":"🏅"]].map(([id,lb])=>(
+            {[["home",lang==="bn"?"🏠 হোম":"Home"],["wc",lang==="bn"?"🏆 বিশ্বকাপ":"🏆 WC"],["predict",lang==="bn"?"🎯 প্রেডিকশন":"🎯 Prediction"],["lb",lang==="bn"?"🏅 লিডারবোর্ড":"🏅 Leaderboard"]].map(([id,lb])=>(
               <button key={id} onClick={()=>setMt(id)} style={{flex:1,background:"transparent",border:"none",borderBottom:`2.5px solid ${mt===id?"#fff":"transparent"}`,color:mt===id?"#fff":"rgba(255,255,255,0.45)",fontFamily:HS,fontSize:11,fontWeight:mt===id?700:400,padding:"10px 0",cursor:"pointer"}}>{lb}</button>
             ))}
           </div>
