@@ -707,7 +707,7 @@ function NameModal({T,lang,onSave,inline=false,onClose}){
     <div>
       <div style={{textAlign:"center",marginBottom:20}}>
         
-        <div style={{fontFamily:HS,fontSize:17,fontWeight:800,color:T.text,marginBottom:4}}>{lang==="bn"?"প্রেডিকশন মাস্টার":"Prediction Master"}</div>
+        <div style={{fontFamily:HS,fontSize:17,fontWeight:800,color:T.text,marginBottom:4}}>{lang==="bn"?"স্কোরমাস্টার":"ScoreMaster"}</div>
         <div style={{display:"flex",justifyContent:"center",gap:6,marginTop:10}}>{dots}</div>
       </div>
       {step==="email"&&<>
@@ -1096,13 +1096,21 @@ function KOCard({m,T,lang,scores,qualified}){
 /* ── HomeTab ─────────────────────────────────── */
 function Footer({T,lang}){
   return(
-    <div style={{textAlign:"center",padding:"24px 16px 16px",borderTop:`1px solid ${T.border}`,marginTop:8}}>
-      <div style={{fontFamily:HS,fontSize:11,color:T.textS,fontWeight:600,marginBottom:4}}>{lang==="bn"?"ডেভেলপ করেছেন মাহবুব হাসান তন্ময়":"Developed by Mahbub Hasan Tonmoy"}</div>
-      <div style={{fontFamily:HS,fontSize:10,color:T.textM,marginBottom:4}}>
-        {lang==="bn"?"যেকোনো পরামর্শ, অভিযোগ বা যোগাযোগ: ":"For suggestions, complaints or contact: "}
-        <a href="mailto:khelakokhon@gmail.com" style={{color:T.green,textDecoration:"none",fontWeight:600}}>khelakokhon@gmail.com</a>
+    <div style={{textAlign:"center",padding:"32px 16px 32px",borderTop:`1px solid ${T.border}`,marginTop:16}}>
+      <div style={{fontFamily:"Arial,sans-serif",fontSize:12,color:T.textS,fontWeight:600,marginBottom:6}}>
+        Crafted with <span style={{color:"#e53935"}}>❤️</span> by Mahbub Hasan Tonmoy
       </div>
-      <div style={{fontFamily:HS,fontSize:10,color:T.textM}}>{lang==="bn"?"© ২০২৬ খেলা কখন? — সর্বস্বত্ব সংরক্ষিত।":"© 2026 Khela Kokhon? — All rights reserved."}</div>
+      <div style={{display:"flex",alignItems:"center",justifyContent:"center",gap:14,marginBottom:6,flexWrap:"wrap"}}>
+        <a href="mailto:khelakokhon@gmail.com" style={{display:"flex",alignItems:"center",gap:4,color:T.green,textDecoration:"none",fontFamily:"Arial,sans-serif",fontSize:11}}>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><polyline points="22,6 12,13 2,6"/></svg>
+          khelakokhon@gmail.com
+        </a>
+        <a href="https://www.facebook.com/khelakokhon" target="_blank" rel="noopener noreferrer" style={{display:"flex",alignItems:"center",gap:4,color:"#1877f2",textDecoration:"none",fontFamily:"Arial,sans-serif",fontSize:11}}>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="#1877f2"><path d="M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z"/></svg>
+          khelakokhon
+        </a>
+      </div>
+      <div style={{fontFamily:"Arial,sans-serif",fontSize:10,color:T.textM}}>© 2026 খেলা কখন? All rights reserved.</div>
     </div>
   );
 }
@@ -1411,8 +1419,8 @@ function PredictionTab({T,lang,userName,onSave,myPreds,setMyPreds,scores,setPred
     <div style={{padding:"20px 12px 90px"}}>
       <div style={{background:T.card,borderRadius:20,padding:24,textAlign:"center",marginBottom:16}}>
         <div style={{fontSize:44,marginBottom:12}}>⚽</div>
-        <div style={{fontFamily:HS,fontSize:18,fontWeight:800,color:T.text,marginBottom:8}}>{lang==="bn"?"প্রেডিকশন মাস্টার":"Prediction Master"}</div>
-        <div style={{fontFamily:HS,fontSize:13,color:T.textS,marginBottom:20,lineHeight:1.6}}>{lang==="bn"?"প্রেডিক্ট করো। পয়েন্ট জেতো। লিডারবোর্ডে দেখিয়ে দাও তোমার নাম!":"Predict. Score. Climb the leaderboard."}</div>
+        <div style={{fontFamily:HS,fontSize:18,fontWeight:800,color:T.text,marginBottom:8}}>{lang==="bn"?"স্কোরমাস্টার":"ScoreMaster"}</div>
+        <div style={{fontFamily:HS,fontSize:13,color:T.textS,marginBottom:20,lineHeight:1.6}}>{lang==="bn"?"প্রেডিক্ট করো, হয়ে ওঠো স্কোরমাস্টার!":"Predict. Score. Climb the leaderboard."}</div>
         <div style={{display:"flex",gap:10,justifyContent:"center",marginBottom:24}}>
           <div style={{background:T.card2,borderRadius:12,padding:"12px 16px",textAlign:"center"}}>
             <div style={{fontSize:22}}>✅</div>
@@ -1433,7 +1441,7 @@ function PredictionTab({T,lang,userName,onSave,myPreds,setMyPreds,scores,setPred
   return(
     <div>
       <div style={{display:"flex",background:T.card,borderBottom:`1px solid ${T.border}`}}>
-        {[["matches",lang==="bn"?"ম্যাচ":"Matches"],["history",lang==="bn"?"আমার প্রেডিকশন":"My Predictions"],["lb",lang==="bn"?"লিডারবোর্ড":"Leaderboard"]].map(([k,l])=>(
+        {[["matches",lang==="bn"?"ম্যাচ":"Matches"],["history",lang==="bn"?"আমার প্রেডিকশন":"My Predictions"]].map(([k,l])=>(
           <button key={k} onClick={()=>setSub(k)} style={{flex:1,background:"transparent",border:"none",borderBottom:`2.5px solid ${sub===k?T.green:"transparent"}`,color:sub===k?T.green:T.textM,fontFamily:HS,fontSize:13,fontWeight:sub===k?700:400,padding:"11px 0",cursor:"pointer"}}>{l}</button>
         ))}
       </div>
@@ -1749,8 +1757,9 @@ function NewsTab({T,lang,userName}){
   );
 }
 
-function LeaderboardTab({T,lang,userName}){
-  const[lb,setLb]=useState([]);const[loading,setLoading]=useState(true);
+function LeaderboardTab({T,lang,userName,initData}){
+  const[lb,setLb]=useState(initData||[]);
+  const[loading,setLoading]=useState(initData&&initData.length>0?false:true);
   
   const loadLB=()=>{
     setLoading(true);
@@ -1760,7 +1769,10 @@ function LeaderboardTab({T,lang,userName}){
     }).catch(()=>setLoading(false));
   };
   
-  useEffect(()=>{loadLB();},[]);
+  useEffect(()=>{
+    if(initData&&initData.length>0){setLb(initData);setLoading(false);}
+    else loadLB();
+  },[initData]);
   const medals=["🥇","🥈","🥉"];
   return(
     <div style={{padding:"12px 12px 90px"}}>
@@ -1910,6 +1922,7 @@ export default function App(){
   const[tp,setTp]=useState(null);
   const[sm,setSm]=useState(false);
   const[scores,setScores]=useState({});
+  const[lbData,setLbData]=useState([]);
   const[userName,setUserName]=useState(()=>localStorage.getItem("kk_user")||"");
   const[myPreds,setMyPreds]=useState({});
   const[predictM,setPredictM]=useState(null);
@@ -2065,7 +2078,7 @@ export default function App(){
         {mt==="wc"&&wt==="knockout"&&<KnockoutTab T={T} lang={lang} scores={scores}/>}
         {mt==="wc"&&wt==="table"&&<TableTab T={T} lang={lang} scores={scores}/>}
         {mt==="predict"&&<PredictionTab T={T} lang={lang} userName={userName} onSave={handleNameSave} myPreds={myPreds} setMyPreds={setMyPreds} scores={scores} setPredictM={setPredictM}/>}
-        {mt==="lb"&&<LeaderboardTab T={T} lang={lang} userName={userName}/>}
+        {mt==="lb"&&<LeaderboardTab T={T} lang={lang} userName={userName} initData={lbData}/>}
         {sm&&<AddModal favs={favs} onAdd={en=>setFavs(f=>f.includes(en)?f:[...f,en])} onClose={()=>setSm(false)} lang={lang} T={T}/>}
         {predictM&&userName&&<PredictModal m={predictM} T={T} lang={lang} userName={userName} myPreds={myPreds} setMyPreds={setMyPreds} onClose={()=>setPredictM(null)}/>}
         {predictM&&!userName&&<NameModal T={T} lang={lang} onSave={(name,did)=>{handleNameSave(name,did);}} onClose={()=>setPredictM(null)}/>}
