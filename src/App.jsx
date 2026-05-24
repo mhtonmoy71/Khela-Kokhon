@@ -309,9 +309,10 @@ function addToGCal(m,lang){
   const hn=lang==="bn"?(TEAMS[m.h]?.bn||m.h):m.h;
   const an=lang==="bn"?(TEAMS[m.a]?.bn||m.a):m.a;
   const title=`⚽ ${m.h} vs ${m.a} — FIFA World Cup 2026`;
+  const nl="%0A";
   const desc=lang==="bn"
-    ?`${hn} বনাম ${an}\nFIFA বিশ্বকাপ ২০২৬${m.g?" · গ্রুপ "+m.g:""}\n\n⏰ বাংলাদেশ সময়: ${m.t}\n\n🌐 khelakokhon.com`
-    :`${m.h} vs ${m.a}\nFIFA World Cup 2026${m.g?" · Group "+m.g:""}\n\n⏰ Bangladesh Time: ${m.t}\n\n🌐 khelakokhon.com`;
+    ?`${hn} বনাম ${an}${nl}FIFA বিশ্বকাপ ২০২৬${m.g?" · গ্রুপ "+m.g:""}${nl}${nl}⏰ বাংলাদেশ সময়: ${m.t}${nl}${nl}🌐 khelakokhon.com`
+    :`${m.h} vs ${m.a}${nl}FIFA World Cup 2026${m.g?" · Group "+m.g:""}${nl}${nl}⏰ Bangladesh Time: ${m.t}${nl}${nl}🌐 khelakokhon.com`;
   const loc=m.venue||"USA/Canada/Mexico";
   const url=`https://calendar.google.com/calendar/render?action=TEMPLATE`+
     `&text=${encodeURIComponent(title)}`+
