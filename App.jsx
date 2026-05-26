@@ -1171,7 +1171,7 @@ function HomeTab({T,lang,favs,setFavs,onTeam,setSM,scores,myPreds,setPredictM,se
         </div>
         <div style={{display:"flex",flexDirection:"column",gap:5,flexShrink:0}}>
           {nx&&<CalIcon d={nx.d} T={T} onClick={e=>{e.stopPropagation();addToGCal(nx,lang);}}/>}
-          <button onClick={()=>iF?setFavs(f=>f.filter(x=>x!==en)):setFavs(f=>[...f,en])} style={{fontFamily:HS,fontSize:11,cursor:"pointer",borderRadius:20,padding:"4px 8px",background:iF?T.greenBg:T.card2,border:`1px solid ${iF?T.greenBr:T.border}`,color:iF?T.green:T.textS,whiteSpace:"nowrap"}}>{iF?"⭐":"+ ⭐"}</button>
+          <button onClick={()=>iF?setFavs(f=>{const nf=f.filter(x=>x!==en);try{localStorage.setItem("kk_favs",JSON.stringify(nf));}catch(e){}return nf;})):setFavs(f=>{const nf=[...f,en];try{localStorage.setItem("kk_favs",JSON.stringify(nf));}catch(e){}return nf;})} style={{fontFamily:HS,fontSize:11,cursor:"pointer",borderRadius:20,padding:"4px 8px",background:iF?T.greenBg:T.card2,border:`1px solid ${iF?T.greenBr:T.border}`,color:iF?T.green:T.textS,whiteSpace:"nowrap"}}>{iF?"⭐":"+ ⭐"}</button>
         </div>
       </div>
     );
@@ -1929,7 +1929,7 @@ export default function App(){
   const[lang,setLang]=useState(()=>localStorage.getItem("kk_lang")||"bn");
   const[mt,setMt]=useState(()=>localStorage.getItem("kk_tab")||"home");
   const[wt,setWt]=useState(()=>localStorage.getItem("kk_wt")||"fixture");
-  const[favs,setFavs]=useState([]);
+  const[favs,setFavs]=useState(()=>{try{const f=localStorage.getItem("kk_favs");return f?JSON.parse(f):[]}catch(e){return[];}});
   const[tp,setTp]=useState(null);
   const[sm,setSm]=useState(false);
   const[scores,setScores]=useState({});
@@ -2090,7 +2090,7 @@ export default function App(){
         {mt==="wc"&&wt==="table"&&<TableTab T={T} lang={lang} scores={scores}/>}
         {mt==="predict"&&<PredictionTab T={T} lang={lang} userName={userName} onSave={handleNameSave} myPreds={myPreds} setMyPreds={setMyPreds} scores={scores} setPredictM={setPredictM}/>}
         {mt==="lb"&&<LeaderboardTab T={T} lang={lang} userName={userName} initData={lbData}/>}
-        {sm&&<AddModal favs={favs} onAdd={en=>setFavs(f=>f.includes(en)?f:[...f,en])} onClose={()=>setSm(false)} lang={lang} T={T}/>}
+        {sm&&<AddModal favs={favs} onAdd={en=>setFavs(f=>{if(f.includes(en))return f;const nf=[...f,en];try{localStorage.setItem("kk_favs",JSON.stringify(nf));}catch(e){}return nf;})} onClose={()=>setSm(false)} lang={lang} T={T}/>}
         {predictM&&userName&&<PredictModal m={predictM} T={T} lang={lang} userName={userName} myPreds={myPreds} setMyPreds={setMyPreds} onClose={()=>setPredictM(null)}/>}
         {predictM&&!userName&&<NameModal T={T} lang={lang} onSave={(name,did)=>{handleNameSave(name,did);}} onClose={()=>setPredictM(null)}/>}
         {scoreM&&isAdmin&&<ScoreModal m={scoreM} T={T} lang={lang} scores={scores} setScores={setScores} onClose={()=>setScoreM(null)}/>}
