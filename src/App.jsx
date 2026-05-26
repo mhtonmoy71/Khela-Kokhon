@@ -334,135 +334,186 @@ function getTwemojiUrl(cc){
 function shareM(m,lang){
   const homeEN=m.h||"TBD", awayEN=m.a||"TBD";
   const homeBN=tn(m.h,"bn")||homeEN, awayBN=tn(m.a,"bn")||awayEN;
-  const homeFl=getTwemojiUrl(m.h), awayFl=getTwemojiUrl(m.a);
-  const dateStr=dl(m.d,lang), timeStr=`${m.t} BST`;
-  const grp=m.g?`Group ${m.g}`:(m.id>72?"Knockout":"");
+  const dateStr=new Date(tMs(m)).toLocaleDateString("bn-BD",{day:"numeric",month:"long",year:"numeric"});
+  const timeStr=m.t;
+  const groupStr=m.g?(lang==="bn"?"গ্রুপ ":"Group ")+m.g:(m.label||"");
 
-  // Load flags first, then render SVG
-  const loadImg=url=>new Promise((res)=>{
-    const i=new Image();i.crossOrigin="anonymous";
-    i.onload=()=>res(i);i.onerror=()=>res(null);
-    i.src=url;
-  });
+  // Countdown
+  const diff=Math.max(0,tMs(m)-Date.now());
+  const days=Math.floor(diff/86400000);
+  const hours=Math.floor((diff%86400000)/3600000);
+  const mins=Math.floor((diff%3600000)/60000);
+  const secs=Math.floor((diff%60000)/1000);
 
-  Promise.all([
-    homeFl?loadImg(homeFl):Promise.resolve(null),
-    awayFl?loadImg(awayFl):Promise.resolve(null)
-  ]).then(([hImg,aImg])=>{
+  // Home initial
+  const hInit=(homeEN||"?").substring(0,2).toUpperCase();
+  const aInit=(awayEN||"?").substring(0,2).toUpperCase();
 
-  // Draw on canvas directly (no SVG)
+  const W=420, H=520;
   const canvas=document.createElement("canvas");
-  const W=1200,H=630;canvas.width=W;canvas.height=H;
+  canvas.width=W; canvas.height=H;
   const ctx=canvas.getContext("2d");
 
-  // BG gradient
-  const bgG=ctx.createLinearGradient(0,0,W,H);
-  bgG.addColorStop(0,"#060c18");bgG.addColorStop(1,"#0d1f35");
-  ctx.fillStyle=bgG;ctx.fillRect(0,0,W,H);
+  // Background gradient
+  const bg=ctx.createLinearGradient(0,0,W,H);
+  bg.addColorStop(0,"#060910");
+  bg.addColorStop(0.5,"#0a1f12");
+  bg.addColorStop(1,"#060910");
+  ctx.fillStyle=bg; ctx.fillRect(0,0,W,H);
 
-  // Green bars
-  ctx.fillStyle="#00e676";ctx.fillRect(0,0,W,7);ctx.fillRect(0,H-7,W,7);
+  // Top bar
+  const topBar=ctx.createLinearGradient(0,0,W,50);
+  topBar.addColorStop(0,"#064e3b");
+  topBar.addColorStop(1,"#042e24");
+  ctx.fillStyle=topBar; ctx.fillRect(0,0,W,50);
 
-  // Side accents
-  ctx.fillStyle="rgba(0,230,118,0.2)";ctx.fillRect(0,0,4,H);ctx.fillRect(W-4,0,4,H);
+  // Logo circle
+  ctx.beginPath(); ctx.arc(22,25,13,0,Math.PI*2);
+  ctx.fillStyle="#064e3b"; ctx.fill();
+  ctx.strokeStyle="#00e676"; ctx.lineWidth=1.5; ctx.stroke();
 
-  // Team boxes
-  const rr=(x,y,w,h,r)=>{ctx.beginPath();ctx.moveTo(x+r,y);ctx.lineTo(x+w-r,y);ctx.quadraticCurveTo(x+w,y,x+w,y+r);ctx.lineTo(x+w,y+h-r);ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);ctx.lineTo(x+r,y+h);ctx.quadraticCurveTo(x,y+h,x,y+h-r);ctx.lineTo(x,y+r);ctx.quadraticCurveTo(x,y,x+r,y);ctx.closePath();};
-  ctx.fillStyle="rgba(255,255,255,0.03)";ctx.strokeStyle="rgba(255,255,255,0.06)";ctx.lineWidth=1;
-  rr(40,90,430,380,20);ctx.fill();ctx.stroke();
-  rr(730,90,430,380,20);ctx.fill();ctx.stroke();
+  // Clock hands
+  ctx.strokeStyle="#ffffff"; ctx.lineWidth=2.5; ctx.lineCap="round";
+  ctx.beginPath(); ctx.moveTo(22,25); ctx.lineTo(22,17); ctx.stroke();
+  ctx.strokeStyle="#00e676"; ctx.lineWidth=1.8;
+  ctx.beginPath(); ctx.moveTo(22,25); ctx.lineTo(29,21); ctx.stroke();
+  ctx.fillStyle="#e11d48";
+  ctx.beginPath(); ctx.arc(22,25,2,0,Math.PI*2); ctx.fill();
 
-  // VS circle
-  ctx.beginPath();ctx.arc(W/2,H/2-20,70,0,Math.PI*2);
-  ctx.fillStyle="rgba(0,230,118,0.06)";ctx.fill();
-  ctx.strokeStyle="#00e676";ctx.lineWidth=2;ctx.stroke();
-  ctx.fillStyle="#00e676";ctx.font="bold 34px Arial Black,Arial";
-  ctx.textAlign="center";ctx.textBaseline="middle";ctx.fillText("VS",W/2,H/2-20);
+  // Site name
+  ctx.fillStyle="#ffffff"; ctx.font="bold 13px Arial";
+  ctx.fillText("খেলা কখন?",40,31);
 
-  // Flags
-  if(hImg)ctx.drawImage(hImg,135,110,130,130);
-  else{ctx.fillStyle="rgba(255,255,255,0.1)";ctx.beginPath();ctx.arc(200,175,65,0,Math.PI*2);ctx.fill();}
-  if(aImg)ctx.drawImage(aImg,935,110,130,130);
-  else{ctx.fillStyle="rgba(255,255,255,0.1)";ctx.beginPath();ctx.arc(1000,175,65,0,Math.PI*2);ctx.fill();}
+  // WC badge
+  ctx.fillStyle="rgba(0,230,118,0.7)"; ctx.font="10px Arial";
+  ctx.textAlign="right";
+  ctx.fillText("⚽ FIFA World Cup 2026",W-14,31);
+  ctx.textAlign="left";
+
+  // Group label
+  ctx.fillStyle="rgba(255,255,255,0.35)"; ctx.font="10px Arial";
+  ctx.textAlign="center";
+  ctx.fillText(groupStr.toUpperCase(),W/2,80);
+  ctx.textAlign="left";
+
+  // Home team circle
+  const hGrad=ctx.createRadialGradient(105,150,0,105,150,55);
+  hGrad.addColorStop(0,"rgba(0,230,118,0.2)");
+  hGrad.addColorStop(1,"rgba(6,78,59,0.4)");
+  ctx.beginPath(); ctx.arc(105,150,52,0,Math.PI*2);
+  ctx.fillStyle=hGrad; ctx.fill();
+  ctx.strokeStyle="rgba(0,230,118,0.35)"; ctx.lineWidth=1.5; ctx.stroke();
+  ctx.fillStyle="#00e676"; ctx.font="bold 28px Arial";
+  ctx.textAlign="center"; ctx.fillText(hInit,105,160);
+
+  // Away team circle
+  const aGrad=ctx.createRadialGradient(315,150,0,315,150,55);
+  aGrad.addColorStop(0,"rgba(100,100,255,0.15)");
+  aGrad.addColorStop(1,"rgba(50,50,150,0.25)");
+  ctx.beginPath(); ctx.arc(315,150,52,0,Math.PI*2);
+  ctx.fillStyle=aGrad; ctx.fill();
+  ctx.strokeStyle="rgba(150,150,255,0.3)"; ctx.lineWidth=1.5; ctx.stroke();
+  ctx.fillStyle="#a0a0ff"; ctx.font="bold 28px Arial";
+  ctx.fillText(aInit,315,160);
+
+  // VS
+  ctx.fillStyle="rgba(255,255,255,0.2)"; ctx.font="bold 13px Arial";
+  ctx.fillText("VS",W/2,155);
 
   // Team names
-  ctx.textBaseline="alphabetic";
-  ctx.fillStyle="#ffffff";ctx.font="bold 40px Arial Black,Arial";ctx.textAlign="center";
-  ctx.fillText(homeEN,255,305);
-  ctx.fillStyle="rgba(255,255,255,0.5)";ctx.font="24px Arial";
-  ctx.fillText(homeBN,255,345);
+  ctx.fillStyle="#ffffff"; ctx.font="bold 15px Arial";
+  ctx.fillText(lang==="bn"?homeBN:homeEN,105,218);
+  ctx.fillStyle="rgba(255,255,255,0.4)"; ctx.font="11px Arial";
+  ctx.fillText(lang==="bn"?homeEN:homeBN,105,235);
+  ctx.fillStyle="#ffffff"; ctx.font="bold 15px Arial";
+  ctx.fillText(lang==="bn"?awayBN:awayEN,315,218);
+  ctx.fillStyle="rgba(255,255,255,0.4)"; ctx.font="11px Arial";
+  ctx.fillText(lang==="bn"?awayEN:awayBN,315,235);
+  ctx.textAlign="left";
 
-  ctx.fillStyle="#ffffff";ctx.font="bold 40px Arial Black,Arial";
-  ctx.fillText(awayEN,945,305);
-  ctx.fillStyle="rgba(255,255,255,0.5)";ctx.font="24px Arial";
-  ctx.fillText(awayBN,945,345);
+  // Divider
+  const div=ctx.createLinearGradient(0,0,W,0);
+  div.addColorStop(0,"transparent");
+  div.addColorStop(0.5,"rgba(0,230,118,0.3)");
+  div.addColorStop(1,"transparent");
+  ctx.strokeStyle=div; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(20,258); ctx.lineTo(W-20,258); ctx.stroke();
 
-  // Date/time pill
-  ctx.fillStyle="rgba(0,230,118,0.1)";ctx.strokeStyle="rgba(0,230,118,0.4)";ctx.lineWidth=1.5;
-  rr(350,490,500,60,30);ctx.fill();ctx.stroke();
-  ctx.fillStyle="#00e676";ctx.font="bold 22px Arial";ctx.textAlign="center";ctx.textBaseline="middle";
-  ctx.fillText(dateStr+"  ·  "+timeStr,W/2,520);
+  // Info row
+  const infos=[
+    {label:lang==="bn"?"তারিখ":"Date", value:dateStr},
+    {label:lang==="bn"?"বাংলাদেশ সময়":"BD Time", value:timeStr, green:true},
+    {label:lang==="bn"?"ভেন্যু":"Venue", value:m.venue||"USA/Canada"},
+  ];
+  infos.forEach((info,i)=>{
+    const x=70+i*140;
+    ctx.fillStyle="rgba(255,255,255,0.3)"; ctx.font="9px Arial";
+    ctx.textAlign="center"; ctx.fillText(info.label.toUpperCase(),x,280);
+    ctx.fillStyle=info.green?"#00e676":"#ffffff"; ctx.font="bold 13px Arial";
+    ctx.fillText(info.value,x,298);
+  });
+  ctx.textAlign="left";
 
-  // Group
-  if(grp){
-    ctx.fillStyle="rgba(255,255,255,0.07)";
-    rr(W/2-70,395,140,32,16);ctx.fill();
-    ctx.fillStyle="rgba(255,255,255,0.4)";ctx.font="15px Arial";
-    ctx.fillText(grp,W/2,411);
-  }
+  // Countdown box
+  ctx.fillStyle="rgba(0,230,118,0.06)";
+  ctx.strokeStyle="rgba(0,230,118,0.2)"; ctx.lineWidth=1;
+  roundRect(ctx,20,318,W-40,70,10);
+  ctx.fill(); ctx.stroke();
 
-  // KK Logo circle
-  ctx.beginPath();ctx.arc(50,44,26,0,Math.PI*2);
-  ctx.fillStyle="#064e3b";ctx.fill();
-  ctx.strokeStyle="#00e676";ctx.lineWidth=2;ctx.stroke();
-  // Clock hands
-  ctx.strokeStyle="#ffffff";ctx.lineWidth=2.5;
-  ctx.beginPath();ctx.moveTo(50,44);ctx.lineTo(50,28);ctx.stroke();
-  ctx.strokeStyle="#00e676";ctx.lineWidth=2;
-  ctx.beginPath();ctx.moveTo(50,44);ctx.lineTo(60,38);ctx.stroke();
-  ctx.fillStyle="#00e676";ctx.beginPath();ctx.arc(50,44,3,0,Math.PI*2);ctx.fill();
+  const cdItems=diff>0?[
+    {v:String(days).padStart(2,"0"),l:lang==="bn"?"দিন":"Days"},
+    {v:String(hours).padStart(2,"0"),l:lang==="bn"?"ঘণ্টা":"Hrs"},
+    {v:String(mins).padStart(2,"0"),l:lang==="bn"?"মিনিট":"Min"},
+    {v:String(secs).padStart(2,"0"),l:lang==="bn"?"সেকেন্ড":"Sec"},
+  ]:[{v:"FT",l:"Full Time"},{v:"",l:""},{v:"",l:""},{v:"",l:""}];
 
-  // Brand text
-  ctx.fillStyle="#00e676";ctx.font="bold 22px Arial Black,Arial";
-  ctx.textAlign="left";ctx.textBaseline="middle";
-  ctx.fillText("Khela Kokhon?",88,36);
-  ctx.fillStyle="rgba(255,255,255,0.3)";ctx.font="14px Arial";
-  ctx.fillText("FIFA World Cup 2026",88,58);
+  cdItems.forEach((cd,i)=>{
+    if(!cd.v)return;
+    const x=75+i*90;
+    ctx.fillStyle="#00e676"; ctx.font="bold 22px Arial";
+    ctx.textAlign="center"; ctx.fillText(cd.v,x,350);
+    ctx.fillStyle="rgba(255,255,255,0.35)"; ctx.font="9px Arial";
+    ctx.fillText(cd.l,x,368);
+  });
+  ctx.textAlign="left";
 
-  // Match number
-  ctx.fillStyle="rgba(255,255,255,0.2)";ctx.font="14px Arial";
-  ctx.textAlign="right";ctx.textBaseline="middle";
-  ctx.fillText("#"+m.id,W-30,36);
+  // Bottom bar
+  ctx.fillStyle="rgba(0,0,0,0.35)";
+  ctx.fillRect(0,H-44,W,44);
+  ctx.fillStyle="rgba(255,255,255,0.2)"; ctx.font="10px Arial";
+  ctx.fillText("#খেলাকখন #FIFA2026",16,H-17);
+  ctx.fillStyle="#00e676"; ctx.font="bold 12px Arial";
+  ctx.textAlign="right"; ctx.fillText("khelakokhon.com",W-16,H-17);
+  ctx.textAlign="left";
 
-  // URL
-  ctx.fillStyle="rgba(255,255,255,0.2)";ctx.font="14px Arial";
-  ctx.textAlign="right";ctx.textBaseline="alphabetic";
-  ctx.fillText("khelakokhon.com",W-30,H-18);
-
-  canvas.toBlob(async blob=>{
-      if(!blob)return;
-      const file=new File([blob],"khelakokhon-match.png",{type:"image/png"});
-      const shareText=`⚽ ${homeEN} vs ${awayEN}\n📅 ${dateStr} · 🕐 ${timeStr}\nkhelakokhon.com`;
-      try{
-        if(navigator.share&&navigator.canShare&&navigator.canShare({files:[file]})){
-          await navigator.share({files:[file],title:"খেলা কখন?",text:shareText});
-        } else if(navigator.share){
-          await navigator.share({title:"খেলা কখন?",text:shareText,url:"https://khelakokhon.com"});
-        } else {
-          const a=document.createElement("a");
-          a.href=URL.createObjectURL(blob);
-          a.download=`${homeEN}-vs-${awayEN}.png`;
-          a.click();
-        }
-      }catch(e){
-        const a=document.createElement("a");
-        a.href=URL.createObjectURL(blob);
-        a.download=`${homeEN}-vs-${awayEN}.png`;
-        a.click();
-      }
-    },"image/png");
-  }); // end Promise.all
+  // Share
+  canvas.toBlob(blob=>{
+    const file=new File([blob],`${homeEN}-vs-${awayEN}.png`,{type:"image/png"});
+    if(navigator.share&&navigator.canShare&&navigator.canShare({files:[file]})){
+      navigator.share({title:"খেলা কখন?",files:[file]}).catch(()=>{});
+    } else {
+      const a=document.createElement("a");
+      a.href=URL.createObjectURL(blob);
+      a.download=`${homeEN}-vs-${awayEN}.png`;
+      a.click();
+    }
+  },"image/png");
 }
+
+function roundRect(ctx,x,y,w,h,r){
+  ctx.beginPath();
+  ctx.moveTo(x+r,y);
+  ctx.lineTo(x+w-r,y);
+  ctx.quadraticCurveTo(x+w,y,x+w,y+r);
+  ctx.lineTo(x+w,y+h-r);
+  ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
+  ctx.lineTo(x+r,y+h);
+  ctx.quadraticCurveTo(x,y+h,x,y+h-r);
+  ctx.lineTo(x,y+r);
+  ctx.quadraticCurveTo(x,y,x+r,y);
+  ctx.closePath();
+}
+
 
 function getPred(myPreds,id){return myPreds[id]||myPreds[String(id)]||myPreds[Number(id)];}
 
