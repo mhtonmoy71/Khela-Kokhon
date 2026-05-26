@@ -334,163 +334,191 @@ function getTwemojiUrl(cc){
 function shareM(m,lang){
   const homeEN=m.h||"TBD", awayEN=m.a||"TBD";
   const homeBN=tn(m.h,"bn")||homeEN, awayBN=tn(m.a,"bn")||awayEN;
-  const dateStr=new Date(tMs(m)).toLocaleDateString("bn-BD",{day:"numeric",month:"long",year:"numeric"});
-  const timeStr=m.t;
-  const groupStr=m.g?(lang==="bn"?"গ্রুপ ":"Group ")+m.g:(m.label||"");
+  const homeDisp=lang==="bn"?homeBN:homeEN;
+  const awayDisp=lang==="bn"?awayBN:awayEN;
+  const homeAlt=lang==="bn"?homeEN:homeBN;
+  const awayAlt=lang==="bn"?awayEN:awayBN;
 
-  // Countdown
+  const dateObj=new Date(tMs(m));
+  const days2=["রবিবার","সোমবার","মঙ্গলবার","বুধবার","বৃহস্পতিবার","শুক্রবার","শনিবার"];
+  const months=["জানুয়ারি","ফেব্রুয়ারি","মার্চ","এপ্রিল","মে","জুন","জুলাই","আগস্ট","সেপ্টেম্বর","অক্টোবর","নভেম্বর","ডিসেম্বর"];
+  const dateStr=lang==="bn"
+    ?`${dateObj.getDate()} ${months[dateObj.getMonth()]} ${dateObj.getFullYear()} · ${days2[dateObj.getDay()]}`
+    :dateObj.toLocaleDateString("en-US",{day:"numeric",month:"long",year:"numeric",weekday:"short"});
+
   const diff=Math.max(0,tMs(m)-Date.now());
-  const days=Math.floor(diff/86400000);
-  const hours=Math.floor((diff%86400000)/3600000);
-  const mins=Math.floor((diff%3600000)/60000);
-  const secs=Math.floor((diff%60000)/1000);
+  const dd=Math.floor(diff/86400000);
+  const hh=Math.floor((diff%86400000)/3600000);
+  const mm=Math.floor((diff%3600000)/60000);
+  const ss=Math.floor((diff%60000)/1000);
+  const groupStr=m.g?(lang==="bn"?"গ্রুপ ":"GROUP ")+m.g:(m.label||"");
 
-  // Home initial
-  const hInit=(homeEN||"?").substring(0,2).toUpperCase();
-  const aInit=(awayEN||"?").substring(0,2).toUpperCase();
-
-  const W=420, H=520;
+  const W=760, H=900, SC=2;
   const canvas=document.createElement("canvas");
   canvas.width=W; canvas.height=H;
   const ctx=canvas.getContext("2d");
 
-  // Background gradient
+  const HS="'Hind Siliguri', Arial, sans-serif";
+
+  // Background
   const bg=ctx.createLinearGradient(0,0,W,H);
   bg.addColorStop(0,"#060910");
-  bg.addColorStop(0.5,"#0a1f12");
+  bg.addColorStop(0.5,"#0a1a12");
   bg.addColorStop(1,"#060910");
   ctx.fillStyle=bg; ctx.fillRect(0,0,W,H);
 
+  // Border
+  ctx.strokeStyle="rgba(0,230,118,0.1)";
+  ctx.lineWidth=1.5;
+  roundRect(ctx,0,0,W,H,0);
+  ctx.stroke();
+
   // Top bar
-  const topBar=ctx.createLinearGradient(0,0,W,50);
-  topBar.addColorStop(0,"#064e3b");
-  topBar.addColorStop(1,"#042e24");
-  ctx.fillStyle=topBar; ctx.fillRect(0,0,W,50);
+  const tb=ctx.createLinearGradient(0,0,W,100);
+  tb.addColorStop(0,"#064e3b");
+  tb.addColorStop(1,"#042e24");
+  ctx.fillStyle=tb; ctx.fillRect(0,0,W,100);
+  ctx.strokeStyle="rgba(0,230,118,0.15)";
+  ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(0,100); ctx.lineTo(W,100); ctx.stroke();
 
-  // Logo circle
-  ctx.beginPath(); ctx.arc(22,25,13,0,Math.PI*2);
+  // Logo SVG-style clock
+  const cx2=42, cy2=50, cr=26;
+  ctx.beginPath(); ctx.arc(cx2,cy2,cr,0,Math.PI*2);
   ctx.fillStyle="#064e3b"; ctx.fill();
-  ctx.strokeStyle="#00e676"; ctx.lineWidth=1.5; ctx.stroke();
-
-  // Clock hands
-  ctx.strokeStyle="#ffffff"; ctx.lineWidth=2.5; ctx.lineCap="round";
-  ctx.beginPath(); ctx.moveTo(22,25); ctx.lineTo(22,17); ctx.stroke();
-  ctx.strokeStyle="#00e676"; ctx.lineWidth=1.8;
-  ctx.beginPath(); ctx.moveTo(22,25); ctx.lineTo(29,21); ctx.stroke();
+  ctx.strokeStyle="#00e676"; ctx.lineWidth=2; ctx.stroke();
+  // ticks
+  [[0,0.5],[90,0.5],[180,0.5],[270,0.5]].forEach(([deg,op])=>{
+    const r=(deg-90)*Math.PI/180;
+    ctx.strokeStyle=`rgba(255,255,255,${op})`; ctx.lineWidth=2;
+    ctx.beginPath();
+    ctx.moveTo(cx2+(cr-3)*Math.cos(r),cy2+(cr-3)*Math.sin(r));
+    ctx.lineTo(cx2+(cr-8)*Math.cos(r),cy2+(cr-8)*Math.sin(r));
+    ctx.stroke();
+  });
+  // hour hand
+  ctx.strokeStyle="#fff"; ctx.lineWidth=3; ctx.lineCap="round";
+  ctx.beginPath(); ctx.moveTo(cx2,cy2); ctx.lineTo(cx2,cy2-16); ctx.stroke();
+  // min hand
+  ctx.strokeStyle="#00e676"; ctx.lineWidth=2;
+  ctx.beginPath(); ctx.moveTo(cx2,cy2); ctx.lineTo(cx2+11,cy2-7); ctx.stroke();
+  // sec hand
+  ctx.strokeStyle="#e11d48"; ctx.lineWidth=1.5;
+  ctx.beginPath(); ctx.moveTo(cx2,cy2); ctx.lineTo(cx2+18,cy2-15); ctx.stroke();
+  // center
   ctx.fillStyle="#e11d48";
-  ctx.beginPath(); ctx.arc(22,25,2,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(cx2,cy2,4,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle="#064e3b";
+  ctx.beginPath(); ctx.arc(cx2,cy2,2,0,Math.PI*2); ctx.fill();
+  // খ
+  ctx.fillStyle="rgba(255,255,255,0.18)"; ctx.font=`bold 24px ${HS}`;
+  ctx.fillText("খ",cx2-12,cy2+8);
+  // ?
+  ctx.fillStyle="#f59e0b"; ctx.font=`bold 14px Arial`;
+  ctx.fillText("?",cx2+12,cy2+16);
 
   // Site name
-  ctx.fillStyle="#ffffff"; ctx.font="bold 13px Arial";
-  ctx.fillText("খেলা কখন?",40,31);
+  ctx.fillStyle="#fff"; ctx.font=`bold 26px ${HS}`;
+  ctx.fillText("খেলা কখন?",82,60);
 
   // WC badge
-  ctx.fillStyle="rgba(0,230,118,0.7)"; ctx.font="10px Arial";
+  ctx.fillStyle="rgba(0,230,118,0.65)"; ctx.font=`20px Arial`;
   ctx.textAlign="right";
-  ctx.fillText("⚽ FIFA World Cup 2026",W-14,31);
+  ctx.fillText("⚽ FIFA World Cup 2026",W-28,60);
   ctx.textAlign="left";
 
   // Group label
-  ctx.fillStyle="rgba(255,255,255,0.35)"; ctx.font="10px Arial";
+  ctx.fillStyle="rgba(255,255,255,0.3)"; ctx.font=`20px Arial`;
   ctx.textAlign="center";
-  ctx.fillText(groupStr.toUpperCase(),W/2,80);
-  ctx.textAlign="left";
+  ctx.fillText(groupStr.toUpperCase(),W/2,160);
 
-  // Home team circle
-  const hGrad=ctx.createRadialGradient(105,150,0,105,150,55);
-  hGrad.addColorStop(0,"rgba(0,230,118,0.2)");
-  hGrad.addColorStop(1,"rgba(6,78,59,0.4)");
-  ctx.beginPath(); ctx.arc(105,150,52,0,Math.PI*2);
-  ctx.fillStyle=hGrad; ctx.fill();
-  ctx.strokeStyle="rgba(0,230,118,0.35)"; ctx.lineWidth=1.5; ctx.stroke();
-  ctx.fillStyle="#00e676"; ctx.font="bold 28px Arial";
-  ctx.textAlign="center"; ctx.fillText(hInit,105,160);
+  // Home team name
+  ctx.fillStyle="#fff"; ctx.font=`bold 64px ${HS}`;
+  ctx.textAlign="center";
+  ctx.fillText(homeDisp,W/2,250);
+  ctx.fillStyle="rgba(255,255,255,0.35)"; ctx.font=`26px ${HS}`;
+  ctx.fillText(homeAlt,W/2,290);
 
-  // Away team circle
-  const aGrad=ctx.createRadialGradient(315,150,0,315,150,55);
-  aGrad.addColorStop(0,"rgba(100,100,255,0.15)");
-  aGrad.addColorStop(1,"rgba(50,50,150,0.25)");
-  ctx.beginPath(); ctx.arc(315,150,52,0,Math.PI*2);
-  ctx.fillStyle=aGrad; ctx.fill();
-  ctx.strokeStyle="rgba(150,150,255,0.3)"; ctx.lineWidth=1.5; ctx.stroke();
-  ctx.fillStyle="#a0a0ff"; ctx.font="bold 28px Arial";
-  ctx.fillText(aInit,315,160);
+  // VS line
+  ctx.strokeStyle="rgba(0,230,118,0.25)"; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(60,330); ctx.lineTo(W/2-40,330); ctx.stroke();
+  ctx.fillStyle="rgba(255,255,255,0.25)"; ctx.font=`bold 22px Arial`;
+  ctx.fillText("VS",W/2,338);
+  ctx.beginPath(); ctx.moveTo(W/2+40,330); ctx.lineTo(W-60,330); ctx.stroke();
 
-  // VS
-  ctx.fillStyle="rgba(255,255,255,0.2)"; ctx.font="bold 13px Arial";
-  ctx.fillText("VS",W/2,155);
-
-  // Team names
-  ctx.fillStyle="#ffffff"; ctx.font="bold 15px Arial";
-  ctx.fillText(lang==="bn"?homeBN:homeEN,105,218);
-  ctx.fillStyle="rgba(255,255,255,0.4)"; ctx.font="11px Arial";
-  ctx.fillText(lang==="bn"?homeEN:homeBN,105,235);
-  ctx.fillStyle="#ffffff"; ctx.font="bold 15px Arial";
-  ctx.fillText(lang==="bn"?awayBN:awayEN,315,218);
-  ctx.fillStyle="rgba(255,255,255,0.4)"; ctx.font="11px Arial";
-  ctx.fillText(lang==="bn"?awayEN:awayBN,315,235);
-  ctx.textAlign="left";
+  // Away team name
+  ctx.fillStyle="#fff"; ctx.font=`bold 64px ${HS}`;
+  ctx.fillText(awayDisp,W/2,410);
+  ctx.fillStyle="rgba(255,255,255,0.35)"; ctx.font=`26px ${HS}`;
+  ctx.fillText(awayAlt,W/2,450);
 
   // Divider
-  const div=ctx.createLinearGradient(0,0,W,0);
-  div.addColorStop(0,"transparent");
-  div.addColorStop(0.5,"rgba(0,230,118,0.3)");
-  div.addColorStop(1,"transparent");
-  ctx.strokeStyle=div; ctx.lineWidth=1;
-  ctx.beginPath(); ctx.moveTo(20,258); ctx.lineTo(W-20,258); ctx.stroke();
+  const dg=ctx.createLinearGradient(0,0,W,0);
+  dg.addColorStop(0,"transparent");
+  dg.addColorStop(0.5,"rgba(0,230,118,0.15)");
+  dg.addColorStop(1,"transparent");
+  ctx.strokeStyle=dg; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(40,490); ctx.lineTo(W-40,490); ctx.stroke();
 
-  // Info row
-  const infos=[
-    {label:lang==="bn"?"তারিখ":"Date", value:dateStr},
-    {label:lang==="bn"?"বাংলাদেশ সময়":"BD Time", value:timeStr, green:true},
-    {label:lang==="bn"?"ভেন্যু":"Venue", value:m.venue||"USA/Canada"},
-  ];
-  infos.forEach((info,i)=>{
-    const x=70+i*140;
-    ctx.fillStyle="rgba(255,255,255,0.3)"; ctx.font="9px Arial";
-    ctx.textAlign="center"; ctx.fillText(info.label.toUpperCase(),x,280);
-    ctx.fillStyle=info.green?"#00e676":"#ffffff"; ctx.font="bold 13px Arial";
-    ctx.fillText(info.value,x,298);
-  });
-  ctx.textAlign="left";
+  // Time badge
+  ctx.fillStyle="rgba(0,230,118,0.1)";
+  ctx.strokeStyle="rgba(0,230,118,0.25)"; ctx.lineWidth=1;
+  roundRect(ctx,W/2-100,510,200,56,28);
+  ctx.fill(); ctx.stroke();
+  ctx.fillStyle="#00e676"; ctx.font=`bold 30px ${HS}`;
+  ctx.fillText(m.t,W/2,546);
+
+  // Date
+  ctx.fillStyle="rgba(255,255,255,0.4)"; ctx.font=`22px ${HS}`;
+  ctx.fillText(dateStr,W/2,595);
 
   // Countdown box
-  ctx.fillStyle="rgba(0,230,118,0.06)";
-  ctx.strokeStyle="rgba(0,230,118,0.2)"; ctx.lineWidth=1;
-  roundRect(ctx,20,318,W-40,70,10);
+  ctx.fillStyle="rgba(0,0,0,0.25)";
+  ctx.strokeStyle="rgba(255,255,255,0.06)"; ctx.lineWidth=1;
+  roundRect(ctx,40,620,W-80,120,24);
   ctx.fill(); ctx.stroke();
 
   const cdItems=diff>0?[
-    {v:String(days).padStart(2,"0"),l:lang==="bn"?"দিন":"Days"},
-    {v:String(hours).padStart(2,"0"),l:lang==="bn"?"ঘণ্টা":"Hrs"},
-    {v:String(mins).padStart(2,"0"),l:lang==="bn"?"মিনিট":"Min"},
-    {v:String(secs).padStart(2,"0"),l:lang==="bn"?"সেকেন্ড":"Sec"},
-  ]:[{v:"FT",l:"Full Time"},{v:"",l:""},{v:"",l:""},{v:"",l:""}];
+    {v:String(dd).padStart(2,"0"),l:lang==="bn"?"দিন":"Days"},
+    {v:String(hh).padStart(2,"0"),l:lang==="bn"?"ঘণ্টা":"Hrs"},
+    {v:String(mm).padStart(2,"0"),l:lang==="bn"?"মিনিট":"Min"},
+    {v:String(ss).padStart(2,"0"),l:lang==="bn"?"সেকেন্ড":"Sec"},
+  ]:[{v:"FT",l:"Full Time"},{v:"—",l:""},{v:"—",l:""},{v:"—",l:""}];
 
   cdItems.forEach((cd,i)=>{
-    if(!cd.v)return;
-    const x=75+i*90;
-    ctx.fillStyle="#00e676"; ctx.font="bold 22px Arial";
-    ctx.textAlign="center"; ctx.fillText(cd.v,x,350);
-    ctx.fillStyle="rgba(255,255,255,0.35)"; ctx.font="9px Arial";
-    ctx.fillText(cd.l,x,368);
+    const x=40+(W-80)/4*i+(W-80)/8;
+    if(i>0){
+      ctx.strokeStyle="rgba(255,255,255,0.06)"; ctx.lineWidth=1;
+      ctx.beginPath(); ctx.moveTo(40+(W-80)/4*i,640); ctx.lineTo(40+(W-80)/4*i,720); ctx.stroke();
+    }
+    ctx.fillStyle="#00e676"; ctx.font=`bold 44px Arial`;
+    ctx.textAlign="center"; ctx.fillText(cd.v,x,688);
+    ctx.fillStyle="rgba(255,255,255,0.3)"; ctx.font=`18px ${HS}`;
+    ctx.fillText(cd.l,x,716);
   });
   ctx.textAlign="left";
 
   // Bottom bar
-  ctx.fillStyle="rgba(0,0,0,0.35)";
-  ctx.fillRect(0,H-44,W,44);
-  ctx.fillStyle="rgba(255,255,255,0.2)"; ctx.font="10px Arial";
-  ctx.fillText("#খেলাকখন #FIFA2026",16,H-17);
-  ctx.fillStyle="#00e676"; ctx.font="bold 12px Arial";
-  ctx.textAlign="right"; ctx.fillText("khelakokhon.com",W-16,H-17);
+  ctx.fillStyle="rgba(0,0,0,0.3)";
+  ctx.fillRect(0,H-80,W,80);
+  ctx.strokeStyle="rgba(255,255,255,0.04)"; ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(0,H-80); ctx.lineTo(W,H-80); ctx.stroke();
+  ctx.fillStyle="rgba(255,255,255,0.18)"; ctx.font=`18px ${HS}`;
+  ctx.textAlign="left"; ctx.fillText("#খেলাকখন #FIFA2026",30,H-28);
+  ctx.fillStyle="#00e676"; ctx.font=`bold 22px ${HS}`;
+  ctx.textAlign="right"; ctx.fillText("khelakokhon.com",W-30,H-28);
   ctx.textAlign="left";
 
   // Share
   canvas.toBlob(blob=>{
     const file=new File([blob],`${homeEN}-vs-${awayEN}.png`,{type:"image/png"});
     if(navigator.share&&navigator.canShare&&navigator.canShare({files:[file]})){
-      navigator.share({title:"খেলা কখন?",files:[file]}).catch(()=>{});
+      navigator.share({title:"খেলা কখন?",files:[file]}).catch(()=>{
+        const a=document.createElement("a");
+        a.href=URL.createObjectURL(blob);
+        a.download=`${homeEN}-vs-${awayEN}.png`;
+        a.click();
+      });
     } else {
       const a=document.createElement("a");
       a.href=URL.createObjectURL(blob);
@@ -499,6 +527,7 @@ function shareM(m,lang){
     }
   },"image/png");
 }
+
 
 function roundRect(ctx,x,y,w,h,r){
   ctx.beginPath();
