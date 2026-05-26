@@ -1171,7 +1171,7 @@ function HomeTab({T,lang,favs,setFavs,onTeam,setSM,scores,myPreds,setPredictM,se
         </div>
         <div style={{display:"flex",flexDirection:"column",gap:5,flexShrink:0}}>
           {nx&&<CalIcon d={nx.d} T={T} onClick={e=>{e.stopPropagation();addToGCal(nx,lang);}}/>}
-          <button onClick={()=>iF?setFavs(f=>{const nf=f.filter(x=>x!==en);try{localStorage.setItem("kk_favs",JSON.stringify(nf));}catch(e){}return nf;})):setFavs(f=>{const nf=[...f,en];try{localStorage.setItem("kk_favs",JSON.stringify(nf));}catch(e){}return nf;})} style={{fontFamily:HS,fontSize:11,cursor:"pointer",borderRadius:20,padding:"4px 8px",background:iF?T.greenBg:T.card2,border:`1px solid ${iF?T.greenBr:T.border}`,color:iF?T.green:T.textS,whiteSpace:"nowrap"}}>{iF?"⭐":"+ ⭐"}</button>
+          <button onClick={()=>iF?setFavs(f=>{const nf=f.filter(x=>x!==en);try{localStorage.setItem("kk_favs",JSON.stringify(nf));}catch(e){}return nf;}):setFavs(f=>{const nf=[...f,en];try{localStorage.setItem("kk_favs",JSON.stringify(nf));}catch(e){}return nf;})} style={{fontFamily:HS,fontSize:11,cursor:"pointer",borderRadius:20,padding:"4px 8px",background:iF?T.greenBg:T.card2,border:`1px solid ${iF?T.greenBr:T.border}`,color:iF?T.green:T.textS,whiteSpace:"nowrap"}}>{iF?"⭐":"+ ⭐"}</button>
         </div>
       </div>
     );
