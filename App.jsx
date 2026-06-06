@@ -1363,51 +1363,66 @@ function BracketTab({T,lang,scores}){
     return {hg:sc.hg,ag:sc.ag,ft:sc.status==="end"};
   };
 
-  const MatchSlot=({m,compact})=>{
+  const isReal=(team)=>team&&TEAMS[team];
+
+  const TeamRow=({team,score,isWinner,isLoser})=>{
+    const tbd=!isReal(team);
+    return(
+      <div style={{
+        display:"flex",alignItems:"center",gap:6,padding:"5px 8px",
+        background:isWinner?"rgba(0,230,118,0.07)":"transparent",
+      }}>
+        {!tbd?<Flag en={team} size={14}/>:<div style={{width:14,height:10,background:"rgba(255,255,255,0.06)",borderRadius:2}}/>}
+        <span style={{
+          fontFamily:HS,fontSize:10,fontWeight:isWinner?700:400,flex:1,
+          overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",
+          color:tbd?"rgba(255,255,255,0.2)":isLoser?"rgba(255,255,255,0.3)":"#fff",
+        }}>{tbd?(team||"TBD"):tn2(team)}</span>
+        {score!==undefined&&score!==""&&(
+          <span style={{
+            fontFamily:"monospace",fontSize:11,fontWeight:800,minWidth:14,textAlign:"right",
+            color:isWinner?"#00e676":isLoser?"rgba(255,255,255,0.25)":"rgba(255,255,255,0.4)",
+          }}>{score}</span>
+        )}
+      </div>
+    );
+  };
+
+  const MatchSlot=({m})=>{
     const sc=getScore(m);
     const winner=getWinner(m);
     const isLive=status(m,scores)==="live";
+    const st=status(m,scores);
     return(
       <div style={{
         background:T.card,borderRadius:10,
-        border:`1px solid ${isLive?"rgba(225,29,72,0.3)":T.border}`,
-        overflow:"hidden",minWidth:compact?120:140,
-        boxShadow:T.glow,
+        border:`1px solid ${isLive?"rgba(225,29,72,0.35)":st==="ft"?"rgba(255,255,255,0.08)":T.border}`,
+        overflow:"hidden",boxShadow:T.glow,
       }}>
-        {[{team:m.h,score:sc?.hg},{team:m.a,score:sc?.ag}].map((row,i)=>{
-          const isWinner=winner&&winner===row.team;
-          const isLoser=winner&&winner!==row.team;
-          const isTBD=!row.team||row.team.startsWith("W ")||row.team.startsWith("Winner")||row.team.startsWith("Loser");
-          return(
-            <div key={i} style={{
-              display:"flex",alignItems:"center",gap:6,padding:"5px 8px",
-              borderBottom:i===0?`1px solid ${T.border}`:"none",
-              background:isWinner?"rgba(0,230,118,0.06)":"transparent",
-            }}>
-              {!isTBD?<Flag en={row.team} size={14}/>:<div style={{width:14,height:14,borderRadius:2,background:"rgba(255,255,255,0.05)"}}/>}
-              <span style={{
-                fontFamily:HS,fontSize:compact?9:10,fontWeight:isWinner?700:400,
-                color:isTBD?"rgba(255,255,255,0.2)":isLoser?"rgba(255,255,255,0.3)":"#fff",
-                flex:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",
-              }}>{isTBD?"TBD":tn2(row.team)}</span>
-              <span style={{
-                fontFamily:"monospace",fontSize:compact?10:11,fontWeight:700,
-                color:isWinner?"#00e676":isLoser?"rgba(255,255,255,0.25)":"rgba(255,255,255,0.3)",
-                minWidth:14,textAlign:"right",
-              }}>{row.score!==undefined&&row.score!==""?row.score:""}</span>
-            </div>
-          );
-        })}
+        {/* Match meta */}
+        <div style={{
+          display:"flex",alignItems:"center",justifyContent:"space-between",
+          padding:"4px 8px",background:T.card2,
+          borderBottom:`1px solid ${T.border}`,
+        }}>
+          <span style={{fontFamily:HS,fontSize:8,color:T.textS}}>{m.t}</span>
+          {isLive&&<span style={{fontSize:7,fontWeight:700,color:"#e11d48",background:"rgba(225,29,72,0.12)",padding:"1px 5px",borderRadius:6}}>● LIVE</span>}
+          {st==="ft"&&!isLive&&<span style={{fontSize:7,color:T.textS}}>FT</span>}
+          <span style={{fontFamily:HS,fontSize:7,color:T.textS,maxWidth:70,textAlign:"right",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{m.venue?m.venue.replace(" Stadium","").replace(" Stadium",""):"—"}</span>
+        </div>
+        <TeamRow team={m.h} score={sc?.hg} isWinner={winner===m.h} isLoser={winner&&winner!==m.h}/>
+        <div style={{height:1,background:T.border}}/>
+        <TeamRow team={m.a} score={sc?.ag} isWinner={winner===m.a} isLoser={winner&&winner!==m.a}/>
       </div>
     );
   };
 
   const rounds=[
-    {id:"r32",label:lang==="bn"?"রাউন্ড ৩২":"R32",matches:R32,compact:true},
-    {id:"r16",label:lang==="bn"?"রাউন্ড ১৬":"R16",matches:R16,compact:true},
-    {id:"qf",label:lang==="bn"?"কোয়ার্টার":"QF",matches:QF,compact:false},
-    {id:"sf",label:lang==="bn"?"সেমিফাইনাল":"SF",matches:SF,compact:false},
-    {id:"final",label:lang==="bn"?"ফাইনাল":"Final",matches:FINAL.filter(m=>m.id===104),compact:false},
+    {id:"r32",label:"R32",sublabel:lang==="bn"?"রাউন্ড অব ৩২":"Round of 32",matches:R32},
+    {id:"r16",label:"R16",sublabel:lang==="bn"?"রাউন্ড অব ১৬":"Round of 16",matches:R16},
+    {id:"qf",label:"QF",sublabel:lang==="bn"?"কোয়ার্টার ফাইনাল":"Quarter Final",matches:QF},
+    {id:"sf",label:"SF",sublabel:lang==="bn"?"সেমিফাইনাল":"Semi Final",matches:SF},
+    {id:"final",label:"F",sublabel:lang==="bn"?"ফাইনাল":"Final",matches:FINAL.filter(m=>m.id===104)},
   ];
 
   const finalMatch=FINAL.find(m=>m.id===104);
@@ -1416,93 +1431,97 @@ function BracketTab({T,lang,scores}){
 
   return(
     <div style={{paddingBottom:80}}>
-      {/* Header with view toggle */}
+      {/* Header */}
       <div style={{padding:"10px 12px 8px",borderBottom:`1px solid ${T.border}`,display:"flex",alignItems:"center",justifyContent:"space-between"}}>
         <div>
-          <div style={{fontFamily:HS,fontSize:12,fontWeight:700,color:T.text,marginBottom:2}}>
-            {lang==="bn"?"Road To Final":"Road To Final"}
-          </div>
-          <div style={{fontFamily:HS,fontSize:10,color:T.textS}}>
-            {view==="horizontal"?(lang==="bn"?"বাম থেকে ডানে স্ক্রোল করুন →":"Scroll left to right →"):(lang==="bn"?"উপর থেকে নিচে":"Top to bottom")}
+          <div style={{fontFamily:HS,fontSize:13,fontWeight:800,color:T.text}}>রোড টু ফাইনাল</div>
+          <div style={{fontFamily:HS,fontSize:10,color:T.textS,marginTop:2}}>
+            {view==="horizontal"?(lang==="bn"?"← স্ক্রোল করুন →":"← Scroll →"):(lang==="bn"?"রাউন্ড ভিত্তিক":"Round by round")}
           </div>
         </div>
-        {/* View toggle */}
         <div style={{display:"flex",gap:4,background:T.card2,borderRadius:10,padding:3}}>
           <button onClick={()=>setView("horizontal")} style={{
-            background:view==="horizontal"?T.card:"transparent",
+            background:view==="horizontal"?T.green:"transparent",
             border:"none",borderRadius:8,padding:"5px 10px",cursor:"pointer",
-            color:view==="horizontal"?T.green:T.textS,fontSize:11,
+            color:view==="horizontal"?"#060910":T.textS,fontSize:13,fontWeight:700,
           }}>⇔</button>
           <button onClick={()=>setView("vertical")} style={{
-            background:view==="vertical"?T.card:"transparent",
+            background:view==="vertical"?T.green:"transparent",
             border:"none",borderRadius:8,padding:"5px 10px",cursor:"pointer",
-            color:view==="vertical"?T.green:T.textS,fontSize:11,
+            color:view==="vertical"?"#060910":T.textS,fontSize:13,fontWeight:700,
           }}>⇕</button>
         </div>
       </div>
 
-      {/* HORIZONTAL VIEW */}
+      {/* HORIZONTAL */}
       {view==="horizontal"&&(
-        <div style={{overflowX:"auto",paddingBottom:8}}>
-          <div style={{display:"flex",gap:0,padding:"12px 8px",minWidth:700}}>
+        <div style={{overflowX:"auto"}}>
+          <div style={{display:"flex",padding:"12px 8px",minWidth:900,gap:0}}>
             {rounds.map((round,ri)=>(
-              <div key={round.id} style={{display:"flex",gap:0,alignItems:"stretch"}}>
-                <div style={{display:"flex",flexDirection:"column",minWidth:round.compact?140:155}}>
-                  <div style={{fontFamily:HS,fontSize:9,fontWeight:700,color:T.green,textAlign:"center",padding:"4px 8px",marginBottom:6,background:"rgba(0,230,118,0.06)",borderRadius:6,margin:"0 4px 8px",letterSpacing:1}}>
-                    {round.label}
+              <div key={round.id} style={{display:"flex",alignItems:"stretch"}}>
+                <div style={{display:"flex",flexDirection:"column",minWidth:ri<2?168:160}}>
+                  <div style={{textAlign:"center",padding:"4px",marginBottom:8}}>
+                    <div style={{fontFamily:HS,fontSize:11,fontWeight:800,color:T.green}}>{round.label}</div>
+                    <div style={{fontFamily:HS,fontSize:8,color:T.textS}}>{round.sublabel}</div>
                   </div>
                   <div style={{display:"flex",flexDirection:"column",justifyContent:"space-around",flex:1,gap:6,padding:"0 4px"}}>
-                    {round.matches.map(m=><MatchSlot key={m.id} m={m} compact={round.compact}/>)}
+                    {round.matches.map(m=><MatchSlot key={m.id} m={m}/>)}
                   </div>
                 </div>
                 {ri<rounds.length-1&&(
-                  <div style={{display:"flex",flexDirection:"column",width:16,alignSelf:"stretch"}}>
+                  <div style={{display:"flex",flexDirection:"column",width:14,alignSelf:"stretch"}}>
                     {round.matches.map((_,i)=>(
                       i%2===0?(
-                        <div key={i} style={{flex:2,borderTop:`1px solid ${T.border}`,borderRight:`1px solid ${T.border}`,borderBottom:`1px solid ${T.border}`,margin:"8px 0"}}/>
+                        <div key={i} style={{flex:2,borderTop:`1px solid ${T.border}`,borderRight:`1px solid ${T.border}`,borderBottom:`1px solid ${T.border}`,margin:"12px 0"}}/>
                       ):<div key={i} style={{flex:2}}/>
                     ))}
                   </div>
                 )}
               </div>
             ))}
-            <div style={{display:"flex",flexDirection:"column",justifyContent:"center",padding:"0 8px",minWidth:100}}>
-              <div style={{background:"linear-gradient(135deg,rgba(245,158,11,0.1),rgba(245,158,11,0.05))",border:"1px solid rgba(245,158,11,0.3)",borderRadius:12,padding:"12px 8px",textAlign:"center"}}>
-                <div style={{fontSize:24,marginBottom:6}}>🏆</div>
-                <div style={{fontFamily:HS,fontSize:9,color:"rgba(245,158,11,0.7)",letterSpacing:1,marginBottom:4}}>{lang==="bn"?"চ্যাম্পিয়ন":"CHAMPION"}</div>
-                {champ?(<><Flag en={champ} size={24}/><div style={{fontFamily:HS,fontSize:10,fontWeight:800,color:"#f59e0b",marginTop:4}}>{tn2(champ)}</div></>):(<div style={{fontFamily:HS,fontSize:11,fontWeight:700,color:"rgba(245,158,11,0.3)"}}>?</div>)}
+            {/* Champion */}
+            <div style={{display:"flex",flexDirection:"column",justifyContent:"center",padding:"0 10px",minWidth:90}}>
+              <div style={{background:"linear-gradient(135deg,rgba(245,158,11,0.12),rgba(245,158,11,0.05))",border:"1px solid rgba(245,158,11,0.3)",borderRadius:14,padding:"14px 10px",textAlign:"center"}}>
+                <div style={{fontSize:26,marginBottom:6}}>🏆</div>
+                <div style={{fontFamily:HS,fontSize:8,color:"rgba(245,158,11,0.6)",letterSpacing:1,marginBottom:4}}>{lang==="bn"?"চ্যাম্পিয়ন":"CHAMPION"}</div>
+                {champ?(<><Flag en={champ} size={28}/><div style={{fontFamily:HS,fontSize:10,fontWeight:800,color:"#f59e0b",marginTop:4}}>{tn2(champ)}</div></>):(<div style={{fontFamily:HS,fontSize:13,color:"rgba(245,158,11,0.25)"}}>?</div>)}
               </div>
             </div>
           </div>
         </div>
       )}
 
-      {/* VERTICAL VIEW */}
+      {/* VERTICAL */}
       {view==="vertical"&&(
         <div style={{padding:"8px 12px"}}>
-          {rounds.map((round)=>(
-            <div key={round.id} style={{marginBottom:16}}>
-              <div style={{fontFamily:HS,fontSize:10,fontWeight:700,color:T.green,marginBottom:8,paddingBottom:4,borderBottom:`1px solid ${T.border}`,letterSpacing:1}}>
-                {round.label}
+          {rounds.map(round=>(
+            <div key={round.id} style={{marginBottom:20}}>
+              <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:10}}>
+                <div style={{background:T.green,borderRadius:6,padding:"2px 8px"}}>
+                  <span style={{fontFamily:HS,fontSize:10,fontWeight:800,color:"#060910"}}>{round.label}</span>
+                </div>
+                <span style={{fontFamily:HS,fontSize:11,color:T.textS}}>{round.sublabel}</span>
               </div>
               <div style={{display:"flex",flexDirection:"column",gap:8}}>
-                {round.matches.map(m=><MatchSlot key={m.id} m={m} compact={false}/>)}
+                {round.matches.map(m=><MatchSlot key={m.id} m={m}/>)}
               </div>
             </div>
           ))}
           {/* Champion */}
-          <div style={{background:"linear-gradient(135deg,rgba(245,158,11,0.1),rgba(245,158,11,0.05))",border:"1px solid rgba(245,158,11,0.3)",borderRadius:12,padding:"16px",textAlign:"center",marginBottom:12}}>
-            <div style={{fontSize:28,marginBottom:6}}>🏆</div>
-            <div style={{fontFamily:HS,fontSize:10,color:"rgba(245,158,11,0.6)",letterSpacing:2,marginBottom:6}}>{lang==="bn"?"চ্যাম্পিয়ন":"CHAMPION"}</div>
-            {champ?(<><Flag en={champ} size={32}/><div style={{fontFamily:HS,fontSize:14,fontWeight:800,color:"#f59e0b",marginTop:6}}>{tn2(champ)}</div></>):(<div style={{fontFamily:HS,fontSize:13,fontWeight:700,color:"rgba(245,158,11,0.3)"}}>?</div>)}
+          <div style={{background:"linear-gradient(135deg,rgba(245,158,11,0.1),rgba(245,158,11,0.04))",border:"1px solid rgba(245,158,11,0.25)",borderRadius:14,padding:"18px",textAlign:"center",marginBottom:12}}>
+            <div style={{fontSize:32,marginBottom:8}}>🏆</div>
+            <div style={{fontFamily:HS,fontSize:10,color:"rgba(245,158,11,0.6)",letterSpacing:2,marginBottom:8}}>{lang==="bn"?"চ্যাম্পিয়ন":"CHAMPION"}</div>
+            {champ?(<><Flag en={champ} size={36}/><div style={{fontFamily:HS,fontSize:15,fontWeight:800,color:"#f59e0b",marginTop:8}}>{tn2(champ)}</div></>):(<div style={{fontFamily:HS,fontSize:14,color:"rgba(245,158,11,0.25)"}}>?</div>)}
           </div>
         </div>
       )}
 
-      {/* Bronze Final */}
-      <div style={{padding:"0 12px 12px"}}>
-        <div style={{fontFamily:HS,fontSize:10,color:T.textS,marginBottom:8}}>🥉 {lang==="bn"?"তৃতীয় স্থান নির্ধারণী":"Bronze Final"}</div>
-        <MatchSlot m={bronzeMatch} compact={false}/>
+      {/* Bronze */}
+      <div style={{padding:"0 12px 12px",borderTop:`1px solid ${T.border}`,paddingTop:12}}>
+        <div style={{fontFamily:HS,fontSize:10,fontWeight:700,color:T.textS,marginBottom:8}}>
+          🥉 {lang==="bn"?"তৃতীয় স্থান নির্ধারণী":"Bronze Final"}
+        </div>
+        <MatchSlot m={bronzeMatch}/>
       </div>
     </div>
   );
