@@ -1343,6 +1343,172 @@ function HomeTab({T,lang,favs,setFavs,onTeam,setSM,scores,myPreds,setPredictM,se
   );
 }
 
+/* ── BracketTab ─────────────────────────────── */
+function BracketTab({T,lang,scores}){
+  const[view,setView]=useState("horizontal");
+  const tn2=(en)=>lang==="bn"?(TEAMS[en]?.bn||en):en;
+
+  const getWinner=(m)=>{
+    const sc=scores[m.id]||scores[String(m.id)];
+    if(!sc||sc.status!=="end")return null;
+    const hg=Number(sc.hg),ag=Number(sc.ag);
+    if(hg>ag)return m.h;
+    if(ag>hg)return m.a;
+    return null;
+  };
+
+  const getScore=(m)=>{
+    const sc=scores[m.id]||scores[String(m.id)];
+    if(!sc||sc.hg===""||sc.ag==="")return null;
+    return {hg:sc.hg,ag:sc.ag,ft:sc.status==="end"};
+  };
+
+  const MatchSlot=({m,compact})=>{
+    const sc=getScore(m);
+    const winner=getWinner(m);
+    const isLive=status(m,scores)==="live";
+    return(
+      <div style={{
+        background:T.card,borderRadius:10,
+        border:`1px solid ${isLive?"rgba(225,29,72,0.3)":T.border}`,
+        overflow:"hidden",minWidth:compact?120:140,
+        boxShadow:T.glow,
+      }}>
+        {[{team:m.h,score:sc?.hg},{team:m.a,score:sc?.ag}].map((row,i)=>{
+          const isWinner=winner&&winner===row.team;
+          const isLoser=winner&&winner!==row.team;
+          const isTBD=!row.team||row.team.startsWith("W ")||row.team.startsWith("Winner")||row.team.startsWith("Loser");
+          return(
+            <div key={i} style={{
+              display:"flex",alignItems:"center",gap:6,padding:"5px 8px",
+              borderBottom:i===0?`1px solid ${T.border}`:"none",
+              background:isWinner?"rgba(0,230,118,0.06)":"transparent",
+            }}>
+              {!isTBD?<Flag en={row.team} size={14}/>:<div style={{width:14,height:14,borderRadius:2,background:"rgba(255,255,255,0.05)"}}/>}
+              <span style={{
+                fontFamily:HS,fontSize:compact?9:10,fontWeight:isWinner?700:400,
+                color:isTBD?"rgba(255,255,255,0.2)":isLoser?"rgba(255,255,255,0.3)":"#fff",
+                flex:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",
+              }}>{isTBD?"TBD":tn2(row.team)}</span>
+              <span style={{
+                fontFamily:"monospace",fontSize:compact?10:11,fontWeight:700,
+                color:isWinner?"#00e676":isLoser?"rgba(255,255,255,0.25)":"rgba(255,255,255,0.3)",
+                minWidth:14,textAlign:"right",
+              }}>{row.score!==undefined&&row.score!==""?row.score:""}</span>
+            </div>
+          );
+        })}
+      </div>
+    );
+  };
+
+  const rounds=[
+    {id:"r32",label:lang==="bn"?"রাউন্ড ৩২":"R32",matches:R32,compact:true},
+    {id:"r16",label:lang==="bn"?"রাউন্ড ১৬":"R16",matches:R16,compact:true},
+    {id:"qf",label:lang==="bn"?"কোয়ার্টার":"QF",matches:QF,compact:false},
+    {id:"sf",label:lang==="bn"?"সেমিফাইনাল":"SF",matches:SF,compact:false},
+    {id:"final",label:lang==="bn"?"ফাইনাল":"Final",matches:FINAL.filter(m=>m.id===104),compact:false},
+  ];
+
+  const finalMatch=FINAL.find(m=>m.id===104);
+  const bronzeMatch=FINAL.find(m=>m.id===103)||FINAL[0];
+  const champ=finalMatch?getWinner(finalMatch):null;
+
+  return(
+    <div style={{paddingBottom:80}}>
+      {/* Header with view toggle */}
+      <div style={{padding:"10px 12px 8px",borderBottom:`1px solid ${T.border}`,display:"flex",alignItems:"center",justifyContent:"space-between"}}>
+        <div>
+          <div style={{fontFamily:HS,fontSize:12,fontWeight:700,color:T.text,marginBottom:2}}>
+            {lang==="bn"?"Road To Final":"Road To Final"}
+          </div>
+          <div style={{fontFamily:HS,fontSize:10,color:T.textS}}>
+            {view==="horizontal"?(lang==="bn"?"বাম থেকে ডানে স্ক্রোল করুন →":"Scroll left to right →"):(lang==="bn"?"উপর থেকে নিচে":"Top to bottom")}
+          </div>
+        </div>
+        {/* View toggle */}
+        <div style={{display:"flex",gap:4,background:T.card2,borderRadius:10,padding:3}}>
+          <button onClick={()=>setView("horizontal")} style={{
+            background:view==="horizontal"?T.card:"transparent",
+            border:"none",borderRadius:8,padding:"5px 10px",cursor:"pointer",
+            color:view==="horizontal"?T.green:T.textS,fontSize:11,
+          }}>⇔</button>
+          <button onClick={()=>setView("vertical")} style={{
+            background:view==="vertical"?T.card:"transparent",
+            border:"none",borderRadius:8,padding:"5px 10px",cursor:"pointer",
+            color:view==="vertical"?T.green:T.textS,fontSize:11,
+          }}>⇕</button>
+        </div>
+      </div>
+
+      {/* HORIZONTAL VIEW */}
+      {view==="horizontal"&&(
+        <div style={{overflowX:"auto",paddingBottom:8}}>
+          <div style={{display:"flex",gap:0,padding:"12px 8px",minWidth:700}}>
+            {rounds.map((round,ri)=>(
+              <div key={round.id} style={{display:"flex",gap:0,alignItems:"stretch"}}>
+                <div style={{display:"flex",flexDirection:"column",minWidth:round.compact?140:155}}>
+                  <div style={{fontFamily:HS,fontSize:9,fontWeight:700,color:T.green,textAlign:"center",padding:"4px 8px",marginBottom:6,background:"rgba(0,230,118,0.06)",borderRadius:6,margin:"0 4px 8px",letterSpacing:1}}>
+                    {round.label}
+                  </div>
+                  <div style={{display:"flex",flexDirection:"column",justifyContent:"space-around",flex:1,gap:6,padding:"0 4px"}}>
+                    {round.matches.map(m=><MatchSlot key={m.id} m={m} compact={round.compact}/>)}
+                  </div>
+                </div>
+                {ri<rounds.length-1&&(
+                  <div style={{display:"flex",flexDirection:"column",width:16,alignSelf:"stretch"}}>
+                    {round.matches.map((_,i)=>(
+                      i%2===0?(
+                        <div key={i} style={{flex:2,borderTop:`1px solid ${T.border}`,borderRight:`1px solid ${T.border}`,borderBottom:`1px solid ${T.border}`,margin:"8px 0"}}/>
+                      ):<div key={i} style={{flex:2}}/>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))}
+            <div style={{display:"flex",flexDirection:"column",justifyContent:"center",padding:"0 8px",minWidth:100}}>
+              <div style={{background:"linear-gradient(135deg,rgba(245,158,11,0.1),rgba(245,158,11,0.05))",border:"1px solid rgba(245,158,11,0.3)",borderRadius:12,padding:"12px 8px",textAlign:"center"}}>
+                <div style={{fontSize:24,marginBottom:6}}>🏆</div>
+                <div style={{fontFamily:HS,fontSize:9,color:"rgba(245,158,11,0.7)",letterSpacing:1,marginBottom:4}}>{lang==="bn"?"চ্যাম্পিয়ন":"CHAMPION"}</div>
+                {champ?(<><Flag en={champ} size={24}/><div style={{fontFamily:HS,fontSize:10,fontWeight:800,color:"#f59e0b",marginTop:4}}>{tn2(champ)}</div></>):(<div style={{fontFamily:HS,fontSize:11,fontWeight:700,color:"rgba(245,158,11,0.3)"}}>?</div>)}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* VERTICAL VIEW */}
+      {view==="vertical"&&(
+        <div style={{padding:"8px 12px"}}>
+          {rounds.map((round)=>(
+            <div key={round.id} style={{marginBottom:16}}>
+              <div style={{fontFamily:HS,fontSize:10,fontWeight:700,color:T.green,marginBottom:8,paddingBottom:4,borderBottom:`1px solid ${T.border}`,letterSpacing:1}}>
+                {round.label}
+              </div>
+              <div style={{display:"flex",flexDirection:"column",gap:8}}>
+                {round.matches.map(m=><MatchSlot key={m.id} m={m} compact={false}/>)}
+              </div>
+            </div>
+          ))}
+          {/* Champion */}
+          <div style={{background:"linear-gradient(135deg,rgba(245,158,11,0.1),rgba(245,158,11,0.05))",border:"1px solid rgba(245,158,11,0.3)",borderRadius:12,padding:"16px",textAlign:"center",marginBottom:12}}>
+            <div style={{fontSize:28,marginBottom:6}}>🏆</div>
+            <div style={{fontFamily:HS,fontSize:10,color:"rgba(245,158,11,0.6)",letterSpacing:2,marginBottom:6}}>{lang==="bn"?"চ্যাম্পিয়ন":"CHAMPION"}</div>
+            {champ?(<><Flag en={champ} size={32}/><div style={{fontFamily:HS,fontSize:14,fontWeight:800,color:"#f59e0b",marginTop:6}}>{tn2(champ)}</div></>):(<div style={{fontFamily:HS,fontSize:13,fontWeight:700,color:"rgba(245,158,11,0.3)"}}>?</div>)}
+          </div>
+        </div>
+      )}
+
+      {/* Bronze Final */}
+      <div style={{padding:"0 12px 12px"}}>
+        <div style={{fontFamily:HS,fontSize:10,color:T.textS,marginBottom:8}}>🥉 {lang==="bn"?"তৃতীয় স্থান নির্ধারণী":"Bronze Final"}</div>
+        <MatchSlot m={bronzeMatch} compact={false}/>
+      </div>
+    </div>
+  );
+}
+
+
 /* ── TableTab ────────────────────────────────── */
 function TableTab({T,lang,scores}){
   const th={fontFamily:HS,fontSize:10,fontWeight:700,color:T.textS,padding:"5px 2px",textAlign:"center"};
@@ -2156,7 +2322,7 @@ export default function App(){
           {/* WC sub-tabs */}
           {mt==="wc"&&(
             <div style={{display:"flex",borderTop:"1px solid rgba(255,255,255,0.1)"}}>
-              {[["fixture",lang==="bn"?"গ্রুপ পর্ব":"Group"],["knockout",lang==="bn"?"নকআউট":"Knockout"],["table",lang==="bn"?"টেবিল":"Table"]].map(([id,lb])=>(
+              {[["fixture",lang==="bn"?"গ্রুপ পর্ব":"Group"],["knockout",lang==="bn"?"নকআউট":"Knockout"],["table",lang==="bn"?"টেবিল":"Table"],["bracket",lang==="bn"?"ফাইনালের পথ":"Road To Final"]].map(([id,lb])=>(
                 <button key={id} onClick={()=>setWt(id)} style={{flex:1,background:"transparent",border:"none",borderBottom:`2.5px solid ${wt===id?"#fff":"transparent"}`,color:wt===id?"#fff":"rgba(255,255,255,0.5)",fontFamily:HS,fontSize:11,fontWeight:wt===id?700:400,padding:"9px 0",cursor:"pointer"}}>{lb}</button>
               ))}
             </div>
@@ -2168,6 +2334,7 @@ export default function App(){
         {mt==="wc"&&wt==="fixture"&&<GroupTab T={T} lang={lang} onTeam={openTeam} scores={scores} myPreds={myPreds} setPredictM={handlePredict} isAdmin={isAdmin} setScoreM={setScoreM}/>}
         {mt==="wc"&&wt==="knockout"&&<KnockoutTab T={T} lang={lang} scores={scores}/>}
         {mt==="wc"&&wt==="table"&&<TableTab T={T} lang={lang} scores={scores}/>}
+        {mt==="wc"&&wt==="bracket"&&<BracketTab T={T} lang={lang} scores={scores}/>}
         {mt==="predict"&&<PredictionTab T={T} lang={lang} userName={userName} onSave={handleNameSave} myPreds={myPreds} setMyPreds={setMyPreds} scores={scores} setPredictM={setPredictM}/>}
         {mt==="lb"&&<LeaderboardTab T={T} lang={lang} userName={userName} initData={lbData}/>}
         {sm&&<AddModal favs={favs} onAdd={en=>setFavs(f=>{if(f.includes(en))return f;const nf=[...f,en];try{localStorage.setItem("kk_favs",JSON.stringify(nf));}catch(e){}return nf;})} onClose={()=>setSm(false)} lang={lang} T={T}/>}
