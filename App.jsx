@@ -1471,6 +1471,79 @@ function KnockoutTab({T,lang,scores}){
   );
 }
 
+/* ── AdminUsers ──────────────────────────────── */
+function AdminUsers({T,lang}){
+  const[users,setUsers]=useState([]);
+  const[loading,setLoading]=useState(true);
+
+  useEffect(()=>{
+    gasPost("getUsers",{}).then(r=>{
+      setUsers(r.data||[]);
+      setLoading(false);
+    }).catch(()=>setLoading(false));
+  },[]);
+
+  return(
+    <div style={{padding:"8px 0 80px"}}>
+      <div style={{fontFamily:HS,fontSize:11,color:T.textS,marginBottom:10,padding:"0 2px"}}>
+        মোট: {users.length} জন
+      </div>
+      {loading&&<div style={{textAlign:"center",padding:20,fontFamily:HS,fontSize:12,color:T.textS}}>লোড হচ্ছে...</div>}
+      {users.map((u,i)=>(
+        <div key={i} style={{background:T.card,borderRadius:10,padding:"10px 12px",marginBottom:6,border:`1px solid ${T.border}`}}>
+          <div style={{fontFamily:HS,fontSize:12,fontWeight:700,color:T.text,marginBottom:2}}>{u.name||"(নাম নেই)"}</div>
+          <div style={{fontFamily:HS,fontSize:10,color:T.textS}}>{u.email}</div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/* ── AdminPreds ──────────────────────────────── */
+function AdminPreds({T,lang}){
+  const[preds,setPreds]=useState([]);
+  const[loading,setLoading]=useState(true);
+
+  useEffect(()=>{
+    gasPost("getAllPredictions",{}).then(r=>{
+      setPreds(r.data||[]);
+      setLoading(false);
+    }).catch(()=>setLoading(false));
+  },[]);
+
+  // Group by user
+  const byUser={};
+  preds.forEach(p=>{
+    if(!byUser[p.name])byUser[p.name]=[];
+    byUser[p.name].push(p);
+  });
+
+  return(
+    <div style={{padding:"8px 0 80px"}}>
+      <div style={{fontFamily:HS,fontSize:11,color:T.textS,marginBottom:10,padding:"0 2px"}}>
+        মোট প্রেডিকশন: {preds.length}
+      </div>
+      {loading&&<div style={{textAlign:"center",padding:20,fontFamily:HS,fontSize:12,color:T.textS}}>লোড হচ্ছে...</div>}
+      {Object.entries(byUser).map(([name,ps])=>(
+        <div key={name} style={{background:T.card,borderRadius:10,padding:"10px 12px",marginBottom:8,border:`1px solid ${T.border}`}}>
+          <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:8}}>
+            <div style={{fontFamily:HS,fontSize:12,fontWeight:700,color:T.text}}>{name}</div>
+            <div style={{fontFamily:HS,fontSize:10,color:T.green}}>{ps.length}টি</div>
+          </div>
+          {ps.map((p,i)=>(
+            <div key={i} style={{display:"flex",justifyContent:"space-between",padding:"4px 0",borderTop:`1px solid ${T.border}`,fontFamily:HS,fontSize:10}}>
+              <span style={{color:T.textS}}>ম্যাচ #{p.match_id}</span>
+              <span style={{color:T.text,fontWeight:600}}>{p.hg} – {p.ag}</span>
+              <span style={{color:Number(p.points)>0?"#00e676":T.textS}}>{p.points} pts</span>
+            </div>
+          ))}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+
 /* ── PredictionTab ───────────────────────────── */
 function DeleteAccountBtn({T,lang}){
   const[confirm,setConfirm]=useState(false);
@@ -1533,7 +1606,7 @@ function PredictionTab({T,lang,userName,onSave,myPreds,setMyPreds,scores,setPred
   return(
     <div>
       <div style={{display:"flex",background:T.card,borderBottom:`1px solid ${T.border}`}}>
-        {[["matches",lang==="bn"?"ম্যাচ":"Matches"],["history",lang==="bn"?"আমার প্রেডিকশন":"My Predictions"]].map(([k,l])=>(
+        {(isAdmin?[["matches",lang==="bn"?"ম্যাচ":"Matches"],["history",lang==="bn"?"আমার প্রেডিকশন":"My Predictions"],["users","👥 Users"],["preds","📊 Predictions"]]:[["matches",lang==="bn"?"ম্যাচ":"Matches"],["history",lang==="bn"?"আমার প্রেডিকশন":"My Predictions"]]).map(([k,l])=>(
           <button key={k} onClick={()=>setSub(k)} style={{flex:1,background:"transparent",border:"none",borderBottom:`2.5px solid ${sub===k?T.green:"transparent"}`,color:sub===k?T.green:T.textM,fontFamily:HS,fontSize:13,fontWeight:sub===k?700:400,padding:"11px 0",cursor:"pointer"}}>{l}</button>
         ))}
       </div>
@@ -1845,6 +1918,15 @@ function NewsTab({T,lang,userName}){
           )}
         </div>
       ))}
+
+      {/* Admin: Users */}
+      {sub==="users"&&isAdmin&&(
+        <AdminUsers T={T} lang={lang}/>
+      )}
+      {/* Admin: Predictions */}
+      {sub==="preds"&&isAdmin&&(
+        <AdminPreds T={T} lang={lang}/>
+      )}
     </div>
   );
 }
@@ -2169,7 +2251,7 @@ export default function App(){
         {mt==="wc"&&wt==="fixture"&&<GroupTab T={T} lang={lang} onTeam={openTeam} scores={scores} myPreds={myPreds} setPredictM={handlePredict} isAdmin={isAdmin} setScoreM={setScoreM}/>}
         {mt==="wc"&&wt==="knockout"&&<KnockoutTab T={T} lang={lang} scores={scores}/>}
         {mt==="wc"&&wt==="table"&&<TableTab T={T} lang={lang} scores={scores}/>}
-        {mt==="predict"&&<PredictionTab T={T} lang={lang} userName={userName} onSave={handleNameSave} myPreds={myPreds} setMyPreds={setMyPreds} scores={scores} setPredictM={setPredictM}/>}
+        {mt==="predict"&&<PredictionTab T={T} lang={lang} userName={userName} onSave={handleNameSave} myPreds={myPreds} setMyPreds={setMyPreds} scores={scores} setPredictM={handlePredict} isAdmin={isAdmin} setScoreM={setScoreM}/>}
         {mt==="lb"&&<LeaderboardTab T={T} lang={lang} userName={userName} initData={lbData}/>}
         {sm&&<AddModal favs={favs} onAdd={en=>setFavs(f=>{if(f.includes(en))return f;const nf=[...f,en];try{localStorage.setItem("kk_favs",JSON.stringify(nf));}catch(e){}return nf;})} onClose={()=>setSm(false)} lang={lang} T={T}/>}
         {predictM&&userName&&<PredictModal m={predictM} T={T} lang={lang} userName={userName} myPreds={myPreds} setMyPreds={setMyPreds} onClose={()=>setPredictM(null)}/>}
