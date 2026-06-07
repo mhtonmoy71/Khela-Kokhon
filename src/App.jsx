@@ -1496,7 +1496,7 @@ function DeleteAccountBtn({T,lang}){
   );
 }
 
-function PredictionTab({T,lang,userName,onSave,myPreds,setMyPreds,scores,setPredictM}){
+function PredictionTab({T,lang,userName,onSave,myPreds,setMyPreds,scores,setPredictM,isAdmin,setScoreM}){
   const[sub,setSub]=useState("matches");
   const[lb,setLb]=useState([]);const[lbLoad,setLbLoad]=useState(false);
   useEffect(()=>{if(sub==="lb"){setLbLoad(true);getLB().then(data=>{const map={};data.forEach(r=>{if(!map[r.predictor_name])map[r.predictor_name]={name:r.predictor_name,total:0,count:0};map[r.predictor_name].total+=(r.points||0);map[r.predictor_name].count+=1;});setLb(Object.values(map).sort((a,b)=>b.total-a.total));setLbLoad(false);}).catch(()=>setLbLoad(false));};},[sub]);
@@ -1507,7 +1507,7 @@ function PredictionTab({T,lang,userName,onSave,myPreds,setMyPreds,scores,setPred
   const upcoming=SORTED.filter(m=>status(m,scores)==="up");
   const medals=["🥇","🥈","🥉"];
 
-  if(!userName) return(
+  if(!userName&&!isAdmin) return(
     <div style={{padding:"20px 12px 90px"}}>
       <div style={{background:T.card,borderRadius:20,padding:24,textAlign:"center",marginBottom:16}}>
         <div style={{fontSize:44,marginBottom:12}}>⚽</div>
