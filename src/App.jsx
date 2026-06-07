@@ -1110,7 +1110,7 @@ function MatchRow({m,T,lang,scores,myPreds,setPredictM,onTeam,isAdmin,setScoreM}
             <span style={{fontFamily:HS,fontSize:13,fontWeight:500,color:T.text,
               overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{tn(m.a,lang)}</span>
           </div>
-          {st==="up"&&(
+          {st==="up"&&!isAdmin&&(
             <button onClick={()=>setPredictM(m)} style={{
               flexShrink:0,background:pred?T.greenBg:T.card2,
               border:`1.5px solid ${pred?T.greenBr:T.border}`,
