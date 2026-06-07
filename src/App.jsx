@@ -2115,7 +2115,7 @@ export default function App(){
     }
   },[mt,wt,tp]);
 
-  const handlePredict=(m)=>{setPredictM(m);};
+  const handlePredict=(m)=>{if(!isAdmin)setPredictM(m);};
 
   if(tp) return(
     <>
