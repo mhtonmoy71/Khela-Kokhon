@@ -1284,7 +1284,7 @@ function HomeTab({T,lang,favs,setFavs,onTeam,setSM,scores,myPreds,setPredictM,se
               <div style={{display:"flex",alignItems:"center",gap:0,flexShrink:0}}>
                 {[{v:padBn(d),l:lang==="bn"?"দিন":"Days"},{v:padBn(h%24),l:lang==="bn"?"ঘণ্টা":"Hrs"},{v:padBn(m%60),l:lang==="bn"?"মিনিট":"Min"},{v:padBn(s%60),l:lang==="bn"?"সেকেন্ড":"Sec",green:true}].map((item,i,arr)=>(
                   <div key={i} style={{display:"flex",flexDirection:"column",alignItems:"center",padding:"0 8px",borderRight:i<arr.length-1?"1px solid rgba(255,255,255,0.1)":"none"}}>
-                    <span style={{fontFamily:"monospace",fontSize:28,fontWeight:800,color:item.green?"#00e676":"#fff",lineHeight:1,letterSpacing:"-1px"}}>{item.v}</span>
+                    <span style={{fontFamily:HS,fontSize:28,fontWeight:800,color:item.green?"#00e676":"#fff",lineHeight:1,letterSpacing:"-1px"}}>{item.v}</span>
                     <span style={{fontFamily:HS,fontSize:9,color:item.green?"rgba(0,230,118,0.6)":"rgba(255,255,255,0.5)",fontWeight:700,marginTop:4}}>{item.l}</span>
                   </div>
                 ))}
