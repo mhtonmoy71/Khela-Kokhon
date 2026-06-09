@@ -1266,6 +1266,8 @@ function HomeTab({T,lang,favs,setFavs,onTeam,setSM,scores,myPreds,setPredictM,se
         if(diff<=0)return null;
         const s=Math.floor(diff/1000),m=Math.floor(s/60),h=Math.floor(m/60),d=Math.floor(h/24);
         const pad=n=>String(n).padStart(2,"0");
+        const bnNum=n=>{const bn=["০","১","২","৩","৪","৫","৬","৭","৮","৯"];return String(n).split("").map(c=>bn[c]||c).join("");};
+        const padBn=n=>{const s=String(n).padStart(2,"0");return lang==="bn"?bnNum(n).padStart(2,"০"):s;};
         const dark=T.bg==="#080b12"||T.bg==="#080c14";
         return(
           <div style={{position:"relative",borderRadius:16,overflow:"hidden",height:88,display:"flex",alignItems:"center",marginBottom:12,cursor:"default"}}>
@@ -1275,12 +1277,12 @@ function HomeTab({T,lang,favs,setFavs,onTeam,setSM,scores,myPreds,setPredictM,se
             <div style={{position:"relative",zIndex:1,display:"flex",alignItems:"center",width:"100%",padding:"0 14px",gap:10}}>
 
               <div style={{flex:1,minWidth:0}}>
-                <div style={{fontFamily:HS,fontSize:14,fontWeight:700,color:"#fff",lineHeight:1.2}}>FIFA World Cup 2026</div>
+                <div style={{fontFamily:HS,fontSize:14,fontWeight:700,color:"#fff",lineHeight:1.2}}>{lang==="bn"?"ফিফা বিশ্বকাপ ২০২৬":"FIFA World Cup 2026"}</div>
                 <div style={{fontFamily:HS,fontSize:10,color:"rgba(255,255,255,0.45)",marginTop:2}}>{lang==="bn"?"শুরু হতে আর":"Starts in"}</div>
               </div>
               <div style={{width:1,height:52,background:"rgba(255,255,255,0.12)",flexShrink:0}}/>
               <div style={{display:"flex",alignItems:"center",gap:0,flexShrink:0}}>
-                {[{v:pad(d),l:lang==="bn"?"দিন":"Days"},{v:pad(h%24),l:lang==="bn"?"ঘণ্টা":"Hrs"},{v:pad(m%60),l:lang==="bn"?"মিনিট":"Min"},{v:pad(s%60),l:lang==="bn"?"সেকেন্ড":"Sec",green:true}].map((item,i,arr)=>(
+                {[{v:padBn(d),l:lang==="bn"?"দিন":"Days"},{v:padBn(h%24),l:lang==="bn"?"ঘণ্টা":"Hrs"},{v:padBn(m%60),l:lang==="bn"?"মিনিট":"Min"},{v:padBn(s%60),l:lang==="bn"?"সেকেন্ড":"Sec",green:true}].map((item,i,arr)=>(
                   <div key={i} style={{display:"flex",flexDirection:"column",alignItems:"center",padding:"0 8px",borderRight:i<arr.length-1?"1px solid rgba(255,255,255,0.1)":"none"}}>
                     <span style={{fontFamily:"monospace",fontSize:28,fontWeight:800,color:item.green?"#00e676":"#fff",lineHeight:1,letterSpacing:"-1px"}}>{item.v}</span>
                     <span style={{fontFamily:HS,fontSize:9,color:item.green?"rgba(0,230,118,0.6)":"rgba(255,255,255,0.5)",fontWeight:700,marginTop:4}}>{item.l}</span>
