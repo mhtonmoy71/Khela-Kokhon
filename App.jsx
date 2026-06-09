@@ -1273,17 +1273,7 @@ function HomeTab({T,lang,favs,setFavs,onTeam,setSM,scores,myPreds,setPredictM,se
             <div style={{position:"absolute",inset:0,background:"radial-gradient(ellipse at 25% 50%,rgba(0,230,118,0.2) 0%,transparent 55%),radial-gradient(ellipse at 85% 50%,rgba(99,102,241,0.18) 0%,transparent 55%)"}}/>
             <div style={{position:"absolute",top:0,left:0,right:0,height:1,background:"linear-gradient(90deg,transparent,rgba(255,255,255,0.25),transparent)"}}/>
             <div style={{position:"relative",zIndex:1,display:"flex",alignItems:"center",width:"100%",padding:"0 14px",gap:10}}>
-              <div style={{width:52,height:52,flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center"}}>
-                <svg width="52" height="52" viewBox="0 0 52 52" fill="none">
-                  <circle cx="26" cy="26" r="25" fill="rgba(0,0,0,0.35)" stroke="rgba(255,255,255,0.2)" strokeWidth="1"/>
-                  <path d="M20 12 h12 v2 h3 c0 0 2 6 -3 9 c-1 3 -4 4 -6 4 c-2 0 -5 -1 -6 -4 c-5 -3 -3 -9 -3 -9 h3 z" fill="rgba(255,215,0,0.85)" stroke="rgba(255,180,0,0.5)" strokeWidth="0.5"/>
-                  <rect x="23" y="27" width="6" height="5" fill="rgba(255,215,0,0.75)"/>
-                  <rect x="19" y="32" width="14" height="2.5" rx="1.2" fill="rgba(255,215,0,0.8)"/>
-                  <text x="26" y="44" textAnchor="middle" fontFamily="Arial" fontSize="7" fontWeight="800" fill="rgba(255,255,255,0.9)" letterSpacing="1">FIFA</text>
-                  <text x="14" y="24" fontSize="5" fill="rgba(255,215,0,0.7)">★</text>
-                  <text x="34" y="24" fontSize="5" fill="rgba(255,215,0,0.7)">★</text>
-                </svg>
-              </div>
+
               <div style={{flex:1,minWidth:0}}>
                 <div style={{fontFamily:HS,fontSize:14,fontWeight:700,color:"#fff",lineHeight:1.2}}>FIFA World Cup 2026</div>
                 <div style={{fontFamily:HS,fontSize:10,color:"rgba(255,255,255,0.45)",marginTop:2}}>{lang==="bn"?"শুরু হতে আর":"Starts in"}</div>
@@ -1292,8 +1282,8 @@ function HomeTab({T,lang,favs,setFavs,onTeam,setSM,scores,myPreds,setPredictM,se
               <div style={{display:"flex",alignItems:"center",gap:0,flexShrink:0}}>
                 {[{v:pad(d),l:lang==="bn"?"দিন":"Days"},{v:pad(h%24),l:lang==="bn"?"ঘণ্টা":"Hrs"},{v:pad(m%60),l:lang==="bn"?"মিনিট":"Min"},{v:pad(s%60),l:lang==="bn"?"সেকেন্ড":"Sec",green:true}].map((item,i,arr)=>(
                   <div key={i} style={{display:"flex",flexDirection:"column",alignItems:"center",padding:"0 8px",borderRight:i<arr.length-1?"1px solid rgba(255,255,255,0.1)":"none"}}>
-                    <span style={{fontFamily:"monospace",fontSize:22,fontWeight:800,color:item.green?"#00e676":"#fff",lineHeight:1,letterSpacing:"-0.5px"}}>{item.v}</span>
-                    <span style={{fontFamily:HS,fontSize:8,color:item.green?"rgba(0,230,118,0.5)":"rgba(255,255,255,0.45)",fontWeight:600,marginTop:3}}>{item.l}</span>
+                    <span style={{fontFamily:"monospace",fontSize:28,fontWeight:800,color:item.green?"#00e676":"#fff",lineHeight:1,letterSpacing:"-1px"}}>{item.v}</span>
+                    <span style={{fontFamily:HS,fontSize:9,color:item.green?"rgba(0,230,118,0.6)":"rgba(255,255,255,0.5)",fontWeight:700,marginTop:4}}>{item.l}</span>
                   </div>
                 ))}
               </div>
