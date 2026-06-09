@@ -1261,8 +1261,7 @@ function HomeTab({T,lang,favs,setFavs,onTeam,setSM,scores,myPreds,setPredictM,se
     <div style={{padding:"12px 12px 16px"}}>
       {/* WC Countdown Banner */}
       {(()=>{
-        const WC_MS=new Date("2026-06-11T19:00:00Z").getTime();
-        const diff=Math.max(0,WC_MS-Date.now());
+        const diff=wcDiff;
         if(diff<=0)return null;
         const s=Math.floor(diff/1000),m=Math.floor(s/60),h=Math.floor(m/60),d=Math.floor(h/24);
         const pad=n=>String(n).padStart(2,"0");
