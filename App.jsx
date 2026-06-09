@@ -1207,6 +1207,13 @@ function Footer({T,lang}){
 }
 
 function HomeTab({T,lang,favs,setFavs,onTeam,setSM,scores,myPreds,setPredictM,setScoreM,isAdmin}){
+  const WC_MS=new Date("2026-06-11T19:00:00Z").getTime();
+  const[wcDiff,setWcDiff]=useState(()=>Math.max(0,WC_MS-Date.now()));
+  useEffect(()=>{
+    if(wcDiff<=0)return;
+    const id=setInterval(()=>{const d=Math.max(0,WC_MS-Date.now());setWcDiff(d);if(d<=0)clearInterval(id);},1000);
+    return()=>clearInterval(id);
+  },[]);
   const[today,setToday]=useState(todayStr());
   const[tom,setTom]=useState(tomStr());
   useEffect(()=>{
