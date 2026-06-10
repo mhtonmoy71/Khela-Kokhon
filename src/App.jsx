@@ -961,7 +961,6 @@ function CalIcon({d,T,onClick}){
 
 /* ── Match Card (full) ───────────────────────── */
 function MatchCard({m,T,lang,scores,myPreds,setPredictM,onTeam,isAdmin,setScoreM}){
-  const[sheet,setSheet]=useState(false);
   const sc=scores[m.id]||scores[String(m.id)];
   const hasScore=sc&&sc.hg!==""&&sc.ag!=="";
   const pred=getPred(myPreds,m.id);
@@ -969,9 +968,7 @@ function MatchCard({m,T,lang,scores,myPreds,setPredictM,onTeam,isAdmin,setScoreM
   const[t2,ap]=m.t.split(" ");
   const cd=useCD(st==="up"?tMs(m):null);
   return(
-    <>
-    {sheet&&<BottomSheet m={m} T={T} lang={lang} scores={scores} myPreds={myPreds} setPredictM={setPredictM} onTeam={onTeam} isAdmin={isAdmin} setScoreM={setScoreM} onClose={()=>setSheet(false)}/>}
-    <div onClick={()=>setSheet(true)} style={{cursor:"pointer",background:T.card,borderRadius:16,border:`1px solid ${T.border}`,
+    <div style={{background:T.card,borderRadius:16,border:`1px solid ${T.border}`,
       marginBottom:10,overflow:"hidden",boxShadow:T.glow,
       borderLeft:`3px solid ${st==="live"?T.red:hasScore?T.green:"transparent"}`}}>
       {/* Header row */}
@@ -1218,7 +1215,9 @@ function DayPage({date,T,lang,scores,myPreds,setPredictM,onTeam,isAdmin,setScore
   return(
     <div style={{paddingBottom:80}}>
       <div style={{display:"flex",alignItems:"center",gap:10,padding:"12px 12px 8px",borderBottom:`1px solid ${T.border}`}}>
-        <button onClick={onBack} style={{background:"none",border:"none",cursor:"pointer",color:T.green,fontSize:20,padding:"0 4px"}}>←</button>
+        <button onClick={onBack} style={{background:T.card2,border:`1px solid ${T.border}`,borderRadius:10,cursor:"pointer",color:T.green,fontSize:12,fontWeight:700,fontFamily:HS,padding:"5px 12px",display:"flex",alignItems:"center",gap:4}}>
+          ← {lang==="bn"?"ফিরে যান":"Back"}
+        </button>
         <div style={{fontFamily:HS,fontSize:14,fontWeight:800,color:T.text}}>{fmt(date)} {lang==="bn"?"এর ম্যাচ":"Matches"}</div>
         <div style={{fontFamily:HS,fontSize:11,color:T.textS,marginLeft:"auto"}}>{ms.length}{lang==="bn"?"টি ম্যাচ":" matches"}</div>
       </div>
@@ -2244,125 +2243,5 @@ export default function App(){
         
       </div>
     </>
-  );
-}
-/* ── BottomSheet ─────────────────────────────── */
-function BottomSheet({m,T,lang,scores,myPreds,setPredictM,onTeam,isAdmin,setScoreM,onClose}){
-  const tn2=(en)=>lang==="bn"?(TEAMS[en]?.bn||en):en;
-  const sc=scores[m.id]||scores[String(m.id)];
-  const st=status(m,scores);
-  const cd=useCD(tMs(m));
-  const pred=getPred(myPreds,m.id);
-  const winner=sc&&sc.status==="end"?(Number(sc.hg)>Number(sc.ag)?m.h:Number(sc.ag)>Number(sc.hg)?m.a:null):null;
-
-  return(
-    <div style={{position:"fixed",inset:0,zIndex:1000,display:"flex",flexDirection:"column",justifyContent:"flex-end"}} onClick={onClose}>
-      {/* Backdrop */}
-      <div style={{position:"absolute",inset:0,background:"rgba(0,0,0,0.6)",backdropFilter:"blur(4px)"}}/>
-      {/* Sheet */}
-      <div onClick={e=>e.stopPropagation()} style={{
-        position:"relative",
-        background:T.bg,
-        borderRadius:"20px 20px 0 0",
-        border:`1px solid ${T.border}`,
-        borderBottom:"none",
-        padding:"0 0 40px",
-        maxHeight:"80vh",
-        overflowY:"auto",
-      }}>
-        {/* Handle */}
-        <div style={{display:"flex",justifyContent:"center",padding:"12px 0 8px"}}>
-          <div style={{width:36,height:4,borderRadius:2,background:"rgba(255,255,255,0.15)"}}/>
-        </div>
-
-        {/* Match header */}
-        <div style={{padding:"0 16px 14px",borderBottom:`1px solid ${T.border}`}}>
-          {/* Group/Round label */}
-          {m.g&&<div style={{fontFamily:HS,fontSize:10,color:T.textS,textAlign:"center",marginBottom:8,letterSpacing:1}}>
-            {lang==="bn"?"গ্রুপ ":"GROUP "}{m.g}
-          </div>}
-
-          {/* Teams + Score */}
-          <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",gap:12,marginBottom:12}}>
-            <div style={{flex:1,textAlign:"center"}} onClick={()=>{onClose();onTeam(m.h);}}>
-              <Flag en={m.h} size={40}/>
-              <div style={{fontFamily:HS,fontSize:13,fontWeight:800,color:winner===m.h?"#00e676":T.text,marginTop:6}}>{tn2(m.h)}</div>
-            </div>
-            <div style={{textAlign:"center",minWidth:70}}>
-              {sc&&sc.hg!==""?(
-                <div style={{fontFamily:HS,fontSize:36,fontWeight:800,color:T.text}}>{sc.hg} – {sc.ag}</div>
-              ):(
-                <div style={{fontFamily:HS,fontSize:14,fontWeight:700,color:T.textS}}>vs</div>
-              )}
-              {st==="live"&&<div style={{display:"flex",alignItems:"center",justifyContent:"center",gap:4,marginTop:4}}>
-                <div style={{width:6,height:6,borderRadius:"50%",background:"#e11d48",animation:"blink 1s infinite"}}/>
-                <span style={{fontFamily:HS,fontSize:10,fontWeight:700,color:"#e11d48"}}>LIVE</span>
-              </div>}
-              {st==="ft"&&<div style={{fontFamily:HS,fontSize:10,color:T.textS,marginTop:4}}>FT</div>}
-            </div>
-            <div style={{flex:1,textAlign:"center"}} onClick={()=>{onClose();onTeam(m.a);}}>
-              <Flag en={m.a} size={40}/>
-              <div style={{fontFamily:HS,fontSize:13,fontWeight:800,color:winner===m.a?"#00e676":T.text,marginTop:6}}>{tn2(m.a)}</div>
-            </div>
-          </div>
-
-          {/* Time + Venue */}
-          <div style={{display:"flex",alignItems:"center",justifyContent:"center",gap:12,flexWrap:"wrap"}}>
-            <div style={{display:"flex",alignItems:"center",gap:4}}>
-              <span style={{fontSize:12}}>🕐</span>
-              <span style={{fontFamily:HS,fontSize:12,fontWeight:700,color:T.green}}>{m.t}</span>
-            </div>
-            {m.venue&&<div style={{display:"flex",alignItems:"center",gap:4}}>
-              <span style={{fontSize:12}}>🏟️</span>
-              <span style={{fontFamily:HS,fontSize:11,color:T.textS}}>{m.venue}</span>
-            </div>}
-          </div>
-        </div>
-
-        {/* Countdown */}
-        {st==="up"&&cd&&!cd.done&&(
-          <div style={{padding:"12px 16px",borderBottom:`1px solid ${T.border}`}}>
-            <div style={{fontFamily:HS,fontSize:10,color:T.textS,textAlign:"center",marginBottom:8}}>{lang==="bn"?"শুরু হতে বাকি":"Starts in"}</div>
-            <div style={{display:"flex",justifyContent:"center",gap:0}}>
-              {[{v:cd.days,l:lang==="bn"?"দিন":"d"},{v:cd.hours,l:lang==="bn"?"ঘণ্টা":"h"},{v:cd.mins,l:lang==="bn"?"মিনিট":"m"},{v:cd.secs,l:lang==="bn"?"সেকেন্ড":"s"}].map((item,i,arr)=>(
-                <div key={i} style={{textAlign:"center",padding:"0 12px",borderRight:i<arr.length-1?`1px solid ${T.border}`:"none"}}>
-                  <div style={{fontFamily:HS,fontSize:22,fontWeight:800,color:T.green}}>{String(item.v).padStart(2,"0")}</div>
-                  <div style={{fontFamily:HS,fontSize:9,color:T.textS,marginTop:2}}>{item.l}</div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* My prediction */}
-        {pred&&(
-          <div style={{padding:"12px 16px",borderBottom:`1px solid ${T.border}`,display:"flex",alignItems:"center",justifyContent:"space-between"}}>
-            <div style={{fontFamily:HS,fontSize:11,color:T.textS}}>🎯 {lang==="bn"?"আমার প্রেডিকশন":"My Prediction"}</div>
-            <div style={{fontFamily:HS,fontSize:14,fontWeight:800,color:T.text}}>{pred.hg} – {pred.ag}</div>
-            {pred.points>0&&<div style={{fontFamily:HS,fontSize:11,fontWeight:700,color:"#00e676"}}>+{pred.points} pts</div>}
-          </div>
-        )}
-
-        {/* Action buttons */}
-        <div style={{display:"flex",gap:8,padding:"14px 16px"}}>
-          {st==="up"&&!isAdmin&&(
-            <button onClick={()=>{onClose();setPredictM(m);}} style={{flex:1,background:T.greenBg,border:`1px solid ${T.greenBr}`,borderRadius:12,padding:"10px",fontFamily:HS,fontSize:12,fontWeight:700,color:T.green,cursor:"pointer"}}>
-              🎯 {lang==="bn"?"প্রেডিক্ট করো":"Predict"}
-            </button>
-          )}
-          {isAdmin&&(
-            <button onClick={()=>{onClose();setScoreM(m);}} style={{flex:1,background:"rgba(225,29,72,0.1)",border:"1px solid rgba(225,29,72,0.25)",borderRadius:12,padding:"10px",fontFamily:HS,fontSize:12,fontWeight:700,color:"#e11d48",cursor:"pointer"}}>
-              ✏️ {lang==="bn"?"স্কোর দাও":"Score"}
-            </button>
-          )}
-          <button onClick={()=>{onClose();shareM(m,lang);}} style={{flex:1,background:T.card2,border:`1px solid ${T.border}`,borderRadius:12,padding:"10px",fontFamily:HS,fontSize:12,fontWeight:700,color:T.textS,cursor:"pointer"}}>
-            ⬆ {lang==="bn"?"শেয়ার":"Share"}
-          </button>
-          <button onClick={()=>addToGCal(m,lang)} style={{background:T.card2,border:`1px solid ${T.border}`,borderRadius:12,padding:"10px 12px",fontFamily:HS,fontSize:16,cursor:"pointer"}}>
-            📅
-          </button>
-        </div>
-      </div>
-    </div>
   );
 }
