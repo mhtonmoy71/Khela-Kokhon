@@ -1069,7 +1069,6 @@ function MatchCard({m,T,lang,scores,myPreds,setPredictM,onTeam,isAdmin,setScoreM
         </button>
       </div>
     </div>
-  </>
   );
 }
 
