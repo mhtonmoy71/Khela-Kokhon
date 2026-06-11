@@ -1294,7 +1294,65 @@ function HomeTab({T,lang,favs,setFavs,onTeam,setSM,scores,myPreds,setPredictM,se
       {/* WC Countdown Banner */}
       {(()=>{
         const diff=wcDiff;
-        if(diff<=0)return null;
+        if(diff<=0){
+          // Show live score widget instead
+          const allM=[...MATCHES,...R32,...R16,...QF,...SF,...FINAL];
+          const liveMs=allM.filter(m=>{
+            const sc=scores[m.id]||scores[String(m.id)];
+            const st=status(m,scores);
+            return st==="live"||(sc&&sc.hg!==""&&sc.ag!==""&&sc.status!=="end")||
+                   (sc&&sc.hg!==""&&sc.ag!==""&&sc.status==="end"&&tMs(m)>Date.now()-7200000);
+          }).slice(0,3);
+          if(liveMs.length===0)return null;
+          return(
+            <div style={{marginBottom:12}}>
+              {liveMs.map(m=>{
+                const sc=scores[m.id]||scores[String(m.id)];
+                const st=status(m,scores);
+                const isLive=st==="live";
+                const isFT=sc&&sc.status==="end";
+                return(
+                  <div key={m.id} style={{
+                    background:isLive?"linear-gradient(135deg,#1a0508,#2a0810)":"linear-gradient(135deg,#0a1a12,#060910)",
+                    border:`1px solid ${isLive?"rgba(225,29,72,0.3)":"rgba(0,230,118,0.15)"}`,
+                    borderRadius:14,padding:"10px 14px",marginBottom:6,
+                    display:"flex",alignItems:"center",gap:10,
+                  }}>
+                    <div style={{display:"flex",alignItems:"center",gap:4,flexShrink:0}}>
+                      {isLive&&<div style={{width:6,height:6,borderRadius:"50%",background:"#e11d48",animation:"pulse 1s infinite"}}/>}
+                      <span style={{fontFamily:HS,fontSize:9,fontWeight:700,
+                        color:isLive?"#e11d48":"rgba(255,255,255,0.4)",letterSpacing:1}}>
+                        {isLive?"LIVE":isFT?"FT":""}
+                      </span>
+                    </div>
+                    <div style={{display:"flex",alignItems:"center",gap:6,flex:1,minWidth:0}}>
+                      <Flag en={m.h} size={20}/>
+                      <span style={{fontFamily:HS,fontSize:12,fontWeight:600,color:"#fff",
+                        overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",flex:1}}>
+                        {tn(m.h,lang)}
+                      </span>
+                    </div>
+                    <div style={{background:isLive?"rgba(225,29,72,0.15)":"rgba(0,230,118,0.1)",
+                      border:`1px solid ${isLive?"rgba(225,29,72,0.3)":"rgba(0,230,118,0.2)"}`,
+                      borderRadius:8,padding:"4px 10px",flexShrink:0,textAlign:"center"}}>
+                      <span style={{fontFamily:HS,fontSize:16,fontWeight:800,
+                        color:isLive?"#e11d48":"#00e676"}}>
+                        {sc?`${sc.hg} – ${sc.ag}`:"– –"}
+                      </span>
+                    </div>
+                    <div style={{display:"flex",alignItems:"center",gap:6,flex:1,minWidth:0,justifyContent:"flex-end"}}>
+                      <span style={{fontFamily:HS,fontSize:12,fontWeight:600,color:"#fff",
+                        overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",flex:1,textAlign:"right"}}>
+                        {tn(m.a,lang)}
+                      </span>
+                      <Flag en={m.a} size={20}/>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          );
+        }
         const s=Math.floor(diff/1000),m=Math.floor(s/60),h=Math.floor(m/60),d=Math.floor(h/24);
         const pad=n=>String(n).padStart(2,"0");
         const bnNum=n=>{const bn=["০","১","২","৩","৪","৫","৬","৭","৮","৯"];return String(n).split("").map(c=>bn[c]||c).join("");};
