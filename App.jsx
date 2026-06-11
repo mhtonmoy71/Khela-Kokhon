@@ -1334,7 +1334,7 @@ function HomeTab({T,lang,favs,setFavs,onTeam,setSM,scores,myPreds,setPredictM,se
                 {todayMs.length>0&&<div style={{width:7,height:7,borderRadius:"50%",background:T.red,flexShrink:0,animation:"pulse 1s infinite"}}/>}
                 <span style={{fontFamily:HS,fontSize:12,fontWeight:700,color:T.text}}>{lang==="bn"?"আজ":"Today"}</span>
               </div>
-              <CalIcon d={today} T={T} onClick={()=>{}}/>
+              <CalIcon d={today} T={T} onClick={e=>{e.stopPropagation();}}/>
             </div>
             {todayMs.length>0?(<>
               {todayMs.slice(0,2).map(m=>{
