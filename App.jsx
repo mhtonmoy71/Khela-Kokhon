@@ -1262,7 +1262,7 @@ function HomeTab({T,lang,favs,setFavs,onTeam,setSM,scores,myPreds,setPredictM,se
       <div style={{background:T.card,borderRadius:14,border:`1px solid ${T.border}`,padding:"12px",marginBottom:8,display:"flex",alignItems:"center",gap:10,boxShadow:T.glow}}>
         <div onClick={()=>onTeam(en)} style={{display:"flex",alignItems:"center",gap:10,flex:1,cursor:"pointer",minWidth:0}}>
           <Flag en={en} size={44}/>
-          <div style={{flex:1,minWidth:0}}>
+          <div style={{flex:1,minWidth:0,display:"flex",flexDirection:"column"}}>
             <div style={{fontFamily:HS,fontSize:15,fontWeight:600,color:T.text}}>{tn(en,lang)}</div>
             {nx?(
               <>
@@ -1325,10 +1325,10 @@ function HomeTab({T,lang,favs,setFavs,onTeam,setSM,scores,myPreds,setPredictM,se
         );
       })()}
       {/* Today + Calendar row */}
-      <div style={{display:"flex",gap:10,marginBottom:14,alignItems:"flex-start"}}>
+      <div style={{display:"flex",gap:10,marginBottom:14,alignItems:"stretch"}}>
         {/* Left: Today & Tomorrow info */}
         <div style={{flex:1,minWidth:0}}>
-          <div style={{background:T.card,borderRadius:14,border:`1px solid ${T.border}`,padding:"8px 10px",marginBottom:8}}>
+          <div onClick={()=>setDayPage(today)} style={{background:T.card,borderRadius:14,border:`1px solid ${T.border}`,padding:"8px 10px",marginBottom:8,cursor:"pointer"}}>
             <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:8}}>
               <div style={{display:"flex",alignItems:"center",gap:5}}>
                 {todayMs.length>0&&<div style={{width:7,height:7,borderRadius:"50%",background:T.red,flexShrink:0,animation:"pulse 1s infinite"}}/>}
