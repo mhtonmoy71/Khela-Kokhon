@@ -1229,7 +1229,7 @@ function DayPage({date,T,lang,scores,myPreds,setPredictM,onTeam,isAdmin,setScore
 }
 
 
-function HomeTab({T,lang,favs,setFavs,onTeam,setSM,scores,myPreds,setPredictM,setScoreM,isAdmin,showCal,setShowCal}){
+function HomeTab({T,lang,favs,setFavs,onTeam,setSM,scores,myPreds,setPredictM,setScoreM,isAdmin}){
   const[dayPage,setDayPage]=useState(null);
   const WC_MS=new Date("2026-06-11T19:00:00Z").getTime();
   const[wcDiff,setWcDiff]=useState(()=>Math.max(0,WC_MS-Date.now()));
@@ -1324,16 +1324,9 @@ function HomeTab({T,lang,favs,setFavs,onTeam,setSM,scores,myPreds,setPredictM,se
           </div>
         );
       })()}
-                  {/* Calendar dropdown */}
-      {showCal&&(
-        <div style={{marginBottom:12,background:T.card,borderRadius:14,border:`1px solid ${T.border}`,padding:"8px",position:"relative"}}>
-          <button onClick={()=>setShowCal(false)} style={{position:"absolute",top:6,right:8,background:"none",border:"none",cursor:"pointer",color:T.textS,fontSize:16}}>✕</button>
-          <CompactCal T={T} lang={lang}/>
-        </div>
-      )}
-
-      {/* Today + Tomorrow */}
-      <div style={{display:"flex",gap:8,marginBottom:14}}>
+                  {/* Today + Calendar row */}
+      <div style={{display:"flex",gap:10,marginBottom:14,alignItems:"flex-start"}}>
+        {/* Left: Today & Tomorrow info */}
         <div style={{flex:1,minWidth:0}}>
           <div onClick={()=>setDayPage(today)} style={{background:T.card,borderRadius:14,border:`1px solid ${T.border}`,padding:"8px 10px",marginBottom:8,cursor:"pointer"}}>
             <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:8}}>
@@ -2070,7 +2063,6 @@ export default function App(){
   const isAdmin=new URLSearchParams(window.location.search).get("admin")===ADMIN_KEY;
   const[dark,setDark]=useState(()=>localStorage.getItem("kk_dark")!=="false");
   const[showClockTime,setShowClockTime]=useState(false);
-  const[showCal,setShowCal]=useState(false);
   const[lang,setLang]=useState(()=>localStorage.getItem("kk_lang")||"bn");
   const[mt,setMt]=useState(()=>localStorage.getItem("kk_tab")||"home");
   const[wt,setWt]=useState(()=>localStorage.getItem("kk_wt")||"fixture");
@@ -2209,7 +2201,6 @@ export default function App(){
             </div>
             <div style={{display:"flex",gap:6}}>
               <button onClick={()=>{setDark(d=>{localStorage.setItem("kk_dark",String(!d));return !d;})}} style={{background:"rgba(255,255,255,0.12)",border:"1px solid rgba(255,255,255,0.2)",color:"#fff",borderRadius:20,width:36,height:36,cursor:"pointer",fontSize:16,display:"flex",alignItems:"center",justifyContent:"center"}}>{dark?"☀️":"🌙"}</button>
-              <button onClick={()=>setShowCal(v=>!v)} style={{background:"rgba(255,255,255,0.12)",border:"1px solid rgba(255,255,255,0.2)",color:"#fff",borderRadius:20,width:36,height:36,cursor:"pointer",fontSize:16,display:"flex",alignItems:"center",justifyContent:"center"}}>📅</button>
               <button onClick={()=>{setLang(l=>{const nl=l==="bn"?"en":"bn";localStorage.setItem("kk_lang",nl);return nl;})}} style={{fontFamily:HS,background:"rgba(255,255,255,0.12)",border:"1px solid rgba(255,255,255,0.2)",color:"#fff",borderRadius:20,padding:"0 12px",height:36,fontSize:12,fontWeight:700,cursor:"pointer"}}>{lang==="bn"?"EN":"বাং"}</button>
             </div>
           </div>
@@ -2230,7 +2221,7 @@ export default function App(){
         </div>
 
         {/* Body */}
-                {mt==="home"&&<HomeTab T={T} lang={lang} favs={favs} setFavs={setFavs} onTeam={openTeam} setSM={setSm} scores={scores} myPreds={myPreds} setPredictM={handlePredict} setScoreM={setScoreM} isAdmin={isAdmin} showCal={showCal} setShowCal={setShowCal}/>}
+                {mt==="home"&&<HomeTab T={T} lang={lang} favs={favs} setFavs={setFavs} onTeam={openTeam} setSM={setSm} scores={scores} myPreds={myPreds} setPredictM={handlePredict} setScoreM={setScoreM} isAdmin={isAdmin}/>}
         {mt==="wc"&&wt==="fixture"&&<GroupTab T={T} lang={lang} onTeam={openTeam} scores={scores} myPreds={myPreds} setPredictM={handlePredict} isAdmin={isAdmin} setScoreM={setScoreM}/>}
         {mt==="wc"&&wt==="knockout"&&<KnockoutTab T={T} lang={lang} scores={scores}/>}
         {mt==="wc"&&wt==="table"&&<TableTab T={T} lang={lang} scores={scores}/>}
