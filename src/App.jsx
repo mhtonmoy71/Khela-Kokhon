@@ -1336,36 +1336,42 @@ function HomeTab({T,lang,favs,setFavs,onTeam,setSM,scores,myPreds,setPredictM,se
               </div>
               <CalIcon d={today} T={T} onClick={()=>{}}/>
             </div>
-            {todayMs.length>0?todayMs.map(m=>{
-              const[t2,ap]=m.t.split(" ");
-              return(
-                <div key={m.id} style={{display:"flex",alignItems:"center",gap:4,marginBottom:6,paddingBottom:6,borderBottom:`1px solid ${T.border}`}}>
-                  <Flag en={m.h} size={16}/>
-                  <span style={{fontFamily:HS,fontSize:9,color:T.text,flex:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{tn(m.h,lang)}</span>
-                  <span style={{fontFamily:HS,fontSize:10,fontWeight:700,color:T.green,flexShrink:0}}>{t2}<span style={{fontSize:7,color:T.textM}}>{ap}</span></span>
-                  <span style={{fontFamily:HS,fontSize:9,color:T.text,flex:1,textAlign:"right",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{tn(m.a,lang)}</span>
-                  <Flag en={m.a} size={16}/>
-                </div>
-              );
-            }):<div style={{fontFamily:HS,fontSize:11,color:T.textS,textAlign:"center"}}>{lang==="bn"?"কোনো ম্যাচ নেই":"No matches"}</div>}
+            {todayMs.length>0?(<>
+              {todayMs.slice(0,2).map(m=>{
+                const[t2,ap]=m.t.split(" ");
+                return(
+                  <div key={m.id} style={{display:"flex",alignItems:"center",gap:4,marginBottom:6,paddingBottom:6,borderBottom:`1px solid ${T.border}`}}>
+                    <Flag en={m.h} size={16}/>
+                    <span style={{fontFamily:HS,fontSize:9,color:T.text,flex:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{tn(m.h,lang)}</span>
+                    <span style={{fontFamily:HS,fontSize:10,fontWeight:700,color:T.green,flexShrink:0}}>{t2}<span style={{fontSize:7,color:T.textM}}>{ap}</span></span>
+                    <span style={{fontFamily:HS,fontSize:9,color:T.text,flex:1,textAlign:"right",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{tn(m.a,lang)}</span>
+                    <Flag en={m.a} size={16}/>
+                  </div>
+                );
+              })}
+              {todayMs.length>2&&<div style={{fontFamily:HS,fontSize:10,color:T.green,textAlign:"center",marginTop:2,cursor:"pointer"}} onClick={()=>setDayPage(today)}>+{todayMs.length-2} {lang==="bn"?"টা আরো →":"more →"}</div>}
+            </>):<div style={{fontFamily:HS,fontSize:11,color:T.textS,textAlign:"center"}}>{lang==="bn"?"কোনো ম্যাচ নেই":"No matches"}</div>}
           </div>
           <div onClick={()=>setDayPage(tom)} style={{background:T.card,borderRadius:14,cursor:"pointer",border:`1px solid ${T.border}`,padding:"10px 12px"}}>
             <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:8}}>
           <span style={{fontFamily:HS,fontSize:12,fontWeight:700,color:T.text}}>{lang==="bn"?"আগামীকাল":"Tomorrow"}</span>
           <CalIcon d={tom} T={T} onClick={()=>{}}/>
         </div>
-            {tomMs.length>0?tomMs.map(m=>{
-              const[t2,ap]=m.t.split(" ");
-              return(
-                <div key={m.id} style={{display:"flex",alignItems:"center",gap:4,marginBottom:6,paddingBottom:6,borderBottom:`1px solid ${T.border}`}}>
-                  <Flag en={m.h} size={16}/>
-                  <span style={{fontFamily:HS,fontSize:9,color:T.text,flex:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{tn(m.h,lang)}</span>
-                  <span style={{fontFamily:HS,fontSize:10,fontWeight:700,color:T.gold,flexShrink:0}}>{t2}<span style={{fontSize:7,color:T.textM}}>{ap}</span></span>
-                  <span style={{fontFamily:HS,fontSize:9,color:T.text,flex:1,textAlign:"right",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{tn(m.a,lang)}</span>
-                  <Flag en={m.a} size={16}/>
-                </div>
-              );
-            }):<div style={{fontFamily:HS,fontSize:11,color:T.textS,textAlign:"center"}}>{lang==="bn"?"কোনো ম্যাচ নেই":"No matches"}</div>}
+            {tomMs.length>0?(<>
+              {tomMs.slice(0,2).map(m=>{
+                const[t2,ap]=m.t.split(" ");
+                return(
+                  <div key={m.id} style={{display:"flex",alignItems:"center",gap:4,marginBottom:6,paddingBottom:6,borderBottom:`1px solid ${T.border}`}}>
+                    <Flag en={m.h} size={16}/>
+                    <span style={{fontFamily:HS,fontSize:9,color:T.text,flex:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{tn(m.h,lang)}</span>
+                    <span style={{fontFamily:HS,fontSize:10,fontWeight:700,color:T.gold,flexShrink:0}}>{t2}<span style={{fontSize:7,color:T.textM}}>{ap}</span></span>
+                    <span style={{fontFamily:HS,fontSize:9,color:T.text,flex:1,textAlign:"right",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{tn(m.a,lang)}</span>
+                    <Flag en={m.a} size={16}/>
+                  </div>
+                );
+              })}
+              {tomMs.length>2&&<div style={{fontFamily:HS,fontSize:10,color:T.green,textAlign:"center",marginTop:2,cursor:"pointer"}} onClick={()=>setDayPage(tom)}>+{tomMs.length-2} {lang==="bn"?"টা আরো →":"more →"}</div>}
+            </>):<div style={{fontFamily:HS,fontSize:11,color:T.textS,textAlign:"center"}}>{lang==="bn"?"কোনো ম্যাচ নেই":"No matches"}</div>}
           </div>
         </div>
         {/* Right: Compact Calendar */}
@@ -1373,16 +1379,6 @@ function HomeTab({T,lang,favs,setFavs,onTeam,setSM,scores,myPreds,setPredictM,se
       </div>
 
       {/* Today full cards */}
-      {todayMs.length>0&&(
-        <div style={{marginBottom:14}}>
-          <div style={{fontFamily:HS,fontWeight:700,fontSize:12,color:T.textS,marginBottom:8,display:"flex",alignItems:"center",gap:5}}>
-            <div style={{width:7,height:7,borderRadius:"50%",background:T.red,animation:"pulse 1s infinite"}}/>
-            {lang==="bn"?"আজকের ম্যাচ":"Today's Matches"}
-          </div>
-          {todayMs.map(m=><MatchCard key={m.id} m={m} T={T} lang={lang} scores={scores} myPreds={myPreds} setPredictM={setPredictM} onTeam={onTeam} isAdmin={isAdmin} setScoreM={setScoreM}/>)}
-        </div>
-      )}
-
       
       {/* Favs */}
       {favs.length>0&&<div style={{marginBottom:14}}>
