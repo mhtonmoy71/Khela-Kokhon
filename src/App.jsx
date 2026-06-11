@@ -1377,7 +1377,7 @@ function HomeTab({T,lang,favs,setFavs,onTeam,setSM,scores,myPreds,setPredictM,se
         </div>
 
         {/* Right: CompactCal */}
-        <div><CompactCal T={T} lang={lang}/></div>
+        <div style={{flexShrink:0,width:"52%"}}><CompactCal T={T} lang={lang}/></div>
       </div>
 
 {/* Today full cards */}
