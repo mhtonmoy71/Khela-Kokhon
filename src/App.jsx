@@ -1316,16 +1316,12 @@ function HomeTab({T,lang,favs,setFavs,onTeam,setSM,scores,myPreds,setPredictM,se
                     position:"relative",borderRadius:16,overflow:"hidden",
                     marginBottom:6,display:"flex",alignItems:"center",height:72,
                   }}>
-                    {/* Background gradient — same style as countdown banner */}
+                    {/* Background gradient — same as countdown banner */}
                     <div style={{position:"absolute",inset:0,
-                      background:isLive
-                        ?"linear-gradient(120deg,#3d0a10 0%,#5f0e18 30%,#1e1b4b 100%)"
-                        :"linear-gradient(120deg,#064e3b 0%,#065f46 28%,#1e3a5f 65%,#1e1b4b 100%)"
+                      background:"linear-gradient(120deg,#064e3b 0%,#065f46 28%,#1e3a5f 65%,#1e1b4b 100%)"
                     }}/>
                     <div style={{position:"absolute",inset:0,
-                      background:isLive
-                        ?"radial-gradient(ellipse at 30% 50%,rgba(225,29,72,0.15),transparent 60%)"
-                        :"radial-gradient(ellipse at 30% 50%,rgba(0,230,118,0.12),transparent 60%)"
+                      background:"radial-gradient(ellipse at 30% 50%,rgba(0,230,118,0.15),transparent 60%),radial-gradient(ellipse at 85% 50%,rgba(99,102,241,0.12),transparent 55%)"
                     }}/>
                     <div style={{position:"absolute",top:0,left:0,right:0,height:1,
                       background:"linear-gradient(90deg,transparent,rgba(255,255,255,0.2),transparent)"
@@ -1354,7 +1350,7 @@ function HomeTab({T,lang,favs,setFavs,onTeam,setSM,scores,myPreds,setPredictM,se
                       {/* Score */}
                       <div style={{flexShrink:0,textAlign:"center",minWidth:60}}>
                         <span style={{fontFamily:HS,fontSize:20,fontWeight:800,
-                          color:isLive?"#ff6b7a":"#00e676"}}>
+                          color:"#00e676"}}>
                           {sc?`${sc.hg}–${sc.ag}`:"–"}
                         </span>
                       </div>
