@@ -1249,6 +1249,18 @@ function HomeTab({T,lang,favs,setFavs,onTeam,setSM,scores,myPreds,setPredictM,se
     },10000);
     return()=>clearInterval(id);
   },[]);
+
+  // Android back button for DayPage
+  useEffect(()=>{
+    const onPop=(e)=>{
+      const state=e.state||{};
+      if(state.page==="daypage"){
+        setDayPage(null);
+      }
+    };
+    window.addEventListener("popstate",onPop);
+    return()=>window.removeEventListener("popstate",onPop);
+  },[]);
   const now=new Date(),tds=today,tms2=tom;
   const todayMs=SORTED.filter(m=>m.d===tds);
   const tomMs=SORTED.filter(m=>m.d===tms2);
@@ -1288,7 +1300,7 @@ function HomeTab({T,lang,favs,setFavs,onTeam,setSM,scores,myPreds,setPredictM,se
     );
   }
 
-  if(dayPage)return <DayPage date={dayPage} T={T} lang={lang} scores={scores} myPreds={myPreds} setPredictM={setPredictM} onTeam={onTeam} isAdmin={isAdmin} setScoreM={setScoreM} onBack={()=>setDayPage(null)}/>;
+  if(dayPage)return <DayPage date={dayPage} T={T} lang={lang} scores={scores} myPreds={myPreds} setPredictM={setPredictM} onTeam={onTeam} isAdmin={isAdmin} setScoreM={setScoreM} onBack={()=>{setDayPage(null);window.history.back();}}/>;
   return(
     <div style={{padding:"12px 12px 16px"}}>
       {/* WC Countdown Banner */}
@@ -1401,8 +1413,8 @@ function HomeTab({T,lang,favs,setFavs,onTeam,setSM,scores,myPreds,setPredictM,se
                   {/* Today + Calendar row */}
       <div style={{display:"flex",gap:10,marginBottom:14,alignItems:"flex-start"}}>
         {/* Left: Today & Tomorrow info */}
-        <div style={{flex:1,minWidth:0}}>
-          <div onClick={()=>setDayPage(today)} style={{background:T.card,borderRadius:14,border:`1px solid ${T.border}`,padding:"8px 10px",marginBottom:8,cursor:"pointer"}}>
+        <div style={{flex:1,minWidth:0,display:"flex",flexDirection:"column"}}>
+          <div onClick={()=>{setDayPage(today);window.history.pushState({page:"daypage",date:today},"","");}} style={{background:T.card,borderRadius:14,border:`1px solid ${T.border}`,padding:"8px 10px",marginBottom:8,cursor:"pointer",flex:1}}>
             <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:8}}>
               <div style={{display:"flex",alignItems:"center",gap:5}}>
                 {todayMs.length>0&&<div style={{width:7,height:7,borderRadius:"50%",background:T.red,flexShrink:0,animation:"pulse 1s infinite"}}/>}
@@ -1423,11 +1435,11 @@ function HomeTab({T,lang,favs,setFavs,onTeam,setSM,scores,myPreds,setPredictM,se
                   </div>
                 );
               })}
-              {todayMs.length>2&&<div style={{fontFamily:HS,fontSize:10,color:T.green,textAlign:"center",marginTop:2,cursor:"pointer"}} onClick={()=>setDayPage(today)}>+{todayMs.length-2} {lang==="bn"?"টা আরো →":"more →"}</div>}
+              {todayMs.length>2&&<div style={{fontFamily:HS,fontSize:10,color:T.green,textAlign:"center",marginTop:2,cursor:"pointer"}} onClick={()=>{setDayPage(today);window.history.pushState({page:"daypage",date:today},"","");}}>+{todayMs.length-2} {lang==="bn"?"টা আরো →":"more →"}</div>}
             </>):<div style={{fontFamily:HS,fontSize:11,color:T.textS,textAlign:"center"}}>{lang==="bn"?"কোনো ম্যাচ নেই":"No matches"}</div>}
           </div>
 
-          <div onClick={()=>setDayPage(tom)} style={{background:T.card,borderRadius:14,border:`1px solid ${T.border}`,padding:"10px 12px",cursor:"pointer"}}>
+          <div onClick={()=>{setDayPage(tom);window.history.pushState({page:"daypage",date:tom},"","");}} style={{background:T.card,borderRadius:14,border:`1px solid ${T.border}`,padding:"10px 12px",cursor:"pointer"}}>
             <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:8}}>
               <span style={{fontFamily:HS,fontSize:12,fontWeight:700,color:T.text}}>{lang==="bn"?"আগামীকাল":"Tomorrow"}</span>
               <span style={{fontFamily:HS,fontSize:10,color:T.textS}}>{tomMs.length}{lang==="bn"?"টি":"m"}</span>
@@ -1445,7 +1457,7 @@ function HomeTab({T,lang,favs,setFavs,onTeam,setSM,scores,myPreds,setPredictM,se
                   </div>
                 );
               })}
-              {tomMs.length>2&&<div style={{fontFamily:HS,fontSize:10,color:T.green,textAlign:"center",marginTop:2,cursor:"pointer"}} onClick={()=>setDayPage(tom)}>+{tomMs.length-2} {lang==="bn"?"টা আরো →":"more →"}</div>}
+              {tomMs.length>2&&<div style={{fontFamily:HS,fontSize:10,color:T.green,textAlign:"center",marginTop:2,cursor:"pointer"}} onClick={()=>{setDayPage(tom);window.history.pushState({page:"daypage",date:tom},"","");}}>+{tomMs.length-2} {lang==="bn"?"টা আরো →":"more →"}</div>}
             </>):<div style={{fontFamily:HS,fontSize:11,color:T.textS,textAlign:"center"}}>{lang==="bn"?"কোনো ম্যাচ নেই":"No matches"}</div>}
           </div>
         </div>
