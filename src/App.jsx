@@ -1313,39 +1313,59 @@ function HomeTab({T,lang,favs,setFavs,onTeam,setSM,scores,myPreds,setPredictM,se
                 const isFT=sc&&sc.status==="end";
                 return(
                   <div key={m.id} style={{
-                    background:isLive?"linear-gradient(135deg,#1a0508,#2a0810)":"linear-gradient(135deg,#0a1a12,#060910)",
-                    border:`1px solid ${isLive?"rgba(225,29,72,0.3)":"rgba(0,230,118,0.15)"}`,
-                    borderRadius:14,padding:"10px 14px",marginBottom:6,
-                    display:"flex",alignItems:"center",gap:10,
+                    position:"relative",borderRadius:16,overflow:"hidden",
+                    marginBottom:6,display:"flex",alignItems:"center",height:72,
                   }}>
-                    <div style={{display:"flex",alignItems:"center",gap:4,flexShrink:0}}>
-                      {isLive&&<div style={{width:6,height:6,borderRadius:"50%",background:"#e11d48",animation:"pulse 1s infinite"}}/>}
-                      <span style={{fontFamily:HS,fontSize:9,fontWeight:700,
-                        color:isLive?"#e11d48":"rgba(255,255,255,0.4)",letterSpacing:1}}>
-                        {isLive?"LIVE":isFT?"FT":""}
-                      </span>
-                    </div>
-                    <div style={{display:"flex",alignItems:"center",gap:6,flex:1,minWidth:0}}>
-                      <Flag en={m.h} size={20}/>
-                      <span style={{fontFamily:HS,fontSize:12,fontWeight:600,color:"#fff",
-                        overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",flex:1}}>
-                        {tn(m.h,lang)}
-                      </span>
-                    </div>
-                    <div style={{background:isLive?"rgba(225,29,72,0.15)":"rgba(0,230,118,0.1)",
-                      border:`1px solid ${isLive?"rgba(225,29,72,0.3)":"rgba(0,230,118,0.2)"}`,
-                      borderRadius:8,padding:"4px 10px",flexShrink:0,textAlign:"center"}}>
-                      <span style={{fontFamily:HS,fontSize:16,fontWeight:800,
-                        color:isLive?"#e11d48":"#00e676"}}>
-                        {sc?`${sc.hg} – ${sc.ag}`:"– –"}
-                      </span>
-                    </div>
-                    <div style={{display:"flex",alignItems:"center",gap:6,flex:1,minWidth:0,justifyContent:"flex-end"}}>
-                      <span style={{fontFamily:HS,fontSize:12,fontWeight:600,color:"#fff",
-                        overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",flex:1,textAlign:"right"}}>
-                        {tn(m.a,lang)}
-                      </span>
-                      <Flag en={m.a} size={20}/>
+                    {/* Background gradient — same style as countdown banner */}
+                    <div style={{position:"absolute",inset:0,
+                      background:isLive
+                        ?"linear-gradient(120deg,#3d0a10 0%,#5f0e18 30%,#1e1b4b 100%)"
+                        :"linear-gradient(120deg,#064e3b 0%,#065f46 28%,#1e3a5f 65%,#1e1b4b 100%)"
+                    }}/>
+                    <div style={{position:"absolute",inset:0,
+                      background:isLive
+                        ?"radial-gradient(ellipse at 30% 50%,rgba(225,29,72,0.15),transparent 60%)"
+                        :"radial-gradient(ellipse at 30% 50%,rgba(0,230,118,0.12),transparent 60%)"
+                    }}/>
+                    <div style={{position:"absolute",top:0,left:0,right:0,height:1,
+                      background:"linear-gradient(90deg,transparent,rgba(255,255,255,0.2),transparent)"
+                    }}/>
+                    {/* Content */}
+                    <div style={{position:"relative",zIndex:1,display:"flex",alignItems:"center",
+                      width:"100%",padding:"0 14px",gap:8}}>
+                      {/* Live badge */}
+                      <div style={{display:"flex",alignItems:"center",gap:4,flexShrink:0,minWidth:36}}>
+                        {isLive&&<div style={{width:6,height:6,borderRadius:"50%",background:"#e11d48",animation:"pulse 1s infinite"}}/>}
+                        <span style={{fontFamily:HS,fontSize:9,fontWeight:700,letterSpacing:1,
+                          color:isLive?"#e11d48":"rgba(255,255,255,0.4)"}}>
+                          {isLive?"LIVE":isFT?"FT":""}
+                        </span>
+                      </div>
+                      {/* Divider */}
+                      <div style={{width:1,height:40,background:"rgba(255,255,255,0.12)",flexShrink:0}}/>
+                      {/* Home team */}
+                      <div style={{display:"flex",alignItems:"center",gap:6,flex:1,minWidth:0}}>
+                        <Flag en={m.h} size={22}/>
+                        <span style={{fontFamily:HS,fontSize:12,fontWeight:600,color:"#fff",
+                          overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>
+                          {tn(m.h,lang)}
+                        </span>
+                      </div>
+                      {/* Score */}
+                      <div style={{flexShrink:0,textAlign:"center",minWidth:60}}>
+                        <span style={{fontFamily:HS,fontSize:20,fontWeight:800,
+                          color:isLive?"#ff6b7a":"#00e676"}}>
+                          {sc?`${sc.hg}–${sc.ag}`:"–"}
+                        </span>
+                      </div>
+                      {/* Away team */}
+                      <div style={{display:"flex",alignItems:"center",gap:6,flex:1,minWidth:0,justifyContent:"flex-end"}}>
+                        <span style={{fontFamily:HS,fontSize:12,fontWeight:600,color:"#fff",
+                          overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",textAlign:"right"}}>
+                          {tn(m.a,lang)}
+                        </span>
+                        <Flag en={m.a} size={22}/>
+                      </div>
                     </div>
                   </div>
                 );
