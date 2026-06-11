@@ -1324,61 +1324,60 @@ function HomeTab({T,lang,favs,setFavs,onTeam,setSM,scores,myPreds,setPredictM,se
           </div>
         );
       })()}
-            {/* Today + Tomorrow stacked */}
-      <div style={{marginBottom:12}}>
-        {/* Today box */}
-        <div onClick={()=>setDayPage(today)} style={{background:T.card,borderRadius:14,border:`1px solid ${T.border}`,padding:"10px 12px",marginBottom:8,cursor:"pointer"}}>
-          <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:8}}>
-            <div style={{display:"flex",alignItems:"center",gap:6}}>
-              {todayMs.length>0&&<div style={{width:7,height:7,borderRadius:"50%",background:T.red,animation:"pulse 1s infinite"}}/>}
-              <span style={{fontFamily:HS,fontSize:12,fontWeight:700,color:T.text}}>{lang==="bn"?"আজ":"Today"}</span>
+                  {/* Today + Calendar row */}
+      <div style={{display:"flex",gap:10,marginBottom:14,alignItems:"flex-start"}}>
+        {/* Left: Today & Tomorrow info */}
+        <div style={{flex:1,minWidth:0}}>
+          <div onClick={()=>setDayPage(today)} style={{background:T.card,borderRadius:14,border:`1px solid ${T.border}`,padding:"8px 10px",marginBottom:8,cursor:"pointer"}}>
+            <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:8}}>
+              <div style={{display:"flex",alignItems:"center",gap:5}}>
+                {todayMs.length>0&&<div style={{width:7,height:7,borderRadius:"50%",background:T.red,flexShrink:0,animation:"pulse 1s infinite"}}/>}
+                <span style={{fontFamily:HS,fontSize:12,fontWeight:700,color:T.text}}>{lang==="bn"?"আজ":"Today"}</span>
+              </div>
+              <span style={{fontFamily:HS,fontSize:10,color:T.green}}>{todayMs.length}{lang==="bn"?"টি":"m"}</span>
             </div>
-            <span style={{fontFamily:HS,fontSize:10,color:T.green}}>{todayMs.length}{lang==="bn"?"টি ম্যাচ":" matches"}</span>
+            {todayMs.length>0?(<>
+              {todayMs.slice(0,2).map(m=>{
+                const[t2,ap]=m.t.split(" ");
+                return(
+                  <div key={m.id} style={{display:"flex",alignItems:"center",gap:4,marginBottom:6,paddingBottom:6,borderBottom:`1px solid ${T.border}`}}>
+                    <Flag en={m.h} size={16}/>
+                    <span style={{fontFamily:HS,fontSize:9,color:T.text,flex:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{tn(m.h,lang)}</span>
+                    <span style={{fontFamily:HS,fontSize:10,fontWeight:700,color:T.green,flexShrink:0}}>{t2}<span style={{fontSize:7,color:T.textM}}>{ap}</span></span>
+                    <span style={{fontFamily:HS,fontSize:9,color:T.text,flex:1,textAlign:"right",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{tn(m.a,lang)}</span>
+                    <Flag en={m.a} size={16}/>
+                  </div>
+                );
+              })}
+              {todayMs.length>2&&<div style={{fontFamily:HS,fontSize:10,color:T.green,textAlign:"center",marginTop:2,cursor:"pointer"}} onClick={()=>setDayPage(today)}>+{todayMs.length-2} {lang==="bn"?"টা আরো →":"more →"}</div>}
+            </>):<div style={{fontFamily:HS,fontSize:11,color:T.textS,textAlign:"center"}}>{lang==="bn"?"কোনো ম্যাচ নেই":"No matches"}</div>}
           </div>
-          {todayMs.length>0?(<>
-            {todayMs.slice(0,2).map(m=>{
-              const[t2,ap]=m.t.split(" ");
-              return(
-                <div key={m.id} style={{display:"flex",alignItems:"center",gap:6,marginBottom:6,paddingBottom:6,borderBottom:`1px solid ${T.border}`}}>
-                  <Flag en={m.h} size={16}/>
-                  <span style={{fontFamily:HS,fontSize:10,color:T.text,flex:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{tn(m.h,lang)}</span>
-                  <span style={{fontFamily:HS,fontSize:10,fontWeight:700,color:T.green,flexShrink:0}}>{t2}<span style={{fontSize:8,color:T.textS}}> {ap}</span></span>
-                  <span style={{fontFamily:HS,fontSize:10,color:T.text,flex:1,textAlign:"right",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{tn(m.a,lang)}</span>
-                  <Flag en={m.a} size={16}/>
-                </div>
-              );
-            })}
-            {todayMs.length>2&&<div style={{fontFamily:HS,fontSize:10,color:T.green,textAlign:"center",marginTop:2}}>+{todayMs.length-2} {lang==="bn"?"টা আরো →":"more →"}</div>}
-          </>):<div style={{fontFamily:HS,fontSize:11,color:T.textS,textAlign:"center",padding:"4px 0"}}>{lang==="bn"?"কোনো ম্যাচ নেই":"No matches"}</div>}
+
+          <div onClick={()=>setDayPage(tom)} style={{background:T.card,borderRadius:14,border:`1px solid ${T.border}`,padding:"10px 12px",cursor:"pointer"}}>
+            <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:8}}>
+              <span style={{fontFamily:HS,fontSize:12,fontWeight:700,color:T.text}}>{lang==="bn"?"আগামীকাল":"Tomorrow"}</span>
+              <span style={{fontFamily:HS,fontSize:10,color:T.textS}}>{tomMs.length}{lang==="bn"?"টি":"m"}</span>
+            </div>
+            {tomMs.length>0?(<>
+              {tomMs.slice(0,2).map(m=>{
+                const[t2,ap]=m.t.split(" ");
+                return(
+                  <div key={m.id} style={{display:"flex",alignItems:"center",gap:4,marginBottom:6,paddingBottom:6,borderBottom:`1px solid ${T.border}`}}>
+                    <Flag en={m.h} size={16}/>
+                    <span style={{fontFamily:HS,fontSize:9,color:T.text,flex:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{tn(m.h,lang)}</span>
+                    <span style={{fontFamily:HS,fontSize:10,fontWeight:700,color:T.gold||T.green,flexShrink:0}}>{t2}<span style={{fontSize:7,color:T.textM}}>{ap}</span></span>
+                    <span style={{fontFamily:HS,fontSize:9,color:T.text,flex:1,textAlign:"right",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{tn(m.a,lang)}</span>
+                    <Flag en={m.a} size={16}/>
+                  </div>
+                );
+              })}
+              {tomMs.length>2&&<div style={{fontFamily:HS,fontSize:10,color:T.green,textAlign:"center",marginTop:2,cursor:"pointer"}} onClick={()=>setDayPage(tom)}>+{tomMs.length-2} {lang==="bn"?"টা আরো →":"more →"}</div>}
+            </>):<div style={{fontFamily:HS,fontSize:11,color:T.textS,textAlign:"center"}}>{lang==="bn"?"কোনো ম্যাচ নেই":"No matches"}</div>}
+          </div>
         </div>
 
-        {/* Tomorrow box */}
-        <div onClick={()=>setDayPage(tom)} style={{background:T.card,borderRadius:14,border:`1px solid ${T.border}`,padding:"10px 12px",cursor:"pointer"}}>
-          <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:8}}>
-            <span style={{fontFamily:HS,fontSize:12,fontWeight:700,color:T.text}}>{lang==="bn"?"আগামীকাল":"Tomorrow"}</span>
-            <span style={{fontFamily:HS,fontSize:10,color:T.textS}}>{tomMs.length}{lang==="bn"?"টি ম্যাচ":" matches"}</span>
-          </div>
-          {tomMs.length>0?(<>
-            {tomMs.slice(0,2).map(m=>{
-              const[t2,ap]=m.t.split(" ");
-              return(
-                <div key={m.id} style={{display:"flex",alignItems:"center",gap:6,marginBottom:6,paddingBottom:6,borderBottom:`1px solid ${T.border}`}}>
-                  <Flag en={m.h} size={16}/>
-                  <span style={{fontFamily:HS,fontSize:10,color:T.text,flex:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{tn(m.h,lang)}</span>
-                  <span style={{fontFamily:HS,fontSize:10,fontWeight:700,color:T.gold||T.green,flexShrink:0}}>{t2}<span style={{fontSize:8,color:T.textS}}> {ap}</span></span>
-                  <span style={{fontFamily:HS,fontSize:10,color:T.text,flex:1,textAlign:"right",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{tn(m.a,lang)}</span>
-                  <Flag en={m.a} size={16}/>
-                </div>
-              );
-            })}
-            {tomMs.length>2&&<div style={{fontFamily:HS,fontSize:10,color:T.green,textAlign:"center",marginTop:2}}>+{tomMs.length-2} {lang==="bn"?"টা আরো →":"more →"}</div>}
-          </>):<div style={{fontFamily:HS,fontSize:11,color:T.textS,textAlign:"center",padding:"4px 0"}}>{lang==="bn"?"কোনো ম্যাচ নেই":"No matches"}</div>}
-        </div>
-      </div>
-
-      {/* Calendar */}
-      <div style={{marginBottom:14}}>
-        <CompactCal T={T} lang={lang}/>
+        {/* Right: CompactCal */}
+        <div><CompactCal T={T} lang={lang}/></div>
       </div>
 
 {/* Today full cards */}
