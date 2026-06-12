@@ -1334,7 +1334,7 @@ function HomeTab({T,lang,favs,setFavs,onTeam,setSM,scores,myPreds,setPredictM,se
                         {isLive&&<div style={{width:6,height:6,borderRadius:"50%",background:"#e11d48",animation:"pulse 1s infinite"}}/>}
                         <span style={{fontFamily:HS,fontSize:9,fontWeight:700,letterSpacing:1,
                           color:isLive?"#e11d48":"rgba(255,255,255,0.4)"}}>
-                          {isLive?"LIVE":isFT?"FT":""}
+                          {isLive?"LIVE":isFT?(lang==="bn"?"শেষ":"FULL TIME"):""}
                         </span>
                       </div>
                       {/* Divider */}
