@@ -2309,7 +2309,7 @@ export default function App(){
           {/* WC sub-tabs */}
           {mt==="wc"&&(
             <div style={{display:"flex",borderTop:"1px solid rgba(255,255,255,0.1)"}}>
-              {[["fixture",lang==="bn"?"গ্রুপ পর্ব":"Group"],["knockout",lang==="bn"?"নকআউট":"Knockout"],["table",lang==="bn"?"টেবিল":"Table"]].map(([id,lb])=>(
+              {[["fixture",lang==="bn"?"গ্রুপ পর্ব":"Group"],["table",lang==="bn"?"টেবিল":"Table"],["knockout",lang==="bn"?"নকআউট":"Knockout"]].map(([id,lb])=>(
                 <button key={id} onClick={()=>setWt(id)} style={{flex:1,background:"transparent",border:"none",borderBottom:`2.5px solid ${wt===id?"#fff":"transparent"}`,color:wt===id?"#fff":"rgba(255,255,255,0.5)",fontFamily:HS,fontSize:11,fontWeight:wt===id?700:400,padding:"9px 0",cursor:"pointer"}}>{lb}</button>
               ))}
             </div>
