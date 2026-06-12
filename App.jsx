@@ -1410,19 +1410,19 @@ function HomeTab({T,lang,favs,setFavs,onTeam,setSM,scores,myPreds,setPredictM,se
                 const isFT=st==="ft";
                 const hasScore=sc&&sc.hg!==""&&sc.ag!=="";
                 return(
-                  <div key={m.id} style={{marginBottom:6,paddingBottom:6,borderBottom:`1px solid ${T.border}`,opacity:isFT?0.6:1}}>
-                    <div style={{display:"flex",alignItems:"center",gap:4}}>
-                      <Flag en={m.h} size={16}/>
-                      <span style={{fontFamily:HS,fontSize:10,color:T.text,flex:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{tn(m.h,lang)}</span>
-                      {hasScore?(
-                        <span style={{fontFamily:HS,fontSize:10,fontWeight:800,color:isFT?T.textM:T.green,flexShrink:0}}>{sc.hg}–{sc.ag}</span>
-                      ):(
-                        <span style={{fontFamily:HS,fontSize:10,fontWeight:700,color:T.green,flexShrink:0}}>{t2}<span style={{fontSize:7,color:T.textM}}>{ap}</span></span>
-                      )}
-                      <span style={{fontFamily:HS,fontSize:10,color:T.text,flex:1,textAlign:"right",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{tn(m.a,lang)}</span>
-                      <Flag en={m.a} size={16}/>
-                    </div>
-                    {isFT&&<div style={{fontFamily:HS,fontSize:8,fontWeight:700,color:T.textM,textAlign:"center",marginTop:2,letterSpacing:1}}>{lang==="bn"?"সমাপ্ত":"FULL TIME"}</div>}
+                  <div key={m.id} style={{display:"flex",alignItems:"center",gap:4,marginBottom:6,paddingBottom:6,borderBottom:`1px solid ${T.border}`,opacity:isFT?0.6:1}}>
+                    <Flag en={m.h} size={16}/>
+                    <span style={{fontFamily:HS,fontSize:10,color:T.text,flex:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{tn(m.h,lang)}</span>
+                    {hasScore?(
+                      <span style={{display:"flex",flexDirection:"column",alignItems:"center",flexShrink:0,lineHeight:1}}>
+                        <span style={{fontFamily:HS,fontSize:10,fontWeight:800,color:isFT?T.textM:T.green}}>{sc.hg}–{sc.ag}</span>
+                        {isFT&&<span style={{fontFamily:HS,fontSize:6,fontWeight:700,color:T.textM,letterSpacing:0.5,marginTop:1}}>FT</span>}
+                      </span>
+                    ):(
+                      <span style={{fontFamily:HS,fontSize:10,fontWeight:700,color:T.green,flexShrink:0}}>{t2}<span style={{fontSize:7,color:T.textM}}>{ap}</span></span>
+                    )}
+                    <span style={{fontFamily:HS,fontSize:10,color:T.text,flex:1,textAlign:"right",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{tn(m.a,lang)}</span>
+                    <Flag en={m.a} size={16}/>
                   </div>
                 );
               })}
