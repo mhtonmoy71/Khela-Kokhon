@@ -1414,12 +1414,20 @@ function HomeTab({T,lang,favs,setFavs,onTeam,setSM,scores,myPreds,setPredictM,se
                     <Flag en={m.h} size={16}/>
                     <span style={{fontFamily:HS,fontSize:10,color:T.text,flex:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{tn(m.h,lang)}</span>
                     {hasScore?(
-                      <span style={{display:"flex",flexDirection:"column",alignItems:"center",flexShrink:0,lineHeight:1}}>
-                        <span style={{fontFamily:HS,fontSize:10,fontWeight:800,color:isFT?T.textM:T.green}}>{sc.hg}–{sc.ag}</span>
-                        {isFT&&<span style={{fontFamily:HS,fontSize:6,fontWeight:700,color:T.textM,letterSpacing:0.5,marginTop:1}}>FT</span>}
+                      <span style={{display:"flex",justifyContent:"center",flexShrink:0,minWidth:46}}>
+                        {isFT?(
+                          <span style={{display:"flex",alignItems:"center",gap:3,background:T.card2,borderRadius:6,padding:"2px 6px",border:`1px solid ${T.border}`}}>
+                            <span style={{fontFamily:HS,fontSize:10,fontWeight:800,color:T.textM}}>{sc.hg}–{sc.ag}</span>
+                            <span style={{fontFamily:HS,fontSize:7,fontWeight:700,color:T.textM,letterSpacing:0.5}}>FT</span>
+                          </span>
+                        ):(
+                          <span style={{fontFamily:HS,fontSize:10,fontWeight:800,color:T.green}}>{sc.hg}–{sc.ag}</span>
+                        )}
                       </span>
                     ):(
-                      <span style={{fontFamily:HS,fontSize:10,fontWeight:700,color:T.green,flexShrink:0}}>{t2}<span style={{fontSize:7,color:T.textM}}>{ap}</span></span>
+                      <span style={{display:"flex",justifyContent:"center",flexShrink:0,minWidth:46}}>
+                        <span style={{fontFamily:HS,fontSize:10,fontWeight:700,color:T.green}}>{t2}<span style={{fontSize:7,color:T.textM}}>{ap}</span></span>
+                      </span>
                     )}
                     <span style={{fontFamily:HS,fontSize:10,color:T.text,flex:1,textAlign:"right",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{tn(m.a,lang)}</span>
                     <Flag en={m.a} size={16}/>
@@ -1442,7 +1450,7 @@ function HomeTab({T,lang,favs,setFavs,onTeam,setSM,scores,myPreds,setPredictM,se
                   <div key={m.id} style={{display:"flex",alignItems:"center",gap:4,marginBottom:6,paddingBottom:6,borderBottom:`1px solid ${T.border}`}}>
                     <Flag en={m.h} size={16}/>
                     <span style={{fontFamily:HS,fontSize:10,color:T.text,flex:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{tn(m.h,lang)}</span>
-                    <span style={{fontFamily:HS,fontSize:10,fontWeight:700,color:T.gold||T.green,flexShrink:0}}>{t2}<span style={{fontSize:7,color:T.textM}}>{ap}</span></span>
+                    <span style={{display:"flex",justifyContent:"center",flexShrink:0,minWidth:46}}><span style={{fontFamily:HS,fontSize:10,fontWeight:700,color:T.gold||T.green}}>{t2}<span style={{fontSize:7,color:T.textM}}>{ap}</span></span></span>
                     <span style={{fontFamily:HS,fontSize:10,color:T.text,flex:1,textAlign:"right",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{tn(m.a,lang)}</span>
                     <Flag en={m.a} size={16}/>
                   </div>
