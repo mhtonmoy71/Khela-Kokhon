@@ -1584,6 +1584,91 @@ function GroupTab({T,lang,onTeam,scores,myPreds,setPredictM,isAdmin,setScoreM}){
   );
 }
 
+/* ── BracketTab (Road to Final) ──────────────── */
+function BracketCell({m,T,lang,scores}){
+  const sc=scores?.[m.id]||scores?.[String(m.id)];
+  const hasScore=sc&&sc.hg!==""&&sc.ag!=="";
+  return(
+    <div style={{background:T.card,border:`1px solid ${T.border}`,borderRadius:8,
+      padding:"6px 8px",minWidth:88,boxShadow:T.glow}}>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:2}}>
+        <span style={{fontFamily:HS,fontSize:11,fontWeight:700,color:T.text}}>{m.h}</span>
+        <span style={{fontFamily:HS,fontSize:11,fontWeight:800,color:hasScore?T.green:T.textM}}>{hasScore?sc.hg:""}</span>
+      </div>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+        <span style={{fontFamily:HS,fontSize:11,fontWeight:700,color:T.text}}>{m.a}</span>
+        <span style={{fontFamily:HS,fontSize:11,fontWeight:800,color:hasScore?T.green:T.textM}}>{hasScore?sc.ag:""}</span>
+      </div>
+      <div style={{fontFamily:HS,fontSize:9,color:T.textS,marginTop:3,textAlign:"center"}}>{dls(m.d,lang)}</div>
+    </div>
+  );
+}
+
+function BracketColumn({title,matches,T,lang,scores}){
+  return(
+    <div style={{display:"flex",flexDirection:"column",justifyContent:"space-around",
+      gap:14,minWidth:104,flexShrink:0}}>
+      <div style={{fontFamily:HS,fontSize:11,fontWeight:700,color:T.textS,textAlign:"center",
+        marginBottom:2,whiteSpace:"nowrap"}}>{title}</div>
+      {matches.map(m=><BracketCell key={m.id} m={m} T={T} lang={lang} scores={scores}/>)}
+    </div>
+  );
+}
+
+function BracketTab({T,lang,scores}){
+  const leftR32=R32.slice(0,8);
+  const rightR32=R32.slice(8,16);
+  const leftR16=R16.slice(0,4);
+  const rightR16=R16.slice(4,8);
+  const leftQF=QF.slice(0,2);
+  const rightQF=QF.slice(2,4);
+  const leftSF=[SF[0]];
+  const rightSF=[SF[1]];
+  const bronze=FINAL[0];
+  const final=FINAL[1];
+
+  const RT=lang==="bn"?{r32:"রাউন্ড অব ৩২",r16:"রাউন্ড অব ১৬",qf:"কোয়ার্টার",sf:"সেমি",f:"ফাইনাল",b:"ব্রোঞ্জ"}
+    :{r32:"Round of 32",r16:"Round of 16",qf:"Quarter",sf:"Semi",f:"Final",b:"Bronze"};
+
+  return(
+    <div style={{padding:"12px 0 90px"}}>
+      <div style={{fontFamily:HS,fontSize:14,fontWeight:700,color:T.text,textAlign:"center",marginBottom:10}}>
+        🏆 {lang==="bn"?"রোড টু ফাইনাল":"Road to Final"}
+      </div>
+      <div style={{display:"flex",gap:14,overflowX:"auto",padding:"4px 12px 12px",
+        WebkitOverflowScrolling:"touch",scrollbarWidth:"none"}}>
+        <BracketColumn title={RT.r32} matches={leftR32} T={T} lang={lang} scores={scores}/>
+        <BracketColumn title={RT.r16} matches={leftR16} T={T} lang={lang} scores={scores}/>
+        <BracketColumn title={RT.qf} matches={leftQF} T={T} lang={lang} scores={scores}/>
+        <BracketColumn title={RT.sf} matches={leftSF} T={T} lang={lang} scores={scores}/>
+
+        <div style={{display:"flex",flexDirection:"column",justifyContent:"center",
+          alignItems:"center",gap:10,minWidth:110,flexShrink:0}}>
+          <div style={{fontFamily:HS,fontSize:11,fontWeight:700,color:T.textS,textAlign:"center",marginBottom:2}}>
+            🏆 {RT.f}
+          </div>
+          <div style={{width:64,height:64,borderRadius:"50%",background:T.greenBg,
+            border:`2px solid ${T.greenBr}`,display:"flex",alignItems:"center",justifyContent:"center",
+            fontSize:30}}>🏆</div>
+          <BracketCell m={final} T={T} lang={lang} scores={scores}/>
+          <div style={{fontFamily:HS,fontSize:11,fontWeight:700,color:T.textS,textAlign:"center",marginTop:8}}>
+            🥉 {RT.b}
+          </div>
+          <BracketCell m={bronze} T={T} lang={lang} scores={scores}/>
+        </div>
+
+        <BracketColumn title={RT.sf} matches={rightSF} T={T} lang={lang} scores={scores}/>
+        <BracketColumn title={RT.qf} matches={rightQF} T={T} lang={lang} scores={scores}/>
+        <BracketColumn title={RT.r16} matches={rightR16} T={T} lang={lang} scores={scores}/>
+        <BracketColumn title={RT.r32} matches={rightR32} T={T} lang={lang} scores={scores}/>
+      </div>
+      <div style={{fontFamily:HS,fontSize:11,color:T.textM,textAlign:"center",marginTop:6}}>
+        {lang==="bn"?"← স্ক্রল করুন →":"← Scroll →"}
+      </div>
+    </div>
+  );
+}
+
 /* ── KnockoutTab ─────────────────────────────── */
 function KnockoutTab({T,lang,scores}){
   const[round,setRound]=useState("R32");
@@ -2309,7 +2394,7 @@ export default function App(){
           {/* WC sub-tabs */}
           {mt==="wc"&&(
             <div style={{display:"flex",borderTop:"1px solid rgba(255,255,255,0.1)"}}>
-              {[["fixture",lang==="bn"?"গ্রুপ পর্ব":"Group"],["table",lang==="bn"?"টেবিল":"Table"],["knockout",lang==="bn"?"নকআউট":"Knockout"]].map(([id,lb])=>(
+              {[["fixture",lang==="bn"?"গ্রুপ পর্ব":"Group"],["table",lang==="bn"?"টেবিল":"Table"],["knockout",lang==="bn"?"নকআউট":"Knockout"],["bracket",lang==="bn"?"রোড টু ফাইনাল":"Road to Final"]].map(([id,lb])=>(
                 <button key={id} onClick={()=>setWt(id)} style={{flex:1,background:"transparent",border:"none",borderBottom:`2.5px solid ${wt===id?"#fff":"transparent"}`,color:wt===id?"#fff":"rgba(255,255,255,0.5)",fontFamily:HS,fontSize:11,fontWeight:wt===id?700:400,padding:"9px 0",cursor:"pointer"}}>{lb}</button>
               ))}
             </div>
@@ -2321,6 +2406,7 @@ export default function App(){
         {mt==="wc"&&wt==="fixture"&&<GroupTab T={T} lang={lang} onTeam={openTeam} scores={scores} myPreds={myPreds} setPredictM={handlePredict} isAdmin={isAdmin} setScoreM={setScoreM}/>}
         {mt==="wc"&&wt==="knockout"&&<KnockoutTab T={T} lang={lang} scores={scores}/>}
         {mt==="wc"&&wt==="table"&&<TableTab T={T} lang={lang} scores={scores}/>}
+        {mt==="wc"&&wt==="bracket"&&<BracketTab T={T} lang={lang} scores={scores}/>}
         {mt==="predict"&&<PredictionTab T={T} lang={lang} userName={userName} onSave={handleNameSave} myPreds={myPreds} setMyPreds={setMyPreds} scores={scores} setPredictM={handlePredict} isAdmin={isAdmin} setScoreM={setScoreM}/>}
         {mt==="lb"&&<LeaderboardTab T={T} lang={lang} userName={userName} initData={lbData}/>}
         {sm&&<AddModal favs={favs} onAdd={en=>setFavs(f=>{if(f.includes(en))return f;const nf=[...f,en];try{localStorage.setItem("kk_favs",JSON.stringify(nf));}catch(e){}return nf;})} onClose={()=>setSm(false)} lang={lang} T={T}/>}
