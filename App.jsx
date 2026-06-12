@@ -1229,8 +1229,7 @@ function DayPage({date,T,lang,scores,myPreds,setPredictM,onTeam,isAdmin,setScore
 }
 
 
-function HomeTab({T,lang,favs,setFavs,onTeam,setSM,scores,myPreds,setPredictM,setScoreM,isAdmin}){
-  const[dayPage,setDayPage]=useState(null);
+function HomeTab({T,lang,favs,setFavs,onTeam,setSM,scores,myPreds,setPredictM,setScoreM,isAdmin,dayPage,setDayPage}){
   const WC_MS=new Date("2026-06-11T19:00:00Z").getTime();
   const[wcDiff,setWcDiff]=useState(()=>Math.max(0,WC_MS-Date.now()));
   useEffect(()=>{
@@ -1250,17 +1249,6 @@ function HomeTab({T,lang,favs,setFavs,onTeam,setSM,scores,myPreds,setPredictM,se
     return()=>clearInterval(id);
   },[]);
 
-  // Android back button for DayPage
-  useEffect(()=>{
-    const onPop=(e)=>{
-      const state=e.state||{};
-      if(state.page==="daypage"){
-        setDayPage(null);
-      }
-    };
-    window.addEventListener("popstate",onPop);
-    return()=>window.removeEventListener("popstate",onPop);
-  },[]);
   const now=new Date(),tds=today,tms2=tom;
   const todayMs=SORTED.filter(m=>m.d===tds);
   const tomMs=SORTED.filter(m=>m.d===tms2);
@@ -1300,7 +1288,7 @@ function HomeTab({T,lang,favs,setFavs,onTeam,setSM,scores,myPreds,setPredictM,se
     );
   }
 
-  if(dayPage)return <DayPage date={dayPage} T={T} lang={lang} scores={scores} myPreds={myPreds} setPredictM={setPredictM} onTeam={onTeam} isAdmin={isAdmin} setScoreM={setScoreM} onBack={()=>{setDayPage(null);window.history.back();}}/>;
+  if(dayPage)return <DayPage date={dayPage} T={T} lang={lang} scores={scores} myPreds={myPreds} setPredictM={setPredictM} onTeam={onTeam} isAdmin={isAdmin} setScoreM={setScoreM} onBack={()=>setDayPage(null)}/>;
   return(
     <div style={{padding:"12px 12px 16px"}}>
       {/* WC Countdown Banner */}
@@ -1414,7 +1402,7 @@ function HomeTab({T,lang,favs,setFavs,onTeam,setSM,scores,myPreds,setPredictM,se
       <div style={{display:"flex",gap:10,marginBottom:14,alignItems:"flex-start"}}>
         {/* Left: Today & Tomorrow info */}
         <div style={{flex:1,minWidth:0,display:"flex",flexDirection:"column"}}>
-          <div onClick={()=>{setDayPage(today);window.history.pushState({page:"daypage",date:today},"","");}} style={{background:T.card,borderRadius:14,border:`1px solid ${T.border}`,padding:"8px 10px",marginBottom:8,cursor:"pointer",flex:1}}>
+          <div onClick={()=>setDayPage(today)} style={{background:T.card,borderRadius:14,border:`1px solid ${T.border}`,padding:"8px 10px",marginBottom:8,cursor:"pointer",flex:1}}>
             <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:8}}>
               <div style={{display:"flex",alignItems:"center",gap:5}}>
                 {todayMs.length>0&&<div style={{width:7,height:7,borderRadius:"50%",background:T.red,flexShrink:0,animation:"pulse 1s infinite"}}/>}
@@ -1425,21 +1413,29 @@ function HomeTab({T,lang,favs,setFavs,onTeam,setSM,scores,myPreds,setPredictM,se
             {todayMs.length>0?(<>
               {todayMs.slice(0,2).map(m=>{
                 const[t2,ap]=m.t.split(" ");
+                const sc=scores[m.id]||scores[String(m.id)];
+                const st=status(m,scores);
+                const isFT=st==="ft";
+                const hasScore=sc&&sc.hg!==""&&sc.ag!=="";
                 return(
-                  <div key={m.id} style={{display:"flex",alignItems:"center",gap:4,marginBottom:6,paddingBottom:6,borderBottom:`1px solid ${T.border}`}}>
+                  <div key={m.id} style={{display:"flex",alignItems:"center",gap:4,marginBottom:6,paddingBottom:6,borderBottom:`1px solid ${T.border}`,opacity:isFT?0.5:1}}>
                     <Flag en={m.h} size={16}/>
-                    <span style={{fontFamily:HS,fontSize:10,color:T.text,flex:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{tn(m.h,lang)}</span>
-                    <span style={{fontFamily:HS,fontSize:10,fontWeight:700,color:T.green,flexShrink:0}}>{t2}<span style={{fontSize:7,color:T.textM}}>{ap}</span></span>
-                    <span style={{fontFamily:HS,fontSize:10,color:T.text,flex:1,textAlign:"right",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{tn(m.a,lang)}</span>
+                    <span style={{fontFamily:HS,fontSize:10,color:T.text,flex:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",textDecoration:isFT?"line-through":"none"}}>{tn(m.h,lang)}</span>
+                    {hasScore?(
+                      <span style={{fontFamily:HS,fontSize:10,fontWeight:800,color:isFT?T.textM:T.green,flexShrink:0}}>{sc.hg}–{sc.ag}</span>
+                    ):(
+                      <span style={{fontFamily:HS,fontSize:10,fontWeight:700,color:T.green,flexShrink:0}}>{t2}<span style={{fontSize:7,color:T.textM}}>{ap}</span></span>
+                    )}
+                    <span style={{fontFamily:HS,fontSize:10,color:T.text,flex:1,textAlign:"right",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",textDecoration:isFT?"line-through":"none"}}>{tn(m.a,lang)}</span>
                     <Flag en={m.a} size={16}/>
                   </div>
                 );
               })}
-              {todayMs.length>2&&<div style={{fontFamily:HS,fontSize:10,color:T.green,textAlign:"center",marginTop:2,cursor:"pointer"}} onClick={()=>{setDayPage(today);window.history.pushState({page:"daypage",date:today},"","");}}>+{todayMs.length-2} {lang==="bn"?"টা আরো →":"more →"}</div>}
+              {todayMs.length>2&&<div style={{fontFamily:HS,fontSize:10,color:T.green,textAlign:"center",marginTop:2,cursor:"pointer"}} onClick={()=>setDayPage(today)}>+{todayMs.length-2} {lang==="bn"?"টা আরো →":"more →"}</div>}
             </>):<div style={{fontFamily:HS,fontSize:11,color:T.textS,textAlign:"center"}}>{lang==="bn"?"কোনো ম্যাচ নেই":"No matches"}</div>}
           </div>
 
-          <div onClick={()=>{setDayPage(tom);window.history.pushState({page:"daypage",date:tom},"","");}} style={{background:T.card,borderRadius:14,border:`1px solid ${T.border}`,padding:"10px 12px",cursor:"pointer"}}>
+          <div onClick={()=>setDayPage(tom)} style={{background:T.card,borderRadius:14,border:`1px solid ${T.border}`,padding:"10px 12px",cursor:"pointer"}}>
             <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:8}}>
               <span style={{fontFamily:HS,fontSize:12,fontWeight:700,color:T.text}}>{lang==="bn"?"আগামীকাল":"Tomorrow"}</span>
               <span style={{fontFamily:HS,fontSize:10,color:T.textS}}>{tomMs.length}{lang==="bn"?"টি":"m"}</span>
@@ -1457,7 +1453,7 @@ function HomeTab({T,lang,favs,setFavs,onTeam,setSM,scores,myPreds,setPredictM,se
                   </div>
                 );
               })}
-              {tomMs.length>2&&<div style={{fontFamily:HS,fontSize:10,color:T.green,textAlign:"center",marginTop:2,cursor:"pointer"}} onClick={()=>{setDayPage(tom);window.history.pushState({page:"daypage",date:tom},"","");}}>+{tomMs.length-2} {lang==="bn"?"টা আরো →":"more →"}</div>}
+              {tomMs.length>2&&<div style={{fontFamily:HS,fontSize:10,color:T.green,textAlign:"center",marginTop:2,cursor:"pointer"}} onClick={()=>setDayPage(tom)}>+{tomMs.length-2} {lang==="bn"?"টা আরো →":"more →"}</div>}
             </>):<div style={{fontFamily:HS,fontSize:11,color:T.textS,textAlign:"center"}}>{lang==="bn"?"কোনো ম্যাচ নেই":"No matches"}</div>}
           </div>
         </div>
@@ -2164,6 +2160,7 @@ export default function App(){
   const[predictM,setPredictM]=useState(null);
   const[needName,setNeedName]=useState(null);
   const[scoreM,setScoreM]=useState(null);
+  const[dayPage,setDayPage]=useState(null);
   const T=mkT(dark);
 
   useEffect(()=>{
@@ -2309,7 +2306,7 @@ export default function App(){
         </div>
 
         {/* Body */}
-                {mt==="home"&&<HomeTab T={T} lang={lang} favs={favs} setFavs={setFavs} onTeam={openTeam} setSM={setSm} scores={scores} myPreds={myPreds} setPredictM={handlePredict} setScoreM={setScoreM} isAdmin={isAdmin}/>}
+                {mt==="home"&&<HomeTab T={T} lang={lang} favs={favs} setFavs={setFavs} onTeam={openTeam} setSM={setSm} scores={scores} myPreds={myPreds} setPredictM={handlePredict} setScoreM={setScoreM} isAdmin={isAdmin} dayPage={dayPage} setDayPage={setDayPage}/>}
         {mt==="wc"&&wt==="fixture"&&<GroupTab T={T} lang={lang} onTeam={openTeam} scores={scores} myPreds={myPreds} setPredictM={handlePredict} isAdmin={isAdmin} setScoreM={setScoreM}/>}
         {mt==="wc"&&wt==="knockout"&&<KnockoutTab T={T} lang={lang} scores={scores}/>}
         {mt==="wc"&&wt==="table"&&<TableTab T={T} lang={lang} scores={scores}/>}
