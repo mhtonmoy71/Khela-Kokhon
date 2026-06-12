@@ -1434,7 +1434,7 @@ function HomeTab({T,lang,favs,setFavs,onTeam,setSM,scores,myPreds,setPredictM,se
                       </span>
                     ):(
                       <span style={{display:"flex",justifyContent:"center",flexShrink:0,minWidth:32}}>
-                        <span style={{fontFamily:HS,fontSize:10,fontWeight:700,color:T.green}}>{t2}<span style={{fontSize:7,color:T.text,opacity:0.5}}>{ap}</span></span>
+                        <span style={{fontFamily:HS,fontSize:10,fontWeight:700,color:T.green}}>{t2} <span style={{fontSize:7,color:T.text,opacity:0.5}}>{ap}</span></span>
                       </span>
                     )}
                     <span style={{fontFamily:HS,fontSize:9,color:T.text,flex:1,textAlign:"right",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{tn(m.a,lang)}</span>
@@ -1458,7 +1458,7 @@ function HomeTab({T,lang,favs,setFavs,onTeam,setSM,scores,myPreds,setPredictM,se
                   <div key={m.id} style={{display:"flex",alignItems:"center",gap:4,marginBottom:6,paddingBottom:6,borderBottom:`1px solid ${T.border}`}}>
                     <Flag en={m.h} size={14}/>
                     <span style={{fontFamily:HS,fontSize:9,color:T.text,flex:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{tn(m.h,lang)}</span>
-                    <span style={{display:"flex",justifyContent:"center",flexShrink:0,minWidth:32}}><span style={{fontFamily:HS,fontSize:10,fontWeight:700,color:T.gold||T.green}}>{t2}<span style={{fontSize:7,color:T.text,opacity:0.5}}>{ap}</span></span></span>
+                    <span style={{display:"flex",justifyContent:"center",flexShrink:0,minWidth:32}}><span style={{fontFamily:HS,fontSize:10,fontWeight:700,color:T.gold||T.green}}>{t2} <span style={{fontSize:7,color:T.text,opacity:0.5}}>{ap}</span></span></span>
                     <span style={{fontFamily:HS,fontSize:9,color:T.text,flex:1,textAlign:"right",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{tn(m.a,lang)}</span>
                     <Flag en={m.a} size={14}/>
                   </div>
