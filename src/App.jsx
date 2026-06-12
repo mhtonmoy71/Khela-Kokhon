@@ -1297,20 +1297,13 @@ function HomeTab({T,lang,favs,setFavs,onTeam,setSM,scores,myPreds,setPredictM,se
         if(diff<=0){
           // Show live score widget instead
           const allM=[...MATCHES,...R32,...R16,...QF,...SF,...FINAL];
-          const liveMs=allM.filter(m=>{
-            const sc=scores[m.id]||scores[String(m.id)];
-            const st=status(m,scores);
-            return st==="live"||(sc&&sc.hg!==""&&sc.ag!==""&&sc.status!=="end")||
-                   (sc&&sc.hg!==""&&sc.ag!==""&&sc.status==="end"&&tMs(m)>Date.now()-7200000);
-          }).slice(0,3);
+          const liveMs=allM.filter(m=>status(m,scores)==="live").slice(0,3);
           if(liveMs.length===0)return null;
           return(
             <div style={{marginBottom:12}}>
               {liveMs.map(m=>{
                 const sc=scores[m.id]||scores[String(m.id)];
-                const st=status(m,scores);
-                const isLive=st==="live";
-                const isFT=sc&&sc.status==="end";
+                const isLive=true;
                 return(
                   <div key={m.id} style={{
                     position:"relative",borderRadius:16,overflow:"hidden",
@@ -1332,9 +1325,8 @@ function HomeTab({T,lang,favs,setFavs,onTeam,setSM,scores,myPreds,setPredictM,se
                       {/* Live badge */}
                       <div style={{display:"flex",alignItems:"center",gap:4,flexShrink:0,minWidth:36}}>
                         {isLive&&<div style={{width:6,height:6,borderRadius:"50%",background:"#e11d48",animation:"pulse 1s infinite"}}/>}
-                        <span style={{fontFamily:HS,fontSize:9,fontWeight:700,letterSpacing:1,
-                          color:isLive?"#e11d48":"rgba(255,255,255,0.4)"}}>
-                          {isLive?"LIVE":isFT?(lang==="bn"?"শেষ":"FULL TIME"):""}
+                        <span style={{fontFamily:HS,fontSize:9,fontWeight:700,letterSpacing:1,color:"#e11d48"}}>
+                          LIVE
                         </span>
                       </div>
                       {/* Divider */}
@@ -1418,19 +1410,19 @@ function HomeTab({T,lang,favs,setFavs,onTeam,setSM,scores,myPreds,setPredictM,se
                 const isFT=st==="ft";
                 const hasScore=sc&&sc.hg!==""&&sc.ag!=="";
                 return(
-                  <div key={m.id} style={{display:"flex",alignItems:"center",gap:4,marginBottom:6,paddingBottom:6,borderBottom:`1px solid ${T.border}`,opacity:isFT?0.6:1}}>
-                    <Flag en={m.h} size={16}/>
-                    <span style={{fontFamily:HS,fontSize:10,color:T.text,flex:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{tn(m.h,lang)}</span>
-                    {hasScore?(
-                      <span style={{display:"flex",alignItems:"center",gap:3,flexShrink:0}}>
-                        <span style={{fontFamily:HS,fontSize:10,fontWeight:800,color:isFT?T.textM:T.green}}>{sc.hg}–{sc.ag}</span>
-                        {isFT&&<span style={{fontFamily:HS,fontSize:7,fontWeight:700,color:T.textM,background:T.card2,padding:"1px 4px",borderRadius:4}}>FT</span>}
-                      </span>
-                    ):(
-                      <span style={{fontFamily:HS,fontSize:10,fontWeight:700,color:T.green,flexShrink:0}}>{t2}<span style={{fontSize:7,color:T.textM}}>{ap}</span></span>
-                    )}
-                    <span style={{fontFamily:HS,fontSize:10,color:T.text,flex:1,textAlign:"right",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{tn(m.a,lang)}</span>
-                    <Flag en={m.a} size={16}/>
+                  <div key={m.id} style={{marginBottom:6,paddingBottom:6,borderBottom:`1px solid ${T.border}`,opacity:isFT?0.6:1}}>
+                    <div style={{display:"flex",alignItems:"center",gap:4}}>
+                      <Flag en={m.h} size={16}/>
+                      <span style={{fontFamily:HS,fontSize:10,color:T.text,flex:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{tn(m.h,lang)}</span>
+                      {hasScore?(
+                        <span style={{fontFamily:HS,fontSize:10,fontWeight:800,color:isFT?T.textM:T.green,flexShrink:0}}>{sc.hg}–{sc.ag}</span>
+                      ):(
+                        <span style={{fontFamily:HS,fontSize:10,fontWeight:700,color:T.green,flexShrink:0}}>{t2}<span style={{fontSize:7,color:T.textM}}>{ap}</span></span>
+                      )}
+                      <span style={{fontFamily:HS,fontSize:10,color:T.text,flex:1,textAlign:"right",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{tn(m.a,lang)}</span>
+                      <Flag en={m.a} size={16}/>
+                    </div>
+                    {isFT&&<div style={{fontFamily:HS,fontSize:8,fontWeight:700,color:T.textM,textAlign:"center",marginTop:2,letterSpacing:1}}>{lang==="bn"?"সমাপ্ত":"FULL TIME"}</div>}
                   </div>
                 );
               })}
