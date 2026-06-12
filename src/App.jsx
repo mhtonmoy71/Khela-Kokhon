@@ -1620,24 +1620,24 @@ function BracketMatchCard({m,T,lang,scores}){
    spacing multiplier relative to R32 (level 0). Each level doubles the gap
    between cards so pairs line up with the connector midpoints of the
    previous level. */
-function BracketColumn({matches,T,lang,scores,level,drawConnectorsRight}){
+function BracketColumn({matches,T,lang,scores,level,drawConnectorsRight,containerH}){
   const unit=BK_CARD_H+BK_GAP;
   const spacing=unit*Math.pow(2,level);
-  const totalH=spacing*(matches.length-1)+BK_CARD_H;
+  const topOffset=unit*(Math.pow(2,level)-1)/2;
   return(
     <div style={{position:"relative",display:"flex"}}>
-      <div style={{display:"flex",flexDirection:"column",position:"relative",height:totalH,width:118}}>
+      <div style={{display:"flex",flexDirection:"column",position:"relative",height:containerH,width:118}}>
         {matches.map((m,i)=>(
-          <div key={m.id} style={{position:"absolute",top:i*spacing,left:0,right:0}}>
+          <div key={m.id} style={{position:"absolute",top:topOffset+i*spacing,left:0,right:0}}>
             <BracketMatchCard m={m} T={T} lang={lang} scores={scores}/>
           </div>
         ))}
       </div>
       {drawConnectorsRight&&(
-        <div style={{position:"relative",width:BK_CONN_W,height:totalH,flexShrink:0}}>
+        <div style={{position:"relative",width:BK_CONN_W,height:containerH,flexShrink:0}}>
           {Array.from({length:Math.floor(matches.length/2)}).map((_,pi)=>{
-            const topCenter=pi*2*spacing+BK_CARD_H/2;
-            const botCenter=(pi*2+1)*spacing+BK_CARD_H/2;
+            const topCenter=topOffset+pi*2*spacing+BK_CARD_H/2;
+            const botCenter=topOffset+(pi*2+1)*spacing+BK_CARD_H/2;
             const midY=(topCenter+botCenter)/2;
             return(
               <div key={pi}>
@@ -1655,17 +1655,17 @@ function BracketColumn({matches,T,lang,scores,level,drawConnectorsRight}){
 }
 
 /* Mirrored connector for right-half columns: stubs go left instead of right */
-function BracketColumnRight({matches,T,lang,scores,level,drawConnectorsLeft}){
+function BracketColumnRight({matches,T,lang,scores,level,drawConnectorsLeft,containerH}){
   const unit=BK_CARD_H+BK_GAP;
   const spacing=unit*Math.pow(2,level);
-  const totalH=spacing*(matches.length-1)+BK_CARD_H;
+  const topOffset=unit*(Math.pow(2,level)-1)/2;
   return(
     <div style={{position:"relative",display:"flex"}}>
       {drawConnectorsLeft&&(
-        <div style={{position:"relative",width:BK_CONN_W,height:totalH,flexShrink:0}}>
+        <div style={{position:"relative",width:BK_CONN_W,height:containerH,flexShrink:0}}>
           {Array.from({length:Math.floor(matches.length/2)}).map((_,pi)=>{
-            const topCenter=pi*2*spacing+BK_CARD_H/2;
-            const botCenter=(pi*2+1)*spacing+BK_CARD_H/2;
+            const topCenter=topOffset+pi*2*spacing+BK_CARD_H/2;
+            const botCenter=topOffset+(pi*2+1)*spacing+BK_CARD_H/2;
             const midY=(topCenter+botCenter)/2;
             return(
               <div key={pi}>
@@ -1678,9 +1678,9 @@ function BracketColumnRight({matches,T,lang,scores,level,drawConnectorsLeft}){
           })}
         </div>
       )}
-      <div style={{display:"flex",flexDirection:"column",position:"relative",height:totalH,width:118}}>
+      <div style={{display:"flex",flexDirection:"column",position:"relative",height:containerH,width:118}}>
         {matches.map((m,i)=>(
-          <div key={m.id} style={{position:"absolute",top:i*spacing,left:0,right:0}}>
+          <div key={m.id} style={{position:"absolute",top:topOffset+i*spacing,left:0,right:0}}>
             <BracketMatchCard m={m} T={T} lang={lang} scores={scores}/>
           </div>
         ))}
@@ -1700,8 +1700,10 @@ function BracketTab({T,lang,scores}){
   const leftSF=[SF[0]], rightSF=[SF[1]];
 
   const unit=BK_CARD_H+BK_GAP;
-  const totalH=unit*7+BK_CARD_H;
-  const centerY=totalH/2;
+  const containerH=unit*7+BK_CARD_H; // R32 column height (8 cards, level 0)
+  // SF (level 3) center point = where its single card sits
+  const sfTopOffset=unit*(Math.pow(2,3)-1)/2;
+  const sfCenter=sfTopOffset+BK_CARD_H/2;
 
   const colLabel=(text)=>(
     <div style={{fontFamily:HS,fontSize:10,fontWeight:700,color:T.textS,textAlign:"center",
@@ -1713,33 +1715,33 @@ function BracketTab({T,lang,scores}){
       <div style={{fontFamily:HS,fontSize:14,fontWeight:700,color:T.text,textAlign:"center",marginBottom:10}}>
         🏆 {lang==="bn"?"রোড টু ফাইনাল":"Road to Final"}
       </div>
-      <div style={{display:"flex",overflowX:"auto",padding:"4px 12px 12px",
+      <div style={{display:"flex",overflowX:"auto",padding:"30px 12px 12px",
         WebkitOverflowScrolling:"touch",scrollbarWidth:"none",alignItems:"flex-start"}}>
 
         <div>
           {colLabel(RT.r32)}
-          <BracketColumn matches={leftR32} T={T} lang={lang} scores={scores} level={0} drawConnectorsRight/>
+          <BracketColumn matches={leftR32} T={T} lang={lang} scores={scores} level={0} drawConnectorsRight containerH={containerH}/>
         </div>
-        <div style={{paddingTop:24}}>
+        <div>
           {colLabel(RT.r16)}
-          <BracketColumn matches={leftR16} T={T} lang={lang} scores={scores} level={1} drawConnectorsRight/>
+          <BracketColumn matches={leftR16} T={T} lang={lang} scores={scores} level={1} drawConnectorsRight containerH={containerH}/>
         </div>
-        <div style={{paddingTop:24}}>
+        <div>
           {colLabel(RT.qf)}
-          <BracketColumn matches={leftQF} T={T} lang={lang} scores={scores} level={2} drawConnectorsRight/>
+          <BracketColumn matches={leftQF} T={T} lang={lang} scores={scores} level={2} drawConnectorsRight containerH={containerH}/>
         </div>
-        <div style={{paddingTop:24}}>
+        <div>
           {colLabel(RT.sf)}
-          <BracketColumn matches={leftSF} T={T} lang={lang} scores={scores} level={3} drawConnectorsRight={false}/>
+          <BracketColumn matches={leftSF} T={T} lang={lang} scores={scores} level={3} drawConnectorsRight={false} containerH={containerH}/>
         </div>
 
-        <div style={{position:"relative",width:BK_CONN_W*2+140,height:totalH,flexShrink:0,paddingTop:24}}>
-          <div style={{position:"absolute",left:0,top:centerY-BK_CARD_H/2-30,width:BK_CONN_W,height:1,background:T.border}}/>
-          <div style={{position:"absolute",left:BK_CONN_W,top:centerY-BK_CARD_H/2-30,height:60,width:1,background:T.border}}/>
-          <div style={{position:"absolute",right:0,top:centerY-BK_CARD_H/2-30,width:BK_CONN_W,height:1,background:T.border}}/>
-          <div style={{position:"absolute",right:BK_CONN_W,top:centerY-BK_CARD_H/2-30,height:60,width:1,background:T.border}}/>
+        <div style={{position:"relative",width:BK_CONN_W*2+140,height:containerH,flexShrink:0}}>
+          <div style={{position:"absolute",left:0,top:sfCenter,width:BK_CONN_W,height:1,background:T.border}}/>
+          <div style={{position:"absolute",left:BK_CONN_W,top:Math.min(sfCenter,24),height:Math.abs(sfCenter-24)||1,width:1,background:T.border}}/>
+          <div style={{position:"absolute",right:0,top:sfCenter,width:BK_CONN_W,height:1,background:T.border}}/>
+          <div style={{position:"absolute",right:BK_CONN_W,top:Math.min(sfCenter,24),height:Math.abs(sfCenter-24)||1,width:1,background:T.border}}/>
 
-          <div style={{position:"absolute",left:BK_CONN_W,right:BK_CONN_W,top:centerY-BK_CARD_H/2-60,
+          <div style={{position:"absolute",left:BK_CONN_W,right:BK_CONN_W,top:24,
             display:"flex",flexDirection:"column",alignItems:"center",gap:8}}>
             <div style={{width:54,height:54,borderRadius:"50%",background:T.greenBg,
               border:`2px solid ${T.greenBr}`,display:"flex",alignItems:"center",justifyContent:"center",
@@ -1752,21 +1754,21 @@ function BracketTab({T,lang,scores}){
           </div>
         </div>
 
-        <div style={{paddingTop:24}}>
+        <div>
           {colLabel(RT.sf)}
-          <BracketColumnRight matches={rightSF} T={T} lang={lang} scores={scores} level={3} drawConnectorsLeft={false}/>
+          <BracketColumnRight matches={rightSF} T={T} lang={lang} scores={scores} level={3} drawConnectorsLeft={false} containerH={containerH}/>
         </div>
-        <div style={{paddingTop:24}}>
+        <div>
           {colLabel(RT.qf)}
-          <BracketColumnRight matches={rightQF} T={T} lang={lang} scores={scores} level={2} drawConnectorsLeft/>
+          <BracketColumnRight matches={rightQF} T={T} lang={lang} scores={scores} level={2} drawConnectorsLeft containerH={containerH}/>
         </div>
-        <div style={{paddingTop:24}}>
+        <div>
           {colLabel(RT.r16)}
-          <BracketColumnRight matches={rightR16} T={T} lang={lang} scores={scores} level={1} drawConnectorsLeft/>
+          <BracketColumnRight matches={rightR16} T={T} lang={lang} scores={scores} level={1} drawConnectorsLeft containerH={containerH}/>
         </div>
         <div>
           {colLabel(RT.r32)}
-          <BracketColumnRight matches={rightR32} T={T} lang={lang} scores={scores} level={0} drawConnectorsLeft/>
+          <BracketColumnRight matches={rightR32} T={T} lang={lang} scores={scores} level={0} drawConnectorsLeft containerH={containerH}/>
         </div>
       </div>
       <div style={{fontFamily:HS,fontSize:11,color:T.textM,textAlign:"center",marginTop:6}}>
