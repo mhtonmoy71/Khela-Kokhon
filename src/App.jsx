@@ -1585,116 +1585,109 @@ function GroupTab({T,lang,onTeam,scores,myPreds,setPredictM,isAdmin,setScoreM}){
 }
 
 /* ── BracketTab (Road to Final) ──────────────── */
-function BracketCell({m,T,lang,scores}){
+function BracketMatchCard({m,T,lang,scores}){
   const sc=scores?.[m.id]||scores?.[String(m.id)];
   const hasScore=sc&&sc.hg!==""&&sc.ag!=="";
+  const[t2,ap]=m.t.split(" ");
   return(
-    <div style={{background:T.card,border:`1px solid ${T.border}`,borderRadius:8,
-      padding:"6px 8px",minWidth:88,boxShadow:T.glow}}>
-      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:2}}>
-        <span style={{fontFamily:HS,fontSize:11,fontWeight:700,color:T.text}}>{m.h}</span>
-        <span style={{fontFamily:HS,fontSize:11,fontWeight:800,color:hasScore?T.green:T.textM}}>{hasScore?sc.hg:""}</span>
+    <div style={{background:T.card,border:`1px solid ${T.border}`,borderRadius:12,
+      padding:"10px 12px",boxShadow:T.glow}}>
+      <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:6}}>
+        <div style={{width:6,height:6,borderRadius:"50%",background:T.green,flexShrink:0}}/>
+        <span style={{fontFamily:HS,fontSize:10,color:T.textS,flex:1,overflow:"hidden",
+          textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{m.venue||m.label||""}</span>
+        <span style={{fontFamily:HS,fontSize:10,color:T.textM,whiteSpace:"nowrap"}}>{dls(m.d,lang)}</span>
+      </div>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:4}}>
+        <span style={{fontFamily:HS,fontSize:13,fontWeight:600,color:T.text}}>{m.h}</span>
+        {hasScore?(
+          <span style={{fontFamily:HS,fontSize:18,fontWeight:800,color:T.green}}>{sc.hg}</span>
+        ):(
+          <span style={{fontFamily:HS,fontSize:11,color:T.textM}}>{t2} {ap}</span>
+        )}
       </div>
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-        <span style={{fontFamily:HS,fontSize:11,fontWeight:700,color:T.text}}>{m.a}</span>
-        <span style={{fontFamily:HS,fontSize:11,fontWeight:800,color:hasScore?T.green:T.textM}}>{hasScore?sc.ag:""}</span>
+        <span style={{fontFamily:HS,fontSize:13,fontWeight:600,color:T.text}}>{m.a}</span>
+        {hasScore&&<span style={{fontFamily:HS,fontSize:18,fontWeight:800,color:T.green}}>{sc.ag}</span>}
       </div>
-      <div style={{fontFamily:HS,fontSize:9,color:T.textS,marginTop:3,textAlign:"center"}}>{dls(m.d,lang)}</div>
     </div>
   );
 }
 
-function BracketColumn({title,matches,T,lang,scores,side="left"}){
-  // group matches into pairs to draw connector lines feeding into next round
-  const pairs=[];
-  for(let i=0;i<matches.length;i+=2)pairs.push(matches.slice(i,i+2));
-  const lineColor=T.border;
+/* Pair of matches with a bracket connector (┐ ┘ shape) on the right,
+   converging to a single point that lines up with the next round. */
+function BracketPair({pair,T,lang,scores}){
   return(
-    <div style={{display:"flex",flexDirection:"column",minWidth:104,flexShrink:0}}>
-      <div style={{fontFamily:HS,fontSize:11,fontWeight:700,color:T.textS,textAlign:"center",
-        marginBottom:8,whiteSpace:"nowrap"}}>{title}</div>
-      <div style={{display:"flex",flexDirection:"column",justifyContent:"space-around",flex:1,gap:24}}>
-        {pairs.map((pair,pi)=>(
-          <div key={pi} style={{position:"relative",display:"flex",flexDirection:"column",gap:14}}>
-            {pair.map((m,mi)=>(
-              <div key={m.id} style={{position:"relative"}}>
-                <BracketCell m={m} T={T} lang={lang} scores={scores}/>
-                {/* horizontal connector stub */}
-                {side==="left"&&(
-                  <div style={{position:"absolute",top:"50%",right:-14,width:14,height:1,background:lineColor}}/>
-                )}
-                {side==="right"&&(
-                  <div style={{position:"absolute",top:"50%",left:-14,width:14,height:1,background:lineColor}}/>
-                )}
-              </div>
-            ))}
-            {pair.length===2&&(
-              side==="left"?(
-                <div style={{position:"absolute",right:-14,top:"calc(25% + 7px)",bottom:"calc(25% + 7px)",
-                  width:1,background:lineColor}}/>
-              ):(
-                <div style={{position:"absolute",left:-14,top:"calc(25% + 7px)",bottom:"calc(25% + 7px)",
-                  width:1,background:lineColor}}/>
-              )
-            )}
-          </div>
-        ))}
+    <div style={{display:"flex",alignItems:"stretch",gap:0,marginBottom:16}}>
+      <div style={{flex:1,display:"flex",flexDirection:"column",gap:16}}>
+        {pair.map(m=><BracketMatchCard key={m.id} m={m} T={T} lang={lang} scores={scores}/>)}
       </div>
+      {pair.length===2&&(
+        <div style={{width:20,position:"relative",flexShrink:0}}>
+          {/* top horizontal stub */}
+          <div style={{position:"absolute",top:"25%",left:0,width:10,height:1,background:T.border}}/>
+          {/* bottom horizontal stub */}
+          <div style={{position:"absolute",top:"75%",left:0,width:10,height:1,background:T.border}}/>
+          {/* vertical connector */}
+          <div style={{position:"absolute",left:10,top:"25%",bottom:"25%",width:1,background:T.border}}/>
+          {/* final stub to the right, pointing to next round */}
+          <div style={{position:"absolute",top:"50%",left:10,width:10,height:1,background:T.border}}/>
+        </div>
+      )}
     </div>
   );
 }
 
 function BracketTab({T,lang,scores}){
-  const leftR32=R32.slice(0,8);
-  const rightR32=R32.slice(8,16);
-  const leftR16=R16.slice(0,4);
-  const rightR16=R16.slice(4,8);
-  const leftQF=QF.slice(0,2);
-  const rightQF=QF.slice(2,4);
-  const leftSF=[SF[0]];
-  const rightSF=[SF[1]];
-  const bronze=FINAL[0];
-  const final=FINAL[1];
+  const[round,setRound]=useState("R32");
+  const tabs=[
+    {k:"R32",l:lang==="bn"?"রাউন্ড অব ৩২":"Round of 32"},
+    {k:"R16",l:lang==="bn"?"রাউন্ড অব ১৬":"Round of 16"},
+    {k:"QF",l:lang==="bn"?"কোয়ার্টার":"Quarter"},
+    {k:"SF",l:lang==="bn"?"সেমি":"Semi"},
+    {k:"F",l:lang==="bn"?"🏆 ফাইনাল":"🏆 Final"},
+  ];
+  const matchMap={R32,R16,QF,SF};
 
-  const RT=lang==="bn"?{r32:"রাউন্ড অব ৩২",r16:"রাউন্ড অব ১৬",qf:"কোয়ার্টার",sf:"সেমি",f:"ফাইনাল",b:"ব্রোঞ্জ"}
-    :{r32:"Round of 32",r16:"Round of 16",qf:"Quarter",sf:"Semi",f:"Final",b:"Bronze"};
+  const renderPairs=(matches)=>{
+    const pairs=[];
+    for(let i=0;i<matches.length;i+=2)pairs.push(matches.slice(i,i+2));
+    return pairs.map((pair,pi)=><BracketPair key={pi} pair={pair} T={T} lang={lang} scores={scores}/>);
+  };
 
   return(
-    <div style={{padding:"12px 0 90px"}}>
-      <div style={{fontFamily:HS,fontSize:14,fontWeight:700,color:T.text,textAlign:"center",marginBottom:10}}>
-        🏆 {lang==="bn"?"রোড টু ফাইনাল":"Road to Final"}
+    <div>
+      <div style={{display:"flex",gap:8,padding:"10px 12px",background:T.card,
+        borderBottom:`1px solid ${T.border}`,overflowX:"auto",scrollbarWidth:"none",
+        WebkitOverflowScrolling:"touch"}}>
+        {tabs.map(t=>(
+          <button key={t.k} onClick={()=>setRound(t.k)} style={{fontFamily:HS,fontSize:12,
+            fontWeight:round===t.k?700:400,padding:"8px 16px",borderRadius:20,cursor:"pointer",
+            border:"none",flexShrink:0,background:round===t.k?T.green:T.card2,
+            color:round===t.k?"#fff":T.textS,transition:"all 0.2s"}}>{t.l}</button>
+        ))}
       </div>
-      <div style={{display:"flex",gap:28,overflowX:"auto",padding:"4px 24px 12px 24px",
-        WebkitOverflowScrolling:"touch",scrollbarWidth:"none"}}>
-        <BracketColumn title={RT.r32} matches={leftR32} T={T} lang={lang} scores={scores} side="left"/>
-        <BracketColumn title={RT.r16} matches={leftR16} T={T} lang={lang} scores={scores} side="left"/>
-        <BracketColumn title={RT.qf} matches={leftQF} T={T} lang={lang} scores={scores} side="left"/>
-        <BracketColumn title={RT.sf} matches={leftSF} T={T} lang={lang} scores={scores} side="left"/>
-
-        <div style={{display:"flex",flexDirection:"column",justifyContent:"center",
-          alignItems:"center",gap:10,minWidth:110,flexShrink:0,position:"relative"}}>
-          <div style={{position:"absolute",left:-14,top:"50%",width:14,height:1,background:T.border}}/>
-          <div style={{position:"absolute",right:-14,top:"50%",width:14,height:1,background:T.border}}/>
-          <div style={{fontFamily:HS,fontSize:11,fontWeight:700,color:T.textS,textAlign:"center",marginBottom:2}}>
-            🏆 {RT.f}
-          </div>
-          <div style={{width:64,height:64,borderRadius:"50%",background:T.greenBg,
-            border:`2px solid ${T.greenBr}`,display:"flex",alignItems:"center",justifyContent:"center",
-            fontSize:30}}>🏆</div>
-          <BracketCell m={final} T={T} lang={lang} scores={scores}/>
-          <div style={{fontFamily:HS,fontSize:11,fontWeight:700,color:T.textS,textAlign:"center",marginTop:8}}>
-            🥉 {RT.b}
-          </div>
-          <BracketCell m={bronze} T={T} lang={lang} scores={scores}/>
-        </div>
-
-        <BracketColumn title={RT.sf} matches={rightSF} T={T} lang={lang} scores={scores} side="right"/>
-        <BracketColumn title={RT.qf} matches={rightQF} T={T} lang={lang} scores={scores} side="right"/>
-        <BracketColumn title={RT.r16} matches={rightR16} T={T} lang={lang} scores={scores} side="right"/>
-        <BracketColumn title={RT.r32} matches={rightR32} T={T} lang={lang} scores={scores} side="right"/>
-      </div>
-      <div style={{fontFamily:HS,fontSize:11,color:T.textM,textAlign:"center",marginTop:6}}>
-        {lang==="bn"?"← স্ক্রল করুন →":"← Scroll →"}
+      <div style={{padding:"14px 12px 90px"}}>
+        {round==="F"?(
+          <>
+            <div style={{textAlign:"center",marginBottom:16}}>
+              <div style={{width:64,height:64,borderRadius:"50%",background:T.greenBg,
+                border:`2px solid ${T.greenBr}`,display:"flex",alignItems:"center",justifyContent:"center",
+                fontSize:30,margin:"0 auto 8px"}}>🏆</div>
+              <div style={{fontFamily:HS,fontSize:13,fontWeight:700,color:T.textS}}>
+                {lang==="bn"?"চ্যাম্পিয়ন":"Champion"}
+              </div>
+            </div>
+            <div style={{fontFamily:HS,fontSize:12,fontWeight:700,color:T.textS,marginBottom:8}}>
+              🏆 {lang==="bn"?"ফাইনাল":"Final"}
+            </div>
+            <BracketMatchCard m={FINAL[1]} T={T} lang={lang} scores={scores}/>
+            <div style={{fontFamily:HS,fontSize:12,fontWeight:700,color:T.textS,margin:"16px 0 8px"}}>
+              🥉 {lang==="bn"?"তৃতীয় স্থান":"Third Place"}
+            </div>
+            <BracketMatchCard m={FINAL[0]} T={T} lang={lang} scores={scores}/>
+          </>
+        ):renderPairs(matchMap[round]||[])}
       </div>
     </div>
   );
