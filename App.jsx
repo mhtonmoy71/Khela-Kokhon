@@ -1026,7 +1026,7 @@ function MatchCard({m,T,lang,scores,myPreds,setPredictM,onTeam,isAdmin,setScoreM
         <div style={{display:"flex",gap:5,justifyContent:"center",padding:"0 14px 10px"}}>
           {[{v:cd.days,l:lang==="bn"?"দিন":"d"},{v:cd.hours,l:lang==="bn"?"ঘ":"h"},{v:cd.mins,l:lang==="bn"?"মি":"m"},{v:cd.secs,l:lang==="bn"?"সে":"s"}].map(({v,l})=>(
             <div key={l} style={{background:T.card2,borderRadius:8,padding:"4px 8px",textAlign:"center",
-              minWidth:38,border:`1px solid ${T.border}`}}>
+              minWidth:32,border:`1px solid ${T.border}`}}>
               <div style={{fontFamily:HS,fontSize:14,fontWeight:800,color:T.green,lineHeight:1}}>{String(v).padStart(2,"0")}</div>
               <div style={{fontFamily:HS,fontSize:9,color:T.textS,fontWeight:600}}>{l}</div>
             </div>
@@ -1126,8 +1126,8 @@ function MatchRow({m,T,lang,scores,myPreds,setPredictM,onTeam,isAdmin,setScoreM}
           <div style={{display:"flex",gap:8,padding:"8px 10px 10px",borderTop:`1px solid ${T.border}`,background:T.card2}}>
             <button onClick={()=>{setScoreM(m);setShowAct(false);}} style={{flex:1,display:"flex",alignItems:"center",justifyContent:"center",gap:4,background:T.card,border:`1px solid ${T.border}`,borderRadius:10,padding:7,cursor:"pointer",fontFamily:HS,fontSize:12,color:T.textS}}>✏️ <span style={{fontFamily:HS}}>স্কোর</span></button>
             <button onClick={()=>{addToGCal(m,lang);setShowAct(false);}} style={{flex:1,display:"flex",alignItems:"center",justifyContent:"center",gap:4,background:T.card,border:`1px solid ${T.border}`,borderRadius:10,padding:7,cursor:"pointer",fontFamily:HS,fontSize:12,color:T.textS}}>📅</button>
-            <button onClick={()=>{onTeam(m.h);setShowAct(false);}} style={{flex:1,display:"flex",alignItems:"center",justifyContent:"center",gap:4,background:T.card,border:`1px solid ${T.border}`,borderRadius:10,padding:7,cursor:"pointer",fontFamily:HS,fontSize:12,color:T.textS}}><Flag en={m.h} size={16}/></button>
-            <button onClick={()=>{onTeam(m.a);setShowAct(false);}} style={{flex:1,display:"flex",alignItems:"center",justifyContent:"center",gap:4,background:T.card,border:`1px solid ${T.border}`,borderRadius:10,padding:7,cursor:"pointer",fontFamily:HS,fontSize:12,color:T.textS}}><Flag en={m.a} size={16}/></button>
+            <button onClick={()=>{onTeam(m.h);setShowAct(false);}} style={{flex:1,display:"flex",alignItems:"center",justifyContent:"center",gap:4,background:T.card,border:`1px solid ${T.border}`,borderRadius:10,padding:7,cursor:"pointer",fontFamily:HS,fontSize:12,color:T.textS}}><Flag en={m.h} size={14}/></button>
+            <button onClick={()=>{onTeam(m.a);setShowAct(false);}} style={{flex:1,display:"flex",alignItems:"center",justifyContent:"center",gap:4,background:T.card,border:`1px solid ${T.border}`,borderRadius:10,padding:7,cursor:"pointer",fontFamily:HS,fontSize:12,color:T.textS}}><Flag en={m.a} size={14}/></button>
             <button onClick={()=>{shareM(m,lang);setShowAct(false);}} style={{flex:1,display:"flex",alignItems:"center",justifyContent:"center",gap:4,background:T.card,border:`1px solid ${T.border}`,borderRadius:10,padding:7,cursor:"pointer",color:T.textS}}>
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
                 <span style={{fontFamily:HS,fontSize:11}}>{lang==="bn"?"শেয়ার":"Share"}</span>
@@ -1411,10 +1411,10 @@ function HomeTab({T,lang,favs,setFavs,onTeam,setSM,scores,myPreds,setPredictM,se
                 const hasScore=sc&&sc.hg!==""&&sc.ag!=="";
                 return(
                   <div key={m.id} style={{display:"flex",alignItems:"center",gap:4,marginBottom:6,paddingBottom:6,borderBottom:`1px solid ${T.border}`,opacity:isFT?0.6:1}}>
-                    <Flag en={m.h} size={16}/>
-                    <span style={{fontFamily:HS,fontSize:10,color:T.text,flex:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{tn(m.h,lang)}</span>
+                    <Flag en={m.h} size={14}/>
+                    <span style={{fontFamily:HS,fontSize:9,color:T.text,flex:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{tn(m.h,lang)}</span>
                     {hasScore?(
-                      <span style={{display:"flex",justifyContent:"center",flexShrink:0,minWidth:38}}>
+                      <span style={{display:"flex",justifyContent:"center",flexShrink:0,minWidth:32}}>
                         {isFT?(
                           <span style={{display:"flex",alignItems:"center",gap:3,background:T.card2,borderRadius:6,padding:"2px 6px",border:`1px solid ${T.border}`}}>
                             <span style={{fontFamily:HS,fontSize:10,fontWeight:800,color:T.textM}}>{sc.hg}–{sc.ag}</span>
@@ -1425,12 +1425,12 @@ function HomeTab({T,lang,favs,setFavs,onTeam,setSM,scores,myPreds,setPredictM,se
                         )}
                       </span>
                     ):(
-                      <span style={{display:"flex",justifyContent:"center",flexShrink:0,minWidth:38}}>
+                      <span style={{display:"flex",justifyContent:"center",flexShrink:0,minWidth:32}}>
                         <span style={{fontFamily:HS,fontSize:10,fontWeight:700,color:T.green}}>{t2}<span style={{fontSize:7,color:T.textM}}>{ap}</span></span>
                       </span>
                     )}
-                    <span style={{fontFamily:HS,fontSize:10,color:T.text,flex:1,textAlign:"right",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{tn(m.a,lang)}</span>
-                    <Flag en={m.a} size={16}/>
+                    <span style={{fontFamily:HS,fontSize:9,color:T.text,flex:1,textAlign:"right",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{tn(m.a,lang)}</span>
+                    <Flag en={m.a} size={14}/>
                   </div>
                 );
               })}
@@ -1448,11 +1448,11 @@ function HomeTab({T,lang,favs,setFavs,onTeam,setSM,scores,myPreds,setPredictM,se
                 const[t2,ap]=m.t.split(" ");
                 return(
                   <div key={m.id} style={{display:"flex",alignItems:"center",gap:4,marginBottom:6,paddingBottom:6,borderBottom:`1px solid ${T.border}`}}>
-                    <Flag en={m.h} size={16}/>
-                    <span style={{fontFamily:HS,fontSize:10,color:T.text,flex:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{tn(m.h,lang)}</span>
-                    <span style={{display:"flex",justifyContent:"center",flexShrink:0,minWidth:38}}><span style={{fontFamily:HS,fontSize:10,fontWeight:700,color:T.gold||T.green}}>{t2}<span style={{fontSize:7,color:T.textM}}>{ap}</span></span></span>
-                    <span style={{fontFamily:HS,fontSize:10,color:T.text,flex:1,textAlign:"right",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{tn(m.a,lang)}</span>
-                    <Flag en={m.a} size={16}/>
+                    <Flag en={m.h} size={14}/>
+                    <span style={{fontFamily:HS,fontSize:9,color:T.text,flex:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{tn(m.h,lang)}</span>
+                    <span style={{display:"flex",justifyContent:"center",flexShrink:0,minWidth:32}}><span style={{fontFamily:HS,fontSize:10,fontWeight:700,color:T.gold||T.green}}>{t2}<span style={{fontSize:7,color:T.textM}}>{ap}</span></span></span>
+                    <span style={{fontFamily:HS,fontSize:9,color:T.text,flex:1,textAlign:"right",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{tn(m.a,lang)}</span>
+                    <Flag en={m.a} size={14}/>
                   </div>
                 );
               })}
