@@ -1604,13 +1604,42 @@ function BracketCell({m,T,lang,scores}){
   );
 }
 
-function BracketColumn({title,matches,T,lang,scores}){
+function BracketColumn({title,matches,T,lang,scores,side="left"}){
+  // group matches into pairs to draw connector lines feeding into next round
+  const pairs=[];
+  for(let i=0;i<matches.length;i+=2)pairs.push(matches.slice(i,i+2));
+  const lineColor=T.border;
   return(
-    <div style={{display:"flex",flexDirection:"column",justifyContent:"space-around",
-      gap:14,minWidth:104,flexShrink:0}}>
+    <div style={{display:"flex",flexDirection:"column",minWidth:104,flexShrink:0}}>
       <div style={{fontFamily:HS,fontSize:11,fontWeight:700,color:T.textS,textAlign:"center",
-        marginBottom:2,whiteSpace:"nowrap"}}>{title}</div>
-      {matches.map(m=><BracketCell key={m.id} m={m} T={T} lang={lang} scores={scores}/>)}
+        marginBottom:8,whiteSpace:"nowrap"}}>{title}</div>
+      <div style={{display:"flex",flexDirection:"column",justifyContent:"space-around",flex:1,gap:24}}>
+        {pairs.map((pair,pi)=>(
+          <div key={pi} style={{position:"relative",display:"flex",flexDirection:"column",gap:14}}>
+            {pair.map((m,mi)=>(
+              <div key={m.id} style={{position:"relative"}}>
+                <BracketCell m={m} T={T} lang={lang} scores={scores}/>
+                {/* horizontal connector stub */}
+                {side==="left"&&(
+                  <div style={{position:"absolute",top:"50%",right:-14,width:14,height:1,background:lineColor}}/>
+                )}
+                {side==="right"&&(
+                  <div style={{position:"absolute",top:"50%",left:-14,width:14,height:1,background:lineColor}}/>
+                )}
+              </div>
+            ))}
+            {pair.length===2&&(
+              side==="left"?(
+                <div style={{position:"absolute",right:-14,top:"calc(25% + 7px)",bottom:"calc(25% + 7px)",
+                  width:1,background:lineColor}}/>
+              ):(
+                <div style={{position:"absolute",left:-14,top:"calc(25% + 7px)",bottom:"calc(25% + 7px)",
+                  width:1,background:lineColor}}/>
+              )
+            )}
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
@@ -1635,15 +1664,17 @@ function BracketTab({T,lang,scores}){
       <div style={{fontFamily:HS,fontSize:14,fontWeight:700,color:T.text,textAlign:"center",marginBottom:10}}>
         🏆 {lang==="bn"?"রোড টু ফাইনাল":"Road to Final"}
       </div>
-      <div style={{display:"flex",gap:14,overflowX:"auto",padding:"4px 12px 12px",
+      <div style={{display:"flex",gap:28,overflowX:"auto",padding:"4px 24px 12px 24px",
         WebkitOverflowScrolling:"touch",scrollbarWidth:"none"}}>
-        <BracketColumn title={RT.r32} matches={leftR32} T={T} lang={lang} scores={scores}/>
-        <BracketColumn title={RT.r16} matches={leftR16} T={T} lang={lang} scores={scores}/>
-        <BracketColumn title={RT.qf} matches={leftQF} T={T} lang={lang} scores={scores}/>
-        <BracketColumn title={RT.sf} matches={leftSF} T={T} lang={lang} scores={scores}/>
+        <BracketColumn title={RT.r32} matches={leftR32} T={T} lang={lang} scores={scores} side="left"/>
+        <BracketColumn title={RT.r16} matches={leftR16} T={T} lang={lang} scores={scores} side="left"/>
+        <BracketColumn title={RT.qf} matches={leftQF} T={T} lang={lang} scores={scores} side="left"/>
+        <BracketColumn title={RT.sf} matches={leftSF} T={T} lang={lang} scores={scores} side="left"/>
 
         <div style={{display:"flex",flexDirection:"column",justifyContent:"center",
-          alignItems:"center",gap:10,minWidth:110,flexShrink:0}}>
+          alignItems:"center",gap:10,minWidth:110,flexShrink:0,position:"relative"}}>
+          <div style={{position:"absolute",left:-14,top:"50%",width:14,height:1,background:T.border}}/>
+          <div style={{position:"absolute",right:-14,top:"50%",width:14,height:1,background:T.border}}/>
           <div style={{fontFamily:HS,fontSize:11,fontWeight:700,color:T.textS,textAlign:"center",marginBottom:2}}>
             🏆 {RT.f}
           </div>
@@ -1657,10 +1688,10 @@ function BracketTab({T,lang,scores}){
           <BracketCell m={bronze} T={T} lang={lang} scores={scores}/>
         </div>
 
-        <BracketColumn title={RT.sf} matches={rightSF} T={T} lang={lang} scores={scores}/>
-        <BracketColumn title={RT.qf} matches={rightQF} T={T} lang={lang} scores={scores}/>
-        <BracketColumn title={RT.r16} matches={rightR16} T={T} lang={lang} scores={scores}/>
-        <BracketColumn title={RT.r32} matches={rightR32} T={T} lang={lang} scores={scores}/>
+        <BracketColumn title={RT.sf} matches={rightSF} T={T} lang={lang} scores={scores} side="right"/>
+        <BracketColumn title={RT.qf} matches={rightQF} T={T} lang={lang} scores={scores} side="right"/>
+        <BracketColumn title={RT.r16} matches={rightR16} T={T} lang={lang} scores={scores} side="right"/>
+        <BracketColumn title={RT.r32} matches={rightR32} T={T} lang={lang} scores={scores} side="right"/>
       </div>
       <div style={{fontFamily:HS,fontSize:11,color:T.textM,textAlign:"center",marginTop:6}}>
         {lang==="bn"?"← স্ক্রল করুন →":"← Scroll →"}
