@@ -1585,108 +1585,192 @@ function GroupTab({T,lang,onTeam,scores,myPreds,setPredictM,isAdmin,setScoreM}){
 }
 
 /* ── BracketTab (Road to Final) ──────────────── */
+/* Fixed dimensions so connector math is exact */
+const BK_CARD_H=72;
+const BK_GAP=10;
+const BK_CONN_W=18;
+
 function BracketMatchCard({m,T,lang,scores}){
   const sc=scores?.[m.id]||scores?.[String(m.id)];
   const hasScore=sc&&sc.hg!==""&&sc.ag!=="";
   const[t2,ap]=m.t.split(" ");
   return(
-    <div style={{background:T.card,border:`1px solid ${T.border}`,borderRadius:12,
-      padding:"10px 12px",boxShadow:T.glow}}>
-      <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:6}}>
-        <div style={{width:6,height:6,borderRadius:"50%",background:T.green,flexShrink:0}}/>
-        <span style={{fontFamily:HS,fontSize:10,color:T.textS,flex:1,overflow:"hidden",
-          textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{m.venue||m.label||""}</span>
-        <span style={{fontFamily:HS,fontSize:10,color:T.textM,whiteSpace:"nowrap"}}>{dls(m.d,lang)}</span>
-      </div>
-      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:4}}>
-        <span style={{fontFamily:HS,fontSize:13,fontWeight:600,color:T.text}}>{m.h}</span>
+    <div style={{background:T.card,border:`1px solid ${T.border}`,borderRadius:10,
+      padding:"6px 8px",boxShadow:T.glow,height:BK_CARD_H,boxSizing:"border-box",
+      display:"flex",flexDirection:"column",justifyContent:"center",minWidth:118}}>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:3}}>
+        <span style={{fontFamily:HS,fontSize:11,fontWeight:600,color:T.text,overflow:"hidden",
+          textOverflow:"ellipsis",whiteSpace:"nowrap",maxWidth:70}}>{m.h}</span>
         {hasScore?(
-          <span style={{fontFamily:HS,fontSize:18,fontWeight:800,color:T.green}}>{sc.hg}</span>
+          <span style={{fontFamily:HS,fontSize:13,fontWeight:800,color:T.green}}>{sc.hg}</span>
         ):(
-          <span style={{fontFamily:HS,fontSize:11,color:T.textM}}>{t2} {ap}</span>
+          <span style={{fontFamily:HS,fontSize:9,color:T.textM}}>{t2}{ap}</span>
         )}
       </div>
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-        <span style={{fontFamily:HS,fontSize:13,fontWeight:600,color:T.text}}>{m.a}</span>
-        {hasScore&&<span style={{fontFamily:HS,fontSize:18,fontWeight:800,color:T.green}}>{sc.ag}</span>}
+        <span style={{fontFamily:HS,fontSize:11,fontWeight:600,color:T.text,overflow:"hidden",
+          textOverflow:"ellipsis",whiteSpace:"nowrap",maxWidth:70}}>{m.a}</span>
+        {hasScore&&<span style={{fontFamily:HS,fontSize:13,fontWeight:800,color:T.green}}>{sc.ag}</span>}
       </div>
     </div>
   );
 }
 
-/* Pair of matches with a bracket connector (┐ ┘ shape) on the right,
-   converging to a single point that lines up with the next round. */
-function BracketPair({pair,T,lang,scores}){
+/* A column of N matches, each spaced by `gap`. levelGap controls vertical
+   spacing multiplier relative to R32 (level 0). Each level doubles the gap
+   between cards so pairs line up with the connector midpoints of the
+   previous level. */
+function BracketColumn({matches,T,lang,scores,level,drawConnectorsRight}){
+  const unit=BK_CARD_H+BK_GAP;
+  const spacing=unit*Math.pow(2,level);
+  const totalH=spacing*(matches.length-1)+BK_CARD_H;
   return(
-    <div style={{marginBottom:24}}>
-      <div style={{display:"flex",alignItems:"stretch",gap:0}}>
-        <div style={{flex:1,display:"flex",flexDirection:"column",gap:16}}>
-          {pair.map(m=><BracketMatchCard key={m.id} m={m} T={T} lang={lang} scores={scores}/>)}
-        </div>
-        {pair.length===2&&(
-          <div style={{width:20,position:"relative",flexShrink:0}}>
-            <div style={{position:"absolute",top:"25%",left:0,width:10,height:1,background:T.border}}/>
-            <div style={{position:"absolute",top:"75%",left:0,width:10,height:1,background:T.border}}/>
-            <div style={{position:"absolute",left:10,top:"25%",bottom:"25%",width:1,background:T.border}}/>
-            <div style={{position:"absolute",top:"50%",left:10,width:10,height:1,background:T.border}}/>
+    <div style={{position:"relative",display:"flex"}}>
+      <div style={{display:"flex",flexDirection:"column",position:"relative",height:totalH,width:118}}>
+        {matches.map((m,i)=>(
+          <div key={m.id} style={{position:"absolute",top:i*spacing,left:0,right:0}}>
+            <BracketMatchCard m={m} T={T} lang={lang} scores={scores}/>
           </div>
-        )}
+        ))}
       </div>
-      {pair.length===2&&(
-        <div style={{display:"flex",justifyContent:"flex-end",paddingRight:10,marginTop:4}}>
-          <div style={{width:1,height:14,background:T.border}}/>
+      {drawConnectorsRight&&(
+        <div style={{position:"relative",width:BK_CONN_W,height:totalH,flexShrink:0}}>
+          {Array.from({length:Math.floor(matches.length/2)}).map((_,pi)=>{
+            const topCenter=pi*2*spacing+BK_CARD_H/2;
+            const botCenter=(pi*2+1)*spacing+BK_CARD_H/2;
+            const midY=(topCenter+botCenter)/2;
+            return(
+              <div key={pi}>
+                <div style={{position:"absolute",left:0,top:topCenter,width:BK_CONN_W/2,height:1,background:T.border}}/>
+                <div style={{position:"absolute",left:0,top:botCenter,width:BK_CONN_W/2,height:1,background:T.border}}/>
+                <div style={{position:"absolute",left:BK_CONN_W/2,top:topCenter,height:botCenter-topCenter,width:1,background:T.border}}/>
+                <div style={{position:"absolute",left:BK_CONN_W/2,top:midY,width:BK_CONN_W/2,height:1,background:T.border}}/>
+              </div>
+            );
+          })}
         </div>
       )}
     </div>
   );
 }
 
+/* Mirrored connector for right-half columns: stubs go left instead of right */
+function BracketColumnRight({matches,T,lang,scores,level,drawConnectorsLeft}){
+  const unit=BK_CARD_H+BK_GAP;
+  const spacing=unit*Math.pow(2,level);
+  const totalH=spacing*(matches.length-1)+BK_CARD_H;
+  return(
+    <div style={{position:"relative",display:"flex"}}>
+      {drawConnectorsLeft&&(
+        <div style={{position:"relative",width:BK_CONN_W,height:totalH,flexShrink:0}}>
+          {Array.from({length:Math.floor(matches.length/2)}).map((_,pi)=>{
+            const topCenter=pi*2*spacing+BK_CARD_H/2;
+            const botCenter=(pi*2+1)*spacing+BK_CARD_H/2;
+            const midY=(topCenter+botCenter)/2;
+            return(
+              <div key={pi}>
+                <div style={{position:"absolute",right:0,top:topCenter,width:BK_CONN_W/2,height:1,background:T.border}}/>
+                <div style={{position:"absolute",right:0,top:botCenter,width:BK_CONN_W/2,height:1,background:T.border}}/>
+                <div style={{position:"absolute",right:BK_CONN_W/2,top:topCenter,height:botCenter-topCenter,width:1,background:T.border}}/>
+                <div style={{position:"absolute",right:BK_CONN_W/2,top:midY,width:BK_CONN_W/2,height:1,background:T.border}}/>
+              </div>
+            );
+          })}
+        </div>
+      )}
+      <div style={{display:"flex",flexDirection:"column",position:"relative",height:totalH,width:118}}>
+        {matches.map((m,i)=>(
+          <div key={m.id} style={{position:"absolute",top:i*spacing,left:0,right:0}}>
+            <BracketMatchCard m={m} T={T} lang={lang} scores={scores}/>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function BracketTab({T,lang,scores}){
   const RT=lang==="bn"
-    ?{r32:"রাউন্ড অব ৩২",r16:"রাউন্ড অব ১৬",qf:"কোয়ার্টার-ফাইনাল",sf:"সেমি-ফাইনাল",f:"ফাইনাল",b:"তৃতীয় স্থান",champ:"চ্যাম্পিয়ন"}
-    :{r32:"Round of 32",r16:"Round of 16",qf:"Quarter-final",sf:"Semi-final",f:"Final",b:"Third Place",champ:"Champion"};
+    ?{r32:"রাউন্ড অব ৩২",r16:"রাউন্ড অব ১৬",qf:"কো.ফা",sf:"সেমি",f:"ফাইনাল",b:"ব্রোঞ্জ",champ:"চ্যাম্পিয়ন"}
+    :{r32:"R32",r16:"R16",qf:"QF",sf:"SF",f:"Final",b:"Bronze",champ:"Champion"};
 
-  const renderPairs=(matches)=>{
-    const pairs=[];
-    for(let i=0;i<matches.length;i+=2)pairs.push(matches.slice(i,i+2));
-    return pairs.map((pair,pi)=><BracketPair key={pi} pair={pair} T={T} lang={lang} scores={scores}/>);
-  };
+  const leftR32=R32.slice(0,8), rightR32=R32.slice(8,16);
+  const leftR16=R16.slice(0,4), rightR16=R16.slice(4,8);
+  const leftQF=QF.slice(0,2), rightQF=QF.slice(2,4);
+  const leftSF=[SF[0]], rightSF=[SF[1]];
 
-  const sectionTitle=(text)=>(
-    <div style={{fontFamily:HS,fontSize:13,fontWeight:700,color:T.text,
-      padding:"10px 12px",background:T.card2,borderBottom:`1px solid ${T.border}`,
-      borderTop:`1px solid ${T.border}`}}>{text}</div>
+  const unit=BK_CARD_H+BK_GAP;
+  const totalH=unit*7+BK_CARD_H;
+  const centerY=totalH/2;
+
+  const colLabel=(text)=>(
+    <div style={{fontFamily:HS,fontSize:10,fontWeight:700,color:T.textS,textAlign:"center",
+      marginBottom:6,whiteSpace:"nowrap"}}>{text}</div>
   );
 
   return(
-    <div style={{paddingBottom:90}}>
-      {sectionTitle(RT.r32)}
-      <div style={{padding:"14px 12px 0"}}>{renderPairs(R32)}</div>
-
-      {sectionTitle(RT.r16)}
-      <div style={{padding:"14px 12px 0"}}>{renderPairs(R16)}</div>
-
-      {sectionTitle(RT.qf)}
-      <div style={{padding:"14px 12px 0"}}>{renderPairs(QF)}</div>
-
-      {sectionTitle(RT.sf)}
-      <div style={{padding:"14px 12px 0"}}>{renderPairs(SF)}</div>
-
-      {sectionTitle("🏆 "+RT.f)}
-      <div style={{padding:"14px 12px 0"}}>
-        <BracketMatchCard m={FINAL[1]} T={T} lang={lang} scores={scores}/>
+    <div style={{padding:"12px 0 90px"}}>
+      <div style={{fontFamily:HS,fontSize:14,fontWeight:700,color:T.text,textAlign:"center",marginBottom:10}}>
+        🏆 {lang==="bn"?"রোড টু ফাইনাল":"Road to Final"}
       </div>
+      <div style={{display:"flex",overflowX:"auto",padding:"4px 12px 12px",
+        WebkitOverflowScrolling:"touch",scrollbarWidth:"none",alignItems:"flex-start"}}>
 
-      {sectionTitle("🥉 "+RT.b)}
-      <div style={{padding:"14px 12px 0"}}>
-        <BracketMatchCard m={FINAL[0]} T={T} lang={lang} scores={scores}/>
+        <div>
+          {colLabel(RT.r32)}
+          <BracketColumn matches={leftR32} T={T} lang={lang} scores={scores} level={0} drawConnectorsRight/>
+        </div>
+        <div style={{paddingTop:24}}>
+          {colLabel(RT.r16)}
+          <BracketColumn matches={leftR16} T={T} lang={lang} scores={scores} level={1} drawConnectorsRight/>
+        </div>
+        <div style={{paddingTop:24}}>
+          {colLabel(RT.qf)}
+          <BracketColumn matches={leftQF} T={T} lang={lang} scores={scores} level={2} drawConnectorsRight/>
+        </div>
+        <div style={{paddingTop:24}}>
+          {colLabel(RT.sf)}
+          <BracketColumn matches={leftSF} T={T} lang={lang} scores={scores} level={3} drawConnectorsRight={false}/>
+        </div>
+
+        <div style={{position:"relative",width:BK_CONN_W*2+140,height:totalH,flexShrink:0,paddingTop:24}}>
+          <div style={{position:"absolute",left:0,top:centerY-BK_CARD_H/2-30,width:BK_CONN_W,height:1,background:T.border}}/>
+          <div style={{position:"absolute",left:BK_CONN_W,top:centerY-BK_CARD_H/2-30,height:60,width:1,background:T.border}}/>
+          <div style={{position:"absolute",right:0,top:centerY-BK_CARD_H/2-30,width:BK_CONN_W,height:1,background:T.border}}/>
+          <div style={{position:"absolute",right:BK_CONN_W,top:centerY-BK_CARD_H/2-30,height:60,width:1,background:T.border}}/>
+
+          <div style={{position:"absolute",left:BK_CONN_W,right:BK_CONN_W,top:centerY-BK_CARD_H/2-60,
+            display:"flex",flexDirection:"column",alignItems:"center",gap:8}}>
+            <div style={{width:54,height:54,borderRadius:"50%",background:T.greenBg,
+              border:`2px solid ${T.greenBr}`,display:"flex",alignItems:"center",justifyContent:"center",
+              fontSize:26}}>🏆</div>
+            <div style={{fontFamily:HS,fontSize:10,fontWeight:700,color:T.textS}}>{RT.champ}</div>
+            <div style={{fontFamily:HS,fontSize:10,fontWeight:700,color:T.textS,marginTop:8}}>🏆 {RT.f}</div>
+            <BracketMatchCard m={FINAL[1]} T={T} lang={lang} scores={scores}/>
+            <div style={{fontFamily:HS,fontSize:10,fontWeight:700,color:T.textS,marginTop:8}}>🥉 {RT.b}</div>
+            <BracketMatchCard m={FINAL[0]} T={T} lang={lang} scores={scores}/>
+          </div>
+        </div>
+
+        <div style={{paddingTop:24}}>
+          {colLabel(RT.sf)}
+          <BracketColumnRight matches={rightSF} T={T} lang={lang} scores={scores} level={3} drawConnectorsLeft={false}/>
+        </div>
+        <div style={{paddingTop:24}}>
+          {colLabel(RT.qf)}
+          <BracketColumnRight matches={rightQF} T={T} lang={lang} scores={scores} level={2} drawConnectorsLeft/>
+        </div>
+        <div style={{paddingTop:24}}>
+          {colLabel(RT.r16)}
+          <BracketColumnRight matches={rightR16} T={T} lang={lang} scores={scores} level={1} drawConnectorsLeft/>
+        </div>
+        <div>
+          {colLabel(RT.r32)}
+          <BracketColumnRight matches={rightR32} T={T} lang={lang} scores={scores} level={0} drawConnectorsLeft/>
+        </div>
       </div>
-
-      <div style={{textAlign:"center",padding:"24px 12px 0"}}>
-        <div style={{width:64,height:64,borderRadius:"50%",background:T.greenBg,
-          border:`2px solid ${T.greenBr}`,display:"flex",alignItems:"center",justifyContent:"center",
-          fontSize:30,margin:"0 auto 8px"}}>🏆</div>
-        <div style={{fontFamily:HS,fontSize:13,fontWeight:700,color:T.textS}}>{RT.champ}</div>
+      <div style={{fontFamily:HS,fontSize:11,color:T.textM,textAlign:"center",marginTop:6}}>
+        {lang==="bn"?"← স্ক্রল করুন →":"← Scroll →"}
       </div>
     </div>
   );
