@@ -886,7 +886,7 @@ function CompactCal({T,lang}){
           <button onClick={()=>setVm(new Date(y,mo+1,1))} style={{background:"rgba(255,255,255,0.2)",border:"none",borderRadius:6,width:24,height:24,cursor:"pointer",color:"#fff",fontSize:14,display:"flex",alignItems:"center",justifyContent:"center"}}>›</button>
         </div>
         <div style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",background:T.card2,padding:"3px 4px"}}>
-          {dh.map((d,i)=><div key={i} style={{textAlign:"center",fontFamily:HS,fontSize:8,color:T.textS,fontWeight:700}}>{d}</div>)}
+          {dh.map((d,i)=><div key={i} style={{textAlign:"center",fontFamily:HS,fontSize:8,color:T.text,fontWeight:700,opacity:0.55}}>{d}</div>)}
         </div>
         <div style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",gap:1,padding:"3px 4px 5px",background:T.card}}>
           {days.map((d,i)=>{
@@ -898,7 +898,7 @@ function CompactCal({T,lang}){
                 style={{display:"flex",flexDirection:"column",alignItems:"center",padding:"3px 1px",
                   borderRadius:5,cursor:hasM?"pointer":"default",
                   background:isTod?T.greenBg:"transparent"}}>
-                <span style={{fontFamily:HS,fontSize:9,fontWeight:isTod?700:400,color:hasM?T.text:T.textM,lineHeight:1.4}}>{d}</span>
+                <span style={{fontFamily:HS,fontSize:9,fontWeight:isTod?700:400,color:hasM?T.text:T.text,opacity:hasM?1:0.35,lineHeight:1.4}}>{d}</span>
                 {hasM&&<div style={{width:3,height:3,borderRadius:"50%",background:T.green,marginTop:1}}/>}
               </div>
             );
@@ -1434,7 +1434,7 @@ function HomeTab({T,lang,favs,setFavs,onTeam,setSM,scores,myPreds,setPredictM,se
                       </span>
                     ):(
                       <span style={{display:"flex",justifyContent:"center",flexShrink:0,minWidth:32}}>
-                        <span style={{fontFamily:HS,fontSize:10,fontWeight:700,color:T.green}}>{t2}<span style={{fontSize:7,color:T.textM}}>{ap}</span></span>
+                        <span style={{fontFamily:HS,fontSize:10,fontWeight:700,color:T.green}}>{t2}<span style={{fontSize:7,color:T.text,opacity:0.5}}>{ap}</span></span>
                       </span>
                     )}
                     <span style={{fontFamily:HS,fontSize:9,color:T.text,flex:1,textAlign:"right",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{tn(m.a,lang)}</span>
@@ -1458,7 +1458,7 @@ function HomeTab({T,lang,favs,setFavs,onTeam,setSM,scores,myPreds,setPredictM,se
                   <div key={m.id} style={{display:"flex",alignItems:"center",gap:4,marginBottom:6,paddingBottom:6,borderBottom:`1px solid ${T.border}`}}>
                     <Flag en={m.h} size={14}/>
                     <span style={{fontFamily:HS,fontSize:9,color:T.text,flex:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{tn(m.h,lang)}</span>
-                    <span style={{display:"flex",justifyContent:"center",flexShrink:0,minWidth:32}}><span style={{fontFamily:HS,fontSize:10,fontWeight:700,color:T.gold||T.green}}>{t2}<span style={{fontSize:7,color:T.textM}}>{ap}</span></span></span>
+                    <span style={{display:"flex",justifyContent:"center",flexShrink:0,minWidth:32}}><span style={{fontFamily:HS,fontSize:10,fontWeight:700,color:T.gold||T.green}}>{t2}<span style={{fontSize:7,color:T.text,opacity:0.5}}>{ap}</span></span></span>
                     <span style={{fontFamily:HS,fontSize:9,color:T.text,flex:1,textAlign:"right",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{tn(m.a,lang)}</span>
                     <Flag en={m.a} size={14}/>
                   </div>
