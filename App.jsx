@@ -1146,40 +1146,48 @@ function KOCard({m,T,lang,scores,qualified}){
   const hTeam=qualified?.[m.h];const aTeam=qualified?.[m.a];
   const[t2,ap]=m.t.split(" ");
   return(
-    <div style={{background:T.card,borderRadius:14,border:`1px solid ${T.border}`,marginBottom:10,overflow:"hidden",boxShadow:T.glow}}>
-      <div style={{display:"flex",alignItems:"center",gap:6,padding:"8px 14px 6px",borderBottom:`1px solid ${T.border}`}}>
-        <div style={{width:7,height:7,borderRadius:"50%",background:T.green,flexShrink:0}}/>
-        <span style={{fontFamily:HS,fontSize:11,fontWeight:600,color:T.textS}}>#{m.id} · {m.label||m.venue}</span>
+    <div style={{background:T.card,borderRadius:16,border:`1px solid ${T.border}`,marginBottom:10,overflow:"hidden",boxShadow:T.glow}}>
+      <div style={{display:"flex",alignItems:"center",gap:6,padding:"10px 14px 8px",borderBottom:`1px solid ${T.border}`}}>
+        <div style={{width:8,height:8,borderRadius:"50%",background:T.green,flexShrink:0}}/>
+        <span style={{fontFamily:HS,fontSize:12,fontWeight:600,color:T.textS,flex:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>
+          {m.venue||m.label||""}
+        </span>
+        <span style={{fontFamily:HS,fontSize:11,color:T.textM,flexShrink:0,whiteSpace:"nowrap"}}>
+          {dls(m.d,lang)}
+        </span>
       </div>
-      <div style={{display:"flex",alignItems:"center",padding:"12px 14px",gap:8}}>
-        <div style={{flex:1,display:"flex",flexDirection:"column",gap:8}}>
-          <div style={{display:"flex",alignItems:"center",gap:8}}>
-            {hTeam?<Flag en={hTeam} size={26}/>:<div style={{width:26,height:26,borderRadius:"50%",background:T.card2,border:`1px dashed ${T.border}`,flexShrink:0}}/>}
-            <span style={{fontFamily:HS,fontSize:13,fontWeight:hTeam?600:400,color:hTeam?T.text:T.textS}}>{hTeam?tn(hTeam,lang):(m.h||"TBD")}</span>
-          </div>
-          <div style={{display:"flex",alignItems:"center",gap:8}}>
-            {aTeam?<Flag en={aTeam} size={26}/>:<div style={{width:26,height:26,borderRadius:"50%",background:T.card2,border:`1px dashed ${T.border}`,flexShrink:0}}/>}
-            <span style={{fontFamily:HS,fontSize:13,fontWeight:aTeam?600:400,color:aTeam?T.text:T.textS}}>{aTeam?tn(aTeam,lang):(m.a||"TBD")}</span>
-          </div>
-        </div>
-        <div style={{textAlign:"center",flexShrink:0,minWidth:72}}>
+      <div style={{padding:"12px 14px"}}>
+        <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:10,paddingBottom:10,borderBottom:`1px solid ${T.border}`}}>
+          {hTeam?<Flag en={hTeam} size={32}/>:<div style={{width:32,height:32,borderRadius:"50%",background:T.card2,border:`1px dashed ${T.border}`,flexShrink:0}}/>}
+          <span style={{fontFamily:HS,fontSize:14,fontWeight:hTeam?600:400,color:hTeam?T.text:T.textM,flex:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>
+            {hTeam?tn(hTeam,lang):(m.h||"TBD")}
+          </span>
           {hasScore?(
-            <div style={{background:T.greenBg,borderRadius:8,padding:"4px 10px"}}>
-              <div style={{fontFamily:HS,fontSize:17,fontWeight:800,color:T.green}}>{sc.hg}</div>
-              <div style={{fontFamily:HS,fontSize:17,fontWeight:800,color:T.green}}>{sc.ag}</div>
-            </div>
+            <span style={{fontFamily:HS,fontSize:22,fontWeight:800,color:T.text}}>{sc.hg}</span>
           ):(
-            <>
-              <div style={{display:"inline-flex",alignItems:"baseline",gap:2,marginBottom:2}}>
-                <span style={{fontFamily:HS,fontSize:15,fontWeight:700,color:T.text}}>{t2}</span>
-                <span style={{fontFamily:HS,fontSize:9,color:T.textM}}>{ap}</span>
-              </div>
-              <div style={{fontFamily:HS,fontSize:10,color:T.textM}}>{dls(m.d,lang)}</div>
-              <CalIcon d={m.d} T={T} onClick={()=>addToGCal(m,lang)}/>
-            </>
+            <div style={{textAlign:"right"}}>
+              <div style={{fontFamily:"Arial",fontSize:15,fontWeight:700,color:T.text}}>{t2} <span style={{fontSize:10,color:T.textM}}>{ap}</span></div>
+            </div>
           )}
         </div>
+        <div style={{display:"flex",alignItems:"center",gap:10}}>
+          {aTeam?<Flag en={aTeam} size={32}/>:<div style={{width:32,height:32,borderRadius:"50%",background:T.card2,border:`1px dashed ${T.border}`,flexShrink:0}}/>}
+          <span style={{fontFamily:HS,fontSize:14,fontWeight:aTeam?600:400,color:aTeam?T.text:T.textM,flex:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>
+            {aTeam?tn(aTeam,lang):(m.a||"TBD")}
+          </span>
+          {hasScore&&<span style={{fontFamily:HS,fontSize:22,fontWeight:800,color:T.text}}>{sc.ag}</span>}
+        </div>
       </div>
+      {!hasScore&&(
+        <div style={{padding:"0 14px 12px",display:"flex",justifyContent:"flex-end"}}>
+          <CalIcon d={m.d} T={T} onClick={()=>addToGCal(m,lang)}/>
+        </div>
+      )}
+      {m.label&&(
+        <div style={{background:T.card2,padding:"6px 14px",borderTop:`1px solid ${T.border}`,fontFamily:HS,fontSize:11,color:T.textS,textAlign:"center"}}>
+          {m.label}
+        </div>
+      )}
     </div>
   );
 }
@@ -1421,7 +1429,7 @@ function HomeTab({T,lang,favs,setFavs,onTeam,setSM,scores,myPreds,setPredictM,se
                             <span style={{fontFamily:HS,fontSize:7,fontWeight:700,color:T.textM,letterSpacing:0.5}}>FT</span>
                           </span>
                         ):(
-                          <span style={{fontFamily:HS,fontSize:10,fontWeight:800,color:T.green}}>{sc.hg}–{sc.ag}</span>
+                          <span style={{fontFamily:HS,fontSize:11,fontWeight:800,color:"#3b82f6"}}>{sc.hg}–{sc.ag}</span>
                         )}
                       </span>
                     ):(
@@ -1593,9 +1601,9 @@ function KnockoutTab({T,lang,scores}){
   const matchMap={R32,R16,QF,SF,F:FINAL};
   return(
     <div>
-      <div style={{display:"flex",gap:6,padding:"10px 12px",background:T.card,borderBottom:`1px solid ${T.border}`,overflowX:"auto",scrollbarWidth:"none"}}>
+      <div style={{display:"flex",gap:8,padding:"10px 12px",background:T.card,borderBottom:`1px solid ${T.border}`,overflowX:"auto",scrollbarWidth:"none",WebkitOverflowScrolling:"touch"}}>
         {tabs.map(t=>(
-          <button key={t.k} onClick={()=>setRound(t.k)} style={{fontFamily:HS,fontSize:12,fontWeight:round===t.k?700:400,padding:"7px 14px",borderRadius:20,cursor:"pointer",border:"none",flexShrink:0,background:round===t.k?T.green:T.card2,color:round===t.k?"#fff":T.textS,transition:"all 0.2s"}}>{t.l}</button>
+          <button key={t.k} onClick={()=>setRound(t.k)} style={{fontFamily:HS,fontSize:12,fontWeight:round===t.k?700:400,padding:"8px 16px",borderRadius:20,cursor:"pointer",border:"none",flexShrink:0,background:round===t.k?T.green:T.card2,color:round===t.k?"#fff":T.textS,transition:"all 0.2s"}}>{t.l}</button>
         ))}
       </div>
       <div style={{padding:"12px 12px 90px"}}>
