@@ -1586,7 +1586,7 @@ function GroupTab({T,lang,onTeam,scores,myPreds,setPredictM,isAdmin,setScoreM}){
 
 /* ── BracketTab (Road to Final) ──────────────── */
 /* Fixed dimensions so connector math is exact */
-const BK_CARD_H=72;
+const BK_CARD_H=86;
 const BK_GAP=10;
 const BK_CONN_W=18;
 
@@ -1607,10 +1607,13 @@ function BracketMatchCard({m,T,lang,scores}){
           <span style={{fontFamily:HS,fontSize:9,color:T.textM}}>{t2}{ap}</span>
         )}
       </div>
-      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:4}}>
         <span style={{fontFamily:HS,fontSize:11,fontWeight:600,color:T.text,overflow:"hidden",
           textOverflow:"ellipsis",whiteSpace:"nowrap",maxWidth:70}}>{m.a}</span>
         {hasScore&&<span style={{fontFamily:HS,fontSize:13,fontWeight:800,color:T.green}}>{sc.ag}</span>}
+      </div>
+      <div style={{fontFamily:HS,fontSize:9,color:T.textS,textAlign:"center",borderTop:`1px solid ${T.border}`,paddingTop:3}}>
+        {dls(m.d,lang)}
       </div>
     </div>
   );
@@ -1690,6 +1693,7 @@ function BracketColumnRight({matches,T,lang,scores,level,drawConnectorsLeft,cont
 }
 
 function BracketTab({T,lang,scores}){
+  const[zoom,setZoom]=useState(1);
   const RT=lang==="bn"
     ?{r32:"রাউন্ড অব ৩২",r16:"রাউন্ড অব ১৬",qf:"কো.ফা",sf:"সেমি",f:"ফাইনাল",b:"ব্রোঞ্জ",champ:"চ্যাম্পিয়ন"}
     :{r32:"R32",r16:"R16",qf:"QF",sf:"SF",f:"Final",b:"Bronze",champ:"Champion"};
@@ -1704,6 +1708,11 @@ function BracketTab({T,lang,scores}){
   // SF (level 3) center point = where its single card sits
   const sfTopOffset=unit*(Math.pow(2,3)-1)/2;
   const sfCenter=sfTopOffset+BK_CARD_H/2;
+  // Vertical offset to the Final card's center within the center column:
+  // top(24) + trophy(54) + gap(8) + champ-label(~14) + final-label gap(8)+line(~14) + half card height
+  const FINAL_CARD_CENTER=24+54+8+14+8+14+BK_CARD_H/2;
+  // Full bracket width: 4 columns left (118+18 each) + center (18*2+140) + 4 columns right
+  const bracketW=(118+BK_CONN_W)*4*2+(BK_CONN_W*2+140);
 
   const colLabel=(text)=>(
     <div style={{fontFamily:HS,fontSize:10,fontWeight:700,color:T.textS,textAlign:"center",
@@ -1712,11 +1721,28 @@ function BracketTab({T,lang,scores}){
 
   return(
     <div style={{padding:"12px 0 90px"}}>
-      <div style={{fontFamily:HS,fontSize:14,fontWeight:700,color:T.text,textAlign:"center",marginBottom:10}}>
-        🏆 {lang==="bn"?"রোড টু ফাইনাল":"Road to Final"}
+      <div style={{display:"flex",alignItems:"center",justifyContent:"center",gap:10,marginBottom:10}}>
+        <div style={{fontFamily:HS,fontSize:14,fontWeight:700,color:T.text}}>
+          🏆 {lang==="bn"?"রোড টু ফাইনাল":"Road to Final"}
+        </div>
+        <div style={{display:"flex",alignItems:"center",gap:4,background:T.card2,
+          border:`1px solid ${T.border}`,borderRadius:20,padding:"2px 4px"}}>
+          <button onClick={()=>setZoom(z=>Math.max(0.4,+(z-0.15).toFixed(2)))}
+            style={{width:26,height:26,borderRadius:"50%",border:"none",background:"transparent",
+              color:T.text,fontFamily:HS,fontSize:15,fontWeight:700,cursor:"pointer"}}>−</button>
+          <span style={{fontFamily:HS,fontSize:11,color:T.textS,minWidth:36,textAlign:"center"}}>
+            {Math.round(zoom*100)}%
+          </span>
+          <button onClick={()=>setZoom(z=>Math.min(1,+(z+0.15).toFixed(2)))}
+            style={{width:26,height:26,borderRadius:"50%",border:"none",background:"transparent",
+              color:T.text,fontFamily:HS,fontSize:15,fontWeight:700,cursor:"pointer"}}>+</button>
+        </div>
       </div>
-      <div style={{display:"flex",overflowX:"auto",padding:"30px 12px 12px",
-        WebkitOverflowScrolling:"touch",scrollbarWidth:"none",alignItems:"flex-start"}}>
+      <div style={{overflowX:"auto",WebkitOverflowScrolling:"touch",scrollbarWidth:"none",
+        padding:"30px 12px 12px"}}>
+        <div style={{display:"flex",alignItems:"flex-start",
+          transform:`scale(${zoom})`,transformOrigin:"top left",
+          width:bracketW,height:containerH+60}}>
 
         <div>
           {colLabel(RT.r32)}
@@ -1736,10 +1762,13 @@ function BracketTab({T,lang,scores}){
         </div>
 
         <div style={{position:"relative",width:BK_CONN_W*2+140,height:containerH,flexShrink:0}}>
+          {/* trophy(54) + gap(8) + champ label(~16) + gap(8 via marginTop) + final label(~16+8 marginTop) = ~110, card center +BK_CARD_H/2 */}
           <div style={{position:"absolute",left:0,top:sfCenter,width:BK_CONN_W,height:1,background:T.border}}/>
-          <div style={{position:"absolute",left:BK_CONN_W,top:Math.min(sfCenter,24),height:Math.abs(sfCenter-24)||1,width:1,background:T.border}}/>
+          <div style={{position:"absolute",left:BK_CONN_W,top:Math.min(sfCenter,FINAL_CARD_CENTER),height:Math.abs(sfCenter-FINAL_CARD_CENTER)||1,width:1,background:T.border}}/>
+          <div style={{position:"absolute",left:BK_CONN_W,top:FINAL_CARD_CENTER,width:BK_CONN_W,height:1,background:T.border}}/>
           <div style={{position:"absolute",right:0,top:sfCenter,width:BK_CONN_W,height:1,background:T.border}}/>
-          <div style={{position:"absolute",right:BK_CONN_W,top:Math.min(sfCenter,24),height:Math.abs(sfCenter-24)||1,width:1,background:T.border}}/>
+          <div style={{position:"absolute",right:BK_CONN_W,top:Math.min(sfCenter,FINAL_CARD_CENTER),height:Math.abs(sfCenter-FINAL_CARD_CENTER)||1,width:1,background:T.border}}/>
+          <div style={{position:"absolute",right:BK_CONN_W,top:FINAL_CARD_CENTER,width:BK_CONN_W,height:1,background:T.border}}/>
 
           <div style={{position:"absolute",left:BK_CONN_W,right:BK_CONN_W,top:24,
             display:"flex",flexDirection:"column",alignItems:"center",gap:8}}>
@@ -1769,6 +1798,7 @@ function BracketTab({T,lang,scores}){
         <div>
           {colLabel(RT.r32)}
           <BracketColumnRight matches={rightR32} T={T} lang={lang} scores={scores} level={0} drawConnectorsLeft containerH={containerH}/>
+        </div>
         </div>
       </div>
       <div style={{fontFamily:HS,fontSize:11,color:T.textM,textAlign:"center",marginTop:6}}>
