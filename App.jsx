@@ -1424,9 +1424,9 @@ function HomeTab({T,lang,favs,setFavs,onTeam,setSM,scores,myPreds,setPredictM,se
                     {hasScore?(
                       <span style={{display:"flex",justifyContent:"center",flexShrink:0,minWidth:32}}>
                         {isFT?(
-                          <span style={{display:"flex",alignItems:"center",gap:3,background:T.card2,borderRadius:6,padding:"2px 6px",border:`1px solid ${T.border}`}}>
-                            <span style={{fontFamily:HS,fontSize:10,fontWeight:800,color:T.textM}}>{sc.hg}–{sc.ag}</span>
-                            <span style={{fontFamily:HS,fontSize:7,fontWeight:700,color:T.textM,letterSpacing:0.5}}>FT</span>
+                          <span style={{display:"flex",alignItems:"center",gap:3,background:T.greenBg,borderRadius:6,padding:"2px 6px",border:`1px solid ${T.greenBr}`}}>
+                            <span style={{fontFamily:HS,fontSize:10,fontWeight:800,color:T.green}}>{sc.hg}–{sc.ag}</span>
+                            <span style={{fontFamily:HS,fontSize:7,fontWeight:700,color:T.green,letterSpacing:0.5,opacity:0.7}}>FT</span>
                           </span>
                         ):(
                           <span style={{fontFamily:HS,fontSize:11,fontWeight:800,color:"#3b82f6"}}>{sc.hg}–{sc.ag}</span>
