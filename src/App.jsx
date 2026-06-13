@@ -1510,7 +1510,7 @@ function HomeTab({T,lang,favs,setFavs,onTeam,setSM,scores,myPreds,setPredictM,se
                   </div>
                 );
               })}
-              {todayMs.length>2&&<div style={{fontFamily:HS,fontSize:10,color:T.green,textAlign:"center",marginTop:2,cursor:"pointer"}} onClick={()=>setDayPage(today)}>+{todayMs.length-2} {lang==="bn"?"টা আরো →":"more →"}</div>}
+              {todayMs.length>2&&<div style={{fontFamily:HS,fontSize:10,color:T.green,textAlign:"center",marginTop:2,cursor:"pointer"}} onClick={()=>setDayPage(today)}>{lang==="bn"?"+"+String(todayMs.length-2).replace(/[0-9]/g,d=>"০১২৩৪৫৬৭৮৯"[d])+" টা আরো →":"+"+String(todayMs.length-2)+" more →"}</div>}
             </>):<div style={{fontFamily:HS,fontSize:11,color:T.textS,textAlign:"center"}}>{lang==="bn"?"কোনো ম্যাচ নেই":"No matches"}</div>}
           </div>
 
@@ -1532,7 +1532,7 @@ function HomeTab({T,lang,favs,setFavs,onTeam,setSM,scores,myPreds,setPredictM,se
                   </div>
                 );
               })}
-              {tomMs.length>2&&<div style={{fontFamily:HS,fontSize:10,color:T.green,textAlign:"center",marginTop:2,cursor:"pointer"}} onClick={()=>setDayPage(tom)}>+{tomMs.length-2} {lang==="bn"?"টা আরো →":"more →"}</div>}
+              {tomMs.length>2&&<div style={{fontFamily:HS,fontSize:10,color:T.green,textAlign:"center",marginTop:2,cursor:"pointer"}} onClick={()=>setDayPage(tom)}>{lang==="bn"?"+"+String(tomMs.length-2).replace(/[0-9]/g,d=>"০১২৩৪৫৬৭৮৯"[d])+" টা আরো →":"+"+String(tomMs.length-2)+" more →"}</div>}
             </>):<div style={{fontFamily:HS,fontSize:11,color:T.textS,textAlign:"center"}}>{lang==="bn"?"কোনো ম্যাচ নেই":"No matches"}</div>}
           </div>
         </div>
