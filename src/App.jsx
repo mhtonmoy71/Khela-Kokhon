@@ -886,7 +886,7 @@ function SponsorBanner({T,lang}){
         padding:"10px 14px",margin:"10px 0 14px",position:"relative"}}>
       <div style={{position:"absolute",top:6,right:6,fontFamily:HS,fontSize:8,fontWeight:700,
         color:T.textM,background:T.card2,borderRadius:6,padding:"2px 7px"}}>
-        {lang==="bn"?"স্পনসর্ড":"Sponsored"}
+        Sponsored
       </div>
       <img src={SPONSOR_AD.logo} alt="sponsor"
         style={{width:64,height:64,borderRadius:10,objectFit:"cover",flexShrink:0}}/>
