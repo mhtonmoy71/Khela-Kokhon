@@ -897,53 +897,48 @@ function NameModal({T,lang,onSave,inline=false,onClose}){
 function LiveScoreWidget({T,lang,isAdmin}){
   const[fixtures,setFixtures]=useState([]);
   const[loading,setLoading]=useState(false);
-  const[expanded,setExpanded]=useState(null);
   const[lastFetch,setLastFetch]=useState(null);
 
-  const fetchLive=useCallback(async()=>{
+  const fetchAll=useCallback(async()=>{
     setLoading(true);
     try{
       const r=await fetch("/api/live-scores");
       const d=await r.json();
-      if(d.response&&Array.isArray(d.response)){
-        setFixtures(d.response);
-        setLastFetch(new Date());
-      }
+      if(!d.response||!Array.isArray(d.response)){setLoading(false);return;}
+      const basic=d.response;
+      const detailed=await Promise.all(basic.map(async f=>{
+        try{
+          const r2=await fetch(`/api/live-scores?fixture=${f.fixture.id}`);
+          const d2=await r2.json();
+          if(d2.response&&d2.response[0])return d2.response[0];
+        }catch(e){}
+        return f;
+      }));
+      setFixtures(detailed);
+      setLastFetch(new Date());
     }catch(e){}
     setLoading(false);
   },[]);
 
-  const fetchFixture=async(id)=>{
-    if(expanded===id){setExpanded(null);return;}
-    try{
-      const r=await fetch(`/api/live-scores?fixture=${id}`);
-      const d=await r.json();
-      if(d.response&&d.response[0]){
-        setFixtures(prev=>prev.map(f=>f.fixture.id===id?d.response[0]:f));
-      }
-    }catch(e){}
-    setExpanded(id);
-  };
-
-  useEffect(()=>{fetchLive();},[]);
+  useEffect(()=>{fetchAll();},[]);
 
   const statusLabel=(s)=>{
     const st=s.short;
     if(["1H","2H","ET","BT","P","LIVE"].includes(st))return{text:`${s.elapsed||0}'`,live:true};
     if(st==="HT")return{text:"HT",live:true};
     if(st==="FT"||st==="AET"||st==="PEN")return{text:"FT",live:false};
-    return{text:lang==="bn"?"শুরু হয়নি":"NS",live:false};
+    return{text:"NS",live:false};
   };
 
-  if(!isAdmin&&fixtures.filter(f=>["1H","2H","ET","HT","P"].includes(f.fixture.status.short)).length===0)return null;
+  const liveCount=fixtures.filter(f=>["1H","2H","ET","HT","P"].includes(f.fixture?.status?.short)).length;
+  if(!isAdmin&&liveCount===0)return null;
 
   return(
     <div style={{margin:"0 0 12px",background:T.card,borderRadius:14,border:`1px solid ${T.border}`,overflow:"hidden"}}>
       <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",
         padding:"10px 14px",borderBottom:`1px solid ${T.border}`}}>
         <div style={{display:"flex",alignItems:"center",gap:8}}>
-          <div style={{width:8,height:8,borderRadius:"50%",background:"#e53935",
-            boxShadow:"0 0 6px #e53935",animation:"pulse 1.5s infinite"}}/>
+          <div style={{width:8,height:8,borderRadius:"50%",background:"#e53935",boxShadow:"0 0 6px #e53935"}}/>
           <span style={{fontFamily:HS,fontSize:12,fontWeight:700,color:T.text}}>
             {lang==="bn"?"লাইভ স্কোর":"Live Scores"}
           </span>
@@ -951,66 +946,77 @@ function LiveScoreWidget({T,lang,isAdmin}){
             {lastFetch.toLocaleTimeString("bn-BD",{hour:"2-digit",minute:"2-digit"})}
           </span>}
         </div>
-        <button onClick={fetchLive} disabled={loading}
-          style={{background:"transparent",border:"none",cursor:"pointer",
-            color:T.textS,fontSize:14,padding:"2px 6px"}}>
+        <button onClick={fetchAll} disabled={loading}
+          style={{background:"transparent",border:"none",cursor:"pointer",color:T.textS,fontSize:14,padding:"2px 6px"}}>
           {loading?"⏳":"🔄"}
         </button>
       </div>
 
-      {fixtures.length===0?(
+      {loading&&fixtures.length===0?(
         <div style={{padding:"20px",textAlign:"center",fontFamily:HS,fontSize:12,color:T.textM}}>
-          {loading?(lang==="bn"?"লোড হচ্ছে...":"Loading..."):(lang==="bn"?"আজ কোনো ম্যাচ নেই":"No matches today")}
+          {lang==="bn"?"লোড হচ্ছে...":"Loading..."}
+        </div>
+      ):fixtures.length===0?(
+        <div style={{padding:"20px",textAlign:"center",fontFamily:HS,fontSize:12,color:T.textM}}>
+          {lang==="bn"?"আজ কোনো ম্যাচ নেই":"No matches today"}
         </div>
       ):(
         <div>
           {fixtures.map(f=>{
-            const{fixture:fx,teams,goals,events}=f;
+            const{fixture:fx,teams,goals,events=[]}=f;
             const sl=statusLabel(fx.status);
             const isLive=sl.live;
-            const isExp=expanded===fx.id;
-            const goalEvents=(events||[]).filter(e=>e.type==="Goal");
+            const goalEvents=events.filter(e=>e.type==="Goal");
+            const homeGoals=goalEvents.filter(e=>e.team.id===teams.home.id);
+            const awayGoals=goalEvents.filter(e=>e.team.id===teams.away.id);
+            const homeRed=events.filter(e=>e.type==="Card"&&e.detail==="Red Card"&&e.team.id===teams.home.id).length;
+            const awayRed=events.filter(e=>e.type==="Card"&&e.detail==="Red Card"&&e.team.id===teams.away.id).length;
             return(
-              <div key={fx.id} style={{borderBottom:`1px solid ${T.border}`}}>
-                <div onClick={()=>fetchFixture(fx.id)}
-                  style={{display:"flex",alignItems:"center",gap:8,padding:"10px 14px",cursor:"pointer"}}>
-                  <div style={{flex:1,fontFamily:HS,fontSize:12,fontWeight:600,color:T.text,
-                    overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>
-                    {teams.home.name}
+              <div key={fx.id} style={{borderBottom:`1px solid ${T.border}`,padding:"10px 14px"}}>
+                <div style={{display:"flex",alignItems:"center",gap:6}}>
+                  <div style={{flex:1,display:"flex",alignItems:"center",gap:4,justifyContent:"flex-end"}}>
+                    {homeRed>0&&<span style={{fontSize:10}}>{"🟥".repeat(homeRed)}</span>}
+                    <span style={{fontFamily:HS,fontSize:12,fontWeight:600,color:T.text,
+                      textAlign:"right",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",maxWidth:90}}>
+                      {teams.home.name}
+                    </span>
                   </div>
-                  <div style={{display:"flex",alignItems:"center",gap:6,flexShrink:0}}>
-                    <span style={{fontFamily:HS,fontSize:16,fontWeight:800,
-                      color:isLive?T.green:T.text}}>{goals.home??"-"}</span>
-                    <div style={{textAlign:"center"}}>
-                      <div style={{fontFamily:HS,fontSize:9,fontWeight:700,
-                        color:isLive?"#e53935":T.textM,
-                        background:isLive?"rgba(229,57,53,0.1)":T.card2,
-                        padding:"2px 6px",borderRadius:6,whiteSpace:"nowrap"}}>
-                        {sl.text}
-                      </div>
-                    </div>
-                    <span style={{fontFamily:HS,fontSize:16,fontWeight:800,
-                      color:isLive?T.green:T.text}}>{goals.away??"-"}</span>
+                  <div style={{display:"flex",alignItems:"center",gap:4,flexShrink:0}}>
+                    <span style={{fontFamily:HS,fontSize:16,fontWeight:800,color:isLive?T.green:T.text}}>{goals.home??"-"}</span>
+                    <div style={{fontFamily:HS,fontSize:9,fontWeight:700,minWidth:28,textAlign:"center",
+                      color:isLive?"#e53935":T.textM,background:isLive?"rgba(229,57,53,0.12)":T.card2,
+                      padding:"2px 5px",borderRadius:6}}>{sl.text}</div>
+                    <span style={{fontFamily:HS,fontSize:16,fontWeight:800,color:isLive?T.green:T.text}}>{goals.away??"-"}</span>
                   </div>
-                  <div style={{flex:1,fontFamily:HS,fontSize:12,fontWeight:600,color:T.text,
-                    overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",textAlign:"right"}}>
-                    {teams.away.name}
+                  <div style={{flex:1,display:"flex",alignItems:"center",gap:4}}>
+                    <span style={{fontFamily:HS,fontSize:12,fontWeight:600,color:T.text,
+                      overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",maxWidth:90}}>
+                      {teams.away.name}
+                    </span>
+                    {awayRed>0&&<span style={{fontSize:10}}>{"🟥".repeat(awayRed)}</span>}
                   </div>
                 </div>
-                {isExp&&goalEvents.length>0&&(
-                  <div style={{padding:"4px 14px 10px",background:T.card2}}>
-                    {goalEvents.map((e,i)=>(
-                      <div key={i} style={{display:"flex",alignItems:"center",gap:6,marginBottom:3}}>
-                        <span style={{fontFamily:HS,fontSize:10,color:T.textM,minWidth:24}}>{e.time.elapsed}'</span>
-                        <span style={{fontSize:11}}>⚽</span>
-                        <span style={{fontFamily:HS,fontSize:11,color:T.text}}>{e.player.name}</span>
-                        <span style={{fontFamily:HS,fontSize:10,color:T.textM}}>
-                          ({e.team.name===teams.home.name?"H":"A"})
-                        </span>
-                        {e.detail==="Penalty"&&<span style={{fontFamily:HS,fontSize:9,color:"#f5a623"}}>(P)</span>}
-                        {e.detail==="Own Goal"&&<span style={{fontFamily:HS,fontSize:9,color:"#e53935"}}>(OG)</span>}
-                      </div>
-                    ))}
+                {(homeGoals.length>0||awayGoals.length>0)&&(
+                  <div style={{display:"flex",gap:6,marginTop:6}}>
+                    <div style={{flex:1,textAlign:"right"}}>
+                      {homeGoals.map((e,i)=>(
+                        <div key={i} style={{fontFamily:HS,fontSize:10,color:T.textS,lineHeight:1.6}}>
+                          ⚽ {e.player.name.split(" ").pop()} {e.time.elapsed}'
+                          {e.detail==="Penalty"?" (P)":""}
+                          {e.detail==="Own Goal"?" (OG)":""}
+                        </div>
+                      ))}
+                    </div>
+                    <div style={{width:1,background:T.border,flexShrink:0}}/>
+                    <div style={{flex:1}}>
+                      {awayGoals.map((e,i)=>(
+                        <div key={i} style={{fontFamily:HS,fontSize:10,color:T.textS,lineHeight:1.6}}>
+                          ⚽ {e.player.name.split(" ").pop()} {e.time.elapsed}'
+                          {e.detail==="Penalty"?" (P)":""}
+                          {e.detail==="Own Goal"?" (OG)":""}
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 )}
               </div>
