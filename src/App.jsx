@@ -1476,7 +1476,7 @@ function HomeTab({T,lang,favs,setFavs,onTeam,setSM,scores,myPreds,setPredictM,se
                 {todayMs.length>0&&<div style={{width:7,height:7,borderRadius:"50%",background:T.red,flexShrink:0,animation:"pulse 1s infinite"}}/>}
                 <span style={{fontFamily:HS,fontSize:12,fontWeight:700,color:T.text}}>{lang==="bn"?"আজ":"Today"}</span>
               </div>
-              <span style={{fontFamily:HS,fontSize:10,color:T.green}}>{todayMs.length} {lang==="bn"?"টি":"matches"}</span>
+              <span style={{fontFamily:HS,fontSize:10,color:T.green}}>{lang==="bn"?bnNum(todayMs.length):todayMs.length} {lang==="bn"?"টি ম্যাচ":"matches"}</span>
             </div>
             {todayMs.length>0?(<>
               {todayMs.slice(0,2).map(m=>{
@@ -1517,7 +1517,7 @@ function HomeTab({T,lang,favs,setFavs,onTeam,setSM,scores,myPreds,setPredictM,se
           <div onClick={()=>setDayPage(tom)} style={{background:T.card,borderRadius:14,border:`1px solid ${T.border}`,padding:"10px 12px",cursor:"pointer"}}>
             <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:8}}>
               <span style={{fontFamily:HS,fontSize:12,fontWeight:700,color:T.text}}>{lang==="bn"?"আগামীকাল":"Tomorrow"}</span>
-              <span style={{fontFamily:HS,fontSize:10,color:T.textS}}>{tomMs.length} {lang==="bn"?"টি":"matches"}</span>
+              <span style={{fontFamily:HS,fontSize:10,color:T.textS}}>{lang==="bn"?bnNum(tomMs.length):tomMs.length} {lang==="bn"?"টি ম্যাচ":"matches"}</span>
             </div>
             {tomMs.length>0?(<>
               {tomMs.slice(0,2).map(m=>{
