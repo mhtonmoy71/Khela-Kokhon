@@ -1126,7 +1126,7 @@ function MatchCard({m,T,lang,scores,myPreds,setPredictM,onTeam,isAdmin,setScoreM
             <span style={{fontFamily:HS,fontSize:10,color:T.textM}}>🔒</span>
           </div>
         )}
-        {isAdmin&&st!=="ft"&&(
+        {isAdmin&&(
           <button onClick={()=>setScoreM(m)} style={{background:T.card2,border:`1px solid ${T.border}`,
             borderRadius:10,width:34,height:34,cursor:"pointer",fontSize:13,display:"flex",alignItems:"center",justifyContent:"center"}}>✏️</button>
         )}
