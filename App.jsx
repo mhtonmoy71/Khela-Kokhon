@@ -7,6 +7,32 @@ const GAS_URL = "https://script.google.com/macros/s/AKfycbx7S3jfzwZp9Z68YkqbK3-A
 const SECRET = "khelakokhon2026";
 const ADMIN_KEY = "khelakokhon2026admin";
 
+/* ── URL <-> Tab mapping ──────────────────────── */
+// Maps each main/sub tab combination to a clean URL path, and back.
+const TAB_PATHS = {
+  "home|": "/",
+  "wc|fixture": "/worldcup/groups",
+  "wc|table": "/worldcup/table",
+  "wc|knockout": "/worldcup/knockout",
+  "wc|bracket": "/worldcup/bracket",
+  "predict|": "/prediction",
+  "lb|": "/leaderboard",
+};
+function tabToPath(mt, wt){
+  const key = mt === "wc" ? `wc|${wt}` : `${mt}|`;
+  return TAB_PATHS[key] || "/";
+}
+function pathToTab(pathname){
+  for(const [key, path] of Object.entries(TAB_PATHS)){
+    if(path === pathname){
+      const [mt, wt] = key.split("|");
+      return { mt, wt: wt || "fixture" };
+    }
+  }
+  return null; // unrecognized path -> caller falls back to default/localStorage
+}
+
+
 /* ── Google Apps Script API (JSONP) ──────────── */
 async function gasPost(action, data={}) {
   const params = "data=" + encodeURIComponent(JSON.stringify({action, secret: SECRET, ...data}));
@@ -2426,8 +2452,16 @@ export default function App(){
   const[dark,setDark]=useState(()=>localStorage.getItem("kk_dark")!=="false");
   const[showClockTime,setShowClockTime]=useState(false);
   const[lang,setLang]=useState(()=>localStorage.getItem("kk_lang")||"bn");
-  const[mt,setMt]=useState(()=>localStorage.getItem("kk_tab")||"home");
-  const[wt,setWt]=useState(()=>localStorage.getItem("kk_wt")||"fixture");
+  const[mt,setMt]=useState(()=>{
+    const fromPath=pathToTab(window.location.pathname);
+    if(fromPath) return fromPath.mt;
+    return localStorage.getItem("kk_tab")||"home";
+  });
+  const[wt,setWt]=useState(()=>{
+    const fromPath=pathToTab(window.location.pathname);
+    if(fromPath) return fromPath.wt;
+    return localStorage.getItem("kk_wt")||"fixture";
+  });
   const[favs,setFavs]=useState(()=>{try{const f=localStorage.getItem("kk_favs");return f?JSON.parse(f):[]}catch(e){return[];}});
   const[tp,setTp]=useState(null);
   const[sm,setSm]=useState(false);
@@ -2498,13 +2532,13 @@ export default function App(){
     localStorage.setItem("kk_user",name);
     if(did) localStorage.setItem("kk_did",did);
   };
-  const openTeam=en=>{window.history.pushState({page:"app",team:en,tab:mt},"","");setTp(en);};
+  const openTeam=en=>{window.history.pushState({page:"app",team:en,tab:mt,wt},"",tabToPath(mt,wt));setTp(en);};
   const closeTeam=()=>setTp(null);
 
   // Init history
   useEffect(()=>{
-    window.history.replaceState({page:"base"},"","");
-    window.history.pushState({page:"app",tab:"home"},"","");
+    window.history.replaceState({page:"base"},"","/");
+    window.history.pushState({page:"app",tab:mt,wt},"",tabToPath(mt,wt));
   },[]);
 
   // Back button handler
@@ -2512,21 +2546,26 @@ export default function App(){
     const onPop=(e)=>{
       const state=e.state||{};
       if(state.page==="base"||!state.page){
-        if(tp){setTp(null);window.history.pushState({page:"app",tab:mt},"","");return;}
-        if(mt!=="home"){setMt("home");setWt("fixture");window.history.pushState({page:"app",tab:"home"},"","");return;}
-        window.history.pushState({page:"app",tab:"home"},"","");
+        if(tp){setTp(null);window.history.pushState({page:"app",tab:mt,wt},"",tabToPath(mt,wt));return;}
+        if(mt!=="home"){setMt("home");setWt("fixture");window.history.pushState({page:"app",tab:"home",wt:"fixture"},"","/");return;}
+        window.history.pushState({page:"app",tab:"home",wt:"fixture"},"","/");
       } else if(state.team){
+        setTp(null);
+      } else if(state.page==="app"&&state.tab){
+        // Navigated via back/forward to a different tab state
+        if(state.tab!==mt) setMt(state.tab);
+        if(state.wt&&state.wt!==wt) setWt(state.wt);
         setTp(null);
       }
     };
     window.addEventListener("popstate",onPop);
     return()=>window.removeEventListener("popstate",onPop);
-  },[tp,mt]);
+  },[tp,mt,wt]);
 
   // Update history on tab change
   useEffect(()=>{
     if(!tp){
-      window.history.replaceState({page:"app",tab:mt,wt},"","");
+      window.history.replaceState({page:"app",tab:mt,wt},"",tabToPath(mt,wt));
       localStorage.setItem("kk_tab", mt);
       localStorage.setItem("kk_wt", wt);
     }
