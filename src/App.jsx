@@ -20,7 +20,8 @@ const TAB_PATHS = {
 };
 function tabToPath(mt, wt){
   const key = mt === "wc" ? `wc|${wt}` : `${mt}|`;
-  return TAB_PATHS[key] || "/";
+  const path = TAB_PATHS[key] || "/";
+  return path + window.location.search;
 }
 function pathToTab(pathname){
   for(const [key, path] of Object.entries(TAB_PATHS)){
@@ -103,7 +104,7 @@ const deleteUser = (email, name) => gasPost("deleteUser", {email, name});
 
 // Scores & Leaderboard
 const getScores = () => gasGet("getScores").then(r => r.data||{});
-const getLB = () => gasGet("getLeaderboard").then(r => r.data||[]);
+const getLB = () => gasGet("getLeaderboard").then(r => Array.isArray(r?.data)?r.data:[]);
 const saveScoreDB = (matchId, hg, ag, status="") => gasPost("saveScore", {matchId, hg, ag, status});
 
 
@@ -2294,19 +2295,19 @@ function NewsTab({T,lang,userName}){
 }
 
 function LeaderboardTab({T,lang,userName,initData}){
-  const[lb,setLb]=useState(initData||[]);
-  const[loading,setLoading]=useState(initData&&initData.length>0?false:true);
+  const[lb,setLb]=useState(Array.isArray(initData)?initData:[]);
+  const[loading,setLoading]=useState(Array.isArray(initData)&&initData.length>0?false:true);
   
   const loadLB=()=>{
     setLoading(true);
     getLB().then(data=>{
-      setLb(data);
+      setLb(Array.isArray(data)?data:[]);
       setLoading(false);
     }).catch(()=>setLoading(false));
   };
   
   useEffect(()=>{
-    if(initData&&initData.length>0){setLb(initData);setLoading(false);}
+    if(Array.isArray(initData)&&initData.length>0){setLb(initData);setLoading(false);}
     else loadLB();
   },[initData]);
   const medals=["🥇","🥈","🥉"];
@@ -2537,7 +2538,7 @@ export default function App(){
 
   // Init history
   useEffect(()=>{
-    window.history.replaceState({page:"base"},"","/");
+    window.history.replaceState({page:"base"},"","/"+window.location.search);
     window.history.pushState({page:"app",tab:mt,wt},"",tabToPath(mt,wt));
   },[]);
 
@@ -2547,8 +2548,8 @@ export default function App(){
       const state=e.state||{};
       if(state.page==="base"||!state.page){
         if(tp){setTp(null);window.history.pushState({page:"app",tab:mt,wt},"",tabToPath(mt,wt));return;}
-        if(mt!=="home"){setMt("home");setWt("fixture");window.history.pushState({page:"app",tab:"home",wt:"fixture"},"","/");return;}
-        window.history.pushState({page:"app",tab:"home",wt:"fixture"},"","/");
+        if(mt!=="home"){setMt("home");setWt("fixture");window.history.pushState({page:"app",tab:"home",wt:"fixture"},"","/"+window.location.search);return;}
+        window.history.pushState({page:"app",tab:"home",wt:"fixture"},"","/"+window.location.search);
       } else if(state.team){
         setTp(null);
       } else if(state.page==="app"&&state.tab){
