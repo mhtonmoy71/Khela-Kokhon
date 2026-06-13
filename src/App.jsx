@@ -893,6 +893,135 @@ function NameModal({T,lang,onSave,inline=false,onClose}){
   );
 }
 
+/* ── Live Score Widget (Admin Reference) ─────── */
+function LiveScoreWidget({T,lang,isAdmin}){
+  const[fixtures,setFixtures]=useState([]);
+  const[loading,setLoading]=useState(false);
+  const[expanded,setExpanded]=useState(null);
+  const[lastFetch,setLastFetch]=useState(null);
+
+  const fetchLive=useCallback(async()=>{
+    setLoading(true);
+    try{
+      const r=await fetch("/api/live-scores");
+      const d=await r.json();
+      if(d.response&&Array.isArray(d.response)){
+        setFixtures(d.response);
+        setLastFetch(new Date());
+      }
+    }catch(e){}
+    setLoading(false);
+  },[]);
+
+  const fetchFixture=async(id)=>{
+    if(expanded===id){setExpanded(null);return;}
+    try{
+      const r=await fetch(`/api/live-scores?fixture=${id}`);
+      const d=await r.json();
+      if(d.response&&d.response[0]){
+        setFixtures(prev=>prev.map(f=>f.fixture.id===id?d.response[0]:f));
+      }
+    }catch(e){}
+    setExpanded(id);
+  };
+
+  useEffect(()=>{fetchLive();},[]);
+
+  const statusLabel=(s)=>{
+    const st=s.short;
+    if(["1H","2H","ET","BT","P","LIVE"].includes(st))return{text:`${s.elapsed||0}'`,live:true};
+    if(st==="HT")return{text:"HT",live:true};
+    if(st==="FT"||st==="AET"||st==="PEN")return{text:"FT",live:false};
+    return{text:lang==="bn"?"শুরু হয়নি":"NS",live:false};
+  };
+
+  if(!isAdmin&&fixtures.filter(f=>["1H","2H","ET","HT","P"].includes(f.fixture.status.short)).length===0)return null;
+
+  return(
+    <div style={{margin:"0 0 12px",background:T.card,borderRadius:14,border:`1px solid ${T.border}`,overflow:"hidden"}}>
+      <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",
+        padding:"10px 14px",borderBottom:`1px solid ${T.border}`}}>
+        <div style={{display:"flex",alignItems:"center",gap:8}}>
+          <div style={{width:8,height:8,borderRadius:"50%",background:"#e53935",
+            boxShadow:"0 0 6px #e53935",animation:"pulse 1.5s infinite"}}/>
+          <span style={{fontFamily:HS,fontSize:12,fontWeight:700,color:T.text}}>
+            {lang==="bn"?"লাইভ স্কোর":"Live Scores"}
+          </span>
+          {lastFetch&&<span style={{fontFamily:HS,fontSize:9,color:T.textM}}>
+            {lastFetch.toLocaleTimeString("bn-BD",{hour:"2-digit",minute:"2-digit"})}
+          </span>}
+        </div>
+        <button onClick={fetchLive} disabled={loading}
+          style={{background:"transparent",border:"none",cursor:"pointer",
+            color:T.textS,fontSize:14,padding:"2px 6px"}}>
+          {loading?"⏳":"🔄"}
+        </button>
+      </div>
+
+      {fixtures.length===0?(
+        <div style={{padding:"20px",textAlign:"center",fontFamily:HS,fontSize:12,color:T.textM}}>
+          {loading?(lang==="bn"?"লোড হচ্ছে...":"Loading..."):(lang==="bn"?"আজ কোনো ম্যাচ নেই":"No matches today")}
+        </div>
+      ):(
+        <div>
+          {fixtures.map(f=>{
+            const{fixture:fx,teams,goals,events}=f;
+            const sl=statusLabel(fx.status);
+            const isLive=sl.live;
+            const isExp=expanded===fx.id;
+            const goalEvents=(events||[]).filter(e=>e.type==="Goal");
+            return(
+              <div key={fx.id} style={{borderBottom:`1px solid ${T.border}`}}>
+                <div onClick={()=>fetchFixture(fx.id)}
+                  style={{display:"flex",alignItems:"center",gap:8,padding:"10px 14px",cursor:"pointer"}}>
+                  <div style={{flex:1,fontFamily:HS,fontSize:12,fontWeight:600,color:T.text,
+                    overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>
+                    {teams.home.name}
+                  </div>
+                  <div style={{display:"flex",alignItems:"center",gap:6,flexShrink:0}}>
+                    <span style={{fontFamily:HS,fontSize:16,fontWeight:800,
+                      color:isLive?T.green:T.text}}>{goals.home??"-"}</span>
+                    <div style={{textAlign:"center"}}>
+                      <div style={{fontFamily:HS,fontSize:9,fontWeight:700,
+                        color:isLive?"#e53935":T.textM,
+                        background:isLive?"rgba(229,57,53,0.1)":T.card2,
+                        padding:"2px 6px",borderRadius:6,whiteSpace:"nowrap"}}>
+                        {sl.text}
+                      </div>
+                    </div>
+                    <span style={{fontFamily:HS,fontSize:16,fontWeight:800,
+                      color:isLive?T.green:T.text}}>{goals.away??"-"}</span>
+                  </div>
+                  <div style={{flex:1,fontFamily:HS,fontSize:12,fontWeight:600,color:T.text,
+                    overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",textAlign:"right"}}>
+                    {teams.away.name}
+                  </div>
+                </div>
+                {isExp&&goalEvents.length>0&&(
+                  <div style={{padding:"4px 14px 10px",background:T.card2}}>
+                    {goalEvents.map((e,i)=>(
+                      <div key={i} style={{display:"flex",alignItems:"center",gap:6,marginBottom:3}}>
+                        <span style={{fontFamily:HS,fontSize:10,color:T.textM,minWidth:24}}>{e.time.elapsed}'</span>
+                        <span style={{fontSize:11}}>⚽</span>
+                        <span style={{fontFamily:HS,fontSize:11,color:T.text}}>{e.player.name}</span>
+                        <span style={{fontFamily:HS,fontSize:10,color:T.textM}}>
+                          ({e.team.name===teams.home.name?"H":"A"})
+                        </span>
+                        {e.detail==="Penalty"&&<span style={{fontFamily:HS,fontSize:9,color:"#f5a623"}}>(P)</span>}
+                        {e.detail==="Own Goal"&&<span style={{fontFamily:HS,fontSize:9,color:"#e53935"}}>(OG)</span>}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
 /* ── Sponsor Banner ──────────────────────────── */
 const SPONSOR_AD = {
   url: "https://boitoi.com.bd/worldcup-goal-fest?fbclid=IwdGRzaASWGGBjbGNrBJYYT2V4dG4DYWVtAjExAHNydGMGYXBwX2lkDDM1MDY4NTUzMTcyOAABHjKBd6DQMyW3_Eapxayae68mHYWqPnz4h3NKOq5WMyIg5fpQz_aoBmQ6LDRM_aem_lTzGoQGLbfDnlQ9067wRKA",
@@ -1541,6 +1670,7 @@ function HomeTab({T,lang,favs,setFavs,onTeam,setSM,scores,myPreds,setPredictM,se
         <div style={{flexShrink:0,width:"40%"}}><CompactCal T={T} lang={lang}/></div>
       </div>
 
+      <LiveScoreWidget T={T} lang={lang} isAdmin={isAdmin}/>
       <SponsorBanner T={T} lang={lang}/>
 
 {/* Today full cards */}
