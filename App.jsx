@@ -935,9 +935,8 @@ function SponsorBanner({T,lang}){
 }
 
 /* ── Top 3 ScoreMaster Widget ────────────────── */
-function TopThreeWidget({T,lang}){
-  const medals=["🥇","🥈","🥉"];
-  const[top3,setTop3]=useState([]);
+function TopThreeWidget({T,lang,setMt}){
+  const[top1,setTop1]=useState(null);
   const[loading,setLoading]=useState(true);
 
   useEffect(()=>{
@@ -950,37 +949,36 @@ function TopThreeWidget({T,lang}){
         if(!map[n])map[n]={name:n,total:0};
         map[n].total+=(r.points||0);
       });
-      setTop3(Object.values(map).sort((a,b)=>b.total-a.total).slice(0,3));
+      const sorted=Object.values(map).sort((a,b)=>b.total-a.total);
+      if(sorted.length>0)setTop1(sorted[0]);
       setLoading(false);
     }).catch(()=>setLoading(false));
   },[]);
 
   return(
-    <div style={{background:T.card,border:`1px solid ${T.border}`,borderRadius:12,
-      padding:"10px",overflow:"hidden"}}>
+    <div onClick={()=>setMt("lb")} style={{background:T.card,border:`1px solid ${T.border}`,
+      borderRadius:12,padding:"10px",cursor:"pointer"}}>
       <div style={{fontFamily:HS,fontSize:10,fontWeight:700,color:T.textS,
-        marginBottom:8,textAlign:"center",letterSpacing:0.5}}>
-        🏆 ScoreMaster
+        marginBottom:6,textAlign:"center"}}>
+        🏆 {lang==="bn"?"স্কোরমাস্টার":"ScoreMaster"}
       </div>
       {loading?(
-        <div style={{fontFamily:HS,fontSize:10,color:T.textM,textAlign:"center",padding:"6px 0"}}>...</div>
-      ):top3.length===0?(
-        <div style={{fontFamily:HS,fontSize:10,color:T.textM,textAlign:"center",padding:"4px 0"}}>
-          {lang==="bn"?"এখনো কেউ নেই":"No entries yet"}
+        <div style={{fontFamily:HS,fontSize:10,color:T.textM,textAlign:"center"}}>...</div>
+      ):top1?(
+        <div style={{display:"flex",alignItems:"center",gap:6}}>
+          <span style={{fontSize:14,flexShrink:0}}>🥇</span>
+          <span style={{fontFamily:HS,fontSize:11,fontWeight:700,color:T.text,
+            flex:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>
+            {top1.name}
+          </span>
+          <span style={{fontFamily:HS,fontSize:12,fontWeight:800,color:T.green,flexShrink:0}}>
+            {top1.total} pts
+          </span>
         </div>
       ):(
-        top3.map((row,i)=>(
-          <div key={i} style={{display:"flex",alignItems:"center",gap:6,marginBottom:i<2?6:0}}>
-            <span style={{fontSize:13,flexShrink:0}}>{medals[i]}</span>
-            <span style={{fontFamily:HS,fontSize:11,fontWeight:600,color:T.text,
-              flex:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>
-              {row.name}
-            </span>
-            <span style={{fontFamily:HS,fontSize:11,fontWeight:800,color:T.green,flexShrink:0}}>
-              {row.total}
-            </span>
-          </div>
-        ))
+        <div style={{fontFamily:HS,fontSize:10,color:T.textM,textAlign:"center"}}>
+          {lang==="bn"?"এখনো কেউ নেই":"No entries yet"}
+        </div>
       )}
     </div>
   );
@@ -1357,7 +1355,7 @@ function DayPage({date,T,lang,scores,myPreds,setPredictM,onTeam,isAdmin,setScore
 }
 
 
-function HomeTab({T,lang,favs,setFavs,onTeam,setSM,scores,myPreds,setPredictM,setScoreM,isAdmin,dayPage,setDayPage,lbData}){
+function HomeTab({T,lang,favs,setFavs,onTeam,setSM,scores,myPreds,setPredictM,setScoreM,isAdmin,dayPage,setDayPage,lbData,setMt}){
   const WC_MS=new Date("2026-06-11T19:00:00Z").getTime();
   const[wcDiff,setWcDiff]=useState(()=>Math.max(0,WC_MS-Date.now()));
   useEffect(()=>{
@@ -1592,7 +1590,7 @@ function HomeTab({T,lang,favs,setFavs,onTeam,setSM,scores,myPreds,setPredictM,se
         {/* Right: CompactCal + Top 3 */}
         <div style={{flexShrink:0,width:"40%",display:"flex",flexDirection:"column",gap:8}}>
           <CompactCal T={T} lang={lang}/>
-          <TopThreeWidget T={T} lang={lang}/>
+          <TopThreeWidget T={T} lang={lang} setMt={setMt}/>
         </div>
       </div>
 
@@ -2679,7 +2677,7 @@ export default function App(){
         </div>
 
         {/* Body */}
-                {mt==="home"&&<HomeTab T={T} lang={lang} favs={favs} setFavs={setFavs} onTeam={openTeam} setSM={setSm} scores={scores} myPreds={myPreds} setPredictM={handlePredict} setScoreM={setScoreM} isAdmin={isAdmin} dayPage={dayPage} setDayPage={setDayPage} lbData={lbData}/>}
+                {mt==="home"&&<HomeTab T={T} lang={lang} favs={favs} setFavs={setFavs} onTeam={openTeam} setSM={setSm} scores={scores} myPreds={myPreds} setPredictM={handlePredict} setScoreM={setScoreM} isAdmin={isAdmin} dayPage={dayPage} setDayPage={setDayPage} lbData={lbData} setMt={setMt}/>}
         {mt==="wc"&&wt==="fixture"&&<GroupTab T={T} lang={lang} onTeam={openTeam} scores={scores} myPreds={myPreds} setPredictM={handlePredict} isAdmin={isAdmin} setScoreM={setScoreM}/>}
         {mt==="wc"&&wt==="knockout"&&<KnockoutTab T={T} lang={lang} scores={scores}/>}
         {mt==="wc"&&wt==="table"&&<TableTab T={T} lang={lang} scores={scores}/>}
