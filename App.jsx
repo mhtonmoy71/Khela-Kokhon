@@ -1434,7 +1434,7 @@ function HomeTab({T,lang,favs,setFavs,onTeam,setSM,scores,myPreds,setPredictM,se
         if(diff<=0){
           // Show live score widget instead
           const allM=[...MATCHES,...R32,...R16,...QF,...SF,...FINAL];
-          const liveMs=allM.filter(m=>status(m,scores)==="live").slice(0,3);
+          const liveMs=scoresLoaded?allM.filter(m=>status(m,scores)==="live").slice(0,3):[];
           if(liveMs.length===0)return null;
           return(
             <div style={{marginBottom:12}}>
@@ -1480,7 +1480,7 @@ function HomeTab({T,lang,favs,setFavs,onTeam,setSM,scores,myPreds,setPredictM,se
                       <div style={{flexShrink:0,textAlign:"center",minWidth:60}}>
                         <span style={{fontFamily:HS,fontSize:20,fontWeight:800,
                           color:"#00e676"}}>
-                          {sc?`${sc.hg}–${sc.ag}`:"–"}
+                          {sc&&sc.hg!==""?`${sc.hg}–${sc.ag}`:"0–0"}
                         </span>
                       </div>
                       {/* Away team */}
