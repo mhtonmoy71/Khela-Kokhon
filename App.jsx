@@ -1527,7 +1527,7 @@ function HomeTab({T,lang,favs,setFavs,onTeam,setSM,scores,myPreds,setPredictM,se
         );
       })()}
                   {/* Today + Calendar row */}
-      <div style={{display:"flex",gap:10,marginBottom:14,alignItems:"flex-start"}}>
+      <div style={{display:"flex",gap:10,marginBottom:14,alignItems:"stretch"}}>
         {/* Left: Today & Tomorrow info */}
         <div style={{flex:1,minWidth:0,display:"flex",flexDirection:"column"}}>
           <div onClick={()=>setDayPage(today)} style={{background:T.card,borderRadius:14,border:`1px solid ${T.border}`,padding:"8px 10px",marginBottom:8,cursor:"pointer",flex:1}}>
@@ -1600,7 +1600,9 @@ function HomeTab({T,lang,favs,setFavs,onTeam,setSM,scores,myPreds,setPredictM,se
         {/* Right: CompactCal + Top 3 */}
         <div style={{flexShrink:0,width:"40%",display:"flex",flexDirection:"column",gap:8}}>
           <CompactCal T={T} lang={lang}/>
-          <TopThreeWidget T={T} lang={lang} setMt={setMt}/>
+          <div style={{marginTop:"auto"}}>
+            <TopThreeWidget T={T} lang={lang} setMt={setMt}/>
+          </div>
         </div>
       </div>
 
