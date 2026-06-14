@@ -935,13 +935,28 @@ function SponsorBanner({T,lang}){
 }
 
 /* ── Top 3 ScoreMaster Widget ────────────────── */
-function TopThreeWidget({T,lang,lbData}){
+function TopThreeWidget({T,lang}){
   const medals=["🥇","🥈","🥉"];
-  const top3=Array.isArray(lbData)?lbData.slice(0,3):[];
+  const[top3,setTop3]=useState([]);
+
+  useEffect(()=>{
+    getLB().then(data=>{
+      if(!Array.isArray(data))return;
+      const map={};
+      data.forEach(r=>{
+        const n=r.predictor_name||r.name;
+        if(!n)return;
+        if(!map[n])map[n]={name:n,total:0};
+        map[n].total+=(r.points||0);
+      });
+      setTop3(Object.values(map).sort((a,b)=>b.total-a.total).slice(0,3));
+    }).catch(()=>{});
+  },[]);
+
   if(top3.length===0)return null;
   return(
     <div style={{background:T.card,border:`1px solid ${T.border}`,borderRadius:12,
-      padding:"10px 10px",overflow:"hidden"}}>
+      padding:"10px",overflow:"hidden"}}>
       <div style={{fontFamily:HS,fontSize:10,fontWeight:700,color:T.textS,
         marginBottom:8,textAlign:"center",letterSpacing:0.5}}>
         🏆 ScoreMaster
@@ -952,10 +967,10 @@ function TopThreeWidget({T,lang,lbData}){
           <span style={{fontSize:13,flexShrink:0}}>{medals[i]}</span>
           <span style={{fontFamily:HS,fontSize:11,fontWeight:600,color:T.text,
             flex:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>
-            {row.name||row.predictor_name||"-"}
+            {row.name}
           </span>
           <span style={{fontFamily:HS,fontSize:11,fontWeight:800,color:T.green,
-            flexShrink:0}}>{row.total||0}</span>
+            flexShrink:0}}>{row.total}</span>
         </div>
       ))}
     </div>
@@ -1568,7 +1583,7 @@ function HomeTab({T,lang,favs,setFavs,onTeam,setSM,scores,myPreds,setPredictM,se
         {/* Right: CompactCal + Top 3 */}
         <div style={{flexShrink:0,width:"40%",display:"flex",flexDirection:"column",gap:8}}>
           <CompactCal T={T} lang={lang}/>
-          <TopThreeWidget T={T} lang={lang} lbData={lbData}/>
+          <TopThreeWidget T={T} lang={lang}/>
         </div>
       </div>
 
