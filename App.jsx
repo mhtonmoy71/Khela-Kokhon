@@ -1016,14 +1016,14 @@ function CompactCal({T,lang}){
         <div style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",background:T.card2,padding:"3px 4px"}}>
           {dh.map((d,i)=><div key={i} style={{textAlign:"center",fontFamily:HS,fontSize:8,color:T.text,fontWeight:700,opacity:0.55}}>{d}</div>)}
         </div>
-        <div style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",gap:1,padding:"3px 4px 5px",background:T.card}}>
+        <div style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",gap:1,padding:"2px 4px 3px",background:T.card}}>
           {days.map((d,i)=>{
             if(!d)return <div key={i}/>;
             const ds=`${y}-${String(mo+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
             const hasM=ALL_DATES.has(ds),isTod=ds===today;
             return(
               <div key={i} onClick={()=>hasM&&setPop(ds)}
-                style={{display:"flex",flexDirection:"column",alignItems:"center",padding:"3px 1px",
+                style={{display:"flex",flexDirection:"column",alignItems:"center",padding:"2px 1px",
                   borderRadius:5,cursor:hasM?"pointer":"default",
                   background:isTod?T.greenBg:"transparent"}}>
                 <span style={{fontFamily:HS,fontSize:9,fontWeight:isTod?700:400,color:hasM?T.text:T.text,opacity:hasM?1:0.35,lineHeight:1.4}}>{d}</span>
