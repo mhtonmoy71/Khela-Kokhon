@@ -1540,7 +1540,11 @@ function HomeTab({T,lang,favs,setFavs,onTeam,setSM,scores,myPreds,setPredictM,se
               <span style={{fontFamily:HS,fontSize:10,color:T.green}}>{lang==="bn"?String(todayMs.length).replace(/[0-9]/g,d=>"০১২৩৪৫৬৭৮৯"[d]):todayMs.length} {lang==="bn"?"টি ম্যাচ":"matches"}</span>
             </div>
             {todayMs.length>0?(<>
-              {todayMs.slice(0,2).map(m=>{
+              {[...todayMs].sort((a,b)=>{
+                const pa=status(a,scores)==="live"?0:status(a,scores)==="up"?1:2;
+                const pb=status(b,scores)==="live"?0:status(b,scores)==="up"?1:2;
+                return pa-pb;
+              }).slice(0,2).map(m=>{
                 const[t2,ap]=m.t.split(" ");
                 const sc=scores[m.id]||scores[String(m.id)];
                 const st=status(m,scores);
@@ -1557,8 +1561,11 @@ function HomeTab({T,lang,favs,setFavs,onTeam,setSM,scores,myPreds,setPredictM,se
                             <span style={{fontFamily:HS,fontSize:11,fontWeight:800,color:T.text}}>{sc.hg}–{sc.ag}</span>
                             <span style={{fontFamily:HS,fontSize:7,fontWeight:700,color:T.textS,letterSpacing:0.5}}>FT</span>
                           </span>
-                        ):(
-                          <span style={{fontFamily:HS,fontSize:11,fontWeight:800,color:"#3b82f6"}}>{sc.hg}–{sc.ag}</span>
+                        ):( 
+                          <span style={{display:"flex",alignItems:"center",gap:3}}>
+                            <span style={{fontFamily:HS,fontSize:11,fontWeight:800,color:"#3b82f6"}}>{sc.hg}–{sc.ag}</span>
+                            <span style={{fontFamily:HS,fontSize:7,fontWeight:700,color:"#e53935",background:"rgba(229,57,53,0.1)",borderRadius:4,padding:"1px 4px",letterSpacing:0.3}}>{lang==="bn"?"লাইভ":"LIVE"}</span>
+                          </span>
                         )}
                       </span>
                     ):(
@@ -1581,7 +1588,11 @@ function HomeTab({T,lang,favs,setFavs,onTeam,setSM,scores,myPreds,setPredictM,se
               <span style={{fontFamily:HS,fontSize:10,color:T.textS}}>{lang==="bn"?String(tomMs.length).replace(/[0-9]/g,d=>"০১২৩৪৫৬৭৮৯"[d]):tomMs.length} {lang==="bn"?"টি ম্যাচ":"matches"}</span>
             </div>
             {tomMs.length>0?(<>
-              {tomMs.slice(0,2).map(m=>{
+              {[...tomMs].sort((a,b)=>{
+                const pa=status(a,scores)==="live"?0:status(a,scores)==="up"?1:2;
+                const pb=status(b,scores)==="live"?0:status(b,scores)==="up"?1:2;
+                return pa-pb;
+              }).slice(0,2).map(m=>{
                 const[t2,ap]=m.t.split(" ");
                 return(
                   <div key={m.id} style={{display:"flex",alignItems:"center",gap:4,marginBottom:6,paddingBottom:6,borderBottom:`1px solid ${T.border}`}}>
