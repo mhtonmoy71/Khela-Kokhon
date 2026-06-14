@@ -609,8 +609,8 @@ function ScoreModal({m,T,lang,scores,setScores,onClose}){
           if(data&&data.data){
             const map={};
             Object.entries(data.data).forEach(([id,s])=>{
-              map[id]={hg:String(s.hg),ag:String(s.ag)};
-              map[String(id)]={hg:String(s.hg),ag:String(s.ag)};
+              map[id]={hg:String(s.hg),ag:String(s.ag),status:s.status||""};
+              map[String(id)]={hg:String(s.hg),ag:String(s.ag),status:s.status||""};
             });
             setScores(map);
           }
@@ -2546,8 +2546,8 @@ export default function App(){
     getScores().then(data=>{
       const m={};
       Object.entries(data).forEach(([id,s])=>{
-        m[id]={hg:String(s.hg),ag:String(s.ag)};
-        m[String(id)]={hg:String(s.hg),ag:String(s.ag)};
+        m[id]={hg:String(s.hg),ag:String(s.ag),status:s.status||""};
+        m[String(id)]={hg:String(s.hg),ag:String(s.ag),status:s.status||""};
       });
       setScores(m);
     }).catch(()=>{});
