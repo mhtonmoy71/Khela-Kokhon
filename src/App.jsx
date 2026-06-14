@@ -1366,7 +1366,7 @@ function DayPage({date,T,lang,scores,myPreds,setPredictM,onTeam,isAdmin,setScore
 }
 
 
-function HomeTab({T,lang,favs,setFavs,onTeam,setSM,scores,myPreds,setPredictM,setScoreM,isAdmin,dayPage,setDayPage,lbData,setMt}){
+function HomeTab({T,lang,favs,setFavs,onTeam,setSM,scores,myPreds,setPredictM,setScoreM,isAdmin,dayPage,setDayPage,lbData,scoresLoaded}){
   const WC_MS=new Date("2026-06-11T19:00:00Z").getTime();
   const[wcDiff,setWcDiff]=useState(()=>Math.max(0,WC_MS-Date.now()));
   useEffect(()=>{
@@ -1554,7 +1554,7 @@ function HomeTab({T,lang,favs,setFavs,onTeam,setSM,scores,myPreds,setPredictM,se
                   <div key={m.id} style={{display:"flex",alignItems:"center",gap:4,marginBottom:6,paddingBottom:6,borderBottom:`1px solid ${T.border}`,opacity:isFT?0.6:1}}>
                     <Flag en={m.h} size={14}/>
                     <span style={{fontFamily:HS,fontSize:9,color:T.text,flex:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{tn(m.h,lang)}</span>
-                    {hasScore||st==="live"?(
+                    {hasScore||(st==="live")?(
                       <span style={{display:"flex",justifyContent:"center",flexShrink:0,minWidth:32}}>
                         {isFT?(
                           <span style={{display:"flex",alignItems:"center",gap:3,background:T.card2,borderRadius:6,padding:"2px 6px",border:`1px solid ${T.border}`}}>
@@ -1610,11 +1610,8 @@ function HomeTab({T,lang,favs,setFavs,onTeam,setSM,scores,myPreds,setPredictM,se
         </div>
 
         {/* Right: CompactCal + Top 3 */}
-        <div style={{flexShrink:0,width:"40%",display:"flex",flexDirection:"column",gap:8}}>
+        <div style={{flexShrink:0,width:"40%"}}>
           <CompactCal T={T} lang={lang}/>
-          <div style={{marginTop:"auto",flex:1,display:"flex",flexDirection:"column"}}>
-            <TopThreeWidget T={T} lang={lang} setMt={setMt}/>
-          </div>
         </div>
       </div>
 
@@ -2544,6 +2541,7 @@ export default function App(){
   const[tp,setTp]=useState(null);
   const[sm,setSm]=useState(false);
   const[scores,setScores]=useState({});
+  const[scoresLoaded,setScoresLoaded]=useState(false);
   const[lbData,setLbData]=useState([]);
   const[userName,setUserName]=useState(()=>localStorage.getItem("kk_user")||"");
   const[myPreds,setMyPreds]=useState({});
@@ -2561,6 +2559,7 @@ export default function App(){
         m[String(id)]={hg:String(s.hg),ag:String(s.ag),status:s.status||""};
       });
       setScores(m);
+      setScoresLoaded(true);
     }).catch(()=>{});
   },[]);
   useEffect(()=>{
@@ -2701,7 +2700,7 @@ export default function App(){
         </div>
 
         {/* Body */}
-                {mt==="home"&&<HomeTab T={T} lang={lang} favs={favs} setFavs={setFavs} onTeam={openTeam} setSM={setSm} scores={scores} myPreds={myPreds} setPredictM={handlePredict} setScoreM={setScoreM} isAdmin={isAdmin} dayPage={dayPage} setDayPage={setDayPage} lbData={lbData} setMt={setMt}/>}
+                {mt==="home"&&<HomeTab T={T} lang={lang} favs={favs} setFavs={setFavs} onTeam={openTeam} setSM={setSm} scores={scores} myPreds={myPreds} setPredictM={handlePredict} setScoreM={setScoreM} isAdmin={isAdmin} dayPage={dayPage} setDayPage={setDayPage} lbData={lbData} scoresLoaded={scoresLoaded}/>}
         {mt==="wc"&&wt==="fixture"&&<GroupTab T={T} lang={lang} onTeam={openTeam} scores={scores} myPreds={myPreds} setPredictM={handlePredict} isAdmin={isAdmin} setScoreM={setScoreM}/>}
         {mt==="wc"&&wt==="knockout"&&<KnockoutTab T={T} lang={lang} scores={scores}/>}
         {mt==="wc"&&wt==="table"&&<TableTab T={T} lang={lang} scores={scores}/>}
