@@ -1546,16 +1546,7 @@ function HomeTab({T,lang,favs,setFavs,onTeam,setSM,scores,myPreds,setPredictM,se
                 const pa=status(a,scores)==="live"?0:status(a,scores)==="up"?1:2;
                 const pb=status(b,scores)==="live"?0:status(b,scores)==="up"?1:2;
                 return pa-pb;
-              }).slice(0,expandToday?undefined:2).reduce((acc,m)=>{
-                const st=status(m,scores);
-                const newHasLive=acc.hasLive||(st==="live");
-                const isNextUp=st==="up"&&newHasLive&&!acc.foundUp;
-                return {
-                  hasLive:newHasLive,
-                  foundUp:acc.foundUp||isNextUp,
-                  items:[...acc.items,{m,isNextUp}]
-                };
-              },{items:[],foundUp:false,hasLive:false}).items.map(({m,isNextUp})=>{
+              }).slice(0,expandToday?undefined:2).map(m=>{
                 const[t2,ap]=m.t.split(" ");
                 const sc=scores[m.id]||scores[String(m.id)];
                 const st=status(m,scores);
@@ -1581,10 +1572,7 @@ function HomeTab({T,lang,favs,setFavs,onTeam,setSM,scores,myPreds,setPredictM,se
                       </span>
                     ):(
                       <span style={{display:"flex",justifyContent:"center",flexShrink:0,minWidth:32}}>
-                        <span style={{display:"flex",alignItems:"center",gap:3}}>
-                          <span style={{fontFamily:HS,fontSize:10,fontWeight:700,color:T.green}}>{t2} <span style={{fontSize:7,color:T.text,opacity:0.5}}>{ap}</span></span>
-                          {isNextUp&&<span style={{fontFamily:HS,fontSize:7,fontWeight:700,color:T.textS,background:T.card2,borderRadius:4,padding:"1px 4px"}}>{lang==="bn"?"আপকামিং":"upcoming"}</span>}
-                        </span>
+                        <span style={{fontFamily:HS,fontSize:10,fontWeight:700,color:T.green}}>{t2} <span style={{fontSize:7,color:T.text,opacity:0.5}}>{ap}</span></span>
                       </span>
                     )}
                     <span style={{fontFamily:HS,fontSize:9,color:T.text,flex:1,textAlign:"right",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{tn(m.a,lang)}</span>
