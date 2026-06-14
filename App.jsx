@@ -302,7 +302,7 @@ const SORTED=[...MATCHES].sort((a,b)=>tMs(a)-tMs(b));
 const todayStr=()=>{const d=new Date();return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;};
 const tomStr=()=>{const t=new Date();t.setDate(t.getDate()+1);return `${t.getFullYear()}-${String(t.getMonth()+1).padStart(2,"0")}-${String(t.getDate()).padStart(2,"0")}`;};
 function status(m,scores){
-  const n=Date.now(),s=tMs(m),e=s+7200000;
+  const n=Date.now(),s=tMs(m),e=s+14400000; // 4 hours
   if(n<s)return "up";
   // Check if admin marked as ended
   if(scores){
@@ -310,7 +310,7 @@ function status(m,scores){
     if(sc&&sc.status==="end")return "ft";
   }
   if(n<=e)return "live";
-  return "live"; // keep as live until admin explicitly marks as FT
+  return "ft";
 }
 
 const END=["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
