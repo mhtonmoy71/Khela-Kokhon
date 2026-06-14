@@ -938,10 +938,11 @@ function SponsorBanner({T,lang}){
 function TopThreeWidget({T,lang}){
   const medals=["🥇","🥈","🥉"];
   const[top3,setTop3]=useState([]);
+  const[loading,setLoading]=useState(true);
 
   useEffect(()=>{
     getLB().then(data=>{
-      if(!Array.isArray(data))return;
+      if(!Array.isArray(data)){setLoading(false);return;}
       const map={};
       data.forEach(r=>{
         const n=r.predictor_name||r.name;
@@ -950,10 +951,10 @@ function TopThreeWidget({T,lang}){
         map[n].total+=(r.points||0);
       });
       setTop3(Object.values(map).sort((a,b)=>b.total-a.total).slice(0,3));
-    }).catch(()=>{});
+      setLoading(false);
+    }).catch(()=>setLoading(false));
   },[]);
 
-  if(top3.length===0)return null;
   return(
     <div style={{background:T.card,border:`1px solid ${T.border}`,borderRadius:12,
       padding:"10px",overflow:"hidden"}}>
@@ -961,18 +962,26 @@ function TopThreeWidget({T,lang}){
         marginBottom:8,textAlign:"center",letterSpacing:0.5}}>
         🏆 ScoreMaster
       </div>
-      {top3.map((row,i)=>(
-        <div key={i} style={{display:"flex",alignItems:"center",gap:6,
-          marginBottom:i<2?6:0}}>
-          <span style={{fontSize:13,flexShrink:0}}>{medals[i]}</span>
-          <span style={{fontFamily:HS,fontSize:11,fontWeight:600,color:T.text,
-            flex:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>
-            {row.name}
-          </span>
-          <span style={{fontFamily:HS,fontSize:11,fontWeight:800,color:T.green,
-            flexShrink:0}}>{row.total}</span>
+      {loading?(
+        <div style={{fontFamily:HS,fontSize:10,color:T.textM,textAlign:"center",padding:"6px 0"}}>...</div>
+      ):top3.length===0?(
+        <div style={{fontFamily:HS,fontSize:10,color:T.textM,textAlign:"center",padding:"4px 0"}}>
+          {lang==="bn"?"এখনো কেউ নেই":"No entries yet"}
         </div>
-      ))}
+      ):(
+        top3.map((row,i)=>(
+          <div key={i} style={{display:"flex",alignItems:"center",gap:6,marginBottom:i<2?6:0}}>
+            <span style={{fontSize:13,flexShrink:0}}>{medals[i]}</span>
+            <span style={{fontFamily:HS,fontSize:11,fontWeight:600,color:T.text,
+              flex:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>
+              {row.name}
+            </span>
+            <span style={{fontFamily:HS,fontSize:11,fontWeight:800,color:T.green,flexShrink:0}}>
+              {row.total}
+            </span>
+          </div>
+        ))
+      )}
     </div>
   );
 }
