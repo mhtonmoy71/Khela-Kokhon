@@ -934,6 +934,34 @@ function SponsorBanner({T,lang}){
   );
 }
 
+/* ── Top 3 ScoreMaster Widget ────────────────── */
+function TopThreeWidget({T,lang,lbData}){
+  const medals=["🥇","🥈","🥉"];
+  const top3=Array.isArray(lbData)?lbData.slice(0,3):[];
+  if(top3.length===0)return null;
+  return(
+    <div style={{background:T.card,border:`1px solid ${T.border}`,borderRadius:12,
+      padding:"10px 10px",overflow:"hidden"}}>
+      <div style={{fontFamily:HS,fontSize:10,fontWeight:700,color:T.textS,
+        marginBottom:8,textAlign:"center",letterSpacing:0.5}}>
+        🏆 ScoreMaster
+      </div>
+      {top3.map((row,i)=>(
+        <div key={i} style={{display:"flex",alignItems:"center",gap:6,
+          marginBottom:i<2?6:0}}>
+          <span style={{fontSize:13,flexShrink:0}}>{medals[i]}</span>
+          <span style={{fontFamily:HS,fontSize:11,fontWeight:600,color:T.text,
+            flex:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>
+            {row.name||row.predictor_name||"-"}
+          </span>
+          <span style={{fontFamily:HS,fontSize:11,fontWeight:800,color:T.green,
+            flexShrink:0}}>{row.total||0}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 /* ── Compact Calendar ────────────────────────── */
 function CompactCal({T,lang}){
   const[vm,setVm]=useState(new Date());
@@ -1305,7 +1333,7 @@ function DayPage({date,T,lang,scores,myPreds,setPredictM,onTeam,isAdmin,setScore
 }
 
 
-function HomeTab({T,lang,favs,setFavs,onTeam,setSM,scores,myPreds,setPredictM,setScoreM,isAdmin,dayPage,setDayPage}){
+function HomeTab({T,lang,favs,setFavs,onTeam,setSM,scores,myPreds,setPredictM,setScoreM,isAdmin,dayPage,setDayPage,lbData}){
   const WC_MS=new Date("2026-06-11T19:00:00Z").getTime();
   const[wcDiff,setWcDiff]=useState(()=>Math.max(0,WC_MS-Date.now()));
   useEffect(()=>{
@@ -1537,8 +1565,11 @@ function HomeTab({T,lang,favs,setFavs,onTeam,setSM,scores,myPreds,setPredictM,se
           </div>
         </div>
 
-        {/* Right: CompactCal */}
-        <div style={{flexShrink:0,width:"40%"}}><CompactCal T={T} lang={lang}/></div>
+        {/* Right: CompactCal + Top 3 */}
+        <div style={{flexShrink:0,width:"40%",display:"flex",flexDirection:"column",gap:8}}>
+          <CompactCal T={T} lang={lang}/>
+          <TopThreeWidget T={T} lang={lang} lbData={lbData}/>
+        </div>
       </div>
 
       <SponsorBanner T={T} lang={lang}/>
@@ -2624,7 +2655,7 @@ export default function App(){
         </div>
 
         {/* Body */}
-                {mt==="home"&&<HomeTab T={T} lang={lang} favs={favs} setFavs={setFavs} onTeam={openTeam} setSM={setSm} scores={scores} myPreds={myPreds} setPredictM={handlePredict} setScoreM={setScoreM} isAdmin={isAdmin} dayPage={dayPage} setDayPage={setDayPage}/>}
+                {mt==="home"&&<HomeTab T={T} lang={lang} favs={favs} setFavs={setFavs} onTeam={openTeam} setSM={setSm} scores={scores} myPreds={myPreds} setPredictM={handlePredict} setScoreM={setScoreM} isAdmin={isAdmin} dayPage={dayPage} setDayPage={setDayPage} lbData={lbData}/>}
         {mt==="wc"&&wt==="fixture"&&<GroupTab T={T} lang={lang} onTeam={openTeam} scores={scores} myPreds={myPreds} setPredictM={handlePredict} isAdmin={isAdmin} setScoreM={setScoreM}/>}
         {mt==="wc"&&wt==="knockout"&&<KnockoutTab T={T} lang={lang} scores={scores}/>}
         {mt==="wc"&&wt==="table"&&<TableTab T={T} lang={lang} scores={scores}/>}
