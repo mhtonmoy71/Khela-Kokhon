@@ -941,16 +941,26 @@ function TopThreeWidget({T,lang,setMt}){
 
   useEffect(()=>{
     getLB().then(data=>{
-      if(!Array.isArray(data)){setLoading(false);return;}
-      const map={};
-      data.forEach(r=>{
-        const n=r.predictor_name||r.name;
-        if(!n)return;
-        if(!map[n])map[n]={name:n,total:0};
-        map[n].total+=(r.points||0);
-      });
-      const sorted=Object.values(map).sort((a,b)=>b.total-a.total);
-      if(sorted.length>0)setTop1(sorted[0]);
+      if(!Array.isArray(data)||data.length===0){setLoading(false);return;}
+      // GAS returns pre-processed {name, total, count} OR raw {predictor_name, points}
+      // Handle both formats
+      const first=data[0];
+      if(first.name!==undefined&&first.total!==undefined){
+        // Already processed format
+        const sorted=[...data].sort((a,b)=>b.total-a.total);
+        setTop1(sorted[0]);
+      } else {
+        // Raw format — process it
+        const map={};
+        data.forEach(r=>{
+          const n=r.predictor_name||r.name;
+          if(!n)return;
+          if(!map[n])map[n]={name:n,total:0};
+          map[n].total+=(Number(r.points)||0);
+        });
+        const sorted=Object.values(map).sort((a,b)=>b.total-a.total);
+        if(sorted.length>0)setTop1(sorted[0]);
+      }
       setLoading(false);
     }).catch(()=>setLoading(false));
   },[]);
