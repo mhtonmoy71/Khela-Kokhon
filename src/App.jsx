@@ -1533,7 +1533,7 @@ function HomeTab({T,lang,favs,setFavs,onTeam,setSM,scores,myPreds,setPredictM,se
       <div style={{display:"flex",gap:10,marginBottom:14,alignItems:"stretch"}}>
         {/* Left: Today & Tomorrow info */}
         <div style={{flex:1,minWidth:0,display:"flex",flexDirection:"column"}}>
-          <div onClick={()=>setDayPage(today)} style={{background:T.card,borderRadius:14,border:`1px solid ${T.border}`,padding:"8px 10px",marginBottom:8,cursor:"pointer",flex:1}}>
+          <div onClick={()=>setDayPage(today)} style={{background:T.card,borderRadius:14,border:`1px solid ${T.border}`,padding:"8px 10px",marginBottom:8,flex:1,cursor:"pointer"}}>
             <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:8}}>
               <div style={{display:"flex",alignItems:"center",gap:5}}>
                 {todayMs.length>0&&<div style={{width:7,height:7,borderRadius:"50%",background:T.red,flexShrink:0,animation:"pulse 1s infinite"}}/>}
@@ -1546,13 +1546,15 @@ function HomeTab({T,lang,favs,setFavs,onTeam,setSM,scores,myPreds,setPredictM,se
                 const pa=status(a,scores)==="live"?0:status(a,scores)==="up"?1:2;
                 const pb=status(b,scores)==="live"?0:status(b,scores)==="up"?1:2;
                 return pa-pb;
-              }).reduce((acc,m)=>{
+              }).slice(0,expandToday?undefined:2).reduce((acc,m)=>{
                 const st=status(m,scores);
-                const hasLive=acc.hasLive||(st==="live");
-                const isNextUp=st==="up"&&acc.hasLive&&!acc.foundUp;
-                if(isNextUp)acc.foundUp=true;
-                acc.items.push({m,isNextUp});
-                return {...acc,hasLive};
+                const newHasLive=acc.hasLive||(st==="live");
+                const isNextUp=st==="up"&&newHasLive&&!acc.foundUp;
+                return {
+                  hasLive:newHasLive,
+                  foundUp:acc.foundUp||isNextUp,
+                  items:[...acc.items,{m,isNextUp}]
+                };
               },{items:[],foundUp:false,hasLive:false}).items.map(({m,isNextUp})=>{
                 const[t2,ap]=m.t.split(" ");
                 const sc=scores[m.id]||scores[String(m.id)];
@@ -1604,13 +1606,7 @@ function HomeTab({T,lang,favs,setFavs,onTeam,setSM,scores,myPreds,setPredictM,se
                 const pa=status(a,scores)==="live"?0:status(a,scores)==="up"?1:2;
                 const pb=status(b,scores)==="live"?0:status(b,scores)==="up"?1:2;
                 return pa-pb;
-              }).reduce((acc,m)=>{
-                const st=status(m,scores);
-                const isNextUp=st==="up"&&!acc.foundUp;
-                if(isNextUp)acc.foundUp=true;
-                acc.items.push({m,isNextUp});
-                return acc;
-              },{items:[],foundUp:false}).items.map(({m,isNextUp})=>{
+              }).slice(0,expandTom?undefined:2).map(m=>{
                 const[t2,ap]=m.t.split(" ");
                 return(
                   <div key={m.id} style={{display:"flex",alignItems:"center",gap:4,marginBottom:6,paddingBottom:6,borderBottom:`1px solid ${T.border}`}}>
