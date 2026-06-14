@@ -902,7 +902,7 @@ const SPONSOR_AD = {
   subBn: "প্রিয় দলের হয়ে বই কিনে গোল দিন — Boitoi তে",
   subEn: "Buy a book for your team and score a goal — at Boitoi",
   ctaBn: "গোল দিতে যান →",
-  ctaEn: "Go score a goal →",
+  ctaEn: "Support your team on Boitoi →",
 };
 
 function SponsorBanner({T,lang}){
