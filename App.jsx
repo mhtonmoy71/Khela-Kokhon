@@ -310,7 +310,7 @@ function status(m,scores){
     if(sc&&sc.status==="end")return "ft";
   }
   if(n<=e)return "live";
-  return "ft";
+  return "live"; // keep as live until admin explicitly marks as FT
 }
 
 const END=["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
@@ -967,10 +967,11 @@ function TopThreeWidget({T,lang,setMt}){
 
   return(
     <div onClick={()=>setMt("lb")} style={{background:T.card,border:`1px solid ${T.border}`,
-      borderRadius:12,padding:"10px",cursor:"pointer"}}>
+      borderRadius:12,padding:"10px",cursor:"pointer",flex:1,display:"flex",
+      flexDirection:"column",justifyContent:"center"}}>
       <div style={{fontFamily:HS,fontSize:10,fontWeight:700,color:T.textS,
         marginBottom:6,textAlign:"center"}}>
-        🏆 {lang==="bn"?"স্কোরমাস্টার":"ScoreMaster"}
+        🏅 {lang==="bn"?"স্কোরমাস্টার":"ScoreMaster"}
       </div>
       {loading?(
         <div style={{fontFamily:HS,fontSize:10,color:T.textM,textAlign:"center"}}>...</div>
@@ -1600,7 +1601,7 @@ function HomeTab({T,lang,favs,setFavs,onTeam,setSM,scores,myPreds,setPredictM,se
         {/* Right: CompactCal + Top 3 */}
         <div style={{flexShrink:0,width:"40%",display:"flex",flexDirection:"column",gap:8}}>
           <CompactCal T={T} lang={lang}/>
-          <div style={{marginTop:"auto"}}>
+          <div style={{marginTop:"auto",flex:1,display:"flex",flexDirection:"column"}}>
             <TopThreeWidget T={T} lang={lang} setMt={setMt}/>
           </div>
         </div>
