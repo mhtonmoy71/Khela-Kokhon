@@ -1554,16 +1554,16 @@ function HomeTab({T,lang,favs,setFavs,onTeam,setSM,scores,myPreds,setPredictM,se
                   <div key={m.id} style={{display:"flex",alignItems:"center",gap:4,marginBottom:6,paddingBottom:6,borderBottom:`1px solid ${T.border}`,opacity:isFT?0.6:1}}>
                     <Flag en={m.h} size={14}/>
                     <span style={{fontFamily:HS,fontSize:9,color:T.text,flex:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{tn(m.h,lang)}</span>
-                    {hasScore?(
+                    {hasScore||st==="live"?(
                       <span style={{display:"flex",justifyContent:"center",flexShrink:0,minWidth:32}}>
                         {isFT?(
                           <span style={{display:"flex",alignItems:"center",gap:3,background:T.card2,borderRadius:6,padding:"2px 6px",border:`1px solid ${T.border}`}}>
-                            <span style={{fontFamily:HS,fontSize:11,fontWeight:800,color:T.text}}>{sc.hg}–{sc.ag}</span>
+                            <span style={{fontFamily:HS,fontSize:11,fontWeight:800,color:T.text}}>{sc?.hg??0}–{sc?.ag??0}</span>
                             <span style={{fontFamily:HS,fontSize:7,fontWeight:700,color:T.textS,letterSpacing:0.5}}>FT</span>
                           </span>
                         ):( 
                           <span style={{display:"flex",alignItems:"center",gap:3}}>
-                            <span style={{fontFamily:HS,fontSize:11,fontWeight:800,color:"#3b82f6"}}>{sc.hg}–{sc.ag}</span>
+                            <span style={{fontFamily:HS,fontSize:11,fontWeight:800,color:"#3b82f6"}}>{sc?.hg??0}–{sc?.ag??0}</span>
                             <span style={{fontFamily:HS,fontSize:7,fontWeight:700,color:"#e53935",background:"rgba(229,57,53,0.1)",borderRadius:4,padding:"1px 4px",letterSpacing:0.3}}>{lang==="bn"?"লাইভ":"LIVE"}</span>
                           </span>
                         )}
