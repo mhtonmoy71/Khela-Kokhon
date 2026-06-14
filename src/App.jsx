@@ -1369,6 +1369,8 @@ function DayPage({date,T,lang,scores,myPreds,setPredictM,onTeam,isAdmin,setScore
 function HomeTab({T,lang,favs,setFavs,onTeam,setSM,scores,myPreds,setPredictM,setScoreM,isAdmin,dayPage,setDayPage,lbData,scoresLoaded}){
   const WC_MS=new Date("2026-06-11T19:00:00Z").getTime();
   const[wcDiff,setWcDiff]=useState(()=>Math.max(0,WC_MS-Date.now()));
+  const[expandToday,setExpandToday]=useState(false);
+  const[expandTom,setExpandTom]=useState(false);
   useEffect(()=>{
     if(wcDiff<=0)return;
     const id=setInterval(()=>{const d=Math.max(0,WC_MS-Date.now());setWcDiff(d);if(d<=0)clearInterval(id);},1000);
@@ -1544,7 +1546,7 @@ function HomeTab({T,lang,favs,setFavs,onTeam,setSM,scores,myPreds,setPredictM,se
                 const pa=status(a,scores)==="live"?0:status(a,scores)==="up"?1:2;
                 const pb=status(b,scores)==="live"?0:status(b,scores)==="up"?1:2;
                 return pa-pb;
-              }).slice(0,2).map(m=>{
+              }).slice(0,expandToday?undefined:2).map(m=>{
                 const[t2,ap]=m.t.split(" ");
                 const sc=scores[m.id]||scores[String(m.id)];
                 const st=status(m,scores);
@@ -1578,7 +1580,7 @@ function HomeTab({T,lang,favs,setFavs,onTeam,setSM,scores,myPreds,setPredictM,se
                   </div>
                 );
               })}
-              {todayMs.length>2&&<div style={{fontFamily:HS,fontSize:10,color:T.green,textAlign:"center",marginTop:2,cursor:"pointer"}} onClick={()=>setDayPage(today)}>{lang==="bn"?"+"+String(todayMs.length-2).replace(/[0-9]/g,d=>"০১২৩৪৫৬৭৮৯"[d])+" টা আরো →":"+"+String(todayMs.length-2)+" more →"}</div>}
+              {todayMs.length>2&&<div style={{fontFamily:HS,fontSize:10,color:T.green,textAlign:"center",marginTop:2,cursor:"pointer"}} onClick={(e)=>{e.stopPropagation();setExpandToday(v=>!v);}}>{expandToday?(lang==="bn"?"কম দেখাও ↑":"Show less ↑"):(lang==="bn"?"+"+String(todayMs.length-2).replace(/[0-9]/g,d=>"০১২৩৪৫৬৭৮৯"[d])+" টা আরো ↓":"+"+String(todayMs.length-2)+" more ↓")}</div>}
             </>):<div style={{fontFamily:HS,fontSize:11,color:T.textS,textAlign:"center"}}>{lang==="bn"?"কোনো ম্যাচ নেই":"No matches"}</div>}
           </div>
 
@@ -1592,7 +1594,7 @@ function HomeTab({T,lang,favs,setFavs,onTeam,setSM,scores,myPreds,setPredictM,se
                 const pa=status(a,scores)==="live"?0:status(a,scores)==="up"?1:2;
                 const pb=status(b,scores)==="live"?0:status(b,scores)==="up"?1:2;
                 return pa-pb;
-              }).slice(0,2).map(m=>{
+              }).slice(0,expandTom?undefined:2).map(m=>{
                 const[t2,ap]=m.t.split(" ");
                 return(
                   <div key={m.id} style={{display:"flex",alignItems:"center",gap:4,marginBottom:6,paddingBottom:6,borderBottom:`1px solid ${T.border}`}}>
@@ -1604,7 +1606,7 @@ function HomeTab({T,lang,favs,setFavs,onTeam,setSM,scores,myPreds,setPredictM,se
                   </div>
                 );
               })}
-              {tomMs.length>2&&<div style={{fontFamily:HS,fontSize:10,color:T.green,textAlign:"center",marginTop:2,cursor:"pointer"}} onClick={()=>setDayPage(tom)}>{lang==="bn"?"+"+String(tomMs.length-2).replace(/[0-9]/g,d=>"০১২৩৪৫৬৭৮৯"[d])+" টা আরো →":"+"+String(tomMs.length-2)+" more →"}</div>}
+              {tomMs.length>2&&<div style={{fontFamily:HS,fontSize:10,color:T.green,textAlign:"center",marginTop:2,cursor:"pointer"}} onClick={(e)=>{e.stopPropagation();setExpandTom(v=>!v);}}>{expandTom?(lang==="bn"?"কম দেখাও ↑":"Show less ↑"):(lang==="bn"?"+"+String(tomMs.length-2).replace(/[0-9]/g,d=>"০১২৩৪৫৬৭৮৯"[d])+" টা আরো ↓":"+"+String(tomMs.length-2)+" more ↓")}</div>}
             </>):<div style={{fontFamily:HS,fontSize:11,color:T.textS,textAlign:"center"}}>{lang==="bn"?"কোনো ম্যাচ নেই":"No matches"}</div>}
           </div>
         </div>
