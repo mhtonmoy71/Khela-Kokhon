@@ -2553,7 +2553,7 @@ export default function App(){
   const[dayPage,setDayPage]=useState(null);
   const T=mkT(dark);
 
-  useEffect(()=>{
+  const fetchScores=useCallback(()=>{
     getScores().then(data=>{
       const m={};
       Object.entries(data).forEach(([id,s])=>{
@@ -2564,6 +2564,12 @@ export default function App(){
       setScoresLoaded(true);
     }).catch(()=>{});
   },[]);
+
+  useEffect(()=>{
+    fetchScores();
+    const interval=setInterval(fetchScores,60000); // poll every 60 seconds
+    return()=>clearInterval(interval);
+  },[fetchScores]);
   useEffect(()=>{
     if(!userName){return;}
     getPreds(userName).then(data=>{
