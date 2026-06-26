@@ -1016,7 +1016,17 @@ function CompactCal({T,lang,setDayPage}){
   // Scroll to today on mount
   useEffect(()=>{
     if(!stripRef.current)return;
-    // No auto-scroll - start from beginning (June 12)
+    // Scroll to yesterday (one before today) so today is near start
+    // Scroll today to center of strip (strip internal scroll only)
+    if(!stripRef.current)return;
+    const todayEl=stripRef.current.querySelector('[data-today="true"]');
+    if(todayEl){
+      const strip=stripRef.current;
+      const itemLeft=todayEl.offsetLeft;
+      const itemWidth=todayEl.offsetWidth;
+      const stripWidth=strip.offsetWidth;
+      strip.scrollLeft=itemLeft-(stripWidth/2)+(itemWidth/2);
+    }
   },[]);
 
   const dayNames=lang==="bn"
@@ -1040,42 +1050,50 @@ function CompactCal({T,lang,setDayPage}){
       <div ref={stripRef} style={{overflowX:"auto",scrollbarWidth:"none",
         WebkitOverflowScrolling:"touch",borderBottom:`1px solid ${T.border}`}}>
         <div style={{display:"flex",alignItems:"stretch",minWidth:"max-content"}}>
-          {allDays.map((ds)=>{
-            const d=new Date(ds+"T12:00:00");
-            const dayNum=d.getDate();
-            const dayName=dayNames[d.getDay()];
-            const monName=lang==="bn"?BNMs[d.getMonth()].slice(0,3):ENMs[d.getMonth()];
-            const hasM=ALL_DATES.has(ds);
-            const isTod=ds===today;
+          {(()=>{
             const yest=new Date(today+"T12:00:00");yest.setDate(yest.getDate()-1);
             const yesterdayStr=`${yest.getFullYear()}-${String(yest.getMonth()+1).padStart(2,"0")}-${String(yest.getDate()).padStart(2,"0")}`;
             const tom2=new Date(today+"T12:00:00");tom2.setDate(tom2.getDate()+1);
             const tomorrowStr=`${tom2.getFullYear()}-${String(tom2.getMonth()+1).padStart(2,"0")}-${String(tom2.getDate()).padStart(2,"0")}`;
-            const isYest=ds===yesterdayStr;
-            const isTom=ds===tomorrowStr;
-            const label=isTod?(lang==="bn"?"আজ":"Today"):isYest?(lang==="bn"?"গতকাল":"Yesterday"):isTom?(lang==="bn"?"আগামীকাল":"Tomorrow"):null;
-            return(
-              <div key={ds} data-today={isTod?"true":"false"}
-                onClick={()=>handleDayClick(ds)}
-                style={{flexShrink:0,display:"flex",flexDirection:"column",alignItems:"center",
-                  padding:"10px 14px 8px",cursor:"pointer",position:"relative",
-                  borderBottom:`2.5px solid ${isTod?T.green:"transparent"}`,
-                  background:isTod?"rgba(0,230,118,0.04)":"transparent",
-                  minWidth:64}}>
-                <span style={{fontFamily:HS,fontSize:label?10:9,fontWeight:700,
-                  color:isTod?T.green:T.textS,marginBottom:2,whiteSpace:"nowrap"}}>
-                  {label||dayName}
-                </span>
-                <span style={{fontFamily:HS,fontSize:label?11:12,fontWeight:800,
-                  color:isTod?T.green:hasM?T.text:T.textM,
-                  opacity:hasM||isTod?1:0.3,lineHeight:1}}>
-                  {dayNum} {monName}
-                </span>
-                {hasM&&<div style={{width:4,height:4,borderRadius:"50%",
-                  background:isTod?T.green:"rgba(0,230,118,0.5)",marginTop:5}}/>}
-              </div>
-            );
-          })}
+            return allDays.map((ds)=>{
+              const d=new Date(ds+"T12:00:00");
+              const dayNum=d.getDate();
+              const dayName=dayNames[d.getDay()];
+              const monName=lang==="bn"?BNMs[d.getMonth()].slice(0,3):ENMs[d.getMonth()].slice(0,3);
+              const hasM=ALL_DATES.has(ds);
+              const isTod=ds===today;
+              const isYest=ds===yesterdayStr;
+              const isTom=ds===tomorrowStr;
+              // FotMob style: special label or "Sun 29 Jun"
+              const topLabel=isTod?(lang==="bn"?"আজ":"Today")
+                :isYest?(lang==="bn"?"গতকাল":"Yesterday")
+                :isTom?(lang==="bn"?"আগামীকাল":"Tomorrow")
+                :null;
+              const bottomLabel=topLabel?null:`${dayNum} ${monName}`;
+              return(
+                <div key={ds} data-today={isTod?"true":"false"}
+                  onClick={()=>handleDayClick(ds)}
+                  style={{flexShrink:0,display:"flex",flexDirection:"column",alignItems:"center",
+                    justifyContent:"center",
+                    padding:"10px 16px 8px",cursor:"pointer",
+                    borderBottom:`2.5px solid ${isTod?T.green:"transparent"}`,
+                    background:isTod?"rgba(0,230,118,0.04)":"transparent",
+                    minWidth:topLabel?72:80,gap:2}}>
+                  <span style={{fontFamily:HS,fontSize:9,fontWeight:600,
+                    color:isTod?T.green:T.textS,whiteSpace:"nowrap",marginBottom:1}}>
+                    {topLabel||dayName}
+                  </span>
+                  <span style={{fontFamily:HS,fontSize:10,fontWeight:700,
+                    color:isTod?T.green:hasM?T.text:T.textM,
+                    opacity:hasM||isTod?1:0.3,whiteSpace:"nowrap"}}>
+                    {dayNum} {lang==="bn"?BNMs[d.getMonth()]:ENMs[d.getMonth()].slice(0,3)}
+                  </span>
+                  {hasM&&<div style={{width:4,height:4,borderRadius:"50%",
+                    background:isTod?T.green:"rgba(0,230,118,0.6)",marginTop:3}}/>}
+                </div>
+              );
+            });
+          })()}
         </div>
       </div>
 
@@ -2659,7 +2677,7 @@ function HeaderCalModal({T,lang,onClose,setDayPage}){
   return(
     <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.4)",zIndex:500}}
       onClick={onClose}>
-      <div style={{position:"absolute",top:60,right:0,width:220,
+      <div style={{position:"absolute",top:56,right:0,width:190,
         background:T.card,borderRadius:"12px 0 0 12px",
         boxShadow:"-4px 4px 20px rgba(0,0,0,0.3)",
         overflow:"hidden",display:"flex",flexDirection:"column",
