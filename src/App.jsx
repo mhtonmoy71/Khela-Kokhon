@@ -1222,8 +1222,11 @@ function MatchRow({m,T,lang,scores,myPreds,setPredictM,onTeam,isAdmin,setScoreM}
           </div>
           <div style={{width:68,textAlign:"center",flexShrink:0}}>
             {hasScore?(
-              <div style={{background:T.greenBg,borderRadius:8,padding:"3px 6px",border:`1px solid ${T.greenBr}`}}>
-                <span style={{fontFamily:HS,fontSize:15,fontWeight:800,color:T.green}}>{sc.hg}–{sc.ag}</span>
+              <div style={{textAlign:"center"}}>
+                <div style={{background:T.greenBg,borderRadius:8,padding:"3px 6px",border:`1px solid ${T.greenBr}`,marginBottom:2}}>
+                  <span style={{fontFamily:HS,fontSize:15,fontWeight:800,color:T.green}}>{sc.hg}–{sc.ag}</span>
+                </div>
+                <div style={{fontFamily:HS,fontSize:8,color:T.textM}}>#{m.id} · Grp {m.g}</div>
               </div>
             ):(
               <div>
