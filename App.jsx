@@ -1021,8 +1021,8 @@ function CompactCal({T,lang,setDayPage}){
   },[]);
 
   const dayNames=lang==="bn"
-    ?["রো","সো","মঙ","বু","বৃ","শু","শ"]
-    :["S","M","T","W","T","F","S"];
+    ?["রবি","সোম","মঙ্গ","বুধ","বৃহ","শুক্র","শনি"]
+    :["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
 
   // Calendar popup
   const y=vm.getFullYear(),mo=vm.getMonth();
@@ -1038,43 +1038,39 @@ function CompactCal({T,lang,setDayPage}){
   return(
     <>
       {/* Horizontal date strip */}
-      <div ref={stripRef} style={{display:"flex",overflowX:"auto",gap:6,padding:"6px 12px",
-        WebkitOverflowScrolling:"touch",scrollbarWidth:"none",alignItems:"center"}}>
-        {allDays.map(ds=>{
+      <div ref={stripRef} style={{display:"flex",overflowX:"auto",gap:0,padding:"20px 12px 10px",
+        WebkitOverflowScrolling:"touch",scrollbarWidth:"none",alignItems:"center",
+        position:"relative"}}>
+        {allDays.map((ds,idx)=>{
           const d=new Date(ds+"T12:00:00");
           const dayNum=d.getDate();
           const dayName=dayNames[d.getDay()];
+          const monName=lang==="bn"?BNMs[d.getMonth()].slice(0,3):ENMs[d.getMonth()];
           const hasM=ALL_DATES.has(ds);
           const isTod=ds===today;
           return(
             <div key={ds} data-today={isTod?"true":"false"}
               onClick={()=>handleDayClick(ds)}
               style={{flexShrink:0,display:"flex",flexDirection:"column",alignItems:"center",
-                gap:2,padding:"6px 8px",borderRadius:12,cursor:"pointer",minWidth:40,
-                background:isTod?T.green:T.card,
-                border:`1px solid ${isTod?T.green:T.border}`,
-                transition:"all 0.15s"}}>
-              <span style={{fontFamily:HS,fontSize:9,fontWeight:600,
-                color:isTod?"#064e3b":T.textS}}>{dayName}</span>
-              <span style={{fontFamily:HS,fontSize:13,fontWeight:800,
-                color:isTod?"#064e3b":hasM?T.text:T.textM,opacity:hasM||isTod?1:0.4}}>
+                padding:"8px 14px",cursor:"pointer",position:"relative",
+                borderBottom:`2.5px solid ${isTod?T.green:"transparent"}`,
+                transition:"border-color 0.15s"}}>
+              <span style={{fontFamily:HS,fontSize:10,fontWeight:600,
+                color:isTod?T.green:T.textS,marginBottom:3}}>{dayName}</span>
+              <span style={{fontFamily:HS,fontSize:16,fontWeight:800,lineHeight:1,
+                color:isTod?T.green:hasM?T.text:T.textM,
+                opacity:hasM||isTod?1:0.25}}>
                 {dayNum}
               </span>
-              {hasM&&!isTod&&<div style={{width:4,height:4,borderRadius:"50%",background:T.green}}/>}
-              {isTod&&<div style={{width:4,height:4,borderRadius:"50%",background:"#064e3b"}}/>}
+              <span style={{fontFamily:HS,fontSize:9,color:isTod?T.green:T.textM,
+                marginTop:3,opacity:isTod?0.8:0.5}}>{monName}</span>
+              {hasM&&!isTod&&<div style={{width:4,height:4,borderRadius:"50%",
+                background:T.green,marginTop:5}}/>}
+              {isTod&&<div style={{width:4,height:4,borderRadius:"50%",
+                background:T.green,marginTop:5}}/>}
             </div>
           );
         })}
-        {/* Calendar button */}
-        <div onClick={()=>setShowCal(true)}
-          style={{flexShrink:0,display:"flex",flexDirection:"column",alignItems:"center",
-            gap:2,padding:"6px 8px",borderRadius:12,cursor:"pointer",minWidth:40,
-            background:T.card2,border:`1px solid ${T.border}`}}>
-          <span style={{fontSize:16}}>📅</span>
-          <span style={{fontFamily:HS,fontSize:8,color:T.textS,fontWeight:600}}>
-            {lang==="bn"?"সব":"All"}
-          </span>
-        </div>
       </div>
 
       {/* Full calendar popup */}
@@ -2651,10 +2647,11 @@ function HeaderCalModal({T,lang,onClose,setDayPage}){
   const days=[];for(let i=0;i<fd;i++)days.push(null);for(let d=1;d<=dim;d++)days.push(d);
   const popMs=pop?getMatchesForDate(pop):[];
   return(
-    <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.75)",zIndex:500,
-      display:"flex",alignItems:"flex-end"}} onClick={onClose}>
-      <div style={{background:T.card,borderRadius:"20px 20px 0 0",width:"100%",
-        maxHeight:"80vh",overflow:"hidden",display:"flex",flexDirection:"column"}}
+    <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.6)",zIndex:500,
+      display:"flex",alignItems:"flex-start"}} onClick={onClose}>
+      <div style={{background:T.card,borderRadius:"0 0 20px 20px",width:"100%",
+        maxHeight:"80vh",overflow:"hidden",display:"flex",flexDirection:"column",
+        animation:"slideDown 0.25s ease-out"}}
         onClick={e=>e.stopPropagation()}>
         {/* Header */}
         <div style={{background:T.green,padding:"10px 14px",display:"flex",
@@ -2897,7 +2894,7 @@ export default function App(){
   if(tp) return(
     <>
       <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet"/>
-      <style>{`@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}*{-webkit-tap-highlight-color:transparent;}`}</style>
+      <style>{`@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}@keyframes slideDown{from{transform:translateY(-100%);opacity:0}to{transform:translateY(0);opacity:1}}*{-webkit-tap-highlight-color:transparent;}`}</style>
       <TeamPage en={tp} T={T} lang={lang} onBack={closeTeam} onTeam={openTeam} scores={scores} myPreds={myPreds} setPredictM={setPredictM} isAdmin={isAdmin} setScoreM={setScoreM}/>
       {predictM&&userName&&<PredictModal m={predictM} T={T} lang={lang} userName={userName} myPreds={myPreds} setMyPreds={setMyPreds} onClose={()=>setPredictM(null)}/>}
       {predictM&&!userName&&!needName&&<NameModal T={T} lang={lang} onSave={handleNameSave} onClose={()=>setPredictM(null)}/>}
@@ -2923,7 +2920,17 @@ export default function App(){
               </div>
             </div>
             <div style={{display:"flex",gap:6}}>
-              <button onClick={()=>setShowHeaderCal(true)} style={{background:"rgba(255,255,255,0.12)",border:"1px solid rgba(255,255,255,0.2)",color:"#fff",borderRadius:20,width:36,height:36,cursor:"pointer",fontSize:16,display:"flex",alignItems:"center",justifyContent:"center"}}>📅</button>
+              <button onClick={()=>setShowHeaderCal(true)} style={{background:"rgba(255,255,255,0.12)",border:"1px solid rgba(255,255,255,0.2)",color:"#fff",borderRadius:20,width:36,height:36,cursor:"pointer",fontSize:16,display:"flex",alignItems:"center",justifyContent:"center"}}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="3" y="4" width="18" height="18" rx="3"/>
+                  <line x1="3" y1="9" x2="21" y2="9"/>
+                  <line x1="8" y1="2" x2="8" y2="6"/>
+                  <line x1="16" y1="2" x2="16" y2="6"/>
+                  <circle cx="8" cy="14" r="1" fill="currentColor"/>
+                  <circle cx="12" cy="14" r="1" fill="currentColor"/>
+                  <circle cx="16" cy="14" r="1" fill="currentColor"/>
+                </svg>
+              </button>
               <button onClick={()=>{setDark(d=>{localStorage.setItem("kk_dark",String(!d));return !d;})}} style={{background:"rgba(255,255,255,0.12)",border:"1px solid rgba(255,255,255,0.2)",color:"#fff",borderRadius:20,width:36,height:36,cursor:"pointer",fontSize:16,display:"flex",alignItems:"center",justifyContent:"center"}}>{dark?"☀️":"🌙"}</button>
               <button onClick={()=>{setLang(l=>{const nl=l==="bn"?"en":"bn";localStorage.setItem("kk_lang",nl);return nl;})}} style={{fontFamily:HS,background:"rgba(255,255,255,0.12)",border:"1px solid rgba(255,255,255,0.2)",color:"#fff",borderRadius:20,padding:"0 12px",height:36,fontSize:12,fontWeight:700,cursor:"pointer"}}>{lang==="bn"?"EN":"বাং"}</button>
             </div>
