@@ -1016,8 +1016,7 @@ function CompactCal({T,lang,setDayPage}){
   // Scroll to today on mount
   useEffect(()=>{
     if(!stripRef.current)return;
-    const todayEl=stripRef.current.querySelector('[data-today="true"]');
-    if(todayEl)todayEl.scrollIntoView({inline:"center",behavior:"smooth"});
+    // No auto-scroll - start from beginning (June 12)
   },[]);
 
   const dayNames=lang==="bn"
@@ -1678,9 +1677,9 @@ function HomeTab({T,lang,favs,setFavs,onTeam,setSM,scores,myPreds,setPredictM,se
                 const isFT=st==="ft";
                 const hasScore=sc&&sc.hg!==""&&sc.ag!=="";
                 return(
-                  <div key={m.id} style={{display:"flex",alignItems:"center",gap:4,marginBottom:6,paddingBottom:6,borderBottom:`1px solid ${T.border}`,opacity:isFT?0.6:1}}>
+                  <div key={m.id} style={{display:"flex",alignItems:"center",gap:4,marginBottom:6,opacity:isFT?0.6:1}}>
                     <Flag en={m.h} size={14}/>
-                    <span style={{fontFamily:HS,fontSize:10,fontWeight:600,color:T.text,flex:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{tn(m.h,lang)}</span>
+                    <span style={{fontFamily:HS,fontSize:12,fontWeight:600,color:T.text,flex:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{tn(m.h,lang)}</span>
                     {hasScore||(st==="live")?(
                       <span style={{display:"flex",justifyContent:"center",flexShrink:0,minWidth:32}}>
                         {isFT?(
@@ -1700,7 +1699,7 @@ function HomeTab({T,lang,favs,setFavs,onTeam,setSM,scores,myPreds,setPredictM,se
                         <span style={{fontFamily:HS,fontSize:10,fontWeight:700,color:T.green}}>{t2} <span style={{fontSize:7,color:T.text,opacity:0.5}}>{ap}</span></span>
                       </span>
                     )}
-                    <span style={{fontFamily:HS,fontSize:10,fontWeight:600,color:T.text,flex:1,textAlign:"right",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{tn(m.a,lang)}</span>
+                    <span style={{fontFamily:HS,fontSize:12,fontWeight:600,color:T.text,flex:1,textAlign:"right",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{tn(m.a,lang)}</span>
                     <Flag en={m.a} size={14}/>
                   </div>
                 );
@@ -1722,11 +1721,11 @@ function HomeTab({T,lang,favs,setFavs,onTeam,setSM,scores,myPreds,setPredictM,se
               }).slice(0,expandTom?undefined:2).map(m=>{
                 const[t2,ap]=m.t.split(" ");
                 return(
-                  <div key={m.id} style={{display:"flex",alignItems:"center",gap:4,marginBottom:6,paddingBottom:6,borderBottom:`1px solid ${T.border}`}}>
+                  <div key={m.id} style={{display:"flex",alignItems:"center",gap:4,marginBottom:6}}>
                     <Flag en={m.h} size={14}/>
-                    <span style={{fontFamily:HS,fontSize:10,fontWeight:600,color:T.text,flex:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{tn(m.h,lang)}</span>
+                    <span style={{fontFamily:HS,fontSize:12,fontWeight:600,color:T.text,flex:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{tn(m.h,lang)}</span>
                     <span style={{display:"flex",justifyContent:"center",flexShrink:0,minWidth:32}}><span style={{fontFamily:HS,fontSize:10,fontWeight:700,color:T.gold||T.green}}>{t2} <span style={{fontSize:7,color:T.text,opacity:0.5}}>{ap}</span></span></span>
-                    <span style={{fontFamily:HS,fontSize:10,fontWeight:600,color:T.text,flex:1,textAlign:"right",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{tn(m.a,lang)}</span>
+                    <span style={{fontFamily:HS,fontSize:12,fontWeight:600,color:T.text,flex:1,textAlign:"right",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{tn(m.a,lang)}</span>
                     <Flag en={m.a} size={14}/>
                   </div>
                 );
@@ -1739,7 +1738,7 @@ function HomeTab({T,lang,favs,setFavs,onTeam,setSM,scores,myPreds,setPredictM,se
       </div>
 
       {/* Full-width Date Strip */}
-      <CompactCal T={T} lang={lang} setDayPage={openDayPage}/>
+      <CompactCal T={T} lang={lang} setDayPage={setDayPage}/>
 
       <SponsorBanner T={T} lang={lang}/>
 
@@ -2660,44 +2659,44 @@ function HeaderCalModal({T,lang,onClose,setDayPage}){
   return(
     <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.4)",zIndex:500}}
       onClick={onClose}>
-      <div style={{position:"absolute",top:60,right:0,width:260,
+      <div style={{position:"absolute",top:60,right:0,width:220,
         background:T.card,borderRadius:"12px 0 0 12px",
         boxShadow:"-4px 4px 20px rgba(0,0,0,0.3)",
         overflow:"hidden",display:"flex",flexDirection:"column",
         animation:"slideRight 0.2s ease-out"}}
         onClick={e=>e.stopPropagation()}>
         {/* Header */}
-        <div style={{background:T.green,padding:"10px 14px",display:"flex",
+        <div style={{background:T.green,padding:"7px 10px",display:"flex",
           alignItems:"center",justifyContent:"space-between"}}>
           <button onClick={()=>setVm(new Date(y,mo-1,1))}
             style={{background:"rgba(255,255,255,0.2)",border:"none",borderRadius:6,
-              width:28,height:28,cursor:"pointer",color:"#fff",fontSize:16,
+              width:24,height:24,cursor:"pointer",color:"#fff",fontSize:16,
               display:"flex",alignItems:"center",justifyContent:"center"}}>‹</button>
-          <span style={{fontFamily:HS,fontSize:14,fontWeight:700,color:"#fff"}}>
+          <span style={{fontFamily:HS,fontSize:12,fontWeight:700,color:"#fff"}}>
             {lang==="bn"?BNMs[mo]:ENMs[mo]} {y}
           </span>
           <div style={{display:"flex",gap:6}}>
             <button onClick={()=>setVm(new Date(y,mo+1,1))}
               style={{background:"rgba(255,255,255,0.2)",border:"none",borderRadius:6,
-                width:28,height:28,cursor:"pointer",color:"#fff",fontSize:16,
+                width:24,height:24,cursor:"pointer",color:"#fff",fontSize:14,
                 display:"flex",alignItems:"center",justifyContent:"center"}}>›</button>
             <button onClick={onClose}
               style={{background:"rgba(255,255,255,0.2)",border:"none",borderRadius:6,
-                width:28,height:28,cursor:"pointer",color:"#fff",fontSize:14,
+                width:24,height:24,cursor:"pointer",color:"#fff",fontSize:12,
                 display:"flex",alignItems:"center",justifyContent:"center"}}>✕</button>
           </div>
         </div>
         {/* Day headers */}
         <div style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",
-          background:T.card2,padding:"6px 12px 2px"}}>
+          background:T.card2,padding:"4px 8px 2px"}}>
           {["S","M","T","W","T","F","S"].map((d,i)=>(
-            <div key={i} style={{textAlign:"center",fontFamily:HS,fontSize:10,
+            <div key={i} style={{textAlign:"center",fontFamily:HS,fontSize:9,
               color:T.textS,fontWeight:700}}>{d}</div>
           ))}
         </div>
         {/* Days grid */}
-        <div style={{overflowY:"auto",padding:"6px 12px 30px"}}>
-          <div style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",gap:4}}>
+        <div style={{overflowY:"auto",padding:"4px 8px 16px"}}>
+          <div style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",gap:2}}>
             {days.map((d,i)=>{
               if(!d)return <div key={i}/>;
               const ds=`${y}-${String(mo+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
@@ -2705,10 +2704,10 @@ function HeaderCalModal({T,lang,onClose,setDayPage}){
               return(
                 <div key={i} onClick={()=>hasM&&setPop(ds)}
                   style={{display:"flex",flexDirection:"column",alignItems:"center",
-                    padding:"8px 2px",borderRadius:10,cursor:hasM?"pointer":"default",
+                    padding:"5px 1px",borderRadius:8,cursor:hasM?"pointer":"default",
                     background:isTod?T.greenBg:"transparent",
                     border:isTod?`1px solid ${T.green}`:"1px solid transparent"}}>
-                  <span style={{fontFamily:HS,fontSize:13,fontWeight:isTod?700:400,
+                  <span style={{fontFamily:HS,fontSize:11,fontWeight:isTod?700:400,
                     color:hasM?T.text:T.textM,opacity:hasM||isTod?1:0.35}}>{d}</span>
                   {hasM&&<div style={{width:4,height:4,borderRadius:"50%",
                     background:T.green,marginTop:2}}/>}
@@ -2914,7 +2913,7 @@ export default function App(){
   if(tp) return(
     <>
       <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet"/>
-      <style>{`@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}@keyframes slideDown{from{transform:translateY(-100%);opacity:0}to{transform:translateY(0);opacity:1}}@keyframes slideRight{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}*{-webkit-tap-highlight-color:transparent;}`}</style>
+      <style>{`@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}@keyframes slideDown{from{transform:translateY(-100%);opacity:0}to{transform:translateY(0);opacity:1}}@keyframes slideRight{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}@keyframes slideToggle{from{transform:translateY(-100%);opacity:0}to{transform:translateY(0);opacity:1}}*{-webkit-tap-highlight-color:transparent;}`}</style>
       <TeamPage en={tp} T={T} lang={lang} onBack={closeTeam} onTeam={openTeam} scores={scores} myPreds={myPreds} setPredictM={setPredictM} isAdmin={isAdmin} setScoreM={setScoreM}/>
       {predictM&&userName&&<PredictModal m={predictM} T={T} lang={lang} userName={userName} myPreds={myPreds} setMyPreds={setMyPreds} onClose={()=>setPredictM(null)}/>}
       {predictM&&!userName&&!needName&&<NameModal T={T} lang={lang} onSave={handleNameSave} onClose={()=>setPredictM(null)}/>}
@@ -2940,8 +2939,8 @@ export default function App(){
               </div>
             </div>
             <div style={{display:"flex",gap:6}}>
-              <button onClick={()=>setShowHeaderCal(true)} style={{background:"rgba(255,255,255,0.12)",border:"1px solid rgba(255,255,255,0.2)",color:"#fff",borderRadius:20,width:36,height:36,cursor:"pointer",fontSize:16,display:"flex",alignItems:"center",justifyContent:"center"}}>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <button onClick={()=>setShowHeaderCal(true)} style={{background:"rgba(255,255,255,0.12)",border:"1px solid rgba(255,255,255,0.2)",color:"#fff",borderRadius:8,width:32,height:32,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <rect x="3" y="4" width="18" height="18" rx="3"/>
                   <line x1="3" y1="9" x2="21" y2="9"/>
                   <line x1="8" y1="2" x2="8" y2="6"/>
@@ -2951,14 +2950,33 @@ export default function App(){
                   <circle cx="16" cy="14" r="1" fill="currentColor"/>
                 </svg>
               </button>
-              <button onClick={()=>{setDark(d=>{localStorage.setItem("kk_dark",String(!d));return !d;})}} style={{background:"rgba(255,255,255,0.12)",border:"1px solid rgba(255,255,255,0.2)",color:"#fff",borderRadius:20,width:36,height:36,cursor:"pointer",fontSize:16,display:"flex",alignItems:"center",justifyContent:"center"}}>{dark?"☀️":"🌙"}</button>
-              <button onClick={()=>{setLang(l=>{const nl=l==="bn"?"en":"bn";localStorage.setItem("kk_lang",nl);return nl;})}} style={{fontFamily:HS,background:"rgba(255,255,255,0.12)",border:"1px solid rgba(255,255,255,0.2)",color:"#fff",borderRadius:20,padding:"0 12px",height:36,fontSize:12,fontWeight:700,cursor:"pointer"}}>{lang==="bn"?"EN":"বাং"}</button>
+              <div onClick={()=>{setDark(d=>{localStorage.setItem("kk_dark",String(!d));return !d;})}}
+                style={{background:"rgba(255,255,255,0.12)",border:"1px solid rgba(255,255,255,0.2)",
+                  borderRadius:8,width:32,height:32,cursor:"pointer",
+                  display:"flex",alignItems:"center",justifyContent:"center",
+                  flexShrink:0,fontSize:15}}>
+                {dark?"☀️":"🌙"}
+              </div>
+              <button onClick={()=>{setLang(l=>{const nl=l==="bn"?"en":"bn";localStorage.setItem("kk_lang",nl);return nl;})}} style={{fontFamily:HS,background:"rgba(255,255,255,0.12)",border:"1px solid rgba(255,255,255,0.2)",color:"#fff",borderRadius:8,padding:"0 10px",height:32,fontSize:11,fontWeight:700,cursor:"pointer",flexShrink:0}}>{lang==="bn"?"EN":"বাং"}</button>
             </div>
           </div>
           {/* Main tabs */}
           <div style={{display:"flex",borderTop:"1px solid rgba(255,255,255,0.1)"}}>
-            {[["home",lang==="bn"?"🏠 হোম":"Home"],["wc",lang==="bn"?"🏆 বিশ্বকাপ":"🏆 WC"],["predict",lang==="bn"?"🎯 প্রেডিকশন":"🎯 Prediction"],["lb",lang==="bn"?"🏅 লিডারবোর্ড":"🏅 Leaderboard"]].map(([id,lb])=>(
-              <button key={id} onClick={()=>setMt(id)} style={{flex:1,background:"transparent",border:"none",borderBottom:`2.5px solid ${mt===id?"#fff":"transparent"}`,color:mt===id?"#fff":"rgba(255,255,255,0.45)",fontFamily:HS,fontSize:11,fontWeight:mt===id?700:400,padding:"10px 0",cursor:"pointer"}}>{lb}</button>
+            {[
+              {id:"home",label:lang==="bn"?"হোম":"Home",icon:<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>},
+              {id:"wc",label:lang==="bn"?"বিশ্বকাপ":"World Cup",icon:<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 9H4.5a2.5 2.5 0 010-5H6"/><path d="M18 9h1.5a2.5 2.5 0 000-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0012 0V2z"/></svg>},
+              {id:"predict",label:lang==="bn"?"প্রেডিকশন":"Predict",icon:<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>},
+              {id:"lb",label:lang==="bn"?"লিডারবোর্ড":"Leaderboard",icon:<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>},
+            ].map(({id,label,icon})=>(
+              <button key={id} onClick={()=>setMt(id)} style={{flex:1,background:"transparent",border:"none",
+                borderBottom:`2.5px solid ${mt===id?"#fff":"transparent"}`,
+                color:mt===id?"#fff":"rgba(255,255,255,0.45)",
+                fontFamily:HS,fontSize:10,fontWeight:mt===id?700:400,
+                padding:"8px 0 6px",cursor:"pointer",
+                display:"flex",flexDirection:"column",alignItems:"center",gap:3}}>
+                {icon}
+                {label}
+              </button>
             ))}
           </div>
           {/* WC sub-tabs */}
