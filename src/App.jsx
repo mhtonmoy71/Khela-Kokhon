@@ -1651,7 +1651,7 @@ function HomeTab({T,lang,favs,setFavs,onTeam,setSM,scores,myPreds,setPredictM,se
       <div style={{display:"flex",gap:10,marginBottom:8,alignItems:"stretch"}}>
         {/* Left: Today & Tomorrow info */}
         <div style={{flex:1,minWidth:0,display:"flex",flexDirection:"column"}}>
-          <div onClick={()=>setDayPage(today)} style={{background:T.card,borderRadius:14,border:`1px solid ${T.border}`,padding:"8px 10px",marginBottom:8,flex:1,cursor:"pointer"}}>
+          <div onClick={()=>setDayPage(today)} style={{background:T.card,borderRadius:14,padding:"8px 10px",marginBottom:8,flex:1,cursor:"pointer"}}>
             <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:8}}>
               <div style={{display:"flex",alignItems:"center",gap:5}}>
                 {todayMs.length>0&&<div style={{width:7,height:7,borderRadius:"50%",background:T.red,flexShrink:0,animation:"pulse 1s infinite"}}/>}
@@ -1702,7 +1702,7 @@ function HomeTab({T,lang,favs,setFavs,onTeam,setSM,scores,myPreds,setPredictM,se
             </>):<div style={{fontFamily:HS,fontSize:11,color:T.textS,textAlign:"center"}}>{lang==="bn"?"কোনো ম্যাচ নেই":"No matches"}</div>}
           </div>
 
-          <div onClick={()=>setDayPage(tom)} style={{background:T.card,borderRadius:14,border:`1px solid ${T.border}`,padding:"10px 12px",cursor:"pointer"}}>
+          <div onClick={()=>setDayPage(tom)} style={{background:T.card,borderRadius:14,padding:"10px 12px",cursor:"pointer"}}>
             <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:8}}>
               <span style={{fontFamily:HS,fontSize:12,fontWeight:700,color:T.text}}>{lang==="bn"?"আগামীকাল":"Tomorrow"}</span>
               <span style={{fontFamily:HS,fontSize:10,color:T.textS}}>{lang==="bn"?String(tomMs.length).replace(/[0-9]/g,d=>"০১২৩৪৫৬৭৮৯"[d]):tomMs.length} {lang==="bn"?"টি ম্যাচ":"matches"}</span>
@@ -2641,9 +2641,128 @@ function LiveClock({T,onToggle}){
   );
 }
 
+/* ── Header Calendar Modal ───────────────────── */
+function HeaderCalModal({T,lang,onClose,setDayPage}){
+  const[vm,setVm]=useState(new Date());
+  const[today]=useState(todayStr());
+  const[pop,setPop]=useState(null);
+  const y=vm.getFullYear(),mo=vm.getMonth();
+  const fd=new Date(y,mo,1).getDay(),dim=new Date(y,mo+1,0).getDate();
+  const days=[];for(let i=0;i<fd;i++)days.push(null);for(let d=1;d<=dim;d++)days.push(d);
+  const popMs=pop?getMatchesForDate(pop):[];
+  return(
+    <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.75)",zIndex:500,
+      display:"flex",alignItems:"flex-end"}} onClick={onClose}>
+      <div style={{background:T.card,borderRadius:"20px 20px 0 0",width:"100%",
+        maxHeight:"80vh",overflow:"hidden",display:"flex",flexDirection:"column"}}
+        onClick={e=>e.stopPropagation()}>
+        {/* Header */}
+        <div style={{background:T.green,padding:"10px 14px",display:"flex",
+          alignItems:"center",justifyContent:"space-between"}}>
+          <button onClick={()=>setVm(new Date(y,mo-1,1))}
+            style={{background:"rgba(255,255,255,0.2)",border:"none",borderRadius:6,
+              width:28,height:28,cursor:"pointer",color:"#fff",fontSize:16,
+              display:"flex",alignItems:"center",justifyContent:"center"}}>‹</button>
+          <span style={{fontFamily:HS,fontSize:14,fontWeight:700,color:"#fff"}}>
+            {lang==="bn"?BNMs[mo]:ENMs[mo]} {y}
+          </span>
+          <div style={{display:"flex",gap:6}}>
+            <button onClick={()=>setVm(new Date(y,mo+1,1))}
+              style={{background:"rgba(255,255,255,0.2)",border:"none",borderRadius:6,
+                width:28,height:28,cursor:"pointer",color:"#fff",fontSize:16,
+                display:"flex",alignItems:"center",justifyContent:"center"}}>›</button>
+            <button onClick={onClose}
+              style={{background:"rgba(255,255,255,0.2)",border:"none",borderRadius:6,
+                width:28,height:28,cursor:"pointer",color:"#fff",fontSize:14,
+                display:"flex",alignItems:"center",justifyContent:"center"}}>✕</button>
+          </div>
+        </div>
+        {/* Day headers */}
+        <div style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",
+          background:T.card2,padding:"6px 12px 2px"}}>
+          {["S","M","T","W","T","F","S"].map((d,i)=>(
+            <div key={i} style={{textAlign:"center",fontFamily:HS,fontSize:10,
+              color:T.textS,fontWeight:700}}>{d}</div>
+          ))}
+        </div>
+        {/* Days grid */}
+        <div style={{overflowY:"auto",padding:"6px 12px 30px"}}>
+          <div style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",gap:4}}>
+            {days.map((d,i)=>{
+              if(!d)return <div key={i}/>;
+              const ds=`${y}-${String(mo+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
+              const hasM=ALL_DATES.has(ds),isTod=ds===today;
+              return(
+                <div key={i} onClick={()=>hasM&&setPop(ds)}
+                  style={{display:"flex",flexDirection:"column",alignItems:"center",
+                    padding:"8px 2px",borderRadius:10,cursor:hasM?"pointer":"default",
+                    background:isTod?T.greenBg:"transparent",
+                    border:isTod?`1px solid ${T.green}`:"1px solid transparent"}}>
+                  <span style={{fontFamily:HS,fontSize:13,fontWeight:isTod?700:400,
+                    color:hasM?T.text:T.textM,opacity:hasM||isTod?1:0.35}}>{d}</span>
+                  {hasM&&<div style={{width:4,height:4,borderRadius:"50%",
+                    background:T.green,marginTop:2}}/>}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+      {/* Day matches popup */}
+      {pop&&(
+        <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.7)",zIndex:600,
+          display:"flex",alignItems:"flex-end"}} onClick={()=>setPop(null)}>
+          <div style={{background:T.card,borderRadius:"20px 20px 0 0",width:"100%",
+            maxHeight:"70vh",overflow:"hidden",display:"flex",flexDirection:"column"}}
+            onClick={e=>e.stopPropagation()}>
+            <div style={{padding:"14px 16px 10px",borderBottom:`1px solid ${T.border}`,
+              display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+              <span style={{fontFamily:HS,fontSize:15,fontWeight:700,color:T.text}}>
+                {dl(pop,lang)}
+              </span>
+              <button onClick={()=>setPop(null)} style={{background:T.card2,border:"none",
+                borderRadius:20,width:28,height:28,cursor:"pointer",fontSize:14,color:T.text}}>✕</button>
+            </div>
+            <div style={{overflowY:"auto",padding:"8px 12px 28px"}}>
+              {popMs.length===0?(
+                <div style={{textAlign:"center",padding:30,fontFamily:HS,fontSize:13,color:T.textM}}>
+                  {lang==="bn"?"কোনো ম্যাচ নেই":"No matches"}
+                </div>
+              ):popMs.map((m,i)=>{
+                const isG=m.g&&m.g.length===1;
+                const[t2,ap]=m.t.split(" ");
+                return(
+                  <div key={m.id||i} onClick={()=>setDayPage(pop)}
+                    style={{background:T.card2,borderRadius:12,padding:"12px",marginBottom:8,cursor:"pointer"}}>
+                    <div style={{fontFamily:HS,fontSize:10,color:T.textS,marginBottom:6}}>
+                      {m.label||(isG?`Group ${m.g}`:m.venue||"")} · {t2}<span style={{fontSize:8}}>{ap}</span>
+                    </div>
+                    <div style={{display:"flex",alignItems:"center",gap:8}}>
+                      {isG&&<Flag en={m.h} size={24}/>}
+                      <span style={{fontFamily:HS,fontSize:13,fontWeight:600,color:T.text,flex:1}}>
+                        {isG?tn(m.h,lang):(m.h||"TBD")}
+                      </span>
+                      <span style={{fontFamily:HS,fontSize:11,color:T.textM}}>vs</span>
+                      <span style={{fontFamily:HS,fontSize:13,fontWeight:600,color:T.text,flex:1,textAlign:"right"}}>
+                        {isG?tn(m.a,lang):(m.a||"TBD")}
+                      </span>
+                      {isG&&<Flag en={m.a} size={24}/>}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function App(){
   const isAdmin=new URLSearchParams(window.location.search).get("admin")===ADMIN_KEY;
   const[dark,setDark]=useState(()=>localStorage.getItem("kk_dark")!=="false");
+  const[showHeaderCal,setShowHeaderCal]=useState(false);
   const[showClockTime,setShowClockTime]=useState(false);
   const[lang,setLang]=useState(()=>localStorage.getItem("kk_lang")||"bn");
   const[mt,setMt]=useState(()=>{
@@ -2804,6 +2923,7 @@ export default function App(){
               </div>
             </div>
             <div style={{display:"flex",gap:6}}>
+              <button onClick={()=>setShowHeaderCal(true)} style={{background:"rgba(255,255,255,0.12)",border:"1px solid rgba(255,255,255,0.2)",color:"#fff",borderRadius:20,width:36,height:36,cursor:"pointer",fontSize:16,display:"flex",alignItems:"center",justifyContent:"center"}}>📅</button>
               <button onClick={()=>{setDark(d=>{localStorage.setItem("kk_dark",String(!d));return !d;})}} style={{background:"rgba(255,255,255,0.12)",border:"1px solid rgba(255,255,255,0.2)",color:"#fff",borderRadius:20,width:36,height:36,cursor:"pointer",fontSize:16,display:"flex",alignItems:"center",justifyContent:"center"}}>{dark?"☀️":"🌙"}</button>
               <button onClick={()=>{setLang(l=>{const nl=l==="bn"?"en":"bn";localStorage.setItem("kk_lang",nl);return nl;})}} style={{fontFamily:HS,background:"rgba(255,255,255,0.12)",border:"1px solid rgba(255,255,255,0.2)",color:"#fff",borderRadius:20,padding:"0 12px",height:36,fontSize:12,fontWeight:700,cursor:"pointer"}}>{lang==="bn"?"EN":"বাং"}</button>
             </div>
@@ -2830,6 +2950,9 @@ export default function App(){
         {predictM&&userName&&<PredictModal m={predictM} T={T} lang={lang} userName={userName} myPreds={myPreds} setMyPreds={setMyPreds} onClose={()=>setPredictM(null)}/>}
         {predictM&&!userName&&<NameModal T={T} lang={lang} onSave={(name,did)=>{handleNameSave(name,did);}} onClose={()=>setPredictM(null)}/>}
         {scoreM&&isAdmin&&<ScoreModal m={scoreM} T={T} lang={lang} scores={scores} setScores={setScores} onClose={()=>setScoreM(null)}/>}
+
+        {/* Header Calendar Popup */}
+        {showHeaderCal&&<HeaderCalModal T={T} lang={lang} onClose={()=>setShowHeaderCal(false)} setDayPage={(ds)=>{setShowHeaderCal(false);setMt("home");setDayPage(ds);}}/>}
 
         {/* Bottom Navigation */}
         <div style={{position:"fixed",bottom:0,left:"50%",transform:"translateX(-50%)",
