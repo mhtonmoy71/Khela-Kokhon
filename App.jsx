@@ -995,54 +995,157 @@ function TopThreeWidget({T,lang,setMt}){
   );
 }
 
-/* ── Compact Calendar ────────────────────────── */
-function CompactCal({T,lang}){
-  const[vm,setVm]=useState(new Date());
+/* ── Date Strip + Calendar ───────────────────── */
+function CompactCal({T,lang,setDayPage}){
   const[pop,setPop]=useState(null);
+  const[showCal,setShowCal]=useState(false);
+  const[vm,setVm]=useState(new Date());
   const[today,setToday]=useState(todayStr());
+  const stripRef=React.useRef(null);
+
   useEffect(()=>{const id=setInterval(()=>setToday(todayStr()),10000);return()=>clearInterval(id);},[]);
+
+  // Generate all days from Jun 12 to Jul 19
+  const START=new Date("2026-06-12");
+  const END=new Date("2026-07-19");
+  const allDays=[];
+  for(let d=new Date(START);d<=END;d.setDate(d.getDate()+1)){
+    allDays.push(`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`);
+  }
+
+  // Scroll to today on mount
+  useEffect(()=>{
+    if(!stripRef.current)return;
+    const todayEl=stripRef.current.querySelector('[data-today="true"]');
+    if(todayEl)todayEl.scrollIntoView({inline:"center",behavior:"smooth"});
+  },[]);
+
+  const dayNames=lang==="bn"
+    ?["রো","সো","মঙ","বু","বৃ","শু","শ"]
+    :["S","M","T","W","T","F","S"];
+
+  // Calendar popup
   const y=vm.getFullYear(),mo=vm.getMonth();
   const fd=new Date(y,mo,1).getDay(),dim=new Date(y,mo+1,0).getDate();
-  const days=[];for(let i=0;i<fd;i++)days.push(null);for(let d=1;d<=dim;d++)days.push(d);
-  const dh=["S","M","T","W","T","F","S"];
+  const calDays=[];for(let i=0;i<fd;i++)calDays.push(null);for(let d=1;d<=dim;d++)calDays.push(d);
   const popMs=pop?getMatchesForDate(pop):[];
+
+  const handleDayClick=(ds)=>{
+    setShowCal(false);
+    setDayPage(ds);
+  };
+
   return(
     <>
-      <div style={{background:T.card,borderRadius:14,border:`1px solid ${T.border}`,overflow:"hidden"}}>
-        <div style={{background:T.green,padding:"7px 10px",display:"flex",alignItems:"center",justifyContent:"space-between"}}>
-          <button onClick={()=>setVm(new Date(y,mo-1,1))} style={{background:"rgba(255,255,255,0.2)",border:"none",borderRadius:6,width:24,height:24,cursor:"pointer",color:"#fff",fontSize:14,display:"flex",alignItems:"center",justifyContent:"center"}}>‹</button>
-          <span style={{fontFamily:HS,fontSize:11,fontWeight:700,color:"#fff"}}>{lang==="bn"?BNMs[mo]:ENMs[mo]} {y}</span>
-          <button onClick={()=>setVm(new Date(y,mo+1,1))} style={{background:"rgba(255,255,255,0.2)",border:"none",borderRadius:6,width:24,height:24,cursor:"pointer",color:"#fff",fontSize:14,display:"flex",alignItems:"center",justifyContent:"center"}}>›</button>
-        </div>
-        <div style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",background:T.card2,padding:"3px 4px"}}>
-          {dh.map((d,i)=><div key={i} style={{textAlign:"center",fontFamily:HS,fontSize:8,color:T.text,fontWeight:700,opacity:0.55}}>{d}</div>)}
-        </div>
-        <div style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",gap:1,padding:"2px 4px 3px",background:T.card}}>
-          {days.map((d,i)=>{
-            if(!d)return <div key={i}/>;
-            const ds=`${y}-${String(mo+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
-            const hasM=ALL_DATES.has(ds),isTod=ds===today;
-            return(
-              <div key={i} onClick={()=>hasM&&setPop(ds)}
-                style={{display:"flex",flexDirection:"column",alignItems:"center",padding:"2px 1px",
-                  borderRadius:5,cursor:hasM?"pointer":"default",
-                  background:isTod?T.greenBg:"transparent"}}>
-                <span style={{fontFamily:HS,fontSize:9,fontWeight:isTod?700:400,color:hasM?T.text:T.text,opacity:hasM?1:0.35,lineHeight:1.4}}>{d}</span>
-                {hasM&&<div style={{width:3,height:3,borderRadius:"50%",background:T.green,marginTop:1}}/>}
-              </div>
-            );
-          })}
+      {/* Horizontal date strip */}
+      <div ref={stripRef} style={{display:"flex",overflowX:"auto",gap:6,padding:"6px 12px",
+        WebkitOverflowScrolling:"touch",scrollbarWidth:"none",alignItems:"center"}}>
+        {allDays.map(ds=>{
+          const d=new Date(ds+"T12:00:00");
+          const dayNum=d.getDate();
+          const dayName=dayNames[d.getDay()];
+          const hasM=ALL_DATES.has(ds);
+          const isTod=ds===today;
+          return(
+            <div key={ds} data-today={isTod?"true":"false"}
+              onClick={()=>handleDayClick(ds)}
+              style={{flexShrink:0,display:"flex",flexDirection:"column",alignItems:"center",
+                gap:2,padding:"6px 8px",borderRadius:12,cursor:"pointer",minWidth:40,
+                background:isTod?T.green:T.card,
+                border:`1px solid ${isTod?T.green:T.border}`,
+                transition:"all 0.15s"}}>
+              <span style={{fontFamily:HS,fontSize:9,fontWeight:600,
+                color:isTod?"#064e3b":T.textS}}>{dayName}</span>
+              <span style={{fontFamily:HS,fontSize:13,fontWeight:800,
+                color:isTod?"#064e3b":hasM?T.text:T.textM,opacity:hasM||isTod?1:0.4}}>
+                {dayNum}
+              </span>
+              {hasM&&!isTod&&<div style={{width:4,height:4,borderRadius:"50%",background:T.green}}/>}
+              {isTod&&<div style={{width:4,height:4,borderRadius:"50%",background:"#064e3b"}}/>}
+            </div>
+          );
+        })}
+        {/* Calendar button */}
+        <div onClick={()=>setShowCal(true)}
+          style={{flexShrink:0,display:"flex",flexDirection:"column",alignItems:"center",
+            gap:2,padding:"6px 8px",borderRadius:12,cursor:"pointer",minWidth:40,
+            background:T.card2,border:`1px solid ${T.border}`}}>
+          <span style={{fontSize:16}}>📅</span>
+          <span style={{fontFamily:HS,fontSize:8,color:T.textS,fontWeight:600}}>
+            {lang==="bn"?"সব":"All"}
+          </span>
         </div>
       </div>
+
+      {/* Full calendar popup */}
+      {showCal&&(
+        <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.7)",zIndex:999,
+          display:"flex",alignItems:"flex-end"}} onClick={()=>setShowCal(false)}>
+          <div style={{background:T.card,borderRadius:"20px 20px 0 0",width:"100%",
+            maxHeight:"70vh",overflow:"hidden",display:"flex",flexDirection:"column"}}
+            onClick={e=>e.stopPropagation()}>
+            <div style={{background:T.green,padding:"10px 14px",display:"flex",
+              alignItems:"center",justifyContent:"space-between"}}>
+              <button onClick={()=>setVm(new Date(y,mo-1,1))}
+                style={{background:"rgba(255,255,255,0.2)",border:"none",borderRadius:6,
+                  width:28,height:28,cursor:"pointer",color:"#fff",fontSize:16,
+                  display:"flex",alignItems:"center",justifyContent:"center"}}>‹</button>
+              <span style={{fontFamily:HS,fontSize:13,fontWeight:700,color:"#fff"}}>
+                {lang==="bn"?BNMs[mo]:ENMs[mo]} {y}
+              </span>
+              <div style={{display:"flex",alignItems:"center",gap:6}}>
+                <button onClick={()=>setVm(new Date(y,mo+1,1))}
+                  style={{background:"rgba(255,255,255,0.2)",border:"none",borderRadius:6,
+                    width:28,height:28,cursor:"pointer",color:"#fff",fontSize:16,
+                    display:"flex",alignItems:"center",justifyContent:"center"}}>›</button>
+                <button onClick={()=>setShowCal(false)}
+                  style={{background:"rgba(255,255,255,0.2)",border:"none",borderRadius:6,
+                    width:28,height:28,cursor:"pointer",color:"#fff",fontSize:14,
+                    display:"flex",alignItems:"center",justifyContent:"center"}}>✕</button>
+              </div>
+            </div>
+            <div style={{overflowY:"auto",padding:"8px 12px 28px"}}>
+              <div style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",gap:2,marginBottom:4}}>
+                {["S","M","T","W","T","F","S"].map((d,i)=>(
+                  <div key={i} style={{textAlign:"center",fontFamily:HS,fontSize:9,
+                    color:T.textS,fontWeight:700,padding:"4px 0"}}>{d}</div>
+                ))}
+              </div>
+              <div style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",gap:2}}>
+                {calDays.map((d,i)=>{
+                  if(!d)return <div key={i}/>;
+                  const ds=`${y}-${String(mo+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
+                  const hasM=ALL_DATES.has(ds),isTod=ds===today;
+                  return(
+                    <div key={i} onClick={()=>hasM&&handleDayClick(ds)}
+                      style={{display:"flex",flexDirection:"column",alignItems:"center",
+                        padding:"6px 2px",borderRadius:8,cursor:hasM?"pointer":"default",
+                        background:isTod?T.greenBg:"transparent"}}>
+                      <span style={{fontFamily:HS,fontSize:11,fontWeight:isTod?700:400,
+                        color:hasM?T.text:T.text,opacity:hasM?1:0.3}}>{d}</span>
+                      {hasM&&<div style={{width:4,height:4,borderRadius:"50%",
+                        background:T.green,marginTop:1}}/>}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Day matches popup */}
       {pop&&(
-        <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.7)",zIndex:999,display:"flex",alignItems:"flex-end"}} onClick={()=>setPop(null)}>
-          <div style={{background:T.card,borderRadius:"20px 20px 0 0",width:"100%",maxHeight:"70vh",
-            overflow:"hidden",display:"flex",flexDirection:"column"}} onClick={e=>e.stopPropagation()}>
+        <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.7)",zIndex:999,
+          display:"flex",alignItems:"flex-end"}} onClick={()=>setPop(null)}>
+          <div style={{background:T.card,borderRadius:"20px 20px 0 0",width:"100%",
+            maxHeight:"70vh",overflow:"hidden",display:"flex",flexDirection:"column"}}
+            onClick={e=>e.stopPropagation()}>
             <div style={{padding:"14px 16px 10px",borderBottom:`1px solid ${T.border}`,
               display:"flex",justifyContent:"space-between",alignItems:"center"}}>
               <span style={{fontFamily:HS,fontSize:15,fontWeight:700,color:T.text}}>{dl(pop,lang)}</span>
-              <button onClick={()=>setPop(null)} style={{background:T.card2,border:"none",borderRadius:20,
-                width:28,height:28,cursor:"pointer",fontSize:14,color:T.text}}>✕</button>
+              <button onClick={()=>setPop(null)} style={{background:T.card2,border:"none",
+                borderRadius:20,width:28,height:28,cursor:"pointer",fontSize:14,color:T.text}}>✕</button>
             </div>
             <div style={{overflowY:"auto",padding:"8px 12px 28px"}}>
               {popMs.map((m,i)=>{
@@ -1071,23 +1174,6 @@ function CompactCal({T,lang}){
   );
 }
 
-function CalIcon({d,T,onClick}){
-  const dt=new Date(d+"T00:00:00");
-  const mon=dt.toLocaleString("en",{month:"short"}).toUpperCase();
-  const day=dt.getDate();
-  return(
-    <button onClick={onClick} style={{background:T.card2,border:`1px solid ${T.border}`,
-      borderRadius:10,width:34,height:34,cursor:"pointer",padding:2,
-      display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",overflow:"hidden"}}>
-      <div style={{background:"#e53e3e",width:"100%",borderRadius:"6px 6px 0 0",
-        display:"flex",alignItems:"center",justifyContent:"center",height:11}}>
-        <span style={{fontFamily:HS,fontSize:7,color:"#fff",fontWeight:700,letterSpacing:0.5}}>{mon}</span>
-      </div>
-      <div style={{fontFamily:HS,fontSize:13,fontWeight:800,color:T.text,lineHeight:1,marginTop:1}}>{day}</div>
-    </button>
-  );
-}
-
 /* ── Match Card (full) ───────────────────────── */
 function MatchCard({m,T,lang,scores,myPreds,setPredictM,onTeam,isAdmin,setScoreM}){
   const sc=scores[m.id]||scores[String(m.id)];
@@ -1096,58 +1182,70 @@ function MatchCard({m,T,lang,scores,myPreds,setPredictM,onTeam,isAdmin,setScoreM
   const st=status(m,scores);
   const[t2,ap]=m.t.split(" ");
   const cd=useCD(st==="up"?tMs(m):null);
+  const isFT=st==="ft";
+  const isLive=st==="live";
   return(
     <div style={{background:T.card,borderRadius:16,border:`1px solid ${T.border}`,
-      marginBottom:10,overflow:"hidden",boxShadow:T.glow,
-      borderLeft:`3px solid ${st==="live"?T.red:hasScore?T.green:"transparent"}`}}>
-      {/* Header row */}
-      <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",
-        padding:"8px 14px 0"}}>
-        <span style={{fontFamily:HS,fontSize:10,color:T.textS}}>
-          {m.g&&m.g.length===1?`⚽ #${m.id} · Group ${m.g}`:(m.label||m.venue||"")}
-        </span>
-        {st==="live"?(
-          <div style={{display:"flex",alignItems:"center",gap:4}}>
-            <div style={{width:6,height:6,borderRadius:"50%",background:T.red,animation:"pulse 1s infinite"}}/>
-            <span style={{fontFamily:HS,fontSize:10,color:T.red,fontWeight:700}}>LIVE</span>
-          </div>
-        ):st==="ft"?(
-          <span style={{fontFamily:HS,fontSize:10,background:T.card2,color:T.textM,padding:"2px 8px",borderRadius:20}}>FT</span>
-        ):(
-          <span style={{fontFamily:HS,fontSize:11,fontWeight:600,color:T.green}}>{m.t}</span>
-        )}
-      </div>
-      {/* Teams row */}
-      <div style={{display:"flex",alignItems:"center",padding:"10px 14px",gap:8}}>
-        <div onClick={()=>m.h&&TEAMS[m.h]&&onTeam(m.h)}
-          style={{flex:1,display:"flex",alignItems:"center",justifyContent:"flex-end",gap:6,
-            cursor:TEAMS[m.h]?"pointer":"default",minWidth:0}}>
-          <span style={{fontFamily:HS,fontSize:14,fontWeight:600,color:T.text,textAlign:"right",
-            overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>
-            {m.g&&m.g.length===1?tn(m.h,lang):(m.h||"TBD")}
+      marginBottom:8,overflow:"hidden",boxShadow:T.glow}}>
+      {/* Group/venue label */}
+      {(m.g||m.label||m.venue)&&(
+        <div style={{padding:"8px 14px 0"}}>
+          <span style={{fontFamily:HS,fontSize:11,fontWeight:700,color:T.textS,
+            background:T.card2,padding:"3px 10px",borderRadius:20,display:"inline-block"}}>
+            {m.g&&m.g.length===1?`Group ${m.g}`:(m.label||m.venue||"")}
           </span>
-          {TEAMS[m.h]?<Flag en={m.h} size={34}/>:<div style={{width:34,height:34,borderRadius:"50%",background:T.card2,border:`1px dashed ${T.border}`,flexShrink:0}}/>}
         </div>
-        <div style={{width:60,textAlign:"center",flexShrink:0}}>
-          {hasScore?(
-            <div style={{background:T.greenBg,borderRadius:8,padding:"4px 6px",border:`1px solid ${T.greenBr}`}}>
-              <span style={{fontFamily:HS,fontSize:16,fontWeight:800,color:T.green}}>{sc.hg}–{sc.ag}</span>
+      )}
+      {/* Main match row */}
+      <div style={{display:"flex",alignItems:"center",padding:"12px 14px",gap:8}}>
+        {/* Status badge */}
+        <div style={{width:32,flexShrink:0,textAlign:"center"}}>
+          {isFT?(
+            <span style={{fontFamily:HS,fontSize:11,fontWeight:700,color:T.textM,
+              background:T.card2,padding:"3px 6px",borderRadius:8,display:"inline-block"}}>FT</span>
+          ):isLive?(
+            <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:2}}>
+              <div style={{width:7,height:7,borderRadius:"50%",background:T.red}}/>
+              <span style={{fontFamily:HS,fontSize:9,color:T.red,fontWeight:700}}>LIVE</span>
             </div>
           ):(
-            <div>
-              <span style={{fontFamily:HS,fontSize:14,fontWeight:700,color:st==="live"?T.red:T.text}}>{t2}</span>
-              <span style={{fontFamily:HS,fontSize:8,color:T.textM}}>{ap}</span>
+            <div style={{textAlign:"center"}}>
+              <div style={{fontFamily:HS,fontSize:12,fontWeight:700,color:T.text}}>{t2}</div>
+              <div style={{fontFamily:HS,fontSize:9,color:T.textM}}>{ap}</div>
             </div>
           )}
         </div>
-        <div onClick={()=>m.a&&TEAMS[m.a]&&onTeam(m.a)}
-          style={{flex:1,display:"flex",alignItems:"center",gap:6,
-            cursor:TEAMS[m.a]?"pointer":"default",minWidth:0}}>
-          {TEAMS[m.a]?<Flag en={m.a} size={34}/>:<div style={{width:34,height:34,borderRadius:"50%",background:T.card2,border:`1px dashed ${T.border}`,flexShrink:0}}/>}
+        {/* Home team */}
+        <div onClick={()=>m.h&&TEAMS[m.h]&&onTeam(m.h)}
+          style={{flex:1,display:"flex",alignItems:"center",gap:8,
+            cursor:TEAMS[m.h]?"pointer":"default",minWidth:0}}>
+          {TEAMS[m.h]?<Flag en={m.h} size={28}/>:<div style={{width:28,height:28,borderRadius:"50%",background:T.card2,flexShrink:0}}/>}
           <span style={{fontFamily:HS,fontSize:14,fontWeight:600,color:T.text,
             overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>
+            {m.g&&m.g.length===1?tn(m.h,lang):(m.h||"TBD")}
+          </span>
+        </div>
+        {/* Score */}
+        <div style={{flexShrink:0,textAlign:"center",minWidth:50}}>
+          {hasScore?(
+            <span style={{fontFamily:"Poppins,sans-serif",fontSize:18,fontWeight:800,
+              color:T.text,letterSpacing:1}}>{sc.hg} - {sc.ag}</span>
+          ):(isLive?(
+            <span style={{fontFamily:"Poppins,sans-serif",fontSize:18,fontWeight:800,
+              color:T.red}}>0 - 0</span>
+          ):(
+            <span style={{fontFamily:HS,fontSize:13,fontWeight:700,color:T.textM}}>vs</span>
+          ))}
+        </div>
+        {/* Away team */}
+        <div onClick={()=>m.a&&TEAMS[m.a]&&onTeam(m.a)}
+          style={{flex:1,display:"flex",alignItems:"center",justifyContent:"flex-end",gap:8,
+            cursor:TEAMS[m.a]?"pointer":"default",minWidth:0}}>
+          <span style={{fontFamily:HS,fontSize:14,fontWeight:600,color:T.text,
+            overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",textAlign:"right"}}>
             {m.g&&m.g.length===1?tn(m.a,lang):(m.a||"TBD")}
           </span>
+          {TEAMS[m.a]?<Flag en={m.a} size={28}/>:<div style={{width:28,height:28,borderRadius:"50%",background:T.card2,flexShrink:0}}/>}
         </div>
       </div>
       {/* Countdown */}
@@ -1162,15 +1260,15 @@ function MatchCard({m,T,lang,scores,myPreds,setPredictM,onTeam,isAdmin,setScoreM
           ))}
         </div>
       )}
-
-      {/* Action bar */}
+      {/* Warning */}
       {st==="up"&&cd&&cd.done===false&&cd.days===0&&cd.hours===0&&cd.mins<30&&(
         <div style={{background:"rgba(245,158,11,0.1)",border:"1px solid rgba(245,158,11,0.3)",borderRadius:10,margin:"0 12px 6px",padding:"6px 12px",display:"flex",alignItems:"center",gap:6}}>
           <span style={{fontSize:14}}>⚠️</span>
           <span style={{fontFamily:HS,fontSize:11,color:"#f59e0b",fontWeight:600}}>{lang==="bn"?`ম্যাচ শুরু হতে মাত্র ${cd.mins} মিনিট ${cd.secs} সেকেন্ড বাকি!`:`Only ${cd.mins}m ${cd.secs}s left to predict!`}</span>
         </div>
       )}
-      <div style={{display:"flex",gap:6,padding:"8px 12px 12px"}}>
+      {/* Action bar */}
+      <div style={{display:"flex",gap:6,padding:"6px 12px 12px"}}>
         {st==="up"&&!isAdmin&&(
           <button onClick={()=>setPredictM(m)} style={{
             flex:1,display:"flex",alignItems:"center",justifyContent:"center",gap:4,
@@ -1533,7 +1631,7 @@ function HomeTab({T,lang,favs,setFavs,onTeam,setSM,scores,myPreds,setPredictM,se
         );
       })()}
                   {/* Today + Calendar row */}
-      <div style={{display:"flex",gap:10,marginBottom:14,alignItems:"stretch"}}>
+      <div style={{display:"flex",gap:10,marginBottom:8,alignItems:"stretch"}}>
         {/* Left: Today & Tomorrow info */}
         <div style={{flex:1,minWidth:0,display:"flex",flexDirection:"column"}}>
           <div onClick={()=>setDayPage(today)} style={{background:T.card,borderRadius:14,border:`1px solid ${T.border}`,padding:"8px 10px",marginBottom:8,flex:1,cursor:"pointer"}}>
@@ -1614,11 +1712,10 @@ function HomeTab({T,lang,favs,setFavs,onTeam,setSM,scores,myPreds,setPredictM,se
           </div>
         </div>
 
-        {/* Right: CompactCal + Top 3 */}
-        <div style={{flexShrink:0,width:"40%"}}>
-          <CompactCal T={T} lang={lang}/>
-        </div>
       </div>
+
+      {/* Full-width Date Strip */}
+      <CompactCal T={T} lang={lang} setDayPage={setDayPage}/>
 
       <SponsorBanner T={T} lang={lang}/>
 
@@ -2694,12 +2791,6 @@ export default function App(){
               <button onClick={()=>{setLang(l=>{const nl=l==="bn"?"en":"bn";localStorage.setItem("kk_lang",nl);return nl;})}} style={{fontFamily:HS,background:"rgba(255,255,255,0.12)",border:"1px solid rgba(255,255,255,0.2)",color:"#fff",borderRadius:20,padding:"0 12px",height:36,fontSize:12,fontWeight:700,cursor:"pointer"}}>{lang==="bn"?"EN":"বাং"}</button>
             </div>
           </div>
-          {/* Main tabs */}
-          <div style={{display:"flex",borderTop:"1px solid rgba(255,255,255,0.1)"}}>
-            {[["home",lang==="bn"?"🏠 হোম":"Home"],["wc",lang==="bn"?"🏆 বিশ্বকাপ":"🏆 WC"],["predict",lang==="bn"?"🎯 প্রেডিকশন":"🎯 Prediction"],["lb",lang==="bn"?"🏅 লিডারবোর্ড":"🏅 Leaderboard"]].map(([id,lb])=>(
-              <button key={id} onClick={()=>setMt(id)} style={{flex:1,background:"transparent",border:"none",borderBottom:`2.5px solid ${mt===id?"#fff":"transparent"}`,color:mt===id?"#fff":"rgba(255,255,255,0.45)",fontFamily:HS,fontSize:11,fontWeight:mt===id?700:400,padding:"10px 0",cursor:"pointer"}}>{lb}</button>
-            ))}
-          </div>
           {/* WC sub-tabs */}
           {mt==="wc"&&(
             <div style={{display:"flex",borderTop:"1px solid rgba(255,255,255,0.1)"}}>
@@ -2723,7 +2814,40 @@ export default function App(){
         {predictM&&!userName&&<NameModal T={T} lang={lang} onSave={(name,did)=>{handleNameSave(name,did);}} onClose={()=>setPredictM(null)}/>}
         {scoreM&&isAdmin&&<ScoreModal m={scoreM} T={T} lang={lang} scores={scores} setScores={setScores} onClose={()=>setScoreM(null)}/>}
 
-
+        {/* Bottom Navigation */}
+        <div style={{position:"fixed",bottom:0,left:"50%",transform:"translateX(-50%)",
+          width:"100%",maxWidth:480,background:T.card,
+          borderTop:`1px solid ${T.border}`,
+          display:"flex",zIndex:200,
+          boxShadow:"0 -4px 20px rgba(0,0,0,0.3)",
+          paddingBottom:"env(safe-area-inset-bottom,0px)"}}>
+          {[
+            {id:"home",icon:"🏠",bn:"হোম",en:"Home"},
+            {id:"wc",icon:"🏆",bn:"বিশ্বকাপ",en:"World Cup"},
+            {id:"predict",icon:"🎯",bn:"প্রেডিকশন",en:"Predict"},
+            {id:"lb",icon:"🏅",bn:"লিডারবোর্ড",en:"Leaderboard"},
+          ].map(({id,icon,bn,en})=>{
+            const active=mt===id;
+            return(
+              <button key={id} onClick={()=>setMt(id)}
+                style={{flex:1,background:"transparent",border:"none",cursor:"pointer",
+                  display:"flex",flexDirection:"column",alignItems:"center",
+                  padding:"10px 0 8px",gap:3,position:"relative"}}>
+                <span style={{fontSize:22,lineHeight:1,
+                  filter:active?"none":"grayscale(1) opacity(0.45)",
+                  transform:active?"scale(1.1)":"scale(1)",
+                  transition:"all 0.15s"}}>{icon}</span>
+                <span style={{fontFamily:HS,fontSize:9,fontWeight:active?700:500,
+                  color:active?T.green:T.textM,transition:"color 0.15s"}}>
+                  {lang==="bn"?bn:en}
+                </span>
+                {active&&<div style={{position:"absolute",top:0,left:"50%",
+                  transform:"translateX(-50%)",width:24,height:2.5,
+                  background:T.green,borderRadius:"0 0 3px 3px"}}/>}
+              </button>
+            );
+          })}
+        </div>
 
         {/* Exit confirm */}
         
