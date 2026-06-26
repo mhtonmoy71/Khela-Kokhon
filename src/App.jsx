@@ -1052,18 +1052,18 @@ function CompactCal({T,lang,setDayPage}){
             <div key={ds} data-today={isTod?"true":"false"}
               onClick={()=>handleDayClick(ds)}
               style={{flexShrink:0,display:"flex",flexDirection:"column",alignItems:"center",
-                padding:"8px 14px",cursor:"pointer",position:"relative",
+                padding:"6px 10px",cursor:"pointer",position:"relative",
                 borderBottom:`2.5px solid ${isTod?T.green:"transparent"}`,
                 transition:"border-color 0.15s"}}>
-              <span style={{fontFamily:HS,fontSize:10,fontWeight:600,
-                color:isTod?T.green:T.textS,marginBottom:3}}>{dayName}</span>
-              <span style={{fontFamily:HS,fontSize:16,fontWeight:800,lineHeight:1,
+              <span style={{fontFamily:HS,fontSize:9,fontWeight:600,
+                color:isTod?T.green:T.textS,marginBottom:2}}>{dayName}</span>
+              <span style={{fontFamily:HS,fontSize:13,fontWeight:800,lineHeight:1,
                 color:isTod?T.green:hasM?T.text:T.textM,
                 opacity:hasM||isTod?1:0.25}}>
                 {dayNum}
               </span>
-              <span style={{fontFamily:HS,fontSize:9,color:isTod?T.green:T.textM,
-                marginTop:3,opacity:isTod?0.8:0.5}}>{monName}</span>
+              <span style={{fontFamily:HS,fontSize:8,color:isTod?T.green:T.textM,
+                marginTop:2,opacity:isTod?0.8:0.5}}>{monName}</span>
               {hasM&&!isTod&&<div style={{width:4,height:4,borderRadius:"50%",
                 background:T.green,marginTop:5}}/>}
               {isTod&&<div style={{width:4,height:4,borderRadius:"50%",
@@ -1656,11 +1656,15 @@ function HomeTab({T,lang,favs,setFavs,onTeam,setSM,scores,myPreds,setPredictM,se
               <span style={{fontFamily:HS,fontSize:10,color:T.green}}>{lang==="bn"?String(todayMs.length).replace(/[0-9]/g,d=>"০১২৩৪৫৬৭৮৯"[d]):todayMs.length} {lang==="bn"?"টি ম্যাচ":"matches"}</span>
             </div>
             {todayMs.length>0?(<>
-              {[...todayMs].sort((a,b)=>{
-                const pa=status(a,scores)==="live"?0:status(a,scores)==="up"?1:2;
-                const pb=status(b,scores)==="live"?0:status(b,scores)==="up"?1:2;
-                return pa-pb;
-              }).slice(0,expandToday?undefined:2).map(m=>{
+              {(()=>{
+                const hasLive=todayMs.some(m=>status(m,scores)==="live");
+                return [...todayMs].sort((a,b)=>{
+                  if(!hasLive) return tMs(a)-tMs(b); // original time order
+                  const pa=status(a,scores)==="live"?0:status(a,scores)==="up"?1:2;
+                  const pb=status(b,scores)==="live"?0:status(b,scores)==="up"?1:2;
+                  return pa-pb;
+                });
+              })().slice(0,expandToday?undefined:2).map(m=>{
                 const[t2,ap]=m.t.split(" ");
                 const sc=scores[m.id]||scores[String(m.id)];
                 const st=status(m,scores);
@@ -1669,7 +1673,7 @@ function HomeTab({T,lang,favs,setFavs,onTeam,setSM,scores,myPreds,setPredictM,se
                 return(
                   <div key={m.id} style={{display:"flex",alignItems:"center",gap:4,marginBottom:6,paddingBottom:6,borderBottom:`1px solid ${T.border}`,opacity:isFT?0.6:1}}>
                     <Flag en={m.h} size={14}/>
-                    <span style={{fontFamily:HS,fontSize:9,color:T.text,flex:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{tn(m.h,lang)}</span>
+                    <span style={{fontFamily:HS,fontSize:10,fontWeight:600,color:T.text,flex:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{tn(m.h,lang)}</span>
                     {hasScore||(st==="live")?(
                       <span style={{display:"flex",justifyContent:"center",flexShrink:0,minWidth:32}}>
                         {isFT?(
@@ -1689,7 +1693,7 @@ function HomeTab({T,lang,favs,setFavs,onTeam,setSM,scores,myPreds,setPredictM,se
                         <span style={{fontFamily:HS,fontSize:10,fontWeight:700,color:T.green}}>{t2} <span style={{fontSize:7,color:T.text,opacity:0.5}}>{ap}</span></span>
                       </span>
                     )}
-                    <span style={{fontFamily:HS,fontSize:9,color:T.text,flex:1,textAlign:"right",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{tn(m.a,lang)}</span>
+                    <span style={{fontFamily:HS,fontSize:10,fontWeight:600,color:T.text,flex:1,textAlign:"right",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{tn(m.a,lang)}</span>
                     <Flag en={m.a} size={14}/>
                   </div>
                 );
@@ -1713,9 +1717,9 @@ function HomeTab({T,lang,favs,setFavs,onTeam,setSM,scores,myPreds,setPredictM,se
                 return(
                   <div key={m.id} style={{display:"flex",alignItems:"center",gap:4,marginBottom:6,paddingBottom:6,borderBottom:`1px solid ${T.border}`}}>
                     <Flag en={m.h} size={14}/>
-                    <span style={{fontFamily:HS,fontSize:9,color:T.text,flex:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{tn(m.h,lang)}</span>
+                    <span style={{fontFamily:HS,fontSize:10,fontWeight:600,color:T.text,flex:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{tn(m.h,lang)}</span>
                     <span style={{display:"flex",justifyContent:"center",flexShrink:0,minWidth:32}}><span style={{fontFamily:HS,fontSize:10,fontWeight:700,color:T.gold||T.green}}>{t2} <span style={{fontSize:7,color:T.text,opacity:0.5}}>{ap}</span></span></span>
-                    <span style={{fontFamily:HS,fontSize:9,color:T.text,flex:1,textAlign:"right",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{tn(m.a,lang)}</span>
+                    <span style={{fontFamily:HS,fontSize:10,fontWeight:600,color:T.text,flex:1,textAlign:"right",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{tn(m.a,lang)}</span>
                     <Flag en={m.a} size={14}/>
                   </div>
                 );
@@ -2647,11 +2651,13 @@ function HeaderCalModal({T,lang,onClose,setDayPage}){
   const days=[];for(let i=0;i<fd;i++)days.push(null);for(let d=1;d<=dim;d++)days.push(d);
   const popMs=pop?getMatchesForDate(pop):[];
   return(
-    <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.6)",zIndex:500,
-      display:"flex",alignItems:"flex-start"}} onClick={onClose}>
-      <div style={{background:T.card,borderRadius:"0 0 20px 20px",width:"100%",
-        maxHeight:"80vh",overflow:"hidden",display:"flex",flexDirection:"column",
-        animation:"slideDown 0.25s ease-out"}}
+    <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.4)",zIndex:500}}
+      onClick={onClose}>
+      <div style={{position:"absolute",top:60,right:0,width:260,
+        background:T.card,borderRadius:"12px 0 0 12px",
+        boxShadow:"-4px 4px 20px rgba(0,0,0,0.3)",
+        overflow:"hidden",display:"flex",flexDirection:"column",
+        animation:"slideRight 0.2s ease-out"}}
         onClick={e=>e.stopPropagation()}>
         {/* Header */}
         <div style={{background:T.green,padding:"10px 14px",display:"flex",
@@ -2894,7 +2900,7 @@ export default function App(){
   if(tp) return(
     <>
       <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet"/>
-      <style>{`@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}@keyframes slideDown{from{transform:translateY(-100%);opacity:0}to{transform:translateY(0);opacity:1}}*{-webkit-tap-highlight-color:transparent;}`}</style>
+      <style>{`@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}@keyframes slideDown{from{transform:translateY(-100%);opacity:0}to{transform:translateY(0);opacity:1}}@keyframes slideRight{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}*{-webkit-tap-highlight-color:transparent;}`}</style>
       <TeamPage en={tp} T={T} lang={lang} onBack={closeTeam} onTeam={openTeam} scores={scores} myPreds={myPreds} setPredictM={setPredictM} isAdmin={isAdmin} setScoreM={setScoreM}/>
       {predictM&&userName&&<PredictModal m={predictM} T={T} lang={lang} userName={userName} myPreds={myPreds} setMyPreds={setMyPreds} onClose={()=>setPredictM(null)}/>}
       {predictM&&!userName&&!needName&&<NameModal T={T} lang={lang} onSave={handleNameSave} onClose={()=>setPredictM(null)}/>}
@@ -2935,6 +2941,12 @@ export default function App(){
               <button onClick={()=>{setLang(l=>{const nl=l==="bn"?"en":"bn";localStorage.setItem("kk_lang",nl);return nl;})}} style={{fontFamily:HS,background:"rgba(255,255,255,0.12)",border:"1px solid rgba(255,255,255,0.2)",color:"#fff",borderRadius:20,padding:"0 12px",height:36,fontSize:12,fontWeight:700,cursor:"pointer"}}>{lang==="bn"?"EN":"বাং"}</button>
             </div>
           </div>
+          {/* Main tabs */}
+          <div style={{display:"flex",borderTop:"1px solid rgba(255,255,255,0.1)"}}>
+            {[["home",lang==="bn"?"🏠 হোম":"Home"],["wc",lang==="bn"?"🏆 বিশ্বকাপ":"🏆 WC"],["predict",lang==="bn"?"🎯 প্রেডিকশন":"🎯 Prediction"],["lb",lang==="bn"?"🏅 লিডারবোর্ড":"🏅 Leaderboard"]].map(([id,lb])=>(
+              <button key={id} onClick={()=>setMt(id)} style={{flex:1,background:"transparent",border:"none",borderBottom:`2.5px solid ${mt===id?"#fff":"transparent"}`,color:mt===id?"#fff":"rgba(255,255,255,0.45)",fontFamily:HS,fontSize:11,fontWeight:mt===id?700:400,padding:"10px 0",cursor:"pointer"}}>{lb}</button>
+            ))}
+          </div>
           {/* WC sub-tabs */}
           {mt==="wc"&&(
             <div style={{display:"flex",borderTop:"1px solid rgba(255,255,255,0.1)"}}>
@@ -2960,41 +2972,6 @@ export default function App(){
 
         {/* Header Calendar Popup */}
         {showHeaderCal&&<HeaderCalModal T={T} lang={lang} onClose={()=>setShowHeaderCal(false)} setDayPage={(ds)=>{setShowHeaderCal(false);setMt("home");setDayPage(ds);}}/>}
-
-        {/* Bottom Navigation */}
-        <div style={{position:"fixed",bottom:0,left:"50%",transform:"translateX(-50%)",
-          width:"100%",maxWidth:480,background:T.card,
-          borderTop:`1px solid ${T.border}`,
-          display:"flex",zIndex:200,
-          boxShadow:"0 -4px 20px rgba(0,0,0,0.3)",
-          paddingBottom:"env(safe-area-inset-bottom,0px)"}}>
-          {[
-            {id:"home",icon:"🏠",bn:"হোম",en:"Home"},
-            {id:"wc",icon:"🏆",bn:"বিশ্বকাপ",en:"World Cup"},
-            {id:"predict",icon:"🎯",bn:"প্রেডিকশন",en:"Predict"},
-            {id:"lb",icon:"🏅",bn:"লিডারবোর্ড",en:"Leaderboard"},
-          ].map(({id,icon,bn,en})=>{
-            const active=mt===id;
-            return(
-              <button key={id} onClick={()=>setMt(id)}
-                style={{flex:1,background:"transparent",border:"none",cursor:"pointer",
-                  display:"flex",flexDirection:"column",alignItems:"center",
-                  padding:"10px 0 8px",gap:3,position:"relative"}}>
-                <span style={{fontSize:22,lineHeight:1,
-                  filter:active?"none":"grayscale(1) opacity(0.45)",
-                  transform:active?"scale(1.1)":"scale(1)",
-                  transition:"all 0.15s"}}>{icon}</span>
-                <span style={{fontFamily:HS,fontSize:9,fontWeight:active?700:500,
-                  color:active?T.green:T.textM,transition:"color 0.15s"}}>
-                  {lang==="bn"?bn:en}
-                </span>
-                {active&&<div style={{position:"absolute",top:0,left:"50%",
-                  transform:"translateX(-50%)",width:24,height:2.5,
-                  background:T.green,borderRadius:"0 0 3px 3px"}}/>}
-              </button>
-            );
-          })}
-        </div>
 
         {/* Exit confirm */}
         
