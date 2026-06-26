@@ -1037,40 +1037,47 @@ function CompactCal({T,lang,setDayPage}){
 
   return(
     <>
-      {/* Horizontal date strip */}
-      <div ref={stripRef} style={{display:"flex",overflowX:"auto",gap:0,padding:"20px 12px 10px",
-        WebkitOverflowScrolling:"touch",scrollbarWidth:"none",alignItems:"center",
-        position:"relative"}}>
-        {allDays.map((ds,idx)=>{
-          const d=new Date(ds+"T12:00:00");
-          const dayNum=d.getDate();
-          const dayName=dayNames[d.getDay()];
-          const monName=lang==="bn"?BNMs[d.getMonth()].slice(0,3):ENMs[d.getMonth()];
-          const hasM=ALL_DATES.has(ds);
-          const isTod=ds===today;
-          return(
-            <div key={ds} data-today={isTod?"true":"false"}
-              onClick={()=>handleDayClick(ds)}
-              style={{flexShrink:0,display:"flex",flexDirection:"column",alignItems:"center",
-                padding:"6px 10px",cursor:"pointer",position:"relative",
-                borderBottom:`2.5px solid ${isTod?T.green:"transparent"}`,
-                transition:"border-color 0.15s"}}>
-              <span style={{fontFamily:HS,fontSize:9,fontWeight:600,
-                color:isTod?T.green:T.textS,marginBottom:2}}>{dayName}</span>
-              <span style={{fontFamily:HS,fontSize:13,fontWeight:800,lineHeight:1,
-                color:isTod?T.green:hasM?T.text:T.textM,
-                opacity:hasM||isTod?1:0.25}}>
-                {dayNum}
-              </span>
-              <span style={{fontFamily:HS,fontSize:8,color:isTod?T.green:T.textM,
-                marginTop:2,opacity:isTod?0.8:0.5}}>{monName}</span>
-              {hasM&&!isTod&&<div style={{width:4,height:4,borderRadius:"50%",
-                background:T.green,marginTop:5}}/>}
-              {isTod&&<div style={{width:4,height:4,borderRadius:"50%",
-                background:T.green,marginTop:5}}/>}
-            </div>
-          );
-        })}
+      {/* Horizontal date strip — FotMob style */}
+      <div ref={stripRef} style={{overflowX:"auto",scrollbarWidth:"none",
+        WebkitOverflowScrolling:"touch",borderBottom:`1px solid ${T.border}`}}>
+        <div style={{display:"flex",alignItems:"stretch",minWidth:"max-content"}}>
+          {allDays.map((ds)=>{
+            const d=new Date(ds+"T12:00:00");
+            const dayNum=d.getDate();
+            const dayName=dayNames[d.getDay()];
+            const monName=lang==="bn"?BNMs[d.getMonth()].slice(0,3):ENMs[d.getMonth()];
+            const hasM=ALL_DATES.has(ds);
+            const isTod=ds===today;
+            const yest=new Date(today+"T12:00:00");yest.setDate(yest.getDate()-1);
+            const yesterdayStr=`${yest.getFullYear()}-${String(yest.getMonth()+1).padStart(2,"0")}-${String(yest.getDate()).padStart(2,"0")}`;
+            const tom2=new Date(today+"T12:00:00");tom2.setDate(tom2.getDate()+1);
+            const tomorrowStr=`${tom2.getFullYear()}-${String(tom2.getMonth()+1).padStart(2,"0")}-${String(tom2.getDate()).padStart(2,"0")}`;
+            const isYest=ds===yesterdayStr;
+            const isTom=ds===tomorrowStr;
+            const label=isTod?(lang==="bn"?"আজ":"Today"):isYest?(lang==="bn"?"গতকাল":"Yesterday"):isTom?(lang==="bn"?"আগামীকাল":"Tomorrow"):null;
+            return(
+              <div key={ds} data-today={isTod?"true":"false"}
+                onClick={()=>handleDayClick(ds)}
+                style={{flexShrink:0,display:"flex",flexDirection:"column",alignItems:"center",
+                  padding:"10px 14px 8px",cursor:"pointer",position:"relative",
+                  borderBottom:`2.5px solid ${isTod?T.green:"transparent"}`,
+                  background:isTod?"rgba(0,230,118,0.04)":"transparent",
+                  minWidth:64}}>
+                <span style={{fontFamily:HS,fontSize:label?10:9,fontWeight:700,
+                  color:isTod?T.green:T.textS,marginBottom:2,whiteSpace:"nowrap"}}>
+                  {label||dayName}
+                </span>
+                <span style={{fontFamily:HS,fontSize:label?11:12,fontWeight:800,
+                  color:isTod?T.green:hasM?T.text:T.textM,
+                  opacity:hasM||isTod?1:0.3,lineHeight:1}}>
+                  {dayNum} {monName}
+                </span>
+                {hasM&&<div style={{width:4,height:4,borderRadius:"50%",
+                  background:isTod?T.green:"rgba(0,230,118,0.5)",marginTop:5}}/>}
+              </div>
+            );
+          })}
+        </div>
       </div>
 
       {/* Full calendar popup */}
@@ -1732,7 +1739,7 @@ function HomeTab({T,lang,favs,setFavs,onTeam,setSM,scores,myPreds,setPredictM,se
       </div>
 
       {/* Full-width Date Strip */}
-      <CompactCal T={T} lang={lang} setDayPage={setDayPage}/>
+      <CompactCal T={T} lang={lang} setDayPage={openDayPage}/>
 
       <SponsorBanner T={T} lang={lang}/>
 
@@ -2790,6 +2797,10 @@ export default function App(){
   const[needName,setNeedName]=useState(null);
   const[scoreM,setScoreM]=useState(null);
   const[dayPage,setDayPage]=useState(null);
+  const openDayPage=(ds)=>{
+    window.history.pushState({page:"base",dayPage:ds},"",tabToPath(mt,wt));
+    setDayPage(ds);
+  };
   const T=mkT(dark);
 
   const fetchScores=useCallback(()=>{
@@ -2870,21 +2881,24 @@ export default function App(){
     const onPop=(e)=>{
       const state=e.state||{};
       if(state.page==="base"||!state.page){
+        if(dayPage){setDayPage(null);window.history.pushState({page:"app",tab:mt,wt},"",tabToPath(mt,wt));return;}
         if(tp){setTp(null);window.history.pushState({page:"app",tab:mt,wt},"",tabToPath(mt,wt));return;}
         if(mt!=="home"){setMt("home");setWt("fixture");window.history.pushState({page:"app",tab:"home",wt:"fixture"},"","/"+window.location.search);return;}
         window.history.pushState({page:"app",tab:"home",wt:"fixture"},"","/"+window.location.search);
+      } else if(state.dayPage){
+        setDayPage(null);
       } else if(state.team){
         setTp(null);
       } else if(state.page==="app"&&state.tab){
-        // Navigated via back/forward to a different tab state
         if(state.tab!==mt) setMt(state.tab);
         if(state.wt&&state.wt!==wt) setWt(state.wt);
         setTp(null);
+        setDayPage(null);
       }
     };
     window.addEventListener("popstate",onPop);
     return()=>window.removeEventListener("popstate",onPop);
-  },[tp,mt,wt]);
+  },[tp,mt,wt,dayPage]);
 
   // Update history on tab change
   useEffect(()=>{
@@ -2958,7 +2972,7 @@ export default function App(){
         </div>
 
         {/* Body */}
-                {mt==="home"&&<HomeTab T={T} lang={lang} favs={favs} setFavs={setFavs} onTeam={openTeam} setSM={setSm} scores={scores} myPreds={myPreds} setPredictM={handlePredict} setScoreM={setScoreM} isAdmin={isAdmin} dayPage={dayPage} setDayPage={setDayPage} lbData={lbData} scoresLoaded={scoresLoaded}/>}
+                {mt==="home"&&<HomeTab T={T} lang={lang} favs={favs} setFavs={setFavs} onTeam={openTeam} setSM={setSm} scores={scores} myPreds={myPreds} setPredictM={handlePredict} setScoreM={setScoreM} isAdmin={isAdmin} dayPage={dayPage} setDayPage={openDayPage} lbData={lbData} scoresLoaded={scoresLoaded}/>}
         {mt==="wc"&&wt==="fixture"&&<GroupTab T={T} lang={lang} onTeam={openTeam} scores={scores} myPreds={myPreds} setPredictM={handlePredict} isAdmin={isAdmin} setScoreM={setScoreM}/>}
         {mt==="wc"&&wt==="knockout"&&<KnockoutTab T={T} lang={lang} scores={scores}/>}
         {mt==="wc"&&wt==="table"&&<TableTab T={T} lang={lang} scores={scores}/>}
@@ -2971,7 +2985,7 @@ export default function App(){
         {scoreM&&isAdmin&&<ScoreModal m={scoreM} T={T} lang={lang} scores={scores} setScores={setScores} onClose={()=>setScoreM(null)}/>}
 
         {/* Header Calendar Popup */}
-        {showHeaderCal&&<HeaderCalModal T={T} lang={lang} onClose={()=>setShowHeaderCal(false)} setDayPage={(ds)=>{setShowHeaderCal(false);setMt("home");setDayPage(ds);}}/>}
+        {showHeaderCal&&<HeaderCalModal T={T} lang={lang} onClose={()=>setShowHeaderCal(false)} setDayPage={(ds)=>{setShowHeaderCal(false);setMt("home");openDayPage(ds);}}/>}
 
         {/* Exit confirm */}
         
