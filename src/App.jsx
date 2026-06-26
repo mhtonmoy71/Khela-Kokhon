@@ -1175,6 +1175,23 @@ function CompactCal({T,lang,setDayPage}){
 }
 
 /* ── Match Card (full) ───────────────────────── */
+function CalIcon({d,T,onClick}){
+  const dt=new Date(d+"T00:00:00");
+  const mon=dt.toLocaleString("en",{month:"short"}).toUpperCase();
+  const day=dt.getDate();
+  return(
+    <button onClick={onClick} style={{background:T.card2,border:`1px solid ${T.border}`,
+      borderRadius:10,width:34,height:34,cursor:"pointer",padding:2,
+      display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",overflow:"hidden"}}>
+      <div style={{background:"#e53e3e",width:"100%",borderRadius:"6px 6px 0 0",
+        display:"flex",alignItems:"center",justifyContent:"center",height:11}}>
+        <span style={{fontFamily:HS,fontSize:7,color:"#fff",fontWeight:700,letterSpacing:0.5}}>{mon}</span>
+      </div>
+      <div style={{fontFamily:HS,fontSize:13,fontWeight:800,color:T.text,lineHeight:1,marginTop:1}}>{day}</div>
+    </button>
+  );
+}
+
 function MatchCard({m,T,lang,scores,myPreds,setPredictM,onTeam,isAdmin,setScoreM}){
   const sc=scores[m.id]||scores[String(m.id)];
   const hasScore=sc&&sc.hg!==""&&sc.ag!=="";
