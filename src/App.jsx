@@ -1079,14 +1079,10 @@ function CompactCal({T,lang,setDayPage}){
                     borderBottom:`2.5px solid ${isTod?T.green:"transparent"}`,
                     background:isTod?"rgba(0,230,118,0.04)":"transparent",
                     minWidth:topLabel?72:80,gap:2}}>
-                  <span style={{fontFamily:HS,fontSize:9,fontWeight:600,
-                    color:isTod?T.green:T.textS,whiteSpace:"nowrap",marginBottom:1}}>
-                    {topLabel||dayName}
-                  </span>
-                  <span style={{fontFamily:HS,fontSize:10,fontWeight:700,
+                  <span style={{fontFamily:HS,fontSize:11,fontWeight:topLabel?700:600,
                     color:isTod?T.green:hasM?T.text:T.textM,
-                    opacity:hasM||isTod?1:0.3,whiteSpace:"nowrap"}}>
-                    {dayNum} {lang==="bn"?BNMs[d.getMonth()]:ENMs[d.getMonth()].slice(0,3)}
+                    opacity:hasM||isTod?1:0.35,whiteSpace:"nowrap"}}>
+                    {topLabel||(dayName+" "+dayNum+" "+(lang==="bn"?BNMs[d.getMonth()]:ENMs[d.getMonth()].slice(0,3)))}
                   </span>
                   {hasM&&<div style={{width:4,height:4,borderRadius:"50%",
                     background:isTod?T.green:"rgba(0,230,118,0.6)",marginTop:3}}/>}
@@ -1141,7 +1137,7 @@ function CompactCal({T,lang,setDayPage}){
                       style={{display:"flex",flexDirection:"column",alignItems:"center",
                         padding:"6px 2px",borderRadius:8,cursor:hasM?"pointer":"default",
                         background:isTod?T.greenBg:"transparent"}}>
-                      <span style={{fontFamily:HS,fontSize:11,fontWeight:isTod?700:400,
+                      <span style={{fontFamily:HS,fontSize:10,fontWeight:isTod?700:400,
                         color:hasM?T.text:T.text,opacity:hasM?1:0.3}}>{d}</span>
                       {hasM&&<div style={{width:4,height:4,borderRadius:"50%",
                         background:T.green,marginTop:1}}/>}
@@ -1565,7 +1561,7 @@ function HomeTab({T,lang,favs,setFavs,onTeam,setSM,scores,myPreds,setPredictM,se
     );
   }
 
-  if(dayPage)return <DayPage date={dayPage} T={T} lang={lang} scores={scores} myPreds={myPreds} setPredictM={setPredictM} onTeam={onTeam} isAdmin={isAdmin} setScoreM={setScoreM} onBack={()=>setDayPage(null)}/>;
+  if(dayPage)return <DayPage date={dayPage} T={T} lang={lang} scores={scores} myPreds={myPreds} setPredictM={setPredictM} onTeam={onTeam} isAdmin={isAdmin} setScoreM={setScoreM} onBack={()=>{window.history.back();}}/>;
   return(
     <div style={{padding:"12px 12px 16px"}}>
       {/* WC Countdown Banner */}
@@ -2677,20 +2673,20 @@ function HeaderCalModal({T,lang,onClose,setDayPage}){
   return(
     <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.4)",zIndex:500}}
       onClick={onClose}>
-      <div style={{position:"absolute",top:56,right:0,width:190,
+      <div style={{position:"absolute",top:56,right:0,width:168,
         background:T.card,borderRadius:"12px 0 0 12px",
         boxShadow:"-4px 4px 20px rgba(0,0,0,0.3)",
         overflow:"hidden",display:"flex",flexDirection:"column",
         animation:"slideRight 0.2s ease-out"}}
         onClick={e=>e.stopPropagation()}>
         {/* Header */}
-        <div style={{background:T.green,padding:"7px 10px",display:"flex",
+        <div style={{background:T.green,padding:"5px 8px",display:"flex",
           alignItems:"center",justifyContent:"space-between"}}>
           <button onClick={()=>setVm(new Date(y,mo-1,1))}
             style={{background:"rgba(255,255,255,0.2)",border:"none",borderRadius:6,
               width:24,height:24,cursor:"pointer",color:"#fff",fontSize:16,
               display:"flex",alignItems:"center",justifyContent:"center"}}>‹</button>
-          <span style={{fontFamily:HS,fontSize:12,fontWeight:700,color:"#fff"}}>
+          <span style={{fontFamily:HS,fontSize:11,fontWeight:700,color:"#fff"}}>
             {lang==="bn"?BNMs[mo]:ENMs[mo]} {y}
           </span>
           <div style={{display:"flex",gap:6}}>
@@ -2706,15 +2702,15 @@ function HeaderCalModal({T,lang,onClose,setDayPage}){
         </div>
         {/* Day headers */}
         <div style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",
-          background:T.card2,padding:"4px 8px 2px"}}>
+          background:T.card2,padding:"3px 6px 2px"}}>
           {["S","M","T","W","T","F","S"].map((d,i)=>(
-            <div key={i} style={{textAlign:"center",fontFamily:HS,fontSize:9,
+            <div key={i} style={{textAlign:"center",fontFamily:HS,fontSize:8,
               color:T.textS,fontWeight:700}}>{d}</div>
           ))}
         </div>
         {/* Days grid */}
-        <div style={{overflowY:"auto",padding:"4px 8px 16px"}}>
-          <div style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",gap:2}}>
+        <div style={{overflowY:"auto",padding:"3px 6px 12px"}}>
+          <div style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",gap:1}}>
             {days.map((d,i)=>{
               if(!d)return <div key={i}/>;
               const ds=`${y}-${String(mo+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
@@ -2722,10 +2718,10 @@ function HeaderCalModal({T,lang,onClose,setDayPage}){
               return(
                 <div key={i} onClick={()=>hasM&&setPop(ds)}
                   style={{display:"flex",flexDirection:"column",alignItems:"center",
-                    padding:"5px 1px",borderRadius:8,cursor:hasM?"pointer":"default",
+                    padding:"4px 1px",borderRadius:6,cursor:hasM?"pointer":"default",
                     background:isTod?T.greenBg:"transparent",
                     border:isTod?`1px solid ${T.green}`:"1px solid transparent"}}>
-                  <span style={{fontFamily:HS,fontSize:11,fontWeight:isTod?700:400,
+                  <span style={{fontFamily:HS,fontSize:10,fontWeight:isTod?700:400,
                     color:hasM?T.text:T.textM,opacity:hasM||isTod?1:0.35}}>{d}</span>
                   {hasM&&<div style={{width:4,height:4,borderRadius:"50%",
                     background:T.green,marginTop:2}}/>}
