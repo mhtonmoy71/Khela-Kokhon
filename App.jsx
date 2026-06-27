@@ -358,7 +358,7 @@ function getTwemojiUrl(cc){
     return `https://cdn.jsdelivr.net/npm/twemoji@14.0.2/assets/svg/${c1}-${c2}.svg`;
   }catch{return "";}
 }
-function shareM(m,lang){
+function shareM(m,lang,sc){
   const homeEN=m.h||"TBD", awayEN=m.a||"TBD";
   const homeBN=tn(m.h,"bn")||homeEN, awayBN=tn(m.a,"bn")||awayEN;
   const homeDisp=lang==="bn"?homeBN:homeEN;
@@ -466,12 +466,21 @@ function shareM(m,lang){
   ctx.fillStyle="rgba(255,255,255,0.35)"; ctx.font=`26px ${HS}`;
   ctx.fillText(homeAlt,W/2,290);
 
-  // VS line
+  // VS or Score
   ctx.strokeStyle="rgba(0,230,118,0.25)"; ctx.lineWidth=1;
-  ctx.beginPath(); ctx.moveTo(60,330); ctx.lineTo(W/2-40,330); ctx.stroke();
-  ctx.fillStyle="rgba(255,255,255,0.25)"; ctx.font=`bold 22px Arial`;
-  ctx.fillText("VS",W/2,338);
-  ctx.beginPath(); ctx.moveTo(W/2+40,330); ctx.lineTo(W-60,330); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(60,330); ctx.lineTo(W/2-60,330); ctx.stroke();
+  if(sc&&sc.hg!==""&&sc.ag!==""){
+    // Score
+    ctx.fillStyle="#00e676"; ctx.font=`bold 72px Arial`;
+    ctx.fillText(`${sc.hg} - ${sc.ag}`,W/2,346);
+    // FT badge
+    ctx.fillStyle="rgba(255,255,255,0.4)"; ctx.font=`bold 18px ${HS}`;
+    ctx.fillText("FT",W/2,374);
+  } else {
+    ctx.fillStyle="rgba(255,255,255,0.25)"; ctx.font=`bold 22px Arial`;
+    ctx.fillText("VS",W/2,338);
+  }
+  ctx.beginPath(); ctx.moveTo(W/2+60,330); ctx.lineTo(W-60,330); ctx.stroke();
 
   // Away team name
   ctx.fillStyle="#fff"; ctx.font=`bold 64px ${HS}`;
@@ -910,7 +919,7 @@ function SponsorBanner({T,lang}){
     <a href={SPONSOR_AD.url} target="_blank" rel="noopener noreferrer"
       style={{display:"flex",alignItems:"center",gap:12,textDecoration:"none",
         background:T.card,border:`1px solid ${T.border}`,borderRadius:14,
-        padding:"10px 14px",margin:"10px 0 14px",position:"relative"}}>
+        padding:"10px 14px",margin:"8px 0 4px",position:"relative"}}>
       <div style={{position:"absolute",top:6,right:6,fontFamily:HS,fontSize:8,fontWeight:700,
         color:T.textM,background:T.card2,borderRadius:6,padding:"2px 7px"}}>
         Sponsored
@@ -995,200 +1004,208 @@ function TopThreeWidget({T,lang,setMt}){
   );
 }
 
-/* ── Date Strip + Calendar ───────────────────── */
-function CompactCal({T,lang,setDayPage}){
-  const[pop,setPop]=useState(null);
-  const[showCal,setShowCal]=useState(false);
-  const[vm,setVm]=useState(new Date());
+/* ── Date Strip + Inline Match Box (FotMob style) ── */
+function CompactCal({T,lang,setDayPage,scores,headerSelDate,clearHeaderSelDate}){
   const[today,setToday]=useState(todayStr());
+  const[selDate,setSelDate]=useState(todayStr());
+  const[expandSel,setExpandSel]=useState(false);
   const stripRef=useRef(null);
 
   useEffect(()=>{const id=setInterval(()=>setToday(todayStr()),10000);return()=>clearInterval(id);},[]);
 
-  // Generate all days from Jun 12 to Jul 19
-  const START=new Date("2026-06-12");
-  const END=new Date("2026-07-19");
-  const allDays=[];
-  for(let d=new Date(START);d<=END;d.setDate(d.getDate()+1)){
-    allDays.push(`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`);
-  }
-
-  // Scroll to today on mount
+  // Sync with calendar selection from header
   useEffect(()=>{
-    if(!stripRef.current)return;
-    // Scroll to yesterday (one before today) so today is near start
-    // Scroll today to center of strip (strip internal scroll only)
+    if(headerSelDate){
+      setSelDate(headerSelDate);
+      setExpandSel(false);
+      clearHeaderSelDate&&clearHeaderSelDate();
+      // Scroll to selected date in strip
+      setTimeout(()=>{
+        if(!stripRef.current)return;
+        const el=stripRef.current.querySelector(`[data-date="${headerSelDate}"]`);
+        if(el)el.scrollIntoView({inline:"center",behavior:"smooth"});
+      },100);
+    }
+  },[headerSelDate]);
+
+  // Scroll today to center on mount
+  useEffect(()=>{
     if(!stripRef.current)return;
     const todayEl=stripRef.current.querySelector('[data-today="true"]');
     if(todayEl){
       const strip=stripRef.current;
-      const itemLeft=todayEl.offsetLeft;
-      const itemWidth=todayEl.offsetWidth;
-      const stripWidth=strip.offsetWidth;
-      strip.scrollLeft=itemLeft-(stripWidth/2)+(itemWidth/2);
+      strip.scrollLeft=todayEl.offsetLeft-(strip.offsetWidth/2)+(todayEl.offsetWidth/2);
     }
   },[]);
 
+  const allDays=useMemo(()=>{
+    const days=[];
+    const todayD=new Date(today+"T12:00:00");
+    const startD=new Date(todayD);startD.setDate(startD.getDate()-2);
+    const endD=new Date(todayD);endD.setDate(endD.getDate()+10);
+    // Clamp to tournament range
+    const MIN=new Date("2026-06-12");
+    const MAX=new Date("2026-07-19");
+    const s=startD<MIN?MIN:startD;
+    const e=endD>MAX?MAX:endD;
+    for(let d=new Date(s);d<=e;d.setDate(d.getDate()+1)){
+      days.push(`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`);
+    }
+    return days;
+  },[today]);
+
   const dayNames=lang==="bn"
-    ?["রবি","সোম","মঙ্গ","বুধ","বৃহ","শুক্র","শনি"]
+    ?["রবি","সোম","মঙ্গল","বুধ","বৃহ","শুক্র","শনি"]
     :["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
 
-  // Calendar popup
-  const y=vm.getFullYear(),mo=vm.getMonth();
-  const fd=new Date(y,mo,1).getDay(),dim=new Date(y,mo+1,0).getDate();
-  const calDays=[];for(let i=0;i<fd;i++)calDays.push(null);for(let d=1;d<=dim;d++)calDays.push(d);
-  const popMs=pop?getMatchesForDate(pop):[];
-
-  const handleDayClick=(ds)=>{
-    setShowCal(false);
-    setDayPage(ds);
+  const getLabel=(ds)=>{
+    const yest=new Date(today+"T12:00:00");yest.setDate(yest.getDate()-1);
+    const tom=new Date(today+"T12:00:00");tom.setDate(tom.getDate()+1);
+    const ys=`${yest.getFullYear()}-${String(yest.getMonth()+1).padStart(2,"0")}-${String(yest.getDate()).padStart(2,"0")}`;
+    const ts=`${tom.getFullYear()}-${String(tom.getMonth()+1).padStart(2,"0")}-${String(tom.getDate()).padStart(2,"0")}`;
+    if(ds===today)return lang==="bn"?"আজ":"Today";
+    if(ds===ys)return lang==="bn"?"গতকাল":"Yesterday";
+    if(ds===ts)return lang==="bn"?"আগামীকাল":"Tomorrow";
+    return null;
   };
+
+  const selMs=getMatchesForDate(selDate).sort((a,b)=>{
+    const hasLive=getMatchesForDate(selDate).some(m=>status(m,scores)==="live");
+    if(!hasLive)return tMs(a)-tMs(b);
+    const pa=status(a,scores)==="live"?0:status(a,scores)==="up"?1:2;
+    const pb=status(b,scores)==="live"?0:status(b,scores)==="up"?1:2;
+    return pa-pb;
+  });
+
+  const isLiveDay=selMs.some(m=>status(m,scores)==="live");
+  const selLabel=getLabel(selDate);
+  const selD=new Date(selDate+"T12:00:00");
+  const selDayStr=selLabel||(dayNames[selD.getDay()]+" "+selD.getDate()+" "+(lang==="bn"?BNMs[selD.getMonth()]:ENMs[selD.getMonth()].slice(0,3)));
+
+  const bnNum=n=>String(n).replace(/[0-9]/g,d=>"০১২৩৪৫৬৭৮৯"[d]);
 
   return(
     <>
-      {/* Horizontal date strip — FotMob style */}
+      {/* Strip */}
       <div ref={stripRef} style={{overflowX:"auto",scrollbarWidth:"none",
-        WebkitOverflowScrolling:"touch",borderBottom:`1px solid ${T.border}`}}>
-        <div style={{display:"flex",alignItems:"stretch",minWidth:"max-content"}}>
-          {(()=>{
-            const yest=new Date(today+"T12:00:00");yest.setDate(yest.getDate()-1);
-            const yesterdayStr=`${yest.getFullYear()}-${String(yest.getMonth()+1).padStart(2,"0")}-${String(yest.getDate()).padStart(2,"0")}`;
-            const tom2=new Date(today+"T12:00:00");tom2.setDate(tom2.getDate()+1);
-            const tomorrowStr=`${tom2.getFullYear()}-${String(tom2.getMonth()+1).padStart(2,"0")}-${String(tom2.getDate()).padStart(2,"0")}`;
-            return allDays.map((ds)=>{
-              const d=new Date(ds+"T12:00:00");
-              const dayNum=d.getDate();
-              const dayName=dayNames[d.getDay()];
-              const monName=lang==="bn"?BNMs[d.getMonth()].slice(0,3):ENMs[d.getMonth()].slice(0,3);
-              const hasM=ALL_DATES.has(ds);
-              const isTod=ds===today;
-              const isYest=ds===yesterdayStr;
-              const isTom=ds===tomorrowStr;
-              // FotMob style: special label or "Sun 29 Jun"
-              const topLabel=isTod?(lang==="bn"?"আজ":"Today")
-                :isYest?(lang==="bn"?"গতকাল":"Yesterday")
-                :isTom?(lang==="bn"?"আগামীকাল":"Tomorrow")
-                :null;
-              const bottomLabel=topLabel?null:`${dayNum} ${monName}`;
-              return(
-                <div key={ds} data-today={isTod?"true":"false"}
-                  onClick={()=>handleDayClick(ds)}
-                  style={{flexShrink:0,display:"flex",flexDirection:"column",alignItems:"center",
-                    justifyContent:"center",
-                    padding:"10px 16px 8px",cursor:"pointer",
-                    borderBottom:`2.5px solid ${isTod?T.green:"transparent"}`,
-                    background:isTod?"rgba(0,230,118,0.04)":"transparent",
-                    minWidth:topLabel?72:80,gap:2}}>
-                  <span style={{fontFamily:HS,fontSize:11,fontWeight:topLabel?700:600,
-                    color:isTod?T.green:hasM?T.text:T.textM,
-                    opacity:hasM||isTod?1:0.35,whiteSpace:"nowrap"}}>
-                    {topLabel||(dayName+" "+dayNum+" "+(lang==="bn"?BNMs[d.getMonth()]:ENMs[d.getMonth()].slice(0,3)))}
-                  </span>
-                  {hasM&&<div style={{width:4,height:4,borderRadius:"50%",
-                    background:isTod?T.green:"rgba(0,230,118,0.6)",marginTop:3}}/>}
-                </div>
-              );
-            });
-          })()}
+        WebkitOverflowScrolling:"touch",
+        borderBottom:`1px solid ${T.border}`,
+        background:T.card}}>
+        <div style={{display:"flex",alignItems:"center",minWidth:"max-content"}}>
+          {allDays.map(ds=>{
+            const d=new Date(ds+"T12:00:00");
+            const hasM=ALL_DATES.has(ds);
+            const isTod=ds===today;
+            const isSel=ds===selDate;
+            const label=getLabel(ds);
+            const dayName=dayNames[d.getDay()];
+            const dayNum=lang==="bn"?bnNum(d.getDate()):d.getDate();
+            const monName=lang==="bn"?BNMs[d.getMonth()]:ENMs[d.getMonth()].slice(0,3);
+            const displayText=label||(dayName+" "+dayNum+" "+monName);
+            return(
+              <div key={ds} data-today={isTod?"true":"false"} data-date={ds}
+                onClick={()=>{setSelDate(ds);setExpandSel(false);}}
+                style={{flexShrink:0,display:"flex",flexDirection:"column",
+                  alignItems:"center",justifyContent:"center",
+                  padding:"12px 14px 10px",cursor:"pointer",position:"relative",
+                  borderBottom:`2.5px solid ${isSel?T.green:"transparent"}`,
+                  transition:"border-color 0.15s",
+                  background:isSel?"rgba(0,230,118,0.04)":"transparent"}}>
+                <span style={{fontFamily:HS,fontSize:11,fontWeight:isSel||isTod?700:500,
+                  color:isSel?T.green:isTod?T.green:T.text,
+                  opacity:1,whiteSpace:"nowrap"}}>
+                  {displayText}
+                </span>
+
+              </div>
+            );
+          })}
         </div>
       </div>
 
-      {/* Full calendar popup */}
-      {showCal&&(
-        <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.7)",zIndex:999,
-          display:"flex",alignItems:"flex-end"}} onClick={()=>setShowCal(false)}>
-          <div style={{background:T.card,borderRadius:"20px 20px 0 0",width:"100%",
-            maxHeight:"70vh",overflow:"hidden",display:"flex",flexDirection:"column"}}
-            onClick={e=>e.stopPropagation()}>
-            <div style={{background:T.green,padding:"10px 14px",display:"flex",
-              alignItems:"center",justifyContent:"space-between"}}>
-              <button onClick={()=>setVm(new Date(y,mo-1,1))}
-                style={{background:"rgba(255,255,255,0.2)",border:"none",borderRadius:6,
-                  width:28,height:28,cursor:"pointer",color:"#fff",fontSize:16,
-                  display:"flex",alignItems:"center",justifyContent:"center"}}>‹</button>
-              <span style={{fontFamily:HS,fontSize:13,fontWeight:700,color:"#fff"}}>
-                {lang==="bn"?BNMs[mo]:ENMs[mo]} {y}
-              </span>
-              <div style={{display:"flex",alignItems:"center",gap:6}}>
-                <button onClick={()=>setVm(new Date(y,mo+1,1))}
-                  style={{background:"rgba(255,255,255,0.2)",border:"none",borderRadius:6,
-                    width:28,height:28,cursor:"pointer",color:"#fff",fontSize:16,
-                    display:"flex",alignItems:"center",justifyContent:"center"}}>›</button>
-                <button onClick={()=>setShowCal(false)}
-                  style={{background:"rgba(255,255,255,0.2)",border:"none",borderRadius:6,
-                    width:28,height:28,cursor:"pointer",color:"#fff",fontSize:14,
-                    display:"flex",alignItems:"center",justifyContent:"center"}}>✕</button>
-              </div>
-            </div>
-            <div style={{overflowY:"auto",padding:"8px 12px 28px"}}>
-              <div style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",gap:2,marginBottom:4}}>
-                {["S","M","T","W","T","F","S"].map((d,i)=>(
-                  <div key={i} style={{textAlign:"center",fontFamily:HS,fontSize:9,
-                    color:T.textS,fontWeight:700,padding:"4px 0"}}>{d}</div>
-                ))}
-              </div>
-              <div style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",gap:2}}>
-                {calDays.map((d,i)=>{
-                  if(!d)return <div key={i}/>;
-                  const ds=`${y}-${String(mo+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
-                  const hasM=ALL_DATES.has(ds),isTod=ds===today;
-                  return(
-                    <div key={i} onClick={()=>hasM&&handleDayClick(ds)}
-                      style={{display:"flex",flexDirection:"column",alignItems:"center",
-                        padding:"6px 2px",borderRadius:8,cursor:hasM?"pointer":"default",
-                        background:isTod?T.greenBg:"transparent"}}>
-                      <span style={{fontFamily:HS,fontSize:10,fontWeight:isTod?700:400,
-                        color:hasM?T.text:T.text,opacity:hasM?1:0.3}}>{d}</span>
-                      {hasM&&<div style={{width:4,height:4,borderRadius:"50%",
-                        background:T.green,marginTop:1}}/>}
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
+      {/* Inline match box */}
+      <div style={{background:T.card,marginBottom:8}}>
+        {/* Header */}
+        <div onClick={()=>setDayPage(selDate)}
+          style={{display:"flex",alignItems:"center",justifyContent:"space-between",
+            padding:"12px 14px 8px",cursor:"pointer"}}>
+          <div style={{display:"flex",alignItems:"center",gap:6}}>
+            {isLiveDay&&<div style={{width:7,height:7,borderRadius:"50%",background:T.red,animation:"pulse 1s infinite"}}/>}
+            <span style={{fontFamily:HS,fontSize:13,fontWeight:800,color:T.text}}>{selDayStr}</span>
           </div>
+          <span style={{fontFamily:HS,fontSize:10,color:T.green,fontWeight:600}}>
+            {lang==="bn"?bnNum(selMs.length)+" টি ম্যাচ":selMs.length+" matches"} →
+          </span>
         </div>
-      )}
 
-      {/* Day matches popup */}
-      {pop&&(
-        <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.7)",zIndex:999,
-          display:"flex",alignItems:"flex-end"}} onClick={()=>setPop(null)}>
-          <div style={{background:T.card,borderRadius:"20px 20px 0 0",width:"100%",
-            maxHeight:"70vh",overflow:"hidden",display:"flex",flexDirection:"column"}}
-            onClick={e=>e.stopPropagation()}>
-            <div style={{padding:"14px 16px 10px",borderBottom:`1px solid ${T.border}`,
-              display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-              <span style={{fontFamily:HS,fontSize:15,fontWeight:700,color:T.text}}>{dl(pop,lang)}</span>
-              <button onClick={()=>setPop(null)} style={{background:T.card2,border:"none",
-                borderRadius:20,width:28,height:28,cursor:"pointer",fontSize:14,color:T.text}}>✕</button>
+        {/* Match rows */}
+        <div style={{padding:"0 12px"}}>
+          {selMs.length===0?(
+            <div style={{textAlign:"center",padding:"16px 0",fontFamily:HS,fontSize:12,color:T.textM}}>
+              {lang==="bn"?"কোনো ম্যাচ নেই":"No matches"}
             </div>
-            <div style={{overflowY:"auto",padding:"8px 12px 28px"}}>
-              {popMs.map((m,i)=>{
-                const isG=m.g&&m.g.length===1;
+          ):(
+            <>
+              {selMs.slice(0,expandSel?undefined:3).map(m=>{
+                const sc=scores[m.id]||scores[String(m.id)];
+                const st=status(m,scores);
+                const isFT=st==="ft";
+                const isLive=st==="live";
+                const hasScore=sc&&sc.hg!==""&&sc.ag!=="";
                 const[t2,ap]=m.t.split(" ");
                 return(
-                  <div key={m.id||i} style={{background:T.card2,borderRadius:12,padding:"12px",marginBottom:8}}>
-                    <div style={{fontFamily:HS,fontSize:10,color:T.textS,marginBottom:6}}>
-                      {m.label||(isG?`Group ${m.g}`:m.venue||m.g||"")} · {t2}<span style={{fontSize:8}}>{ap}</span>
+                  <div key={m.id} onClick={()=>setDayPage(selDate)}
+                    style={{display:"flex",alignItems:"center",gap:8,
+                      padding:"9px 10px",marginBottom:4,
+                      background:T.card2,borderRadius:10,cursor:"pointer"}}>
+                    <Flag en={m.h} size={18}/>
+                    <span style={{fontFamily:HS,fontSize:12,fontWeight:600,color:T.text,
+                      flex:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>
+                      {tn(m.h,lang)}
+                    </span>
+                    {/* Score/Time/Status */}
+                    <div style={{flexShrink:0,textAlign:"center",minWidth:70}}>
+                      {hasScore||isLive?(
+                        <span style={{display:"flex",alignItems:"center",gap:4,justifyContent:"center"}}>
+                          {isFT&&<span style={{fontFamily:HS,fontSize:8,color:T.textM,fontWeight:600}}>FT</span>}
+                          {isLive&&<div style={{width:5,height:5,borderRadius:"50%",background:T.red}}/>}
+                          <span style={{fontFamily:HS,fontSize:13,fontWeight:800,
+                            color:isFT?T.text:isLive?"#3b82f6":T.text}}>
+                            {sc?.hg??0} - {sc?.ag??0}
+                          </span>
+                        </span>
+                      ):(
+                        <span style={{fontFamily:HS,fontSize:11,fontWeight:700,color:T.green}}>
+                          {t2}<span style={{fontSize:8,color:T.textM,marginLeft:1}}>{ap}</span>
+                        </span>
+                      )}
                     </div>
-                    <div style={{display:"flex",alignItems:"center",gap:8}}>
-                      {isG&&<Flag en={m.h} size={26}/>}
-                      <span style={{fontFamily:HS,fontSize:13,fontWeight:600,color:T.text,flex:1}}>{isG?tn(m.h,lang):(m.h||"TBD")}</span>
-                      <span style={{fontFamily:HS,fontSize:11,color:T.textM}}>vs</span>
-                      <span style={{fontFamily:HS,fontSize:13,fontWeight:600,color:T.text,flex:1,textAlign:"right"}}>{isG?tn(m.a,lang):(m.a||"TBD")}</span>
-                      {isG&&<Flag en={m.a} size={26}/>}
-                    </div>
+                    <span style={{fontFamily:HS,fontSize:12,fontWeight:600,color:T.text,
+                      flex:1,textAlign:"right",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>
+                      {tn(m.a,lang)}
+                    </span>
+                    <Flag en={m.a} size={18}/>
                   </div>
                 );
               })}
-            </div>
-          </div>
+              {selMs.length>3&&(
+                <div onClick={(e)=>{e.stopPropagation();setExpandSel(v=>!v);}}
+                  style={{textAlign:"center",padding:"6px 0 10px",
+                    fontFamily:HS,fontSize:10,color:T.green,cursor:"pointer",fontWeight:600}}>
+                  {expandSel
+                    ?(lang==="bn"?"কম দেখাও ↑":"Show less ↑")
+                    :(lang==="bn"?"+"+bnNum(selMs.length-3)+" টা আরো ↓":"+"+String(selMs.length-3)+" more ↓")}
+                </div>
+              )}
+              {selMs.length<=3&&<div style={{height:10}}/>}
+            </>
+          )}
         </div>
-      )}
+      </div>
     </>
   );
 }
+
 
 /* ── Match Card (full) ───────────────────────── */
 function CalIcon({d,T,onClick}){
@@ -1323,7 +1340,7 @@ function MatchCard({m,T,lang,scores,myPreds,setPredictM,onTeam,isAdmin,setScoreM
             borderRadius:10,width:34,height:34,cursor:"pointer",fontSize:13,display:"flex",alignItems:"center",justifyContent:"center"}}>✏️</button>
         )}
         <CalIcon d={m.d} T={T} onClick={()=>addToGCal(m,lang)}/>
-        <button onClick={()=>shareM(m,lang)} style={{display:"flex",alignItems:"center",gap:5,background:T.card2,border:`1px solid ${T.border}`,borderRadius:20,padding:"7px 12px",cursor:"pointer",color:T.textS}}>
+        <button onClick={()=>shareM(m,lang,sc)} style={{display:"flex",alignItems:"center",gap:5,background:T.card2,border:`1px solid ${T.border}`,borderRadius:20,padding:"7px 12px",cursor:"pointer",color:T.textS}}>
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
           <span style={{fontFamily:HS,fontSize:11}}>{lang==="bn"?"শেয়ার":"Share"}</span>
         </button>
@@ -1391,7 +1408,7 @@ function MatchRow({m,T,lang,scores,myPreds,setPredictM,onTeam,isAdmin,setScoreM}
             <button onClick={()=>{addToGCal(m,lang);setShowAct(false);}} style={{flex:1,display:"flex",alignItems:"center",justifyContent:"center",gap:4,background:T.card,border:`1px solid ${T.border}`,borderRadius:10,padding:7,cursor:"pointer",fontFamily:HS,fontSize:12,color:T.textS}}>📅</button>
             <button onClick={()=>{onTeam(m.h);setShowAct(false);}} style={{flex:1,display:"flex",alignItems:"center",justifyContent:"center",gap:4,background:T.card,border:`1px solid ${T.border}`,borderRadius:10,padding:7,cursor:"pointer",fontFamily:HS,fontSize:12,color:T.textS}}><Flag en={m.h} size={14}/></button>
             <button onClick={()=>{onTeam(m.a);setShowAct(false);}} style={{flex:1,display:"flex",alignItems:"center",justifyContent:"center",gap:4,background:T.card,border:`1px solid ${T.border}`,borderRadius:10,padding:7,cursor:"pointer",fontFamily:HS,fontSize:12,color:T.textS}}><Flag en={m.a} size={14}/></button>
-            <button onClick={()=>{shareM(m,lang);setShowAct(false);}} style={{flex:1,display:"flex",alignItems:"center",justifyContent:"center",gap:4,background:T.card,border:`1px solid ${T.border}`,borderRadius:10,padding:7,cursor:"pointer",color:T.textS}}>
+            <button onClick={()=>{shareM(m,lang,sc);setShowAct(false);}} style={{flex:1,display:"flex",alignItems:"center",justifyContent:"center",gap:4,background:T.card,border:`1px solid ${T.border}`,borderRadius:10,padding:7,cursor:"pointer",color:T.textS}}>
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
                 <span style={{fontFamily:HS,fontSize:11}}>{lang==="bn"?"শেয়ার":"Share"}</span>
               </button>
@@ -1500,7 +1517,7 @@ function DayPage({date,T,lang,scores,myPreds,setPredictM,onTeam,isAdmin,setScore
 }
 
 
-function HomeTab({T,lang,favs,setFavs,onTeam,setSM,scores,myPreds,setPredictM,setScoreM,isAdmin,dayPage,setDayPage,lbData,scoresLoaded}){
+function HomeTab({T,lang,favs,setFavs,onTeam,setSM,scores,myPreds,setPredictM,setScoreM,isAdmin,dayPage,setDayPage,lbData,scoresLoaded,headerSelDate,clearHeaderSelDate}){
   const WC_MS=new Date("2026-06-11T19:00:00Z").getTime();
   const[wcDiff,setWcDiff]=useState(()=>Math.max(0,WC_MS-Date.now()));
   const[expandToday,setExpandToday]=useState(false);
@@ -1663,96 +1680,8 @@ function HomeTab({T,lang,favs,setFavs,onTeam,setSM,scores,myPreds,setPredictM,se
           </div>
         );
       })()}
-                  {/* Today + Calendar row */}
-      <div style={{display:"flex",gap:10,marginBottom:8,alignItems:"stretch"}}>
-        {/* Left: Today & Tomorrow info */}
-        <div style={{flex:1,minWidth:0,display:"flex",flexDirection:"column"}}>
-          <div onClick={()=>setDayPage(today)} style={{background:T.card,borderRadius:14,padding:"8px 10px",marginBottom:8,flex:1,cursor:"pointer"}}>
-            <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:8}}>
-              <div style={{display:"flex",alignItems:"center",gap:5}}>
-                {todayMs.length>0&&<div style={{width:7,height:7,borderRadius:"50%",background:T.red,flexShrink:0,animation:"pulse 1s infinite"}}/>}
-                <span style={{fontFamily:HS,fontSize:12,fontWeight:700,color:T.text}}>{lang==="bn"?"আজ":"Today"}</span>
-              </div>
-              <span style={{fontFamily:HS,fontSize:10,color:T.green}}>{lang==="bn"?String(todayMs.length).replace(/[0-9]/g,d=>"০১২৩৪৫৬৭৮৯"[d]):todayMs.length} {lang==="bn"?"টি ম্যাচ":"matches"}</span>
-            </div>
-            {todayMs.length>0?(<>
-              {(()=>{
-                const hasLive=todayMs.some(m=>status(m,scores)==="live");
-                return [...todayMs].sort((a,b)=>{
-                  if(!hasLive) return tMs(a)-tMs(b); // original time order
-                  const pa=status(a,scores)==="live"?0:status(a,scores)==="up"?1:2;
-                  const pb=status(b,scores)==="live"?0:status(b,scores)==="up"?1:2;
-                  return pa-pb;
-                });
-              })().slice(0,expandToday?undefined:2).map(m=>{
-                const[t2,ap]=m.t.split(" ");
-                const sc=scores[m.id]||scores[String(m.id)];
-                const st=status(m,scores);
-                const isFT=st==="ft";
-                const hasScore=sc&&sc.hg!==""&&sc.ag!=="";
-                return(
-                  <div key={m.id} style={{display:"flex",alignItems:"center",gap:4,marginBottom:6,opacity:isFT?0.6:1}}>
-                    <Flag en={m.h} size={14}/>
-                    <span style={{fontFamily:HS,fontSize:12,fontWeight:600,color:T.text,flex:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{tn(m.h,lang)}</span>
-                    {hasScore||(st==="live")?(
-                      <span style={{display:"flex",justifyContent:"center",flexShrink:0,minWidth:32}}>
-                        {isFT?(
-                          <span style={{display:"flex",alignItems:"center",gap:3,background:T.card2,borderRadius:6,padding:"2px 6px",border:`1px solid ${T.border}`}}>
-                            <span style={{fontFamily:HS,fontSize:11,fontWeight:800,color:T.text}}>{sc?.hg??0}–{sc?.ag??0}</span>
-                            <span style={{fontFamily:HS,fontSize:7,fontWeight:700,color:T.textS,letterSpacing:0.5}}>FT</span>
-                          </span>
-                        ):( 
-                          <span style={{display:"flex",alignItems:"center",gap:3}}>
-                            <span style={{fontFamily:HS,fontSize:11,fontWeight:800,color:"#3b82f6"}}>{sc?.hg??0}–{sc?.ag??0}</span>
-                            <span style={{fontFamily:HS,fontSize:7,fontWeight:700,color:"#e53935",background:"rgba(229,57,53,0.1)",borderRadius:4,padding:"1px 4px",letterSpacing:0.3}}>{lang==="bn"?"লাইভ":"LIVE"}</span>
-                          </span>
-                        )}
-                      </span>
-                    ):(
-                      <span style={{display:"flex",justifyContent:"center",flexShrink:0,minWidth:32}}>
-                        <span style={{fontFamily:HS,fontSize:10,fontWeight:700,color:T.green}}>{t2} <span style={{fontSize:7,color:T.text,opacity:0.5}}>{ap}</span></span>
-                      </span>
-                    )}
-                    <span style={{fontFamily:HS,fontSize:12,fontWeight:600,color:T.text,flex:1,textAlign:"right",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{tn(m.a,lang)}</span>
-                    <Flag en={m.a} size={14}/>
-                  </div>
-                );
-              })}
-              {todayMs.length>2&&<div style={{fontFamily:HS,fontSize:10,color:T.green,textAlign:"center",marginTop:2,cursor:"pointer"}} onClick={(e)=>{e.stopPropagation();setExpandToday(v=>!v);}}>{expandToday?(lang==="bn"?"কম দেখাও ↑":"Show less ↑"):(lang==="bn"?"+"+String(todayMs.length-2).replace(/[0-9]/g,d=>"০১২৩৪৫৬৭৮৯"[d])+" টা আরো ↓":"+"+String(todayMs.length-2)+" more ↓")}</div>}
-            </>):<div style={{fontFamily:HS,fontSize:11,color:T.textS,textAlign:"center"}}>{lang==="bn"?"কোনো ম্যাচ নেই":"No matches"}</div>}
-          </div>
-
-          <div onClick={()=>setDayPage(tom)} style={{background:T.card,borderRadius:14,padding:"10px 12px",cursor:"pointer"}}>
-            <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:8}}>
-              <span style={{fontFamily:HS,fontSize:12,fontWeight:700,color:T.text}}>{lang==="bn"?"আগামীকাল":"Tomorrow"}</span>
-              <span style={{fontFamily:HS,fontSize:10,color:T.textS}}>{lang==="bn"?String(tomMs.length).replace(/[0-9]/g,d=>"০১২৩৪৫৬৭৮৯"[d]):tomMs.length} {lang==="bn"?"টি ম্যাচ":"matches"}</span>
-            </div>
-            {tomMs.length>0?(<>
-              {[...tomMs].sort((a,b)=>{
-                const pa=status(a,scores)==="live"?0:status(a,scores)==="up"?1:2;
-                const pb=status(b,scores)==="live"?0:status(b,scores)==="up"?1:2;
-                return pa-pb;
-              }).slice(0,expandTom?undefined:2).map(m=>{
-                const[t2,ap]=m.t.split(" ");
-                return(
-                  <div key={m.id} style={{display:"flex",alignItems:"center",gap:4,marginBottom:6}}>
-                    <Flag en={m.h} size={14}/>
-                    <span style={{fontFamily:HS,fontSize:12,fontWeight:600,color:T.text,flex:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{tn(m.h,lang)}</span>
-                    <span style={{display:"flex",justifyContent:"center",flexShrink:0,minWidth:32}}><span style={{fontFamily:HS,fontSize:10,fontWeight:700,color:T.gold||T.green}}>{t2} <span style={{fontSize:7,color:T.text,opacity:0.5}}>{ap}</span></span></span>
-                    <span style={{fontFamily:HS,fontSize:12,fontWeight:600,color:T.text,flex:1,textAlign:"right",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{tn(m.a,lang)}</span>
-                    <Flag en={m.a} size={14}/>
-                  </div>
-                );
-              })}
-              {tomMs.length>2&&<div style={{fontFamily:HS,fontSize:10,color:T.green,textAlign:"center",marginTop:2,cursor:"pointer"}} onClick={(e)=>{e.stopPropagation();setExpandTom(v=>!v);}}>{expandTom?(lang==="bn"?"কম দেখাও ↑":"Show less ↑"):(lang==="bn"?"+"+String(tomMs.length-2).replace(/[0-9]/g,d=>"০১২৩৪৫৬৭৮৯"[d])+" টা আরো ↓":"+"+String(tomMs.length-2)+" more ↓")}</div>}
-            </>):<div style={{fontFamily:HS,fontSize:11,color:T.textS,textAlign:"center"}}>{lang==="bn"?"কোনো ম্যাচ নেই":"No matches"}</div>}
-          </div>
-        </div>
-
-      </div>
-
-      {/* Full-width Date Strip */}
-      <CompactCal T={T} lang={lang} setDayPage={setDayPage}/>
+      {/* FotMob-style: Strip on top, inline match box below */}
+      <CompactCal T={T} lang={lang} setDayPage={setDayPage} scores={scores} headerSelDate={headerSelDate} clearHeaderSelDate={clearHeaderSelDate}/>
 
       <SponsorBanner T={T} lang={lang}/>
 
@@ -2673,9 +2602,9 @@ function HeaderCalModal({T,lang,onClose,setDayPage}){
   return(
     <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.4)",zIndex:500}}
       onClick={onClose}>
-      <div style={{position:"absolute",top:56,right:0,width:168,
-        background:T.card,borderRadius:"12px 0 0 12px",
-        boxShadow:"-4px 4px 20px rgba(0,0,0,0.3)",
+      <div style={{position:"absolute",top:56,right:4,width:200,
+        background:T.card,borderRadius:12,
+        boxShadow:"0 4px 24px rgba(0,0,0,0.4)",
         overflow:"hidden",display:"flex",flexDirection:"column",
         animation:"slideRight 0.2s ease-out"}}
         onClick={e=>e.stopPropagation()}>
@@ -2786,6 +2715,7 @@ export default function App(){
   const isAdmin=new URLSearchParams(window.location.search).get("admin")===ADMIN_KEY;
   const[dark,setDark]=useState(()=>localStorage.getItem("kk_dark")!=="false");
   const[showHeaderCal,setShowHeaderCal]=useState(false);
+  const[headerSelDate,setHeaderSelDate]=useState(null);
   const[showClockTime,setShowClockTime]=useState(false);
   const[lang,setLang]=useState(()=>localStorage.getItem("kk_lang")||"bn");
   const[mt,setMt]=useState(()=>{
@@ -3004,7 +2934,7 @@ export default function App(){
         </div>
 
         {/* Body */}
-                {mt==="home"&&<HomeTab T={T} lang={lang} favs={favs} setFavs={setFavs} onTeam={openTeam} setSM={setSm} scores={scores} myPreds={myPreds} setPredictM={handlePredict} setScoreM={setScoreM} isAdmin={isAdmin} dayPage={dayPage} setDayPage={openDayPage} lbData={lbData} scoresLoaded={scoresLoaded}/>}
+                {mt==="home"&&<HomeTab T={T} lang={lang} favs={favs} setFavs={setFavs} onTeam={openTeam} setSM={setSm} scores={scores} myPreds={myPreds} setPredictM={handlePredict} setScoreM={setScoreM} isAdmin={isAdmin} dayPage={dayPage} setDayPage={openDayPage} lbData={lbData} scoresLoaded={scoresLoaded} headerSelDate={headerSelDate} clearHeaderSelDate={()=>setHeaderSelDate(null)}/>}
         {mt==="wc"&&wt==="fixture"&&<GroupTab T={T} lang={lang} onTeam={openTeam} scores={scores} myPreds={myPreds} setPredictM={handlePredict} isAdmin={isAdmin} setScoreM={setScoreM}/>}
         {mt==="wc"&&wt==="knockout"&&<KnockoutTab T={T} lang={lang} scores={scores}/>}
         {mt==="wc"&&wt==="table"&&<TableTab T={T} lang={lang} scores={scores}/>}
@@ -3017,7 +2947,7 @@ export default function App(){
         {scoreM&&isAdmin&&<ScoreModal m={scoreM} T={T} lang={lang} scores={scores} setScores={setScores} onClose={()=>setScoreM(null)}/>}
 
         {/* Header Calendar Popup */}
-        {showHeaderCal&&<HeaderCalModal T={T} lang={lang} onClose={()=>setShowHeaderCal(false)} setDayPage={(ds)=>{setShowHeaderCal(false);setMt("home");openDayPage(ds);}}/>}
+        {showHeaderCal&&<HeaderCalModal T={T} lang={lang} onClose={()=>setShowHeaderCal(false)} setDayPage={(ds)=>{setShowHeaderCal(false);setMt("home");setHeaderSelDate(ds);}}/>}
 
         {/* Exit confirm */}
         
