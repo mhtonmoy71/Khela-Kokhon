@@ -85,7 +85,7 @@ const getUserByEmail = (email) => gasPost("getUserByEmail", {email}).then(r => r
 
 // Predictions
 const getPreds = (name) => gasPost("getPredictions", {name}).then(r => r.data||[]);
-const upsertPred = (name, matchId, hg, ag) => gasPost("savePrediction", {name, matchId, hg, ag});
+const upsertPred = (name, matchId, hg, ag, winner="") => gasPost("savePrediction", {name, matchId, hg, ag, winner});
 const deletePred = (name, matchId) => gasPost("deletePrediction", {name, matchId});
 
 // News & Comments
@@ -105,7 +105,7 @@ const deleteUser = (email, name) => gasPost("deleteUser", {email, name});
 // Scores & Leaderboard
 const getScores = () => gasGet("getScores").then(r => r.data||{});
 const getLB = () => gasGet("getLeaderboard").then(r => Array.isArray(r?.data)?r.data:[]);
-const saveScoreDB = (matchId, hg, ag, status="") => gasPost("saveScore", {matchId, hg, ag, status});
+const saveScoreDB = (matchId, hg, ag, status="", winner="") => gasPost("saveScore", {matchId, hg, ag, status, winner});
 
 
 /* ── Theme ───────────────────────────────────── */
@@ -285,6 +285,61 @@ const FINAL=[
 ];
 
 const ALL_DATES=new Set([...MATCHES,...R32,...R16,...QF,...SF,...FINAL].map(m=>m.d));
+
+// Bracket winner resolution: R32→R16→QF→SF→Final
+// Maps match winner to next round slot
+const KO_WINNER_MAP={
+  // R32 winners → R16 slots (W73=winner of match 73, etc.)
+  73:"W73",74:"W74",75:"W75",76:"W76",77:"W77",78:"W78",79:"W79",80:"W80",
+  81:"W81",82:"W82",83:"W83",84:"W84",85:"W85",86:"W86",87:"W87",88:"W88",
+  // R16 winners → QF slots
+  89:"W89",90:"W90",91:"W91",92:"W92",93:"W93",94:"W94",95:"W95",96:"W96",
+  // QF winners → SF slots
+  97:"W97",98:"W98",99:"W99",100:"W100",
+  // SF winners → Final slots
+  101:"W101",102:"W102",
+};
+
+function resolveKnockout(scores, groupQualified){
+  const q={...groupQualified};
+  
+  // Helper: get winner of a match
+  const getWinner=(m)=>{
+    const sc=scores[m.id]||scores[String(m.id)];
+    if(!sc||sc.hg===""||sc.ag==="")return null;
+    const hg=Number(sc.hg),ag=Number(sc.ag);
+    const h=q[m.h]||m.h;
+    const a=q[m.a]||m.a;
+    if(hg>ag)return h;
+    if(ag>hg)return a;
+    return sc.winner?(q[sc.winner]||sc.winner):null; // tiebreaker
+  };
+
+  // Resolve R32 → set W73..W88
+  R32.forEach(m=>{const w=getWinner(m);if(w)q["W"+m.id]=w;});
+  
+  // Update R16 h/a based on R32 results
+  // R16[0]: W73 vs W74 → id 89
+  // R16[1]: W75 vs W78 → id 90  
+  // R16[2]: W74... etc (use KO_WINNER_MAP from R16 h/a fields)
+  R16.forEach(m=>{const w=getWinner(m);if(w)q["W"+m.id]=w;});
+  QF.forEach(m=>{const w=getWinner(m);if(w)q["W"+m.id]=w;});
+  SF.forEach(m=>{
+    const sc=scores[m.id]||scores[String(m.id)];
+    const w=getWinner(m);
+    if(w)q["W"+m.id]=w;
+    // Also track losers for Bronze
+    if(sc&&sc.hg!==""&&sc.ag!==""){
+      const hg=Number(sc.hg),ag=Number(sc.ag);
+      const h=q[m.h]||m.h;const a=q[m.a]||m.a;
+      if(hg>ag)q["L"+m.id]=a;
+      else if(ag>hg)q["L"+m.id]=h;
+    }
+  });
+
+  return q;
+}
+
 function getMatchesForDate(d){return[...MATCHES,...R32,...R16,...QF,...SF,...FINAL].filter(m=>m.d===d);}
 
 /* ── Helpers ─────────────────────────────────── */
@@ -604,22 +659,24 @@ function calcStandings(teams,scores){
 function ScoreModal({m,T,lang,scores,setScores,onClose}){
   const sc=scores[m.id]||scores[String(m.id)]||{hg:"",ag:""};
   const[hg,setHg]=useState(sc.hg);const[ag,setAg]=useState(sc.ag);const[saving,setSaving]=useState(false);
+  const[winner,setWinner]=useState(sc?.winner||"");
+  const isKnockout=Number(m.id)>=73;
+  const isDraw=hg!==""&&ag!==""&&parseInt(hg)===parseInt(ag);
   const SHEET_URL="https://docs.google.com/spreadsheets/d/1gsplceNNJ2w29j8gztBMI0dhVWcbBNmA7mi5Eb9oUL0/edit#gid=0";
   const[ended,setEnded]=useState(sc?.status==="end");
   const save=async(isEnd=false)=>{
     setSaving(true);
+    const w=isKnockout&&isDraw?winner:"";
     try{
-      const r=await saveScoreDB(m.id,parseInt(hg),parseInt(ag),isEnd?"end":"");
-      // Update local state immediately
-      setScores(s=>(({...s,[m.id]:{hg,ag,status:isEnd?"end":""},[String(m.id)]:{hg,ag,status:isEnd?"end":""}})));
-      // Reload scores from sheet after 2 seconds
+      await saveScoreDB(m.id,parseInt(hg),parseInt(ag),isEnd?"end":"",w);
+      setScores(s=>(({...s,[m.id]:{hg,ag,status:isEnd?"end":"",winner:w},[String(m.id)]:{hg,ag,status:isEnd?"end":"",winner:w}})));
       setTimeout(()=>{
         gasGet("getScores").then(data=>{
           if(data&&data.data){
             const map={};
             Object.entries(data.data).forEach(([id,s])=>{
-              map[id]={hg:String(s.hg),ag:String(s.ag),status:s.status||""};
-              map[String(id)]={hg:String(s.hg),ag:String(s.ag),status:s.status||""};
+              map[id]={hg:String(s.hg),ag:String(s.ag),status:s.status||"",winner:String(s.winner||"")};
+              map[String(id)]={hg:String(s.hg),ag:String(s.ag),status:s.status||"",winner:String(s.winner||"")};
             });
             setScores(map);
           }
@@ -628,10 +685,8 @@ function ScoreModal({m,T,lang,scores,setScores,onClose}){
       onClose();
     }
     catch(e){
-      // Even if GAS fails, update local state and open sheet
-      setScores(s=>(({...s,[m.id]:{hg,ag,status:isEnd?"end":""},[String(m.id)]:{hg,ag,status:isEnd?"end":""}})));
+      setScores(s=>(({...s,[m.id]:{hg,ag,status:isEnd?"end":"",winner:w},[String(m.id)]:{hg,ag,status:isEnd?"end":"",winner:w}})));
       onClose();
-      // Open sheet for manual entry
       window.open(SHEET_URL,"_blank");
       alert("App-এ দেখাবে কিন্তু Sheet-এ manually scores tab-এ দিন:\nmatch_id: "+m.id+"\nhg: "+hg+"\nag: "+ag);
     }
@@ -650,11 +705,39 @@ function ScoreModal({m,T,lang,scores,setScores,onClose}){
         </div>
         <div style={{fontFamily:HS,fontWeight:700,fontSize:16,color:T.text,textAlign:"center",marginBottom:4}}>🔑 স্কোর এন্ট্রি</div>
         <div style={{fontFamily:HS,fontSize:12,color:T.textS,textAlign:"center",marginBottom:20}}>{tn(m.h,lang)} vs {tn(m.a,lang)}</div>
-        <div style={{display:"flex",alignItems:"center",justifyContent:"center",gap:16,marginBottom:20}}>
-          <div style={{textAlign:"center"}}><Flag en={m.h} size={40}/><div style={{fontFamily:HS,fontSize:11,color:T.textS,margin:"6px 0"}}>{tn(m.h,lang)}</div><input value={hg} onChange={e=>setHg(e.target.value)} style={inp} placeholder="0" maxLength={2}/></div>
+        <div style={{display:"flex",alignItems:"center",justifyContent:"center",gap:16,marginBottom:isDraw&&isKnockout?12:20}}>
+          <div style={{textAlign:"center"}}><Flag en={m.h} size={40}/><div style={{fontFamily:HS,fontSize:11,color:T.textS,margin:"6px 0"}}>{tn(m.h,lang)}</div><input value={hg} onChange={e=>{setHg(e.target.value);setWinner("");}} style={inp} placeholder="0" maxLength={2}/></div>
           <div style={{fontFamily:HS,fontSize:22,color:T.textM,paddingTop:20}}>–</div>
-          <div style={{textAlign:"center"}}><Flag en={m.a} size={40}/><div style={{fontFamily:HS,fontSize:11,color:T.textS,margin:"6px 0"}}>{tn(m.a,lang)}</div><input value={ag} onChange={e=>setAg(e.target.value)} style={inp} placeholder="0" maxLength={2}/></div>
+          <div style={{textAlign:"center"}}><Flag en={m.a} size={40}/><div style={{fontFamily:HS,fontSize:11,color:T.textS,margin:"6px 0"}}>{tn(m.a,lang)}</div><input value={ag} onChange={e=>{setAg(e.target.value);setWinner("");}} style={inp} placeholder="0" maxLength={2}/></div>
         </div>
+
+        {/* Tiebreaker winner selection for admin (knockout + draw) */}
+        {isKnockout&&isDraw&&(
+          <div style={{marginBottom:16,background:T.card2,borderRadius:12,padding:"10px 12px"}}>
+            <div style={{fontFamily:HS,fontSize:11,fontWeight:700,color:T.textS,marginBottom:8,textAlign:"center"}}>
+              🏆 {lang==="bn"?"টাইব্রেকারে বিজয়ী":"Tiebreaker Winner"}
+            </div>
+            <div style={{display:"flex",gap:8}}>
+              <button onClick={()=>setWinner(m.h)}
+                style={{flex:1,padding:"8px",borderRadius:8,cursor:"pointer",
+                  border:`2px solid ${winner===m.h?T.green:T.border}`,
+                  background:winner===m.h?T.greenBg:T.card,
+                  fontFamily:HS,fontSize:11,fontWeight:winner===m.h?700:400,
+                  color:winner===m.h?T.green:T.text}}>
+                {tn(m.h,lang)||m.h}
+              </button>
+              <button onClick={()=>setWinner(m.a)}
+                style={{flex:1,padding:"8px",borderRadius:8,cursor:"pointer",
+                  border:`2px solid ${winner===m.a?T.green:T.border}`,
+                  background:winner===m.a?T.greenBg:T.card,
+                  fontFamily:HS,fontSize:11,fontWeight:winner===m.a?700:400,
+                  color:winner===m.a?T.green:T.text}}>
+                {tn(m.a,lang)||m.a}
+              </button>
+            </div>
+          </div>
+        )}
+
         <div style={{display:"flex",gap:8}}>
           <button onClick={onClose} style={{flex:1,padding:12,borderRadius:12,border:`1px solid ${T.border}`,background:T.card2,color:T.textS,fontFamily:HS,fontSize:13,cursor:"pointer"}}>{lang==="bn"?"বাতিল":"Cancel"}</button>
           <button onClick={()=>save(false)} disabled={saving} style={{flex:1,padding:12,borderRadius:12,border:"none",background:T.green,color:"#fff",fontFamily:HS,fontSize:13,fontWeight:700,cursor:"pointer"}}>{saving?"...":"সংরক্ষণ"}</button>
@@ -671,16 +754,20 @@ function PredictModal({m,T,lang,userName,myPreds,setMyPreds,onClose}){
   const hasPred=ex!=null;
   const[hg,setHg]=useState(ex?.home_score!=null?String(ex.home_score):"");
   const[ag,setAg]=useState(ex?.away_score!=null?String(ex.away_score):"");
+  const[winner,setWinner]=useState(ex?.winner||"");
   const[saving,setSaving]=useState(false);
   const[deleting,setDeleting]=useState(false);
   const[confirmDel,setConfirmDel]=useState(false);
+  const isKnockout=Number(m.id)>=73;
+  const isDraw=hg!==""&&ag!==""&&parseInt(hg)===parseInt(ag);
 
   const save=async()=>{
     if(hg===""||ag==="")return;
+    if(isKnockout&&isDraw&&!winner)return; // must select winner if draw in knockout
     setSaving(true);
     try{
-      await upsertPred(userName,m.id,parseInt(hg),parseInt(ag));
-      const np={home_score:parseInt(hg),away_score:parseInt(ag),points:0};
+      await upsertPred(userName,m.id,parseInt(hg),parseInt(ag),isKnockout&&isDraw?winner:"");
+      const np={home_score:parseInt(hg),away_score:parseInt(ag),points:0,winner:isKnockout&&isDraw?winner:""};
       const newPreds={...myPreds,[m.id]:np,[String(m.id)]:np,[Number(m.id)]:np};
       setMyPreds(newPreds);
       try{localStorage.setItem("kk_preds_"+userName,JSON.stringify(newPreds));}catch(e){}
@@ -699,6 +786,8 @@ function PredictModal({m,T,lang,userName,myPreds,setMyPreds,onClose}){
     border:`2px solid ${T.border}`,borderRadius:14,background:T.card2,color:T.text,
     outline:"none",fontFamily:HS,inputMode:"numeric"};
 
+  const hTeam=m.h;const aTeam=m.a;
+
   return(
     <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.8)",zIndex:999,
       display:"flex",alignItems:"flex-end"}} onClick={onClose}>
@@ -716,17 +805,45 @@ function PredictModal({m,T,lang,userName,myPreds,setMyPreds,onClose}){
         </div>
         <div style={{display:"flex",alignItems:"center",justifyContent:"center",gap:16,marginBottom:16}}>
           <div style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",gap:8}}>
-            <Flag en={m.h} size={52}/>
-            <div style={{fontFamily:HS,fontSize:13,fontWeight:600,color:T.text,textAlign:"center"}}>{tn(m.h,lang)}</div>
-            <input value={hg} onChange={e=>setHg(e.target.value.replace(/\D/g,""))} style={inp} placeholder="0" maxLength={2}/>
+            <Flag en={hTeam} size={52}/>
+            <div style={{fontFamily:HS,fontSize:13,fontWeight:600,color:T.text,textAlign:"center"}}>{tn(hTeam,lang)||hTeam}</div>
+            <input value={hg} onChange={e=>{setHg(e.target.value.replace(/\D/g,""));setWinner("");}} style={inp} placeholder="0" maxLength={2}/>
           </div>
           <div style={{paddingTop:16,fontFamily:HS,fontSize:20,color:T.textM}}>–</div>
           <div style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",gap:8}}>
-            <Flag en={m.a} size={52}/>
-            <div style={{fontFamily:HS,fontSize:13,fontWeight:600,color:T.text,textAlign:"center"}}>{tn(m.a,lang)}</div>
-            <input value={ag} onChange={e=>setAg(e.target.value.replace(/\D/g,""))} style={inp} placeholder="0" maxLength={2}/>
+            <Flag en={aTeam} size={52}/>
+            <div style={{fontFamily:HS,fontSize:13,fontWeight:600,color:T.text,textAlign:"center"}}>{tn(aTeam,lang)||aTeam}</div>
+            <input value={ag} onChange={e=>{setAg(e.target.value.replace(/\D/g,""));setWinner("");}} style={inp} placeholder="0" maxLength={2}/>
           </div>
         </div>
+
+        {/* Tiebreaker winner selection (knockout only, when draw) */}
+        {isKnockout&&isDraw&&(
+          <div style={{marginBottom:14,background:T.card2,borderRadius:12,padding:"12px"}}>
+            <div style={{fontFamily:HS,fontSize:12,fontWeight:700,color:T.text,marginBottom:8,textAlign:"center"}}>
+              🏆 {lang==="bn"?"টাইব্রেকারে কে জিতবে?":"Who wins the tiebreaker?"}
+            </div>
+            <div style={{display:"flex",gap:8}}>
+              <button onClick={()=>setWinner(hTeam)}
+                style={{flex:1,padding:"10px 6px",borderRadius:10,cursor:"pointer",
+                  border:`2px solid ${winner===hTeam?T.green:T.border}`,
+                  background:winner===hTeam?T.greenBg:T.card,
+                  fontFamily:HS,fontSize:12,fontWeight:winner===hTeam?700:400,
+                  color:winner===hTeam?T.green:T.text}}>
+                {tn(hTeam,lang)||hTeam}
+              </button>
+              <button onClick={()=>setWinner(aTeam)}
+                style={{flex:1,padding:"10px 6px",borderRadius:10,cursor:"pointer",
+                  border:`2px solid ${winner===aTeam?T.green:T.border}`,
+                  background:winner===aTeam?T.greenBg:T.card,
+                  fontFamily:HS,fontSize:12,fontWeight:winner===aTeam?700:400,
+                  color:winner===aTeam?T.green:T.text}}>
+                {tn(aTeam,lang)||aTeam}
+              </button>
+            </div>
+          </div>
+        )}
+
         <div style={{display:"flex",gap:8,marginBottom:16}}>
           <div style={{flex:1,background:T.card2,borderRadius:10,padding:"8px",textAlign:"center"}}>
             <div style={{fontFamily:HS,fontSize:20,fontWeight:800,color:T.green}}>১</div>
@@ -1420,23 +1537,31 @@ function MatchRow({m,T,lang,scores,myPreds,setPredictM,onTeam,isAdmin,setScoreM}
 }
 
 /* ── KO Card ─────────────────────────────────── */
-function KOCard({m,T,lang,scores,qualified}){
+function KOCard({m,T,lang,scores,qualified,myPreds,setPredictM,isAdmin,setScoreM,userName}){
   const sc=scores[m.id]||scores[String(m.id)];
   const hasScore=sc&&sc.hg!==""&&sc.ag!=="";
   const hTeam=qualified?.[m.h];const aTeam=qualified?.[m.a];
   const[t2,ap]=m.t.split(" ");
+  const st=status(m,scores);
+  const isFT=st==="ft";
+  const isLive=st==="live";
+  const pred=myPreds?getPred(myPreds,m.id):null;
+  const isDraw=hasScore&&Number(sc.hg)===Number(sc.ag);
+
   return(
     <div style={{background:T.card,borderRadius:16,border:`1px solid ${T.border}`,marginBottom:10,overflow:"hidden",boxShadow:T.glow}}>
       <div style={{display:"flex",alignItems:"center",gap:6,padding:"10px 14px 8px",borderBottom:`1px solid ${T.border}`}}>
-        <div style={{width:8,height:8,borderRadius:"50%",background:T.green,flexShrink:0}}/>
-        <span style={{fontFamily:HS,fontSize:12,fontWeight:600,color:T.textS,flex:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>
+        {isLive&&<div style={{width:7,height:7,borderRadius:"50%",background:T.red,animation:"pulse 1s infinite"}}/>}
+        <span style={{fontFamily:HS,fontSize:10,color:T.textM,flexShrink:0}}>#{m.id}</span>
+        <span style={{fontFamily:HS,fontSize:12,fontWeight:600,color:T.textS,flex:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",marginLeft:4}}>
           {m.venue||m.label||""}
         </span>
-        <span style={{fontFamily:HS,fontSize:11,color:T.textM,flexShrink:0,whiteSpace:"nowrap"}}>
-          {dls(m.d,lang)}
+        <span style={{fontFamily:HS,fontSize:11,color:isFT?T.textM:isLive?T.red:T.textM,flexShrink:0,whiteSpace:"nowrap",fontWeight:isFT?600:400}}>
+          {isFT?"FT":isLive?"LIVE":dls(m.d,lang)}
         </span>
       </div>
       <div style={{padding:"12px 14px"}}>
+        {/* Home team */}
         <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:10,paddingBottom:10,borderBottom:`1px solid ${T.border}`}}>
           {hTeam?<Flag en={hTeam} size={32}/>:<div style={{width:32,height:32,borderRadius:"50%",background:T.card2,border:`1px dashed ${T.border}`,flexShrink:0}}/>}
           <span style={{fontFamily:HS,fontSize:14,fontWeight:hTeam?600:400,color:hTeam?T.text:T.textM,flex:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>
@@ -1450,6 +1575,7 @@ function KOCard({m,T,lang,scores,qualified}){
             </div>
           )}
         </div>
+        {/* Away team */}
         <div style={{display:"flex",alignItems:"center",gap:10}}>
           {aTeam?<Flag en={aTeam} size={32}/>:<div style={{width:32,height:32,borderRadius:"50%",background:T.card2,border:`1px dashed ${T.border}`,flexShrink:0}}/>}
           <span style={{fontFamily:HS,fontSize:14,fontWeight:aTeam?600:400,color:aTeam?T.text:T.textM,flex:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>
@@ -1457,12 +1583,40 @@ function KOCard({m,T,lang,scores,qualified}){
           </span>
           {hasScore&&<span style={{fontFamily:HS,fontSize:22,fontWeight:800,color:T.text}}>{sc.ag}</span>}
         </div>
+
+        {/* Tiebreaker winner (if draw and FT) */}
+        {isFT&&isDraw&&sc.winner&&(
+          <div style={{marginTop:10,padding:"6px 10px",background:T.card2,borderRadius:8,
+            fontFamily:HS,fontSize:11,color:T.textS,textAlign:"center"}}>
+            🏆 {lang==="bn"?"টাইব্রেকারে জয়ী:":"Winner (Tiebreaker):"}
+            {" "}<span style={{color:T.green,fontWeight:700}}>
+              {tn(sc.winner,lang)||sc.winner}
+            </span>
+          </div>
+        )}
       </div>
-      {!hasScore&&(
-        <div style={{padding:"0 14px 12px",display:"flex",justifyContent:"flex-end"}}>
-          <CalIcon d={m.d} T={T} onClick={()=>addToGCal(m,lang)}/>
-        </div>
-      )}
+
+      {/* Action bar */}
+      <div style={{display:"flex",gap:6,padding:"6px 12px 12px"}}>
+        {/* Predict button - only for upcoming matches with known teams */}
+        {st==="up"&&!isAdmin&&userName&&(hTeam||aTeam)&&setPredictM&&(
+          <button onClick={()=>setPredictM(m)} style={{
+            flex:1,display:"flex",alignItems:"center",justifyContent:"center",gap:4,
+            background:pred?T.greenBg:T.card2,border:`1.5px solid ${pred?T.greenBr:T.border}`,
+            borderRadius:10,padding:"7px",cursor:"pointer",
+            fontFamily:HS,fontSize:12,fontWeight:pred?700:400,color:pred?T.green:T.textS}}>
+            {pred?(lang==="bn"?`${pred.home_score}–${pred.away_score}`:`${pred.home_score}–${pred.away_score}`):(lang==="bn"?"প্রেডিক্ট করুন":"Predict")}
+          </button>
+        )}
+        {/* Admin score entry */}
+        {isAdmin&&setScoreM&&(
+          <button onClick={()=>setScoreM(m)} style={{background:T.card2,border:`1px solid ${T.border}`,
+            borderRadius:10,width:34,height:34,cursor:"pointer",fontSize:13,
+            display:"flex",alignItems:"center",justifyContent:"center"}}>✏️</button>
+        )}
+        <CalIcon d={m.d} T={T} onClick={()=>addToGCal(m,lang)}/>
+      </div>
+
       {m.label&&(
         <div style={{background:T.card2,padding:"6px 14px",borderTop:`1px solid ${T.border}`,fontFamily:HS,fontSize:11,color:T.textS,textAlign:"center"}}>
           {m.label}
@@ -1521,6 +1675,25 @@ function HomeTab({T,lang,favs,setFavs,onTeam,setSM,scores,myPreds,setPredictM,se
   const WC_MS=new Date("2026-06-11T19:00:00Z").getTime();
   const[wcDiff,setWcDiff]=useState(()=>Math.max(0,WC_MS-Date.now()));
   const[expandToday,setExpandToday]=useState(false);
+  const qualifiedTeams=useMemo(()=>{
+    const q={};
+    Object.entries(GRP).forEach(([g,teams])=>{
+      const rows=calcStandings(teams,scores);
+      const allDone=MATCHES.filter(m=>teams.includes(m.h)).every(m=>{const sc=scores[m.id]||scores[String(m.id)];return sc&&sc.hg!==""&&sc.ag!=="";});
+      if(allDone){q["1"+g]=rows[0]?.en||null;q["2"+g]=rows[1]?.en||null;}
+    });
+    // Also resolve knockout winners from scores
+    [...R32,...R16,...QF,...SF].forEach(m=>{
+      const sc=scores[m.id]||scores[String(m.id)];
+      if(sc&&sc.hg!==""&&sc.ag!==""){
+        const hg=Number(sc.hg),ag=Number(sc.ag);
+        const h=q[m.h]||m.h;const a=q[m.a]||m.a;
+        const w=hg>ag?h:ag>hg?a:(sc.winner||null);
+        if(w)q["W"+m.id]=w;
+      }
+    });
+    return q;
+  },[scores]);
   const[expandTom,setExpandTom]=useState(false);
   useEffect(()=>{
     if(wcDiff<=0)return;
@@ -1543,10 +1716,20 @@ function HomeTab({T,lang,favs,setFavs,onTeam,setSM,scores,myPreds,setPredictM,se
   const todayMs=SORTED.filter(m=>m.d===tds);
   const tomMs=SORTED.filter(m=>m.d===tms2);
   const pop=AT.filter(en=>TEAMS[en].pop&&!favs.includes(en));
-  function gN(en){const n=Date.now();return SORTED.find(m=>(m.h===en||m.a===en)&&tMs(m)>n)||null;}
+  const ALL_SORTED=[...MATCHES,...R32,...R16,...QF,...SF,...FINAL].sort((a,b)=>tMs(a)-tMs(b));
+  function gN(en){
+    const n=Date.now();
+    return ALL_SORTED.find(m=>{
+      const h=qualifiedTeams[m.h]||m.h;
+      const a=qualifiedTeams[m.a]||m.a;
+      return(h===en||a===en)&&tMs(m)>n;
+    })||null;
+  }
 
   function FavRow({en,onTeam}){
-    const nx=gN(en),iF=favs.includes(en),opp=nx?(nx.h===en?nx.a:nx.h):null;
+    const nx=gN(en),iF=favs.includes(en);
+    const rawOpp=nx?(nx.h===en?nx.a:nx.h):null;
+    const opp=rawOpp?(qualifiedTeams[rawOpp]||rawOpp):null;
     const cd=useCD(nx?tMs(nx):null);const showCd=nx&&!cd.done;
     return(
       <div style={{background:T.card,borderRadius:14,border:`1px solid ${T.border}`,padding:"12px",marginBottom:8,display:"flex",alignItems:"center",gap:10,boxShadow:T.glow}}>
@@ -1802,27 +1985,40 @@ const BK_CARD_H=86;
 const BK_GAP=10;
 const BK_CONN_W=18;
 
-function BracketMatchCard({m,T,lang,scores}){
+function BracketMatchCard({m,T,lang,scores,qualified}){
   const sc=scores?.[m.id]||scores?.[String(m.id)];
   const hasScore=sc&&sc.hg!==""&&sc.ag!=="";
   const[t2,ap]=m.t.split(" ");
+  const q=qualified||{};
+  const hName=q[m.h]?tn(q[m.h],lang):m.h;
+  const aName=q[m.a]?tn(q[m.a],lang):m.a;
+  const hFlag=q[m.h];
+  const aFlag=q[m.a];
   return(
     <div style={{background:T.card,border:`1px solid ${T.border}`,borderRadius:10,
       padding:"6px 8px",boxShadow:T.glow,height:BK_CARD_H,boxSizing:"border-box",
       display:"flex",flexDirection:"column",justifyContent:"center",minWidth:118}}>
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:3}}>
-        <span style={{fontFamily:HS,fontSize:11,fontWeight:600,color:T.text,overflow:"hidden",
-          textOverflow:"ellipsis",whiteSpace:"nowrap",maxWidth:70}}>{m.h}</span>
+        <div style={{display:"flex",alignItems:"center",gap:3,overflow:"hidden",maxWidth:74}}>
+          {hFlag&&<Flag en={hFlag} size={12}/>}
+          <span style={{fontFamily:HS,fontSize:11,fontWeight:600,color:T.text,overflow:"hidden",
+            textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{hName}</span>
+        </div>
         {hasScore?(
-          <span style={{fontFamily:HS,fontSize:13,fontWeight:800,color:T.green}}>{sc.hg}</span>
+          <span style={{fontFamily:HS,fontSize:13,fontWeight:800,
+            color:Number(sc.hg)>Number(sc.ag)?T.green:T.text}}>{sc.hg}</span>
         ):(
           <span style={{fontFamily:HS,fontSize:9,color:T.textM}}>{t2}{ap}</span>
         )}
       </div>
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:4}}>
-        <span style={{fontFamily:HS,fontSize:11,fontWeight:600,color:T.text,overflow:"hidden",
-          textOverflow:"ellipsis",whiteSpace:"nowrap",maxWidth:70}}>{m.a}</span>
-        {hasScore&&<span style={{fontFamily:HS,fontSize:13,fontWeight:800,color:T.green}}>{sc.ag}</span>}
+        <div style={{display:"flex",alignItems:"center",gap:3,overflow:"hidden",maxWidth:74}}>
+          {aFlag&&<Flag en={aFlag} size={12}/>}
+          <span style={{fontFamily:HS,fontSize:11,fontWeight:600,color:T.text,overflow:"hidden",
+            textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{aName}</span>
+        </div>
+        {hasScore&&<span style={{fontFamily:HS,fontSize:13,fontWeight:800,
+          color:Number(sc.ag)>Number(sc.hg)?T.green:T.text}}>{sc.ag}</span>}
       </div>
       <div style={{fontFamily:HS,fontSize:9,color:T.textS,textAlign:"center",borderTop:`1px solid ${T.border}`,paddingTop:3}}>
         {dls(m.d,lang)}
@@ -1835,7 +2031,7 @@ function BracketMatchCard({m,T,lang,scores}){
    spacing multiplier relative to R32 (level 0). Each level doubles the gap
    between cards so pairs line up with the connector midpoints of the
    previous level. */
-function BracketColumn({matches,T,lang,scores,level,drawConnectorsRight,containerH}){
+function BracketColumn({matches,T,lang,scores,level,drawConnectorsRight,containerH,qualified}){
   const unit=BK_CARD_H+BK_GAP;
   const spacing=unit*Math.pow(2,level);
   const topOffset=unit*(Math.pow(2,level)-1)/2;
@@ -1844,7 +2040,7 @@ function BracketColumn({matches,T,lang,scores,level,drawConnectorsRight,containe
       <div style={{display:"flex",flexDirection:"column",position:"relative",height:containerH,width:118}}>
         {matches.map((m,i)=>(
           <div key={m.id} style={{position:"absolute",top:topOffset+i*spacing,left:0,right:0}}>
-            <BracketMatchCard m={m} T={T} lang={lang} scores={scores}/>
+            <BracketMatchCard m={m} T={T} lang={lang} scores={scores} qualified={qualified}/>
           </div>
         ))}
       </div>
@@ -1870,7 +2066,7 @@ function BracketColumn({matches,T,lang,scores,level,drawConnectorsRight,containe
 }
 
 /* Mirrored connector for right-half columns: stubs go left instead of right */
-function BracketColumnRight({matches,T,lang,scores,level,drawConnectorsLeft,containerH}){
+function BracketColumnRight({matches,T,lang,scores,level,drawConnectorsLeft,containerH,qualified}){
   const unit=BK_CARD_H+BK_GAP;
   const spacing=unit*Math.pow(2,level);
   const topOffset=unit*(Math.pow(2,level)-1)/2;
@@ -1906,6 +2102,15 @@ function BracketColumnRight({matches,T,lang,scores,level,drawConnectorsLeft,cont
 
 function BracketTab({T,lang,scores}){
   const[zoom,setZoom]=useState(1);
+  const qualified=useMemo(()=>{
+    const q={};
+    Object.entries(GRP).forEach(([g,teams])=>{
+      const rows=calcStandings(teams,scores);
+      const allDone=MATCHES.filter(m=>teams.includes(m.h)).every(m=>{const sc=scores[m.id]||scores[String(m.id)];return sc&&sc.hg!==""&&sc.ag!=="";});
+      if(allDone){q["1"+g]=rows[0]?.en||null;q["2"+g]=rows[1]?.en||null;}
+    });
+    return resolveKnockout(scores,q);
+  },[scores]);
   const RT=lang==="bn"
     ?{r32:"রাউন্ড অব ৩২",r16:"রাউন্ড অব ১৬",qf:"কো.ফা",sf:"সেমি",f:"ফাইনাল",b:"ব্রোঞ্জ",champ:"চ্যাম্পিয়ন"}
     :{r32:"R32",r16:"R16",qf:"QF",sf:"SF",f:"Final",b:"Bronze",champ:"Champion"};
@@ -1958,19 +2163,19 @@ function BracketTab({T,lang,scores}){
 
         <div>
           {colLabel(RT.r32)}
-          <BracketColumn matches={leftR32} T={T} lang={lang} scores={scores} level={0} drawConnectorsRight containerH={containerH}/>
+          <BracketColumn matches={leftR32} T={T} lang={lang} scores={scores} level={0} drawConnectorsRight containerH={containerH} qualified={qualified}/>
         </div>
         <div>
           {colLabel(RT.r16)}
-          <BracketColumn matches={leftR16} T={T} lang={lang} scores={scores} level={1} drawConnectorsRight containerH={containerH}/>
+          <BracketColumn matches={leftR16} T={T} lang={lang} scores={scores} level={1} drawConnectorsRight containerH={containerH} qualified={qualified}/>
         </div>
         <div>
           {colLabel(RT.qf)}
-          <BracketColumn matches={leftQF} T={T} lang={lang} scores={scores} level={2} drawConnectorsRight containerH={containerH}/>
+          <BracketColumn matches={leftQF} T={T} lang={lang} scores={scores} level={2} drawConnectorsRight containerH={containerH} qualified={qualified}/>
         </div>
         <div>
           {colLabel(RT.sf)}
-          <BracketColumn matches={leftSF} T={T} lang={lang} scores={scores} level={3} drawConnectorsRight={false} containerH={containerH}/>
+          <BracketColumn matches={leftSF} T={T} lang={lang} scores={scores} level={3} drawConnectorsRight={false} containerH={containerH} qualified={qualified}/>
         </div>
 
         <div style={{position:"relative",width:BK_CONN_W*2+140,height:containerH,flexShrink:0}}>
@@ -1997,19 +2202,19 @@ function BracketTab({T,lang,scores}){
 
         <div>
           {colLabel(RT.sf)}
-          <BracketColumnRight matches={rightSF} T={T} lang={lang} scores={scores} level={3} drawConnectorsLeft={false} containerH={containerH}/>
+          <BracketColumnRight matches={rightSF} T={T} lang={lang} scores={scores} level={3} drawConnectorsLeft={false} containerH={containerH} qualified={qualified}/>
         </div>
         <div>
           {colLabel(RT.qf)}
-          <BracketColumnRight matches={rightQF} T={T} lang={lang} scores={scores} level={2} drawConnectorsLeft containerH={containerH}/>
+          <BracketColumnRight matches={rightQF} T={T} lang={lang} scores={scores} level={2} drawConnectorsLeft containerH={containerH} qualified={qualified}/>
         </div>
         <div>
           {colLabel(RT.r16)}
-          <BracketColumnRight matches={rightR16} T={T} lang={lang} scores={scores} level={1} drawConnectorsLeft containerH={containerH}/>
+          <BracketColumnRight matches={rightR16} T={T} lang={lang} scores={scores} level={1} drawConnectorsLeft containerH={containerH} qualified={qualified}/>
         </div>
         <div>
           {colLabel(RT.r32)}
-          <BracketColumnRight matches={rightR32} T={T} lang={lang} scores={scores} level={0} drawConnectorsLeft containerH={containerH}/>
+          <BracketColumnRight matches={rightR32} T={T} lang={lang} scores={scores} level={0} drawConnectorsLeft containerH={containerH} qualified={qualified}/>
         </div>
         </div>
       </div>
@@ -2021,7 +2226,7 @@ function BracketTab({T,lang,scores}){
 }
 
 /* ── KnockoutTab ─────────────────────────────── */
-function KnockoutTab({T,lang,scores}){
+function KnockoutTab({T,lang,scores,myPreds,setPredictM,isAdmin,setScoreM,userName}){
   const[round,setRound]=useState("R32");
   const qualified=useMemo(()=>{
     const q={};
@@ -2030,7 +2235,7 @@ function KnockoutTab({T,lang,scores}){
       const allDone=MATCHES.filter(m=>teams.includes(m.h)).every(m=>{const sc=scores[m.id]||scores[String(m.id)];return sc&&sc.hg!==""&&sc.ag!=="";});
       if(allDone){q["1"+g]=rows[0]?.en||null;q["2"+g]=rows[1]?.en||null;}
     });
-    return q;
+    return resolveKnockout(scores,q);
   },[scores]);
 
   const tabs=[{k:"R32",l:lang==="bn"?"রাউন্ড অব ৩২":"Round of 32"},{k:"R16",l:lang==="bn"?"রাউন্ড অব ১৬":"Round of 16"},{k:"QF",l:lang==="bn"?"কোয়ার্টার":"Quarter"},{k:"SF",l:lang==="bn"?"সেমি":"Semi"},{k:"F",l:lang==="bn"?"🏆 ফাইনাল":"🏆 Final"}];
@@ -2046,11 +2251,11 @@ function KnockoutTab({T,lang,scores}){
         {round==="F"?(
           <>
             <div style={{fontFamily:HS,fontSize:12,fontWeight:700,color:T.textS,marginBottom:8}}>🥉 {lang==="bn"?"তৃতীয় স্থান":"Third Place"}</div>
-            <KOCard m={FINAL[0]} T={T} lang={lang} scores={scores} qualified={qualified}/>
+            <KOCard m={FINAL[0]} T={T} lang={lang} scores={scores} qualified={qualified} myPreds={myPreds} setPredictM={setPredictM} isAdmin={isAdmin} setScoreM={setScoreM} userName={userName}/>
             <div style={{fontFamily:HS,fontSize:12,fontWeight:700,color:T.textS,margin:"12px 0 8px"}}>🏆 {lang==="bn"?"ফাইনাল":"Final"}</div>
-            <KOCard m={FINAL[1]} T={T} lang={lang} scores={scores} qualified={qualified}/>
+            <KOCard m={FINAL[1]} T={T} lang={lang} scores={scores} qualified={qualified} myPreds={myPreds} setPredictM={setPredictM} isAdmin={isAdmin} setScoreM={setScoreM} userName={userName}/>
           </>
-        ):(matchMap[round]||[]).map(m=><KOCard key={m.id} m={m} T={T} lang={lang} scores={scores} qualified={qualified}/>)}
+        ):(matchMap[round]||[]).map(m=><KOCard key={m.id} m={m} T={T} lang={lang} scores={scores} qualified={qualified} myPreds={myPreds} setPredictM={setPredictM} isAdmin={isAdmin} setScoreM={setScoreM} userName={userName}/>)}
       </div>
     </div>
   );
@@ -2936,7 +3141,7 @@ export default function App(){
         {/* Body */}
                 {mt==="home"&&<HomeTab T={T} lang={lang} favs={favs} setFavs={setFavs} onTeam={openTeam} setSM={setSm} scores={scores} myPreds={myPreds} setPredictM={handlePredict} setScoreM={setScoreM} isAdmin={isAdmin} dayPage={dayPage} setDayPage={openDayPage} lbData={lbData} scoresLoaded={scoresLoaded} headerSelDate={headerSelDate} clearHeaderSelDate={()=>setHeaderSelDate(null)}/>}
         {mt==="wc"&&wt==="fixture"&&<GroupTab T={T} lang={lang} onTeam={openTeam} scores={scores} myPreds={myPreds} setPredictM={handlePredict} isAdmin={isAdmin} setScoreM={setScoreM}/>}
-        {mt==="wc"&&wt==="knockout"&&<KnockoutTab T={T} lang={lang} scores={scores}/>}
+        {mt==="wc"&&wt==="knockout"&&<KnockoutTab T={T} lang={lang} scores={scores} myPreds={myPreds} setPredictM={handlePredict} isAdmin={isAdmin} setScoreM={setScoreM} userName={userName}/>}
         {mt==="wc"&&wt==="table"&&<TableTab T={T} lang={lang} scores={scores}/>}
         {mt==="wc"&&wt==="bracket"&&<BracketTab T={T} lang={lang} scores={scores}/>}
         {mt==="predict"&&<PredictionTab T={T} lang={lang} userName={userName} onSave={handleNameSave} myPreds={myPreds} setMyPreds={setMyPreds} scores={scores} setPredictM={handlePredict} isAdmin={isAdmin} setScoreM={setScoreM}/>}
