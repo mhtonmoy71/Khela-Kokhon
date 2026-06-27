@@ -1542,7 +1542,7 @@ function HomeTab({T,lang,favs,setFavs,onTeam,setSM,scores,myPreds,setPredictM,se
   const now=new Date(),tds=today,tms2=tom;
   const todayMs=SORTED.filter(m=>m.d===tds);
   const tomMs=SORTED.filter(m=>m.d===tms2);
-  const pop=AT.filter(en=>TEAMS[en].pop);
+  const pop=AT.filter(en=>TEAMS[en].pop&&!favs.includes(en));
   function gN(en){const n=Date.now();return SORTED.find(m=>(m.h===en||m.a===en)&&tMs(m)>n)||null;}
 
   function FavRow({en,onTeam}){
