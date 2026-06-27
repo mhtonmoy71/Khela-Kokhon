@@ -1146,7 +1146,7 @@ function CompactCal({T,lang,setDayPage,scores,headerSelDate,clearHeaderSelDate})
             </div>
           ):(
             <>
-              {selMs.slice(0,expandSel?undefined:3).map(m=>{
+              {selMs.slice(0,expandSel?undefined:2).map(m=>{
                 const sc=scores[m.id]||scores[String(m.id)];
                 const st=status(m,scores);
                 const isFT=st==="ft";
@@ -1188,13 +1188,13 @@ function CompactCal({T,lang,setDayPage,scores,headerSelDate,clearHeaderSelDate})
                   </div>
                 );
               })}
-              {selMs.length>3&&(
+              {selMs.length>2&&(
                 <div onClick={(e)=>{e.stopPropagation();setExpandSel(v=>!v);}}
                   style={{textAlign:"center",padding:"6px 0 10px",
                     fontFamily:HS,fontSize:10,color:T.green,cursor:"pointer",fontWeight:600}}>
                   {expandSel
                     ?(lang==="bn"?"কম দেখাও ↑":"Show less ↑")
-                    :(lang==="bn"?"+"+bnNum(selMs.length-3)+" টা আরো ↓":"+"+String(selMs.length-3)+" more ↓")}
+                    :(lang==="bn"?"+"+bnNum(selMs.length-2)+" টা আরো ↓":"+"+String(selMs.length-2)+" more ↓")}
                 </div>
               )}
               {selMs.length<=3&&<div style={{height:10}}/>}
