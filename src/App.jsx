@@ -1122,7 +1122,7 @@ function TopThreeWidget({T,lang,setMt}){
 }
 
 /* ── Date Strip + Inline Match Box (FotMob style) ── */
-function CompactCal({T,lang,setDayPage,scores,headerSelDate,clearHeaderSelDate}){
+function CompactCal({T,lang,setDayPage,scores,headerSelDate,clearHeaderSelDate,qualifiedTeams}){
   const[today,setToday]=useState(todayStr());
   const[selDate,setSelDate]=useState(todayStr());
   const[expandSel,setExpandSel]=useState(false);
@@ -1271,14 +1271,25 @@ function CompactCal({T,lang,setDayPage,scores,headerSelDate,clearHeaderSelDate})
                 const hasScore=sc&&sc.hg!==""&&sc.ag!=="";
                 const[t2,ap]=m.t.split(" ");
                 return(
+                  <>{(()=>{
+                    const isKO=Number(m.id)>=73;
+                    const q=qualifiedTeams||{};
+                    const hEn=isKO?(q[m.h]||null):m.h;
+                    const aEn=isKO?(q[m.a]||null):m.a;
+                    const hName=hEn?tn(hEn,lang):(isKO?(lang==="bn"?"অপেক্ষা":"TBD"):tn(m.h,lang));
+                    const aName=aEn?tn(aEn,lang):(isKO?(lang==="bn"?"অপেক্ষা":"TBD"):tn(m.a,lang));
+                    const roundLabel=Number(m.id)>=103?"🏆 ফাইনাল":Number(m.id)>=101?"সেমি":Number(m.id)>=97?"QF":Number(m.id)>=89?"R16":Number(m.id)>=73?"R32":(m.g?`Group ${m.g}`:"");
+                    return(
                   <div key={m.id} onClick={()=>setDayPage(selDate)}
-                    style={{display:"flex",alignItems:"center",gap:8,
-                      padding:"9px 10px",marginBottom:4,
+                    style={{display:"flex",flexDirection:"column",
+                      padding:"8px 10px",marginBottom:4,
                       background:T.card2,borderRadius:10,cursor:"pointer"}}>
-                    <Flag en={m.h} size={18}/>
+                    {roundLabel&&<span style={{fontFamily:HS,fontSize:9,color:T.textM,fontWeight:600,marginBottom:4}}>{roundLabel}</span>}
+                    <div style={{display:"flex",alignItems:"center",gap:8}}>
+                    {hEn?<Flag en={hEn} size={18}/>:<div style={{width:18,height:18,borderRadius:"50%",background:T.border,flexShrink:0}}/>}
                     <span style={{fontFamily:HS,fontSize:12,fontWeight:600,color:T.text,
                       flex:1,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>
-                      {tn(m.h,lang)}
+                      {hName}
                     </span>
                     {/* Score/Time/Status */}
                     <div style={{flexShrink:0,textAlign:"center",minWidth:70}}>
@@ -1299,10 +1310,13 @@ function CompactCal({T,lang,setDayPage,scores,headerSelDate,clearHeaderSelDate})
                     </div>
                     <span style={{fontFamily:HS,fontSize:12,fontWeight:600,color:T.text,
                       flex:1,textAlign:"right",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>
-                      {tn(m.a,lang)}
+                      {aName}
                     </span>
-                    <Flag en={m.a} size={18}/>
+                    {aEn?<Flag en={aEn} size={18}/>:<div style={{width:18,height:18,borderRadius:"50%",background:T.border,flexShrink:0}}/>}
+                    </div>
                   </div>
+                    );
+                  })()}</>
                 );
               })}
               {selMs.length>2&&(
@@ -1864,7 +1878,7 @@ function HomeTab({T,lang,favs,setFavs,onTeam,setSM,scores,myPreds,setPredictM,se
         );
       })()}
       {/* FotMob-style: Strip on top, inline match box below */}
-      <CompactCal T={T} lang={lang} setDayPage={setDayPage} scores={scores} headerSelDate={headerSelDate} clearHeaderSelDate={clearHeaderSelDate}/>
+      <CompactCal T={T} lang={lang} setDayPage={setDayPage} scores={scores} headerSelDate={headerSelDate} clearHeaderSelDate={clearHeaderSelDate} qualifiedTeams={qualifiedTeams}/>
 
       <SponsorBanner T={T} lang={lang}/>
 
