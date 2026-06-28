@@ -1266,10 +1266,8 @@ function CompactCal({T,lang,setDayPage,scores,headerSelDate,clearHeaderSelDate,q
         strip.scrollLeft=todayEl.offsetLeft-(strip.offsetWidth/2)+(todayEl.offsetWidth/2);
       }
     };
-    scrollToToday();
-    const t1=setTimeout(scrollToToday,100);
-    const t2=setTimeout(scrollToToday,500);
-    return()=>{clearTimeout(t1);clearTimeout(t2);};
+    const t=setTimeout(scrollToToday,100);
+    return()=>clearTimeout(t);
   },[]);
 
   const allDays=useMemo(()=>{
@@ -1325,7 +1323,7 @@ function CompactCal({T,lang,setDayPage,scores,headerSelDate,clearHeaderSelDate,q
         WebkitOverflowScrolling:"touch",
         borderBottom:`1px solid ${T.border}`,
         background:T.card}}>
-        <div style={{display:"flex",alignItems:"center",minWidth:"max-content"}}>
+        <div style={{display:"flex",alignItems:"center",minWidth:"max-content",padding:"0 12px"}}>
           {allDays.map(ds=>{
             const d=new Date(ds+"T12:00:00");
             const hasM=ALL_DATES.has(ds);
