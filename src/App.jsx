@@ -1341,6 +1341,7 @@ function CompactCal({T,lang,setDayPage,scores,headerSelDate,clearHeaderSelDate,q
                 onClick={()=>{setSelDate(ds);setExpandSel(false);}}
                 style={{flexShrink:0,display:"flex",flexDirection:"column",
                   alignItems:"center",justifyContent:"center",
+                  minWidth:label?72:80,
                   padding:"12px 14px 10px",cursor:"pointer",position:"relative",
                   borderBottom:`2.5px solid ${isSel?T.green:"transparent"}`,
                   transition:"border-color 0.15s",
