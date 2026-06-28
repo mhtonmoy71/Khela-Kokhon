@@ -2483,7 +2483,7 @@ function DeleteAccountBtn({T,lang}){
   );
 }
 
-function PredictionTab({T,lang,userName,onSave,myPreds,setMyPreds,scores,setPredictM,isAdmin,setScoreM}){
+function PredictionTab({T,lang,userName,onSave,myPreds,setMyPreds,scores,setPredictM,isAdmin,setScoreM,lbRefreshKey=0}){
   const[sub,setSub]=useState("matches");
   const[lb,setLb]=useState([]);const[lbLoad,setLbLoad]=useState(false);
   useEffect(()=>{if(sub==="lb"){setLbLoad(true);getLB().then(data=>{
@@ -2581,15 +2581,11 @@ function PredictionTab({T,lang,userName,onSave,myPreds,setMyPreds,scores,setPred
             const sc=scores[mid]||scores[String(mid)];
             const hasScore=sc&&sc.hg!==""&&sc.ag!=="";
             const pts=pred.points||0;
-            const isExact=hasScore&&Number(sc.hg)===pred.home_score&&Number(sc.ag)===pred.away_score;
-            const isCorrect=hasScore&&!isExact&&pts>0;
+            const ptColor=pts===5?"#f59e0b":pts===3?T.gold:pts===2?"#3b82f6":pts===1?T.green:"#e53935";
+            const ptBg=pts===5?"rgba(245,158,11,0.15)":pts===3?"rgba(245,166,35,0.15)":pts===2?"rgba(59,130,246,0.12)":pts===1?T.greenBg:"rgba(229,57,53,0.1)";
+            const ptLabel=pts===5?"🏆 +5":pts===3?"🎯 +3":pts===2?"🤝 +2":pts===1?"✅ +1":"❌ 0";
+            const borderColor=pts===5?"#f59e0b":pts===3?T.gold:pts===2?"#3b82f6":pts===1?T.green:hasScore?"#e53935":"transparent";
             return(
-              <>{(()=>{
-                const ptColor=pts===5?"#f59e0b":pts===3?T.gold:pts===2?"#3b82f6":pts===1?T.green:"#e53935";
-                const ptBg=pts===5?"rgba(245,158,11,0.15)":pts===3?"rgba(245,166,35,0.15)":pts===2?"rgba(59,130,246,0.12)":pts===1?T.greenBg:"rgba(229,57,53,0.1)";
-                const ptLabel=pts===5?"🏆 +5":pts===3?"🎯 +3":pts===2?"🤝 +2":pts===1?"✅ +1":"❌ 0";
-                const borderColor=pts===5?"#f59e0b":pts===3?T.gold:pts===2?"#3b82f6":pts===1?T.green:hasScore?"#e53935":"transparent";
-                return(
               <div key={mid} style={{background:T.card,marginBottom:6,padding:"12px 14px",borderLeft:`3px solid ${borderColor}`}}>
                 <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
                   <span style={{fontFamily:HS,fontSize:11,color:T.textM}}>{m.g&&m.g.length===1?`Group ${m.g}`:m.venue||""} · {dls(m.d,lang)}</span>
@@ -2625,7 +2621,6 @@ function PredictionTab({T,lang,userName,onSave,myPreds,setMyPreds,scores,setPred
                   {TEAMS[m.a]&&<Flag en={m.a} size={28}/>}
                 </div>
               </div>
-                );})()}</>
             );
           })}
         </div>
@@ -3382,7 +3377,7 @@ export default function App(){
         {mt==="wc"&&wt==="knockout"&&<KnockoutTab T={T} lang={lang} scores={scores} myPreds={myPreds} setPredictM={handlePredict} isAdmin={isAdmin} setScoreM={setScoreM} userName={userName}/>}
         {mt==="wc"&&wt==="table"&&<TableTab T={T} lang={lang} scores={scores}/>}
         {mt==="wc"&&wt==="bracket"&&<BracketTab T={T} lang={lang} scores={scores}/>}
-        {mt==="predict"&&<PredictionTab T={T} lang={lang} userName={userName} onSave={handleNameSave} myPreds={myPreds} setMyPreds={setMyPreds} scores={scores} setPredictM={handlePredict} isAdmin={isAdmin} setScoreM={setScoreM}/>}
+        {mt==="predict"&&<PredictionTab T={T} lang={lang} userName={userName} onSave={handleNameSave} myPreds={myPreds} setMyPreds={setMyPreds} scores={scores} setPredictM={handlePredict} isAdmin={isAdmin} setScoreM={setScoreM} lbRefreshKey={lbRefreshKey}/>}
         {mt==="lb"&&<LeaderboardTab T={T} lang={lang} userName={userName} initData={lbData}/>}
         {sm&&<AddModal favs={favs} onAdd={en=>setFavs(f=>{if(f.includes(en))return f;const nf=[...f,en];try{localStorage.setItem("kk_favs",JSON.stringify(nf));}catch(e){}return nf;})} onClose={()=>setSm(false)} lang={lang} T={T}/>}
         {predictM&&userName&&<PredictModal m={predictM} T={T} lang={lang} userName={userName} myPreds={myPreds} setMyPreds={setMyPreds} onClose={()=>setPredictM(null)} scores={scores}/>}
