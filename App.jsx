@@ -787,22 +787,31 @@ function ScoreModal({m,T,lang,scores,setScores,onClose,refreshPreds}){
               🏆 {lang==="bn"?"টাইব্রেকারে বিজয়ী":"Tiebreaker Winner"}
             </div>
             <div style={{display:"flex",gap:8}}>
-              <button onClick={()=>setWinner(m.h)}
-                style={{flex:1,padding:"8px",borderRadius:8,cursor:"pointer",
-                  border:`2px solid ${winner===m.h?T.green:T.border}`,
-                  background:winner===m.h?T.greenBg:T.card,
-                  fontFamily:HS,fontSize:11,fontWeight:winner===m.h?700:400,
-                  color:winner===m.h?T.green:T.text}}>
-                {tn(m.h,lang)||m.h}
-              </button>
-              <button onClick={()=>setWinner(m.a)}
-                style={{flex:1,padding:"8px",borderRadius:8,cursor:"pointer",
-                  border:`2px solid ${winner===m.a?T.green:T.border}`,
-                  background:winner===m.a?T.greenBg:T.card,
-                  fontFamily:HS,fontSize:11,fontWeight:winner===m.a?700:400,
-                  color:winner===m.a?T.green:T.text}}>
-                {tn(m.a,lang)||m.a}
-              </button>
+              {(()=>{
+                const isKO2=Number(m.id)>=73;
+                const q2={};
+                const scH=isKO2?(TEAMS[m.h]?m.h:null):m.h;
+                const scA=isKO2?(TEAMS[m.a]?m.a:null):m.a;
+                const wH=scH||m.h; const wA=scA||m.a;
+                return(<>
+                <button onClick={()=>setWinner(wH)}
+                  style={{flex:1,padding:"8px",borderRadius:8,cursor:"pointer",
+                    border:`2px solid ${winner===wH?T.green:T.border}`,
+                    background:winner===wH?T.greenBg:T.card,
+                    fontFamily:HS,fontSize:11,fontWeight:winner===wH?700:400,
+                    color:winner===wH?T.green:T.text}}>
+                  {tn(wH,lang)||wH}
+                </button>
+                <button onClick={()=>setWinner(wA)}
+                  style={{flex:1,padding:"8px",borderRadius:8,cursor:"pointer",
+                    border:`2px solid ${winner===wA?T.green:T.border}`,
+                    background:winner===wA?T.greenBg:T.card,
+                    fontFamily:HS,fontSize:11,fontWeight:winner===wA?700:400,
+                    color:winner===wA?T.green:T.text}}>
+                  {tn(wA,lang)||wA}
+                </button>
+                </>);
+              })()}
             </div>
           </div>
         )}
@@ -928,15 +937,30 @@ function PredictModal({m,T,lang,userName,myPreds,setMyPreds,onClose,scores}){
           </div>
         )}
 
-        <div style={{display:"flex",gap:8,marginBottom:16}}>
-          <div style={{flex:1,background:T.card2,borderRadius:10,padding:"8px",textAlign:"center"}}>
-            <div style={{fontFamily:HS,fontSize:20,fontWeight:800,color:T.green}}>১</div>
-            <div style={{fontFamily:HS,fontSize:10,color:T.textS}}>{lang==="bn"?"সঠিক ফলাফল":"Correct result"}</div>
-          </div>
-          <div style={{flex:1,background:T.card2,borderRadius:10,padding:"8px",textAlign:"center"}}>
-            <div style={{fontFamily:HS,fontSize:20,fontWeight:800,color:T.gold}}>৩</div>
-            <div style={{fontFamily:HS,fontSize:10,color:T.textS}}>{lang==="bn"?"সঠিক স্কোর":"Exact score"}</div>
-          </div>
+        <div style={{display:"flex",gap:6,marginBottom:16}}>
+          {isKnockout?(<>
+            <div style={{flex:1,background:T.card2,borderRadius:10,padding:"8px",textAlign:"center"}}>
+              <div style={{fontFamily:HS,fontSize:18,fontWeight:800,color:T.green}}>২</div>
+              <div style={{fontFamily:HS,fontSize:9,color:T.textS}}>{lang==="bn"?"ড্র+ভুল winner":"Draw+wrong winner"}</div>
+            </div>
+            <div style={{flex:1,background:T.card2,borderRadius:10,padding:"8px",textAlign:"center"}}>
+              <div style={{fontFamily:HS,fontSize:18,fontWeight:800,color:T.gold}}>৩</div>
+              <div style={{fontFamily:HS,fontSize:9,color:T.textS}}>{lang==="bn"?"সঠিক স্কোর":"Exact score"}</div>
+            </div>
+            <div style={{flex:1,background:T.card2,borderRadius:10,padding:"8px",textAlign:"center"}}>
+              <div style={{fontFamily:HS,fontSize:18,fontWeight:800,color:"#f59e0b"}}>৫</div>
+              <div style={{fontFamily:HS,fontSize:9,color:T.textS}}>{lang==="bn"?"ড্র+সঠিক winner":"Draw+right winner"}</div>
+            </div>
+          </>):(<>
+            <div style={{flex:1,background:T.card2,borderRadius:10,padding:"8px",textAlign:"center"}}>
+              <div style={{fontFamily:HS,fontSize:20,fontWeight:800,color:T.green}}>১</div>
+              <div style={{fontFamily:HS,fontSize:10,color:T.textS}}>{lang==="bn"?"সঠিক ফলাফল":"Correct result"}</div>
+            </div>
+            <div style={{flex:1,background:T.card2,borderRadius:10,padding:"8px",textAlign:"center"}}>
+              <div style={{fontFamily:HS,fontSize:20,fontWeight:800,color:T.gold}}>৩</div>
+              <div style={{fontFamily:HS,fontSize:10,color:T.textS}}>{lang==="bn"?"সঠিক স্কোর":"Exact score"}</div>
+            </div>
+          </>)}
         </div>
         {confirmDel&&(
           <div style={{background:T.card2,borderRadius:12,padding:"12px",marginBottom:12,textAlign:"center"}}>
