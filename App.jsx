@@ -1267,8 +1267,9 @@ function CompactCal({T,lang,setDayPage,scores,headerSelDate,clearHeaderSelDate,q
       }
     };
     scrollToToday();
-    const t=setTimeout(scrollToToday,200);
-    return()=>clearTimeout(t);
+    const t1=setTimeout(scrollToToday,100);
+    const t2=setTimeout(scrollToToday,500);
+    return()=>{clearTimeout(t1);clearTimeout(t2);};
   },[]);
 
   const allDays=useMemo(()=>{
