@@ -656,7 +656,7 @@ function calcStandings(teams,scores){
 }
 
 /* ── Score Modal (admin) ─────────────────────── */
-function ScoreModal({m,T,lang,scores,setScores,onClose}){
+function ScoreModal({m,T,lang,scores,setScores,onClose,refreshPreds}){
   const sc=scores[m.id]||scores[String(m.id)]||{hg:"",ag:""};
   const[hg,setHg]=useState(sc.hg);const[ag,setAg]=useState(sc.ag);const[saving,setSaving]=useState(false);
   const[winner,setWinner]=useState(sc?.winner||"");
@@ -681,7 +681,9 @@ function ScoreModal({m,T,lang,scores,setScores,onClose}){
             setScores(map);
           }
         }).catch(()=>{});
-      },2000);
+        // Refresh predictions so points update after calcPoints runs on GAS
+        if(refreshPreds) refreshPreds();
+      },3000);
       onClose();
     }
     catch(e){
@@ -1356,7 +1358,7 @@ function CalIcon({d,T,onClick}){
   );
 }
 
-function MatchCard({m,T,lang,scores,myPreds,setPredictM,onTeam,isAdmin,setScoreM}){
+function MatchCard({m,T,lang,scores,myPreds,setPredictM,onTeam,isAdmin,setScoreM,qualified}){
   const sc=scores[m.id]||scores[String(m.id)];
   const hasScore=sc&&sc.hg!==""&&sc.ag!=="";
   const pred=getPred(myPreds,m.id);
@@ -1365,18 +1367,38 @@ function MatchCard({m,T,lang,scores,myPreds,setPredictM,onTeam,isAdmin,setScoreM
   const cd=useCD(st==="up"?tMs(m):null);
   const isFT=st==="ft";
   const isLive=st==="live";
+  const isDraw=hasScore&&Number(sc?.hg)===Number(sc?.ag);
+  // Knockout team resolution
+  const isKO=Number(m.id)>=73;
+  const q=qualified||{};
+  const hEn=isKO?(q[m.h]||null):m.h;
+  const aEn=isKO?(q[m.a]||null):m.a;
+  const hName=hEn?tn(hEn,lang):(isKO?(lang==="bn"?"অপেক্ষা":"TBD"):tn(m.h,lang));
+  const aName=aEn?tn(aEn,lang):(isKO?(lang==="bn"?"অপেক্ষা":"TBD"):tn(m.a,lang));
   return(
     <div style={{background:T.card,borderRadius:16,border:`1px solid ${T.border}`,
       marginBottom:8,overflow:"hidden",boxShadow:T.glow}}>
       {/* Group/venue label */}
-      {(m.g||m.label||m.venue)&&(
-        <div style={{padding:"8px 14px 0"}}>
-          <span style={{fontFamily:HS,fontSize:11,fontWeight:700,color:T.textS,
-            background:T.card2,padding:"3px 10px",borderRadius:20,display:"inline-block"}}>
-            {m.g&&m.g.length===1?`Group ${m.g}`:(m.label||m.venue||"")}
-          </span>
-        </div>
-      )}
+      {(()=>{
+        let pill="";
+        if(isKO){
+          if(Number(m.id)>=104)pill="🏆 ফাইনাল";
+          else if(Number(m.id)>=103)pill="তৃতীয় স্থান";
+          else if(Number(m.id)>=101)pill="সেমিফাইনাল";
+          else if(Number(m.id)>=97)pill="কোয়ার্টার ফাইনাল";
+          else if(Number(m.id)>=89)pill="রাউন্ড অব ১৬";
+          else pill="রাউন্ড অব ৩২";
+        } else if(m.g&&m.g.length===1){pill=`Group ${m.g}`;}
+        else if(m.label||m.venue){pill=m.label||m.venue;}
+        return pill?(
+          <div style={{padding:"8px 14px 0"}}>
+            <span style={{fontFamily:HS,fontSize:11,fontWeight:700,color:T.textS,
+              background:T.card2,padding:"3px 10px",borderRadius:20,display:"inline-block"}}>
+              {pill}
+            </span>
+          </div>
+        ):null;
+      })()}
       {/* Main match row */}
       <div style={{display:"flex",alignItems:"center",padding:"12px 14px",gap:8}}>
         {/* Status badge */}
@@ -1397,13 +1419,13 @@ function MatchCard({m,T,lang,scores,myPreds,setPredictM,onTeam,isAdmin,setScoreM
           )}
         </div>
         {/* Home team */}
-        <div onClick={()=>m.h&&TEAMS[m.h]&&onTeam(m.h)}
+        <div onClick={()=>hEn&&onTeam(hEn)}
           style={{flex:1,display:"flex",alignItems:"center",gap:8,
-            cursor:TEAMS[m.h]?"pointer":"default",minWidth:0}}>
-          {TEAMS[m.h]?<Flag en={m.h} size={28}/>:<div style={{width:28,height:28,borderRadius:"50%",background:T.card2,flexShrink:0}}/>}
-          <span style={{fontFamily:HS,fontSize:14,fontWeight:600,color:T.text,
+            cursor:hEn?"pointer":"default",minWidth:0}}>
+          {hEn?<Flag en={hEn} size={28}/>:<div style={{width:28,height:28,borderRadius:"50%",background:T.card2,border:`1px dashed ${T.border}`,flexShrink:0}}/>}
+          <span style={{fontFamily:HS,fontSize:14,fontWeight:hEn?600:400,color:hEn?T.text:T.textM,
             overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>
-            {m.g&&m.g.length===1?tn(m.h,lang):(m.h||"TBD")}
+            {hName}
           </span>
         </div>
         {/* Score */}
@@ -1419,14 +1441,14 @@ function MatchCard({m,T,lang,scores,myPreds,setPredictM,onTeam,isAdmin,setScoreM
           ))}
         </div>
         {/* Away team */}
-        <div onClick={()=>m.a&&TEAMS[m.a]&&onTeam(m.a)}
+        <div onClick={()=>aEn&&onTeam(aEn)}
           style={{flex:1,display:"flex",alignItems:"center",justifyContent:"flex-end",gap:8,
-            cursor:TEAMS[m.a]?"pointer":"default",minWidth:0}}>
-          <span style={{fontFamily:HS,fontSize:14,fontWeight:600,color:T.text,
+            cursor:aEn?"pointer":"default",minWidth:0}}>
+          <span style={{fontFamily:HS,fontSize:14,fontWeight:aEn?600:400,color:aEn?T.text:T.textM,
             overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",textAlign:"right"}}>
-            {m.g&&m.g.length===1?tn(m.a,lang):(m.a||"TBD")}
+            {aName}
           </span>
-          {TEAMS[m.a]?<Flag en={m.a} size={28}/>:<div style={{width:28,height:28,borderRadius:"50%",background:T.card2,flexShrink:0}}/>}
+          {aEn?<Flag en={aEn} size={28}/>:<div style={{width:28,height:28,borderRadius:"50%",background:T.card2,border:`1px dashed ${T.border}`,flexShrink:0}}/>}
         </div>
       </div>
       {/* Countdown */}
@@ -1448,9 +1470,17 @@ function MatchCard({m,T,lang,scores,myPreds,setPredictM,onTeam,isAdmin,setScoreM
           <span style={{fontFamily:HS,fontSize:11,color:"#f59e0b",fontWeight:600}}>{lang==="bn"?`ম্যাচ শুরু হতে মাত্র ${cd.mins} মিনিট ${cd.secs} সেকেন্ড বাকি!`:`Only ${cd.mins}m ${cd.secs}s left to predict!`}</span>
         </div>
       )}
+      {/* Tiebreaker result for KO draw */}
+      {isKO&&isFT&&isDraw&&sc?.winner&&(
+        <div style={{margin:"0 12px 8px",padding:"6px 12px",background:T.card2,borderRadius:8,
+          fontFamily:HS,fontSize:11,color:T.textS,textAlign:"center",border:`1px solid ${T.border}`}}>
+          🏆 {lang==="bn"?"শুটআউটে জয়ী:":"Penalty Winner:"}{" "}
+          <span style={{color:T.green,fontWeight:700}}>{tn(sc.winner,lang)||sc.winner}</span>
+        </div>
+      )}
       {/* Action bar */}
       <div style={{display:"flex",gap:6,padding:"6px 12px 12px"}}>
-        {st==="up"&&!isAdmin&&(
+        {(st==="up"||(isKO&&st==="live"&&!hasScore))&&!isAdmin&&(hEn||aEn||!isKO)&&(
           <button onClick={()=>setPredictM(m)} style={{
             flex:1,display:"flex",alignItems:"center",justifyContent:"center",gap:4,
             background:pred?T.greenBg:T.card2,border:`1.5px solid ${pred?T.greenBr:T.border}`,
@@ -1613,7 +1643,7 @@ function KOCard({m,T,lang,scores,qualified,myPreds,setPredictM,isAdmin,setScoreM
       {/* Action bar */}
       <div style={{display:"flex",gap:6,padding:"6px 12px 12px"}}>
         {/* Predict button - only for upcoming matches with known teams */}
-        {st==="up"&&!isAdmin&&userName&&(hTeam||aTeam)&&setPredictM&&(
+        {(st==="up"||(st==="live"&&!hasScore))&&!isAdmin&&userName&&(hTeam||aTeam)&&setPredictM&&(
           <button onClick={()=>setPredictM(m)} style={{
             flex:1,display:"flex",alignItems:"center",justifyContent:"center",gap:4,
             background:pred?T.greenBg:T.card2,border:`1.5px solid ${pred?T.greenBr:T.border}`,
@@ -1734,9 +1764,10 @@ function HomeTab({T,lang,favs,setFavs,onTeam,setSM,scores,myPreds,setPredictM,se
   function gN(en){
     const n=Date.now();
     return ALL_SORTED.find(m=>{
-      const h=qualifiedTeams[m.h]||m.h;
-      const a=qualifiedTeams[m.a]||m.a;
-      return(h===en||a===en)&&tMs(m)>n;
+      const hRes=qualifiedTeams[m.h]||m.h;
+      const aRes=qualifiedTeams[m.a]||m.a;
+      // match if en is the raw code OR the resolved team
+      return(m.h===en||m.a===en||hRes===en||aRes===en)&&tMs(m)>n;
     })||null;
   }
 
@@ -2106,7 +2137,7 @@ function BracketColumnRight({matches,T,lang,scores,level,drawConnectorsLeft,cont
       <div style={{display:"flex",flexDirection:"column",position:"relative",height:containerH,width:118}}>
         {matches.map((m,i)=>(
           <div key={m.id} style={{position:"absolute",top:topOffset+i*spacing,left:0,right:0}}>
-            <BracketMatchCard m={m} T={T} lang={lang} scores={scores}/>
+            <BracketMatchCard m={m} T={T} lang={lang} scores={scores} qualified={qualified}/>
           </div>
         ))}
       </div>
@@ -2265,11 +2296,11 @@ function KnockoutTab({T,lang,scores,myPreds,setPredictM,isAdmin,setScoreM,userNa
         {round==="F"?(
           <>
             <div style={{fontFamily:HS,fontSize:12,fontWeight:700,color:T.textS,marginBottom:8}}>🥉 {lang==="bn"?"তৃতীয় স্থান":"Third Place"}</div>
-            <KOCard m={FINAL[0]} T={T} lang={lang} scores={scores} qualified={qualified} myPreds={myPreds} setPredictM={setPredictM} isAdmin={isAdmin} setScoreM={setScoreM} userName={userName}/>
+            <MatchCard m={FINAL[0]} T={T} lang={lang} scores={scores} qualified={qualified} myPreds={myPreds} setPredictM={setPredictM} onTeam={()=>{}} isAdmin={isAdmin} setScoreM={setScoreM}/>
             <div style={{fontFamily:HS,fontSize:12,fontWeight:700,color:T.textS,margin:"12px 0 8px"}}>🏆 {lang==="bn"?"ফাইনাল":"Final"}</div>
-            <KOCard m={FINAL[1]} T={T} lang={lang} scores={scores} qualified={qualified} myPreds={myPreds} setPredictM={setPredictM} isAdmin={isAdmin} setScoreM={setScoreM} userName={userName}/>
+            <MatchCard m={FINAL[1]} T={T} lang={lang} scores={scores} qualified={qualified} myPreds={myPreds} setPredictM={setPredictM} onTeam={()=>{}} isAdmin={isAdmin} setScoreM={setScoreM}/>
           </>
-        ):(matchMap[round]||[]).map(m=><KOCard key={m.id} m={m} T={T} lang={lang} scores={scores} qualified={qualified} myPreds={myPreds} setPredictM={setPredictM} isAdmin={isAdmin} setScoreM={setScoreM} userName={userName}/>)}
+        ):(matchMap[round]||[]).map(m=><MatchCard key={m.id} m={m} T={T} lang={lang} scores={scores} qualified={qualified} myPreds={myPreds} setPredictM={setPredictM} onTeam={()=>{}} isAdmin={isAdmin} setScoreM={setScoreM}/>)}
       </div>
     </div>
   );
@@ -2969,8 +3000,9 @@ export default function App(){
     getScores().then(data=>{
       const m={};
       Object.entries(data).forEach(([id,s])=>{
-        m[id]={hg:String(s.hg),ag:String(s.ag),status:s.status||""};
-        m[String(id)]={hg:String(s.hg),ag:String(s.ag),status:s.status||""};
+        const entry={hg:String(s.hg),ag:String(s.ag),status:s.status||"",winner:String(s.winner||"")};
+        m[id]=entry;
+        m[String(id)]=entry;
       });
       setScores(m);
       setScoresLoaded(true);
@@ -2982,19 +3014,22 @@ export default function App(){
     const interval=setInterval(fetchScores,60000); // poll every 60 seconds
     return()=>clearInterval(interval);
   },[fetchScores]);
-  useEffect(()=>{
-    if(!userName){return;}
+  const refreshPreds=useCallback(()=>{
+    if(!userName)return;
     getPreds(userName).then(data=>{
       const m={};
       data.forEach(p=>{
         const mid=String(p.match_id).trim();
-        const pred={home_score:Number(p.hg),away_score:Number(p.ag),points:Number(p.points)||0};
+        const pred={home_score:Number(p.hg),away_score:Number(p.ag),points:Number(p.points)||0,winner:String(p.winner||"")};
         m[mid]=pred;
         m[Number(mid)]=pred;
       });
       setMyPreds(m);
-      
-    }).catch(()=>setPredsLoaded(true));
+    }).catch(()=>{});
+  },[userName]);
+  useEffect(()=>{
+    if(!userName)return;
+    refreshPreds();
   },[userName]);
   useEffect(()=>{
     // Check if returning from magic link
@@ -3081,7 +3116,7 @@ export default function App(){
       {predictM&&userName&&<PredictModal m={predictM} T={T} lang={lang} userName={userName} myPreds={myPreds} setMyPreds={setMyPreds} onClose={()=>setPredictM(null)}/>}
       {predictM&&!userName&&!needName&&<NameModal T={T} lang={lang} onSave={handleNameSave} onClose={()=>setPredictM(null)}/>}
         {needName&&<SetNameModal T={T} lang={lang} email={needName.email} token={needName.token} onSave={(name)=>{localStorage.setItem("kk_user",name);setUserName(name);setNeedName(null);}} onClose={()=>setNeedName(null)}/>}
-      {scoreM&&isAdmin&&<ScoreModal m={scoreM} T={T} lang={lang} scores={scores} setScores={setScores} onClose={()=>setScoreM(null)}/>}
+      {scoreM&&isAdmin&&<ScoreModal m={scoreM} T={T} lang={lang} scores={scores} setScores={setScores} onClose={()=>setScoreM(null)} refreshPreds={refreshPreds}/>}
     </>
   );
 
@@ -3163,7 +3198,7 @@ export default function App(){
         {sm&&<AddModal favs={favs} onAdd={en=>setFavs(f=>{if(f.includes(en))return f;const nf=[...f,en];try{localStorage.setItem("kk_favs",JSON.stringify(nf));}catch(e){}return nf;})} onClose={()=>setSm(false)} lang={lang} T={T}/>}
         {predictM&&userName&&<PredictModal m={predictM} T={T} lang={lang} userName={userName} myPreds={myPreds} setMyPreds={setMyPreds} onClose={()=>setPredictM(null)}/>}
         {predictM&&!userName&&<NameModal T={T} lang={lang} onSave={(name,did)=>{handleNameSave(name,did);}} onClose={()=>setPredictM(null)}/>}
-        {scoreM&&isAdmin&&<ScoreModal m={scoreM} T={T} lang={lang} scores={scores} setScores={setScores} onClose={()=>setScoreM(null)}/>}
+        {scoreM&&isAdmin&&<ScoreModal m={scoreM} T={T} lang={lang} scores={scores} setScores={setScores} onClose={()=>setScoreM(null)} refreshPreds={refreshPreds}/>}
 
         {/* Header Calendar Popup */}
         {showHeaderCal&&<HeaderCalModal T={T} lang={lang} onClose={()=>setShowHeaderCal(false)} setDayPage={(ds)=>{setShowHeaderCal(false);setMt("home");setHeaderSelDate(ds);}}/>}
