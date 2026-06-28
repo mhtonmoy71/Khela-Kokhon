@@ -1258,16 +1258,12 @@ function CompactCal({T,lang,setDayPage,scores,headerSelDate,clearHeaderSelDate,q
 
   // Scroll today to center on mount
   useEffect(()=>{
-    const scrollToToday=()=>{
-      if(!stripRef.current)return;
-      const todayEl=stripRef.current.querySelector('[data-today="true"]');
-      if(todayEl){
-        const strip=stripRef.current;
-        strip.scrollLeft=todayEl.offsetLeft-(strip.offsetWidth/2)+(todayEl.offsetWidth/2);
-      }
-    };
-    const t=setTimeout(scrollToToday,100);
-    return()=>clearTimeout(t);
+    if(!stripRef.current)return;
+    const todayEl=stripRef.current.querySelector('[data-today="true"]');
+    if(todayEl){
+      const strip=stripRef.current;
+      strip.scrollLeft=todayEl.offsetLeft-(strip.offsetWidth/2)+(todayEl.offsetWidth/2);
+    }
   },[]);
 
   const allDays=useMemo(()=>{
@@ -1323,7 +1319,7 @@ function CompactCal({T,lang,setDayPage,scores,headerSelDate,clearHeaderSelDate,q
         WebkitOverflowScrolling:"touch",
         borderBottom:`1px solid ${T.border}`,
         background:T.card}}>
-        <div style={{display:"flex",alignItems:"center",minWidth:"max-content",padding:"0 12px"}}>
+        <div style={{display:"flex",alignItems:"center",minWidth:"max-content"}}>
           {allDays.map(ds=>{
             const d=new Date(ds+"T12:00:00");
             const hasM=ALL_DATES.has(ds);
