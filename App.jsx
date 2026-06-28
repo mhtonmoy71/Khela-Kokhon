@@ -844,8 +844,8 @@ function PredictModal({m,T,lang,userName,myPreds,setMyPreds,onClose,scores}){
     if(isKnockout&&isDraw&&!winner)return; // must select winner if draw in knockout
     setSaving(true);
     try{
-      await upsertPred(userName,m.id,parseInt(hg),parseInt(ag),isKnockout&&isDraw?winner:"");
-      const np={home_score:parseInt(hg),away_score:parseInt(ag),points:0,winner:isKnockout&&isDraw?winner:""};
+      await upsertPred(userName,m.id,parseInt(hg),parseInt(ag),isKnockout?winner:"");
+      const np={home_score:parseInt(hg),away_score:parseInt(ag),points:0,winner:isKnockout?winner:""};
       const newPreds={...myPreds,[m.id]:np,[String(m.id)]:np,[Number(m.id)]:np};
       setMyPreds(newPreds);
       try{localStorage.setItem("kk_preds_"+userName,JSON.stringify(newPreds));}catch(e){}
