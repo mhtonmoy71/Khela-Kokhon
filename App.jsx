@@ -1258,12 +1258,17 @@ function CompactCal({T,lang,setDayPage,scores,headerSelDate,clearHeaderSelDate,q
 
   // Scroll today to center on mount
   useEffect(()=>{
-    if(!stripRef.current)return;
-    const todayEl=stripRef.current.querySelector('[data-today="true"]');
-    if(todayEl){
-      const strip=stripRef.current;
-      strip.scrollLeft=todayEl.offsetLeft-(strip.offsetWidth/2)+(todayEl.offsetWidth/2);
-    }
+    const scrollToToday=()=>{
+      if(!stripRef.current)return;
+      const todayEl=stripRef.current.querySelector('[data-today="true"]');
+      if(todayEl){
+        const strip=stripRef.current;
+        strip.scrollLeft=todayEl.offsetLeft-(strip.offsetWidth/2)+(todayEl.offsetWidth/2);
+      }
+    };
+    scrollToToday();
+    const t=setTimeout(scrollToToday,200);
+    return()=>clearTimeout(t);
   },[]);
 
   const allDays=useMemo(()=>{
