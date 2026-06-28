@@ -870,8 +870,8 @@ function PredictModal({m,T,lang,userName,myPreds,setMyPreds,onClose,scores}){
     return resolveKnockout(scores||{},gq);
   },[scores,isKO]);
   const q=resolvedQ;
-  const hTeam=isKO?(q[m.h]||null):m.h;
-  const aTeam=isKO?(q[m.a]||null):m.a;
+  const hTeam=isKO?(TEAMS[m.h]?m.h:(q[m.h]||null)):m.h;
+  const aTeam=isKO?(TEAMS[m.a]?m.a:(q[m.a]||null)):m.a;
   const hName=hTeam?tn(hTeam,lang):(lang==="bn"?"অপেক্ষা":"TBD");
   const aName=aTeam?tn(aTeam,lang):(lang==="bn"?"অপেক্ষা":"TBD");
 
@@ -1361,8 +1361,8 @@ function CompactCal({T,lang,setDayPage,scores,headerSelDate,clearHeaderSelDate,q
                   <>{(()=>{
                     const isKO=Number(m.id)>=73;
                     const q=qualifiedTeams||{};
-                    const hEn=isKO?(q[m.h]||null):m.h;
-                    const aEn=isKO?(q[m.a]||null):m.a;
+                    const hEn=isKO?(TEAMS[m.h]?m.h:(q[m.h]||null)):m.h;
+                    const aEn=isKO?(TEAMS[m.a]?m.a:(q[m.a]||null)):m.a;
                     const hName=hEn?tn(hEn,lang):(isKO?getBracketLabel(m.h,q,lang):tn(m.h,lang));
                     const aName=aEn?tn(aEn,lang):(isKO?getBracketLabel(m.a,q,lang):tn(m.a,lang));
                     const roundLabel=Number(m.id)>=103?"🏆 ফাইনাল":Number(m.id)>=101?"সেমি":Number(m.id)>=97?"QF":Number(m.id)>=89?"R16":Number(m.id)>=73?"R32":(m.g?`Group ${m.g}`:"");
@@ -1456,11 +1456,11 @@ function MatchCard({m,T,lang,scores,myPreds,setPredictM,onTeam,isAdmin,setScoreM
   // Knockout team resolution
   const isKO=Number(m.id)>=73;
   const q=qualified||{};
-  const hEn=isKO?(q[m.h]||null):m.h;
-  const aEn=isKO?(q[m.a]||null):m.a;
+  // If m.h is already a real team name (in TEAMS), use directly; else resolve from q
+  const hEn=isKO?(TEAMS[m.h]?m.h:(q[m.h]||null)):m.h;
+  const aEn=isKO?(TEAMS[m.a]?m.a:(q[m.a]||null)):m.a;
   const hName=hEn?tn(hEn,lang):(isKO?getBracketLabel(m.h,q,lang):tn(m.h,lang));
   const aName=aEn?tn(aEn,lang):(isKO?getBracketLabel(m.a,q,lang):tn(m.a,lang));
-  // If team not yet resolved, show bracket label in muted style
   const hPending=isKO&&!hEn;
   const aPending=isKO&&!aEn;
   return(
@@ -2109,42 +2109,76 @@ const BK_CARD_H=86;
 const BK_GAP=10;
 const BK_CONN_W=18;
 
+// Get the two feeder teams for an unresolved slot (for bracket display)
+function getFeederTeams(code,q){
+  if(!code)return[];
+  if(TEAMS[code])return[code];
+  if(q[code])return[q[code]];
+  if(code.startsWith("W")||code.startsWith("L")){
+    const mid=Number(code.slice(1));
+    const m=KO_MATCH_MAP[mid];
+    if(!m)return[];
+    const h=TEAMS[m.h]?m.h:(q[m.h]||null);
+    const a=TEAMS[m.a]?m.a:(q[m.a]||null);
+    return[h,a].filter(Boolean);
+  }
+  // group code → already resolved in q? no → return empty
+  return[];
+}
+
 function BracketMatchCard({m,T,lang,scores,qualified}){
   const sc=scores?.[m.id]||scores?.[String(m.id)];
   const hasScore=sc&&sc.hg!==""&&sc.ag!=="";
   const[t2,ap]=m.t.split(" ");
   const q=qualified||{};
-  const hName=q[m.h]?tn(q[m.h],lang):m.h;
-  const aName=q[m.a]?tn(q[m.a],lang):m.a;
-  const hFlag=q[m.h];
-  const aFlag=q[m.a];
+  const hEn=TEAMS[m.h]?m.h:(q[m.h]||null);
+  const aEn=TEAMS[m.a]?m.a:(q[m.a]||null);
+  const hName=hEn?tn(hEn,lang):getBracketLabel(m.h,q,lang);
+  const aName=aEn?tn(aEn,lang):getBracketLabel(m.a,q,lang);
+  // For unresolved slots show feeder team flags
+  const hFeeder=hEn?[hEn]:getFeederTeams(m.h,q);
+  const aFeeder=aEn?[aEn]:getFeederTeams(m.a,q);
+  const hWon=hasScore&&Number(sc.hg)>Number(sc.ag);
+  const aWon=hasScore&&Number(sc.ag)>Number(sc.hg);
   return(
     <div style={{background:T.card,border:`1px solid ${T.border}`,borderRadius:10,
-      padding:"6px 8px",boxShadow:T.glow,height:BK_CARD_H,boxSizing:"border-box",
+      padding:"5px 7px",boxShadow:T.glow,height:BK_CARD_H,boxSizing:"border-box",
       display:"flex",flexDirection:"column",justifyContent:"center",minWidth:118}}>
+      {/* Home row */}
       <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:3}}>
-        <div style={{display:"flex",alignItems:"center",gap:3,overflow:"hidden",maxWidth:74}}>
-          {hFlag&&<Flag en={hFlag} size={12}/>}
-          <span style={{fontFamily:HS,fontSize:11,fontWeight:600,color:T.text,overflow:"hidden",
-            textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{hName}</span>
+        <div style={{display:"flex",alignItems:"center",gap:2,overflow:"hidden",flex:1,minWidth:0}}>
+          {hFeeder.length===1?
+            <Flag en={hFeeder[0]} size={13}/>:
+            hFeeder.length===2?
+            <div style={{display:"flex",gap:1}}><Flag en={hFeeder[0]} size={11}/><Flag en={hFeeder[1]} size={11}/></div>:
+            <div style={{width:13,height:10,borderRadius:2,background:T.border}}/>
+          }
+          <span style={{fontFamily:HS,fontSize:hEn?11:9,fontWeight:hWon?700:500,
+            color:hEn?(hWon?T.green:T.text):T.textM,overflow:"hidden",
+            textOverflow:"ellipsis",whiteSpace:"nowrap",marginLeft:2}}>{hName}</span>
         </div>
-        {hasScore?(
-          <span style={{fontFamily:HS,fontSize:13,fontWeight:800,
-            color:Number(sc.hg)>Number(sc.ag)?T.green:T.text}}>{sc.hg}</span>
-        ):(
-          <span style={{fontFamily:HS,fontSize:9,color:T.textM}}>{t2}{ap}</span>
-        )}
+        {hasScore?
+          <span style={{fontFamily:HS,fontSize:13,fontWeight:800,color:hWon?T.green:T.text,flexShrink:0,marginLeft:3}}>{sc.hg}</span>:
+          <span style={{fontFamily:HS,fontSize:9,color:T.textM,flexShrink:0,marginLeft:3}}>{t2}</span>
+        }
       </div>
-      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:4}}>
-        <div style={{display:"flex",alignItems:"center",gap:3,overflow:"hidden",maxWidth:74}}>
-          {aFlag&&<Flag en={aFlag} size={12}/>}
-          <span style={{fontFamily:HS,fontSize:11,fontWeight:600,color:T.text,overflow:"hidden",
-            textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{aName}</span>
+      {/* Away row */}
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:3}}>
+        <div style={{display:"flex",alignItems:"center",gap:2,overflow:"hidden",flex:1,minWidth:0}}>
+          {aFeeder.length===1?
+            <Flag en={aFeeder[0]} size={13}/>:
+            aFeeder.length===2?
+            <div style={{display:"flex",gap:1}}><Flag en={aFeeder[0]} size={11}/><Flag en={aFeeder[1]} size={11}/></div>:
+            <div style={{width:13,height:10,borderRadius:2,background:T.border}}/>
+          }
+          <span style={{fontFamily:HS,fontSize:aEn?11:9,fontWeight:aWon?700:500,
+            color:aEn?(aWon?T.green:T.text):T.textM,overflow:"hidden",
+            textOverflow:"ellipsis",whiteSpace:"nowrap",marginLeft:2}}>{aName}</span>
         </div>
-        {hasScore&&<span style={{fontFamily:HS,fontSize:13,fontWeight:800,
-          color:Number(sc.ag)>Number(sc.hg)?T.green:T.text}}>{sc.ag}</span>}
+        {hasScore&&<span style={{fontFamily:HS,fontSize:13,fontWeight:800,color:aWon?T.green:T.text,flexShrink:0,marginLeft:3}}>{sc.ag}</span>}
       </div>
-      <div style={{fontFamily:HS,fontSize:9,color:T.textS,textAlign:"center",borderTop:`1px solid ${T.border}`,paddingTop:3}}>
+      {/* Date */}
+      <div style={{fontFamily:HS,fontSize:8,color:T.textS,textAlign:"center",borderTop:`1px solid ${T.border}`,paddingTop:2}}>
         {dls(m.d,lang)}
       </div>
     </div>
