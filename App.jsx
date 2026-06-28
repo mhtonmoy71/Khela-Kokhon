@@ -2484,7 +2484,11 @@ function DeleteAccountBtn({T,lang}){
 function PredictionTab({T,lang,userName,onSave,myPreds,setMyPreds,scores,setPredictM,isAdmin,setScoreM}){
   const[sub,setSub]=useState("matches");
   const[lb,setLb]=useState([]);const[lbLoad,setLbLoad]=useState(false);
-  useEffect(()=>{if(sub==="lb"){setLbLoad(true);getLB().then(data=>{const map={};data.forEach(r=>{if(!map[r.predictor_name])map[r.predictor_name]={name:r.predictor_name,total:0,count:0};map[r.predictor_name].total+=(r.points||0);map[r.predictor_name].count+=1;});setLb(Object.values(map).sort((a,b)=>b.total-a.total));setLbLoad(false);}).catch(()=>setLbLoad(false));};},[sub]);
+  useEffect(()=>{if(sub==="lb"){setLbLoad(true);getLB().then(data=>{
+    // GAS returns {name, total, count} directly
+    const sorted=data.filter(r=>r.name).sort((a,b)=>(b.total||0)-(a.total||0));
+    setLb(sorted);setLbLoad(false);
+  }).catch(()=>setLbLoad(false));};},[sub,lbRefreshKey]);
 
   // Use points from Sheet directly (more accurate after auto-calculation)
   const myPts=Object.values(myPreds).reduce((sum,pred)=>sum+(pred.points||0),0);
@@ -3160,6 +3164,7 @@ export default function App(){
   const[sm,setSm]=useState(false);
   const[scores,setScores]=useState({});
   const[scoresLoaded,setScoresLoaded]=useState(false);
+  const[lbRefreshKey,setLbRefreshKey]=useState(0);
   const[lbData,setLbData]=useState([]);
   const[userName,setUserName]=useState(()=>localStorage.getItem("kk_user")||"");
   const[myPreds,setMyPreds]=useState({});
@@ -3203,6 +3208,8 @@ export default function App(){
       });
       setMyPreds(m);
     }).catch(()=>{});
+    // Trigger leaderboard refresh via key increment
+    setLbRefreshKey(k=>k+1);
   },[userName]);
   useEffect(()=>{
     if(!userName)return;
