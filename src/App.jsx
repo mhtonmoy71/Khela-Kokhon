@@ -901,13 +901,13 @@ function PredictModal({m,T,lang,userName,myPreds,setMyPreds,onClose,scores}){
           <div style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",gap:8}}>
             {hTeam?<Flag en={hTeam} size={52}/>:<div style={{width:52,height:52,borderRadius:"50%",background:T.card2,border:`1px dashed ${T.border}`}}/>}
             <div style={{fontFamily:HS,fontSize:13,fontWeight:600,color:hTeam?T.text:T.textM,textAlign:"center"}}>{hName}</div>
-            <input value={hg} onChange={e=>{setHg(e.target.value.replace(/\D/g,""));setWinner("");}} style={inp} placeholder="0" maxLength={2}/>
+            <input value={hg} onChange={e=>{const v=e.target.value.replace(/\D/g,"");setHg(v);if(v!==""&&ag!==""&&parseInt(v)!==parseInt(ag))setWinner("");}} style={inp} placeholder="0" maxLength={2}/>
           </div>
           <div style={{paddingTop:16,fontFamily:HS,fontSize:20,color:T.textM}}>–</div>
           <div style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",gap:8}}>
             {aTeam?<Flag en={aTeam} size={52}/>:<div style={{width:52,height:52,borderRadius:"50%",background:T.card2,border:`1px dashed ${T.border}`}}/>}
             <div style={{fontFamily:HS,fontSize:13,fontWeight:600,color:aTeam?T.text:T.textM,textAlign:"center"}}>{aName}</div>
-            <input value={ag} onChange={e=>{setAg(e.target.value.replace(/\D/g,""));setWinner("");}} style={inp} placeholder="0" maxLength={2}/>
+            <input value={ag} onChange={e=>{const v=e.target.value.replace(/\D/g,"");setAg(v);if(v!==""&&hg!==""&&parseInt(v)!==parseInt(hg))setWinner("");}} style={inp} placeholder="0" maxLength={2}/>
           </div>
         </div>
 
@@ -2575,12 +2575,18 @@ function PredictionTab({T,lang,userName,onSave,myPreds,setMyPreds,scores,setPred
             const isExact=hasScore&&Number(sc.hg)===pred.home_score&&Number(sc.ag)===pred.away_score;
             const isCorrect=hasScore&&!isExact&&pts>0;
             return(
-              <div key={mid} style={{background:T.card,marginBottom:6,padding:"12px 14px",borderLeft:`3px solid ${pts===3?T.gold:pts===1?T.green:hasScore?"#e53935":"transparent"}`}}>
+              <>{(()=>{
+                const ptColor=pts===5?"#f59e0b":pts===3?T.gold:pts===2?"#3b82f6":pts===1?T.green:"#e53935";
+                const ptBg=pts===5?"rgba(245,158,11,0.15)":pts===3?"rgba(245,166,35,0.15)":pts===2?"rgba(59,130,246,0.12)":pts===1?T.greenBg:"rgba(229,57,53,0.1)";
+                const ptLabel=pts===5?"🏆 +5":pts===3?"🎯 +3":pts===2?"🤝 +2":pts===1?"✅ +1":"❌ 0";
+                const borderColor=pts===5?"#f59e0b":pts===3?T.gold:pts===2?"#3b82f6":pts===1?T.green:hasScore?"#e53935":"transparent";
+                return(
+              <div key={mid} style={{background:T.card,marginBottom:6,padding:"12px 14px",borderLeft:`3px solid ${borderColor}`}}>
                 <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:8}}>
                   <span style={{fontFamily:HS,fontSize:11,color:T.textM}}>{m.g&&m.g.length===1?`Group ${m.g}`:m.venue||""} · {dls(m.d,lang)}</span>
                   {hasScore?(
-                    <span style={{fontFamily:HS,fontSize:12,fontWeight:700,background:pts===3?`rgba(245,166,35,0.15)`:pts===1?T.greenBg:"rgba(229,57,53,0.1)",color:pts===3?T.gold:pts===1?T.green:"#e53935",padding:"2px 10px",borderRadius:20}}>
-                      {pts===3?"🎯 +3":pts===1?"✅ +1":"❌ 0"} pts
+                    <span style={{fontFamily:HS,fontSize:12,fontWeight:700,background:ptBg,color:ptColor,padding:"2px 10px",borderRadius:20}}>
+                      {ptLabel} pts
                     </span>
                   ):(
                     <span style={{fontFamily:HS,fontSize:11,background:T.card2,color:T.textM,padding:"2px 10px",borderRadius:20}}>⏳ {lang==="bn"?"অপেক্ষায়":"Pending"}</span>
@@ -2594,6 +2600,15 @@ function PredictionTab({T,lang,userName,onSave,myPreds,setMyPreds,scores,setPred
                   <div style={{textAlign:"center",minWidth:80}}>
                     <div style={{fontFamily:HS,fontSize:13,fontWeight:700,color:T.textM}}>{lang==="bn"?"আমার":"My"}: <span style={{color:T.green}}>{pred.home_score}–{pred.away_score}</span></div>
                     {hasScore&&<div style={{fontFamily:HS,fontSize:11,color:T.textS}}>{lang==="bn"?"ফলাফল":"Result"}: <span style={{color:T.text,fontWeight:600}}>{sc.hg}–{sc.ag}</span></div>}
+                    {/* KO winner display */}
+                    {Number(m.id)>=73&&pred.winner&&(
+                      <div style={{fontFamily:HS,fontSize:10,color:T.textM,marginTop:2}}>
+                        🏆 {lang==="bn"?"আমার winner":"My winner"}: <span style={{color:pts===5?T.gold:pts===2?"#3b82f6":"#e53935",fontWeight:700}}>{tn(pred.winner,lang)||pred.winner}</span>
+                        {hasScore&&sc.winner&&(
+                          <span style={{color:T.textM}}> → {pts===5?"✅":"❌"} {tn(sc.winner,lang)||sc.winner}</span>
+                        )}
+                      </div>
+                    )}
                   </div>
                   <div style={{flex:1,textAlign:"right"}}>
                     <span style={{fontFamily:HS,fontSize:13,fontWeight:500,color:T.text}}>{m.g&&m.g.length===1?tn(m.a,lang):(m.a||"TBD")}</span>
@@ -2601,6 +2616,7 @@ function PredictionTab({T,lang,userName,onSave,myPreds,setMyPreds,scores,setPred
                   {TEAMS[m.a]&&<Flag en={m.a} size={28}/>}
                 </div>
               </div>
+                );})()}</>
             );
           })}
         </div>
