@@ -260,28 +260,28 @@ const R32=[
   {id:88,h:"1K",a:"3DEIJL",d:"2026-07-04",t:"7:30 AM",venue:"Kansas City Stadium"},
 ];
 const R16=[
-  {id:89,h:"2A/2B",a:"1F/2C",d:"2026-07-04",t:"11:00 PM",venue:"Houston Stadium"},
-  {id:90,h:"1E/3ABCDF",a:"1I/3CDFGH",d:"2026-07-05",t:"3:00 AM",venue:"Philadelphia Stadium"},
-  {id:91,h:"1C/2F",a:"2E/2I",d:"2026-07-06",t:"2:00 AM",venue:"New York New Jersey Stadium"},
-  {id:92,h:"1A/3CEFHI",a:"1L/3EHIJK",d:"2026-07-06",t:"6:00 AM",venue:"Mexico City Stadium"},
-  {id:93,h:"2K/2L",a:"1H/2J",d:"2026-07-07",t:"1:00 AM",venue:"Dallas Stadium"},
-  {id:94,h:"1D/3BEFIJ",a:"1G/3AEHIJ",d:"2026-07-07",t:"6:00 AM",venue:"Seattle Stadium"},
-  {id:95,h:"1J/2H",a:"2D/2G",d:"2026-07-07",t:"10:00 PM",venue:"Atlanta Stadium"},
-  {id:96,h:"1B/3EFGIJ",a:"1K/3DEIJL",d:"2026-07-08",t:"2:00 AM",venue:"BC Place Vancouver"},
+  {id:89,h:"W73",a:"W74",d:"2026-07-04",t:"11:00 PM",venue:"Houston Stadium"},
+  {id:90,h:"W75",a:"W78",d:"2026-07-05",t:"3:00 AM",venue:"Philadelphia Stadium"},
+  {id:91,h:"W76",a:"W77",d:"2026-07-06",t:"2:00 AM",venue:"New York New Jersey Stadium"},
+  {id:92,h:"W79",a:"W80",d:"2026-07-06",t:"6:00 AM",venue:"Mexico City Stadium"},
+  {id:93,h:"W84",a:"W83",d:"2026-07-07",t:"1:00 AM",venue:"Dallas Stadium"},
+  {id:94,h:"W82",a:"W81",d:"2026-07-07",t:"6:00 AM",venue:"Seattle Stadium"},
+  {id:95,h:"W86",a:"W87",d:"2026-07-07",t:"10:00 PM",venue:"Atlanta Stadium"},
+  {id:96,h:"W85",a:"W88",d:"2026-07-08",t:"2:00 AM",venue:"BC Place Vancouver"},
 ];
 const QF=[
-  {id:97,h:"W EF1",a:"W EF2",d:"2026-07-10",t:"2:00 AM",venue:"Boston Stadium"},
-  {id:98,h:"W EF5",a:"W EF6",d:"2026-07-11",t:"1:00 AM",venue:"Los Angeles Stadium"},
-  {id:99,h:"W EF3",a:"W EF4",d:"2026-07-12",t:"3:00 AM",venue:"Miami Stadium"},
-  {id:100,h:"W EF7",a:"W EF8",d:"2026-07-12",t:"7:00 AM",venue:"Kansas City Stadium"},
+  {id:97,h:"W89",a:"W90",d:"2026-07-10",t:"2:00 AM",venue:"Boston Stadium"},
+  {id:98,h:"W93",a:"W94",d:"2026-07-11",t:"1:00 AM",venue:"Los Angeles Stadium"},
+  {id:99,h:"W91",a:"W92",d:"2026-07-12",t:"3:00 AM",venue:"Miami Stadium"},
+  {id:100,h:"W95",a:"W96",d:"2026-07-12",t:"7:00 AM",venue:"Kansas City Stadium"},
 ];
 const SF=[
-  {id:101,h:"W QF1",a:"W QF2",d:"2026-07-15",t:"1:00 AM",venue:"Dallas Stadium"},
-  {id:102,h:"W QF3",a:"W QF4",d:"2026-07-16",t:"1:00 AM",venue:"Atlanta Stadium"},
+  {id:101,h:"W97",a:"W98",d:"2026-07-15",t:"1:00 AM",venue:"Dallas Stadium"},
+  {id:102,h:"W99",a:"W100",d:"2026-07-16",t:"1:00 AM",venue:"Atlanta Stadium"},
 ];
 const FINAL=[
-  {id:103,h:"Loser SF 1",a:"Loser SF 2",d:"2026-07-19",t:"3:00 AM",venue:"Miami Stadium",label:"🥉 Bronze Final"},
-  {id:104,h:"Winner SF 1",a:"Winner SF 2",d:"2026-07-20",t:"1:00 AM",venue:"New York New Jersey Stadium",label:"🏆 Final"},
+  {id:103,h:"L101",a:"L102",d:"2026-07-19",t:"3:00 AM",venue:"Miami Stadium",label:"🥉 Bronze Final"},
+  {id:104,h:"W101",a:"W102",d:"2026-07-20",t:"1:00 AM",venue:"New York New Jersey Stadium",label:"🏆 Final"},
 ];
 
 const ALL_DATES=new Set([...MATCHES,...R32,...R16,...QF,...SF,...FINAL].map(m=>m.d));
@@ -302,6 +302,41 @@ const KO_WINNER_MAP={
 
 function resolveKnockout(scores, groupQualified){
   const q={...groupQualified};
+
+  // Resolve third-place teams from all groups
+  // Rank all 3rd-place finishers by pts, GD, GF
+  const thirdPlaceTeams=[];
+  Object.entries(GRP).forEach(([g,teams])=>{
+    const rows=calcStandings(teams,scores);
+    const allDone=MATCHES.filter(m=>teams.includes(m.h)).every(m=>{
+      const sc=scores[m.id]||scores[String(m.id)];
+      return sc&&sc.hg!==""&&sc.ag!=="";
+    });
+    if(allDone&&rows[2]){thirdPlaceTeams.push({...rows[2],group:g});}
+  });
+  thirdPlaceTeams.sort((a,b)=>b.pts!==a.pts?b.pts-a.pts:b.gd!==a.gd?b.gd-a.gd:b.gf-a.gf);
+  // Best 6 third-place teams qualify (FIFA 2026 has 12 groups, 6 qualify)
+  const best6=thirdPlaceTeams.slice(0,6);
+  // Map by group letter for lookup
+  const thirdByGroup={};
+  thirdPlaceTeams.forEach(t=>thirdByGroup[t.group]=t.en);
+  // Assign resolved codes — FIFA 2026 official third-place slot assignments:
+  // 3ABCDF = best 3rd from groups A,B,C,D,F (ranking-determined)
+  // For now assign by best6 rank order to the slot codes used in R32
+  const thirdCodes=["3ABCDF","3CDFGH","3CEFHI","3EHIJK","3AEHIJ","3BEFIJ","3EFGIJ","3DEIJL"];
+  // Resolve each third-place code: look for group letters in the code
+  thirdCodes.forEach(code=>{
+    const letters=code.replace("3","").split("");
+    // Find best available third-placer from those groups
+    let best=null,bestPts=-1,bestGd=-99;
+    letters.forEach(g=>{
+      const t=thirdPlaceTeams.find(x=>x.group===g);
+      if(t&&!Object.values(q).includes(t.en)){
+        if(t.pts>bestPts||(t.pts===bestPts&&t.gd>bestGd)){best=t.en;bestPts=t.pts;bestGd=t.gd;}
+      }
+    });
+    if(best)q[code]=best;
+  });
   
   // Helper: get winner of a match
   const getWinner=(m)=>{
@@ -328,14 +363,17 @@ function resolveKnockout(scores, groupQualified){
     const sc=scores[m.id]||scores[String(m.id)];
     const w=getWinner(m);
     if(w)q["W"+m.id]=w;
-    // Also track losers for Bronze
+    // Track losers for Bronze final
     if(sc&&sc.hg!==""&&sc.ag!==""){
       const hg=Number(sc.hg),ag=Number(sc.ag);
       const h=q[m.h]||m.h;const a=q[m.a]||m.a;
       if(hg>ag)q["L"+m.id]=a;
       else if(ag>hg)q["L"+m.id]=h;
+      else if(sc.winner){const ww=q[sc.winner]||sc.winner;q["L"+m.id]=(ww===h?a:h);}
     }
   });
+  // Resolve Final & Bronze slots
+  FINAL.forEach(m=>{const w=getWinner(m);if(w)q["W"+m.id]=w;});
 
   return q;
 }
@@ -1480,7 +1518,7 @@ function MatchCard({m,T,lang,scores,myPreds,setPredictM,onTeam,isAdmin,setScoreM
       )}
       {/* Action bar */}
       <div style={{display:"flex",gap:6,padding:"6px 12px 12px"}}>
-        {(st==="up"||(isKO&&st==="live"&&!hasScore))&&!isAdmin&&(hEn||aEn||!isKO)&&(
+        {(st==="up"||(isKO&&st==="live"&&!hasScore))&&!isAdmin&&(
           <button onClick={()=>setPredictM(m)} style={{
             flex:1,display:"flex",alignItems:"center",justifyContent:"center",gap:4,
             background:pred?T.greenBg:T.card2,border:`1.5px solid ${pred?T.greenBr:T.border}`,
@@ -1693,7 +1731,7 @@ function Footer({T,lang}){
 }
 
 /* ── DayPage ─────────────────────────────────── */
-function DayPage({date,T,lang,scores,myPreds,setPredictM,onTeam,isAdmin,setScoreM,onBack}){
+function DayPage({date,T,lang,scores,myPreds,setPredictM,onTeam,isAdmin,setScoreM,onBack,qualified}){
   const allM=[...MATCHES,...R32,...R16,...QF,...SF,...FINAL];
   const ms=allM.filter(m=>m.d===date);
   const fmt=d=>{const[y,mo,day]=d.split("-");const months=lang==="bn"?["জানুয়ারি","ফেব্রুয়ারি","মার্চ","এপ্রিল","মে","জুন","জুলাই","আগস্ট","সেপ্টেম্বর","অক্টোবর","নভেম্বর","ডিসেম্বর"]:["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];return lang==="bn"?`${parseInt(day)} ${months[parseInt(mo)-1]}`:`${months[parseInt(mo)-1]} ${parseInt(day)}`;};
@@ -1708,7 +1746,7 @@ function DayPage({date,T,lang,scores,myPreds,setPredictM,onTeam,isAdmin,setScore
       </div>
       <div style={{padding:"10px 12px"}}>
         {ms.length===0?<div style={{textAlign:"center",padding:40,fontFamily:HS,fontSize:13,color:T.textS}}>{lang==="bn"?"কোনো ম্যাচ নেই":"No matches"}</div>
-        :ms.map(m=><MatchCard key={m.id} m={m} T={T} lang={lang} scores={scores} myPreds={myPreds} setPredictM={setPredictM} onTeam={onTeam} isAdmin={isAdmin} setScoreM={setScoreM}/>)}
+        :ms.map(m=><MatchCard key={m.id} m={m} T={T} lang={lang} scores={scores} myPreds={myPreds} setPredictM={setPredictM} onTeam={onTeam} isAdmin={isAdmin} setScoreM={setScoreM} qualified={qualified}/>)}
       </div>
     </div>
   );
@@ -1726,17 +1764,7 @@ function HomeTab({T,lang,favs,setFavs,onTeam,setSM,scores,myPreds,setPredictM,se
       const allDone=MATCHES.filter(m=>teams.includes(m.h)).every(m=>{const sc=scores[m.id]||scores[String(m.id)];return sc&&sc.hg!==""&&sc.ag!=="";});
       if(allDone){q["1"+g]=rows[0]?.en||null;q["2"+g]=rows[1]?.en||null;}
     });
-    // Also resolve knockout winners from scores
-    [...R32,...R16,...QF,...SF].forEach(m=>{
-      const sc=scores[m.id]||scores[String(m.id)];
-      if(sc&&sc.hg!==""&&sc.ag!==""){
-        const hg=Number(sc.hg),ag=Number(sc.ag);
-        const h=q[m.h]||m.h;const a=q[m.a]||m.a;
-        const w=hg>ag?h:ag>hg?a:(sc.winner||null);
-        if(w)q["W"+m.id]=w;
-      }
-    });
-    return q;
+    return resolveKnockout(scores,q);
   },[scores]);
   const[expandTom,setExpandTom]=useState(false);
   useEffect(()=>{
@@ -1766,15 +1794,16 @@ function HomeTab({T,lang,favs,setFavs,onTeam,setSM,scores,myPreds,setPredictM,se
     return ALL_SORTED.find(m=>{
       const hRes=qualifiedTeams[m.h]||m.h;
       const aRes=qualifiedTeams[m.a]||m.a;
-      // match if en is the raw code OR the resolved team
-      return(m.h===en||m.a===en||hRes===en||aRes===en)&&tMs(m)>n;
+      return(hRes===en||aRes===en)&&tMs(m)>n;
     })||null;
   }
 
   function FavRow({en,onTeam}){
     const nx=gN(en),iF=favs.includes(en);
-    const rawOpp=nx?(nx.h===en?nx.a:nx.h):null;
-    const opp=rawOpp?(qualifiedTeams[rawOpp]||rawOpp):null;
+    // resolved home/away from qualifiedTeams
+    const hRes=nx?(qualifiedTeams[nx.h]||nx.h):null;
+    const aRes=nx?(qualifiedTeams[nx.a]||nx.a):null;
+    const opp=nx?(hRes===en?aRes:hRes):null;
     const cd=useCD(nx?tMs(nx):null);const showCd=nx&&!cd.done;
     return(
       <div style={{background:T.card,borderRadius:14,border:`1px solid ${T.border}`,padding:"12px",marginBottom:8,display:"flex",alignItems:"center",gap:10,boxShadow:T.glow}}>
@@ -1806,7 +1835,7 @@ function HomeTab({T,lang,favs,setFavs,onTeam,setSM,scores,myPreds,setPredictM,se
     );
   }
 
-  if(dayPage)return <DayPage date={dayPage} T={T} lang={lang} scores={scores} myPreds={myPreds} setPredictM={setPredictM} onTeam={onTeam} isAdmin={isAdmin} setScoreM={setScoreM} onBack={()=>{window.history.back();}}/>;
+  if(dayPage)return <DayPage date={dayPage} T={T} lang={lang} scores={scores} myPreds={myPreds} setPredictM={setPredictM} onTeam={onTeam} isAdmin={isAdmin} setScoreM={setScoreM} qualified={qualifiedTeams} onBack={()=>{window.history.back();}}/>;
   return(
     <div style={{padding:"12px 12px 16px"}}>
       {/* WC Countdown Banner */}
@@ -2481,9 +2510,22 @@ function PredictionTab({T,lang,userName,onSave,myPreds,setMyPreds,scores,setPred
 }
 
 /* ── TeamPage ────────────────────────────────── */
-function TeamPage({en,T,lang,onBack,onTeam,scores,myPreds,setPredictM,isAdmin,setScoreM}){
+function TeamPage({en,T,lang,onBack,onTeam,scores,myPreds,setPredictM,isAdmin,setScoreM,qualified}){
   const allM=[...MATCHES,...R32,...R16,...QF,...SF,...FINAL];
-  const ms=allM.filter(m=>m.h===en||m.a===en).sort((a,b)=>tMs(a)-tMs(b));
+  const qualifiedLocal=useMemo(()=>{
+    const qq={};
+    Object.entries(GRP).forEach(([g,teams])=>{
+      const rows=calcStandings(teams,scores);
+      const allDone=MATCHES.filter(m=>teams.includes(m.h)).every(m=>{const sc=scores[m.id]||scores[String(m.id)];return sc&&sc.hg!==""&&sc.ag!=="";});
+      if(allDone){qq["1"+g]=rows[0]?.en||null;qq["2"+g]=rows[1]?.en||null;}
+    });
+    return resolveKnockout(scores,qq);
+  },[scores]);
+  const q=qualifiedLocal;
+  const ms=allM.filter(m=>{
+    const hR=q[m.h]||m.h; const aR=q[m.a]||m.a;
+    return hR===en||aR===en;
+  }).sort((a,b)=>tMs(a)-tMs(b));
   const next=ms.find(m=>status(m,scores)==="up");
   const cd=useCD(next?tMs(next):null);
   return(
@@ -2512,7 +2554,7 @@ function TeamPage({en,T,lang,onBack,onTeam,scores,myPreds,setPredictM,isAdmin,se
         )}
       </div>
       <div style={{padding:"12px 12px 90px"}}>
-        {ms.map(m=><MatchCard key={m.id} m={m} T={T} lang={lang} scores={scores} myPreds={myPreds} setPredictM={setPredictM} onTeam={onTeam} isAdmin={isAdmin} setScoreM={setScoreM}/>)}
+        {ms.map(m=><MatchCard key={m.id} m={m} T={T} lang={lang} scores={scores} myPreds={myPreds} setPredictM={setPredictM} onTeam={onTeam} isAdmin={isAdmin} setScoreM={setScoreM} qualified={qualifiedLocal}/>)}
       </div>
     </div>
   );
