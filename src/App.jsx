@@ -242,27 +242,27 @@ const MATCHES=[
 ];
 
 const R32=[
-  {id:73,h:"2A",a:"2B",d:"2026-06-29",t:"1:00 AM",venue:"Los Angeles Stadium"},
-  {id:74,h:"1C",a:"2F",d:"2026-06-29",t:"11:00 PM",venue:"Houston Stadium"},
-  {id:75,h:"1E",a:"3ABCDF",d:"2026-06-30",t:"2:30 AM",venue:"Boston Stadium"},
-  {id:76,h:"1F",a:"2C",d:"2026-06-30",t:"7:00 AM",venue:"Monterrey Stadium"},
-  {id:77,h:"2E",a:"2I",d:"2026-06-30",t:"11:00 PM",venue:"Dallas Stadium"},
-  {id:78,h:"1I",a:"3CDFGH",d:"2026-07-01",t:"3:00 AM",venue:"New York NJ Stadium"},
-  {id:79,h:"1A",a:"3CEFHI",d:"2026-07-01",t:"7:00 AM",venue:"Mexico City Stadium"},
-  {id:80,h:"1L",a:"3EHIJK",d:"2026-07-01",t:"10:00 PM",venue:"Atlanta Stadium"},
-  {id:81,h:"1G",a:"3AEHIJ",d:"2026-07-02",t:"2:00 AM",venue:"Seattle Stadium"},
-  {id:82,h:"1D",a:"3BEFIJ",d:"2026-07-02",t:"6:00 AM",venue:"San Francisco Bay Area Stadium"},
-  {id:83,h:"1H",a:"2J",d:"2026-07-03",t:"1:00 AM",venue:"Los Angeles Stadium"},
-  {id:84,h:"2K",a:"2L",d:"2026-07-03",t:"5:00 AM",venue:"Toronto Stadium"},
-  {id:85,h:"1B",a:"3EFGIJ",d:"2026-07-03",t:"9:00 AM",venue:"BC Place Vancouver"},
-  {id:86,h:"1J",a:"2H",d:"2026-07-04",t:"4:00 AM",venue:"Miami Stadium"},
-  {id:87,h:"2D",a:"2G",d:"2026-07-04",t:"12:00 AM",venue:"Dallas Stadium"},
-  {id:88,h:"1K",a:"3DEIJL",d:"2026-07-04",t:"7:30 AM",venue:"Kansas City Stadium"},
+  {id:73,h:"South Africa",a:"Canada",d:"2026-06-29",t:"1:00 AM",venue:"Los Angeles Stadium"},
+  {id:74,h:"Brazil",a:"Japan",d:"2026-06-29",t:"11:00 PM",venue:"Houston Stadium"},
+  {id:75,h:"Germany",a:"Paraguay",d:"2026-06-30",t:"2:30 AM",venue:"Boston Stadium"},
+  {id:76,h:"Netherlands",a:"Morocco",d:"2026-06-30",t:"7:00 AM",venue:"Monterrey Stadium"},
+  {id:77,h:"Ivory Coast",a:"Norway",d:"2026-06-30",t:"11:00 PM",venue:"Dallas Stadium"},
+  {id:78,h:"France",a:"Sweden",d:"2026-07-01",t:"3:00 AM",venue:"New York NJ Stadium"},
+  {id:79,h:"Mexico",a:"Ecuador",d:"2026-07-01",t:"7:00 AM",venue:"Mexico City Stadium"},
+  {id:80,h:"England",a:"DR Congo",d:"2026-07-01",t:"10:00 PM",venue:"Atlanta Stadium"},
+  {id:81,h:"Belgium",a:"Senegal",d:"2026-07-02",t:"2:00 AM",venue:"Seattle Stadium"},
+  {id:82,h:"USA",a:"Bosnia",d:"2026-07-02",t:"6:00 AM",venue:"San Francisco Bay Area Stadium"},
+  {id:83,h:"Spain",a:"2J",d:"2026-07-03",t:"1:00 AM",venue:"Los Angeles Stadium"},
+  {id:84,h:"Portugal",a:"Croatia",d:"2026-07-03",t:"5:00 AM",venue:"Toronto Stadium"},
+  {id:85,h:"Switzerland",a:"3EFGIJ",d:"2026-07-03",t:"9:00 AM",venue:"BC Place Vancouver"},
+  {id:86,h:"Argentina",a:"Cape Verde",d:"2026-07-04",t:"4:00 AM",venue:"Miami Stadium"},
+  {id:87,h:"Australia",a:"Egypt",d:"2026-07-04",t:"12:00 AM",venue:"Dallas Stadium"},
+  {id:88,h:"Colombia",a:"Ghana",d:"2026-07-04",t:"7:30 AM",venue:"Kansas City Stadium"},
 ];
 const R16=[
-  {id:89,h:"W73",a:"W74",d:"2026-07-04",t:"11:00 PM",venue:"Houston Stadium"},
+  {id:89,h:"W73",a:"W76",d:"2026-07-04",t:"11:00 PM",venue:"Houston Stadium"},
   {id:90,h:"W75",a:"W78",d:"2026-07-05",t:"3:00 AM",venue:"Philadelphia Stadium"},
-  {id:91,h:"W76",a:"W77",d:"2026-07-06",t:"2:00 AM",venue:"New York New Jersey Stadium"},
+  {id:91,h:"W74",a:"W77",d:"2026-07-06",t:"2:00 AM",venue:"New York New Jersey Stadium"},
   {id:92,h:"W79",a:"W80",d:"2026-07-06",t:"6:00 AM",venue:"Mexico City Stadium"},
   {id:93,h:"W84",a:"W83",d:"2026-07-07",t:"1:00 AM",venue:"Dallas Stadium"},
   {id:94,h:"W82",a:"W81",d:"2026-07-07",t:"6:00 AM",venue:"Seattle Stadium"},
@@ -376,6 +376,38 @@ function resolveKnockout(scores, groupQualified){
   FINAL.forEach(m=>{const w=getWinner(m);if(w)q["W"+m.id]=w;});
 
   return q;
+}
+
+// Build match lookup for bracket labels
+const ALL_KO_MATCHES=[...R32,...R16,...QF,...SF,...FINAL];
+const KO_MATCH_MAP={};
+ALL_KO_MATCHES.forEach(m=>{KO_MATCH_MAP[m.id]=m;});
+
+// Get bracket label for a slot code like "W73" or "1A" or "L101"
+function getBracketLabel(code, q, lang){
+  if(!code)return lang==="bn"?"অপেক্ষা":"TBD";
+  // Already resolved to a real team
+  if(q[code])return tn(q[code],lang)||q[code];
+  // Loser slot
+  if(code.startsWith("L")){
+    const mid=Number(code.slice(1));
+    const m=KO_MATCH_MAP[mid];
+    if(!m)return lang==="bn"?"অপেক্ষা":"TBD";
+    const h=getBracketLabel(m.h,q,lang);
+    const a=getBracketLabel(m.a,q,lang);
+    return (lang==="bn"?"পরাজিত: ":"Loser: ")+h+" / "+a;
+  }
+  // Winner slot e.g. "W73"
+  if(code.startsWith("W")){
+    const mid=Number(code.slice(1));
+    const m=KO_MATCH_MAP[mid];
+    if(!m)return lang==="bn"?"অপেক্ষা":"TBD";
+    const h=getBracketLabel(m.h,q,lang);
+    const a=getBracketLabel(m.a,q,lang);
+    return h+" / "+a;
+  }
+  // Group code like "1A","2B","3ABCDF"
+  return tn(code,lang)||code;
 }
 
 function getMatchesForDate(d){return[...MATCHES,...R32,...R16,...QF,...SF,...FINAL].filter(m=>m.d===d);}
@@ -789,7 +821,7 @@ function ScoreModal({m,T,lang,scores,setScores,onClose,refreshPreds}){
 }
 
 /* ── Predict Modal ───────────────────────────── */
-function PredictModal({m,T,lang,userName,myPreds,setMyPreds,onClose}){
+function PredictModal({m,T,lang,userName,myPreds,setMyPreds,onClose,scores}){
   const ex=getPred(myPreds,m.id);
   const hasPred=ex!=null;
   const[hg,setHg]=useState(ex?.home_score!=null?String(ex.home_score):"");
@@ -826,7 +858,22 @@ function PredictModal({m,T,lang,userName,myPreds,setMyPreds,onClose}){
     border:`2px solid ${T.border}`,borderRadius:14,background:T.card2,color:T.text,
     outline:"none",fontFamily:HS,inputMode:"numeric"};
 
-  const hTeam=m.h;const aTeam=m.a;
+  const isKO=Number(m.id)>=73;
+  const resolvedQ=useMemo(()=>{
+    if(!isKO)return {};
+    const gq={};
+    Object.entries(GRP).forEach(([g,teams])=>{
+      const rows=calcStandings(teams,scores||{});
+      const allDone=MATCHES.filter(mx=>teams.includes(mx.h)).every(mx=>{const sc=(scores||{})[mx.id]||(scores||{})[String(mx.id)];return sc&&sc.hg!==""&&sc.ag!=="";});
+      if(allDone){gq["1"+g]=rows[0]?.en||null;gq["2"+g]=rows[1]?.en||null;}
+    });
+    return resolveKnockout(scores||{},gq);
+  },[scores,isKO]);
+  const q=resolvedQ;
+  const hTeam=isKO?(q[m.h]||null):m.h;
+  const aTeam=isKO?(q[m.a]||null):m.a;
+  const hName=hTeam?tn(hTeam,lang):(lang==="bn"?"অপেক্ষা":"TBD");
+  const aName=aTeam?tn(aTeam,lang):(lang==="bn"?"অপেক্ষা":"TBD");
 
   return(
     <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.8)",zIndex:999,
@@ -845,14 +892,14 @@ function PredictModal({m,T,lang,userName,myPreds,setMyPreds,onClose}){
         </div>
         <div style={{display:"flex",alignItems:"center",justifyContent:"center",gap:16,marginBottom:16}}>
           <div style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",gap:8}}>
-            <Flag en={hTeam} size={52}/>
-            <div style={{fontFamily:HS,fontSize:13,fontWeight:600,color:T.text,textAlign:"center"}}>{tn(hTeam,lang)||hTeam}</div>
+            {hTeam?<Flag en={hTeam} size={52}/>:<div style={{width:52,height:52,borderRadius:"50%",background:T.card2,border:`1px dashed ${T.border}`}}/>}
+            <div style={{fontFamily:HS,fontSize:13,fontWeight:600,color:hTeam?T.text:T.textM,textAlign:"center"}}>{hName}</div>
             <input value={hg} onChange={e=>{setHg(e.target.value.replace(/\D/g,""));setWinner("");}} style={inp} placeholder="0" maxLength={2}/>
           </div>
           <div style={{paddingTop:16,fontFamily:HS,fontSize:20,color:T.textM}}>–</div>
           <div style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",gap:8}}>
-            <Flag en={aTeam} size={52}/>
-            <div style={{fontFamily:HS,fontSize:13,fontWeight:600,color:T.text,textAlign:"center"}}>{tn(aTeam,lang)||aTeam}</div>
+            {aTeam?<Flag en={aTeam} size={52}/>:<div style={{width:52,height:52,borderRadius:"50%",background:T.card2,border:`1px dashed ${T.border}`}}/>}
+            <div style={{fontFamily:HS,fontSize:13,fontWeight:600,color:aTeam?T.text:T.textM,textAlign:"center"}}>{aName}</div>
             <input value={ag} onChange={e=>{setAg(e.target.value.replace(/\D/g,""));setWinner("");}} style={inp} placeholder="0" maxLength={2}/>
           </div>
         </div>
@@ -864,21 +911,21 @@ function PredictModal({m,T,lang,userName,myPreds,setMyPreds,onClose}){
               🏆 {lang==="bn"?"টাইব্রেকারে কে জিতবে?":"Who wins the tiebreaker?"}
             </div>
             <div style={{display:"flex",gap:8}}>
-              <button onClick={()=>setWinner(hTeam)}
-                style={{flex:1,padding:"10px 6px",borderRadius:10,cursor:"pointer",
+              <button onClick={()=>hTeam&&setWinner(hTeam)}
+                style={{flex:1,padding:"10px 6px",borderRadius:10,cursor:hTeam?"pointer":"default",
                   border:`2px solid ${winner===hTeam?T.green:T.border}`,
                   background:winner===hTeam?T.greenBg:T.card,
                   fontFamily:HS,fontSize:12,fontWeight:winner===hTeam?700:400,
                   color:winner===hTeam?T.green:T.text}}>
-                {tn(hTeam,lang)||hTeam}
+                {hName}
               </button>
-              <button onClick={()=>setWinner(aTeam)}
-                style={{flex:1,padding:"10px 6px",borderRadius:10,cursor:"pointer",
+              <button onClick={()=>aTeam&&setWinner(aTeam)}
+                style={{flex:1,padding:"10px 6px",borderRadius:10,cursor:aTeam?"pointer":"default",
                   border:`2px solid ${winner===aTeam?T.green:T.border}`,
                   background:winner===aTeam?T.greenBg:T.card,
                   fontFamily:HS,fontSize:12,fontWeight:winner===aTeam?700:400,
                   color:winner===aTeam?T.green:T.text}}>
-                {tn(aTeam,lang)||aTeam}
+                {aName}
               </button>
             </div>
           </div>
@@ -1316,8 +1363,8 @@ function CompactCal({T,lang,setDayPage,scores,headerSelDate,clearHeaderSelDate,q
                     const q=qualifiedTeams||{};
                     const hEn=isKO?(q[m.h]||null):m.h;
                     const aEn=isKO?(q[m.a]||null):m.a;
-                    const hName=hEn?tn(hEn,lang):(isKO?(lang==="bn"?"অপেক্ষা":"TBD"):tn(m.h,lang));
-                    const aName=aEn?tn(aEn,lang):(isKO?(lang==="bn"?"অপেক্ষা":"TBD"):tn(m.a,lang));
+                    const hName=hEn?tn(hEn,lang):(isKO?getBracketLabel(m.h,q,lang):tn(m.h,lang));
+                    const aName=aEn?tn(aEn,lang):(isKO?getBracketLabel(m.a,q,lang):tn(m.a,lang));
                     const roundLabel=Number(m.id)>=103?"🏆 ফাইনাল":Number(m.id)>=101?"সেমি":Number(m.id)>=97?"QF":Number(m.id)>=89?"R16":Number(m.id)>=73?"R32":(m.g?`Group ${m.g}`:"");
                     return(
                   <div key={m.id} onClick={()=>setDayPage(selDate)}
@@ -1411,8 +1458,11 @@ function MatchCard({m,T,lang,scores,myPreds,setPredictM,onTeam,isAdmin,setScoreM
   const q=qualified||{};
   const hEn=isKO?(q[m.h]||null):m.h;
   const aEn=isKO?(q[m.a]||null):m.a;
-  const hName=hEn?tn(hEn,lang):(isKO?(lang==="bn"?"অপেক্ষা":"TBD"):tn(m.h,lang));
-  const aName=aEn?tn(aEn,lang):(isKO?(lang==="bn"?"অপেক্ষা":"TBD"):tn(m.a,lang));
+  const hName=hEn?tn(hEn,lang):(isKO?getBracketLabel(m.h,q,lang):tn(m.h,lang));
+  const aName=aEn?tn(aEn,lang):(isKO?getBracketLabel(m.a,q,lang):tn(m.a,lang));
+  // If team not yet resolved, show bracket label in muted style
+  const hPending=isKO&&!hEn;
+  const aPending=isKO&&!aEn;
   return(
     <div style={{background:T.card,borderRadius:16,border:`1px solid ${T.border}`,
       marginBottom:8,overflow:"hidden",boxShadow:T.glow}}>
@@ -1460,9 +1510,9 @@ function MatchCard({m,T,lang,scores,myPreds,setPredictM,onTeam,isAdmin,setScoreM
         <div onClick={()=>hEn&&onTeam(hEn)}
           style={{flex:1,display:"flex",alignItems:"center",gap:8,
             cursor:hEn?"pointer":"default",minWidth:0}}>
-          {hEn?<Flag en={hEn} size={28}/>:<div style={{width:28,height:28,borderRadius:"50%",background:T.card2,border:`1px dashed ${T.border}`,flexShrink:0}}/>}
-          <span style={{fontFamily:HS,fontSize:14,fontWeight:hEn?600:400,color:hEn?T.text:T.textM,
-            overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>
+          {hEn?<Flag en={hEn} size={28}/>:<div style={{width:28,height:28,borderRadius:"50%",background:T.card2,border:`1px dashed ${T.border}`,flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center"}}><span style={{fontSize:10,color:T.textM}}>?</span></div>}
+          <span style={{fontFamily:HS,fontSize:hPending?11:14,fontWeight:hEn?600:400,color:hEn?T.text:T.textM,
+            overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",lineHeight:1.2}}>
             {hName}
           </span>
         </div>
@@ -1482,11 +1532,11 @@ function MatchCard({m,T,lang,scores,myPreds,setPredictM,onTeam,isAdmin,setScoreM
         <div onClick={()=>aEn&&onTeam(aEn)}
           style={{flex:1,display:"flex",alignItems:"center",justifyContent:"flex-end",gap:8,
             cursor:aEn?"pointer":"default",minWidth:0}}>
-          <span style={{fontFamily:HS,fontSize:14,fontWeight:aEn?600:400,color:aEn?T.text:T.textM,
-            overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",textAlign:"right"}}>
+          <span style={{fontFamily:HS,fontSize:aPending?11:14,fontWeight:aEn?600:400,color:aEn?T.text:T.textM,
+            overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",textAlign:"right",lineHeight:1.2}}>
             {aName}
           </span>
-          {aEn?<Flag en={aEn} size={28}/>:<div style={{width:28,height:28,borderRadius:"50%",background:T.card2,border:`1px dashed ${T.border}`,flexShrink:0}}/>}
+          {aEn?<Flag en={aEn} size={28}/>:<div style={{width:28,height:28,borderRadius:"50%",background:T.card2,border:`1px dashed ${T.border}`,flexShrink:0,display:"flex",alignItems:"center",justifyContent:"center"}}><span style={{fontSize:10,color:T.textM}}>?</span></div>}
         </div>
       </div>
       {/* Countdown */}
@@ -3155,7 +3205,7 @@ export default function App(){
       <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet"/>
       <style>{`@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}@keyframes slideDown{from{transform:translateY(-100%);opacity:0}to{transform:translateY(0);opacity:1}}@keyframes slideRight{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}@keyframes slideToggle{from{transform:translateY(-100%);opacity:0}to{transform:translateY(0);opacity:1}}*{-webkit-tap-highlight-color:transparent;}`}</style>
       <TeamPage en={tp} T={T} lang={lang} onBack={closeTeam} onTeam={openTeam} scores={scores} myPreds={myPreds} setPredictM={setPredictM} isAdmin={isAdmin} setScoreM={setScoreM}/>
-      {predictM&&userName&&<PredictModal m={predictM} T={T} lang={lang} userName={userName} myPreds={myPreds} setMyPreds={setMyPreds} onClose={()=>setPredictM(null)}/>}
+      {predictM&&userName&&<PredictModal m={predictM} T={T} lang={lang} userName={userName} myPreds={myPreds} setMyPreds={setMyPreds} onClose={()=>setPredictM(null)} scores={scores}/>}
       {predictM&&!userName&&!needName&&<NameModal T={T} lang={lang} onSave={handleNameSave} onClose={()=>setPredictM(null)}/>}
         {needName&&<SetNameModal T={T} lang={lang} email={needName.email} token={needName.token} onSave={(name)=>{localStorage.setItem("kk_user",name);setUserName(name);setNeedName(null);}} onClose={()=>setNeedName(null)}/>}
       {scoreM&&isAdmin&&<ScoreModal m={scoreM} T={T} lang={lang} scores={scores} setScores={setScores} onClose={()=>setScoreM(null)} refreshPreds={refreshPreds}/>}
@@ -3238,7 +3288,7 @@ export default function App(){
         {mt==="predict"&&<PredictionTab T={T} lang={lang} userName={userName} onSave={handleNameSave} myPreds={myPreds} setMyPreds={setMyPreds} scores={scores} setPredictM={handlePredict} isAdmin={isAdmin} setScoreM={setScoreM}/>}
         {mt==="lb"&&<LeaderboardTab T={T} lang={lang} userName={userName} initData={lbData}/>}
         {sm&&<AddModal favs={favs} onAdd={en=>setFavs(f=>{if(f.includes(en))return f;const nf=[...f,en];try{localStorage.setItem("kk_favs",JSON.stringify(nf));}catch(e){}return nf;})} onClose={()=>setSm(false)} lang={lang} T={T}/>}
-        {predictM&&userName&&<PredictModal m={predictM} T={T} lang={lang} userName={userName} myPreds={myPreds} setMyPreds={setMyPreds} onClose={()=>setPredictM(null)}/>}
+        {predictM&&userName&&<PredictModal m={predictM} T={T} lang={lang} userName={userName} myPreds={myPreds} setMyPreds={setMyPreds} onClose={()=>setPredictM(null)} scores={scores}/>}
         {predictM&&!userName&&<NameModal T={T} lang={lang} onSave={(name,did)=>{handleNameSave(name,did);}} onClose={()=>setPredictM(null)}/>}
         {scoreM&&isAdmin&&<ScoreModal m={scoreM} T={T} lang={lang} scores={scores} setScores={setScores} onClose={()=>setScoreM(null)} refreshPreds={refreshPreds}/>}
 
