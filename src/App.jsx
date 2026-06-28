@@ -242,46 +242,46 @@ const MATCHES=[
 ];
 
 const R32=[
-  {id:73,h:"South Africa",a:"Canada",d:"2026-06-29",t:"1:00 AM",venue:"Los Angeles Stadium"},
-  {id:74,h:"Brazil",a:"Japan",d:"2026-06-29",t:"11:00 PM",venue:"Houston Stadium"},
   {id:75,h:"Germany",a:"Paraguay",d:"2026-06-30",t:"2:30 AM",venue:"Boston Stadium"},
-  {id:76,h:"Netherlands",a:"Morocco",d:"2026-06-30",t:"7:00 AM",venue:"Monterrey Stadium"},
-  {id:77,h:"Ivory Coast",a:"Norway",d:"2026-06-30",t:"11:00 PM",venue:"Dallas Stadium"},
   {id:78,h:"France",a:"Sweden",d:"2026-07-01",t:"3:00 AM",venue:"New York NJ Stadium"},
+  {id:73,h:"South Africa",a:"Canada",d:"2026-06-29",t:"1:00 AM",venue:"Los Angeles Stadium"},
+  {id:76,h:"Netherlands",a:"Morocco",d:"2026-06-30",t:"7:00 AM",venue:"Monterrey Stadium"},
+  {id:84,h:"Portugal",a:"Croatia",d:"2026-07-03",t:"5:00 AM",venue:"Toronto Stadium"},
+  {id:83,h:"Spain",a:"2J",d:"2026-07-03",t:"1:00 AM",venue:"Los Angeles Stadium"},
+  {id:82,h:"USA",a:"Bosnia",d:"2026-07-02",t:"6:00 AM",venue:"San Francisco Bay Area Stadium"},
+  {id:81,h:"Belgium",a:"Senegal",d:"2026-07-02",t:"2:00 AM",venue:"Seattle Stadium"},
+  {id:74,h:"Brazil",a:"Japan",d:"2026-06-29",t:"11:00 PM",venue:"Houston Stadium"},
+  {id:77,h:"Ivory Coast",a:"Norway",d:"2026-06-30",t:"11:00 PM",venue:"Dallas Stadium"},
   {id:79,h:"Mexico",a:"Ecuador",d:"2026-07-01",t:"7:00 AM",venue:"Mexico City Stadium"},
   {id:80,h:"England",a:"DR Congo",d:"2026-07-01",t:"10:00 PM",venue:"Atlanta Stadium"},
-  {id:81,h:"Belgium",a:"Senegal",d:"2026-07-02",t:"2:00 AM",venue:"Seattle Stadium"},
-  {id:82,h:"USA",a:"Bosnia",d:"2026-07-02",t:"6:00 AM",venue:"San Francisco Bay Area Stadium"},
-  {id:83,h:"Spain",a:"2J",d:"2026-07-03",t:"1:00 AM",venue:"Los Angeles Stadium"},
-  {id:84,h:"Portugal",a:"Croatia",d:"2026-07-03",t:"5:00 AM",venue:"Toronto Stadium"},
-  {id:85,h:"Switzerland",a:"3EFGIJ",d:"2026-07-03",t:"9:00 AM",venue:"BC Place Vancouver"},
   {id:86,h:"Argentina",a:"Cape Verde",d:"2026-07-04",t:"4:00 AM",venue:"Miami Stadium"},
   {id:87,h:"Australia",a:"Egypt",d:"2026-07-04",t:"12:00 AM",venue:"Dallas Stadium"},
+  {id:85,h:"Switzerland",a:"3EFGIJ",d:"2026-07-03",t:"9:00 AM",venue:"BC Place Vancouver"},
   {id:88,h:"Colombia",a:"Ghana",d:"2026-07-04",t:"7:30 AM",venue:"Kansas City Stadium"},
 ];
 const R16=[
-  {id:89,h:"W73",a:"W76",d:"2026-07-04",t:"11:00 PM",venue:"Houston Stadium"},
   {id:90,h:"W75",a:"W78",d:"2026-07-05",t:"3:00 AM",venue:"Philadelphia Stadium"},
+  {id:89,h:"W73",a:"W76",d:"2026-07-04",t:"11:00 PM",venue:"Houston Stadium"},
+  {id:93,h:"W84",a:"W83",d:"2026-07-06",t:"1:00 AM",venue:"Dallas Stadium"},
+  {id:94,h:"W82",a:"W81",d:"2026-07-07",t:"6:00 AM",venue:"Seattle Stadium"},
   {id:91,h:"W74",a:"W77",d:"2026-07-06",t:"2:00 AM",venue:"New York New Jersey Stadium"},
   {id:92,h:"W79",a:"W80",d:"2026-07-06",t:"6:00 AM",venue:"Mexico City Stadium"},
-  {id:93,h:"W84",a:"W83",d:"2026-07-07",t:"1:00 AM",venue:"Dallas Stadium"},
-  {id:94,h:"W82",a:"W81",d:"2026-07-07",t:"6:00 AM",venue:"Seattle Stadium"},
   {id:95,h:"W86",a:"W87",d:"2026-07-07",t:"10:00 PM",venue:"Atlanta Stadium"},
   {id:96,h:"W85",a:"W88",d:"2026-07-08",t:"2:00 AM",venue:"BC Place Vancouver"},
 ];
 const QF=[
-  {id:97,h:"W89",a:"W90",d:"2026-07-10",t:"2:00 AM",venue:"Boston Stadium"},
-  {id:98,h:"W93",a:"W94",d:"2026-07-11",t:"1:00 AM",venue:"Los Angeles Stadium"},
+  {id:97,h:"W90",a:"W89",d:"2026-07-10",t:"2:00 AM",venue:"Boston Stadium"},
+  {id:98,h:"W93",a:"W94",d:"2026-07-10",t:"6:00 AM",venue:"Los Angeles Stadium"},
   {id:99,h:"W91",a:"W92",d:"2026-07-12",t:"3:00 AM",venue:"Miami Stadium"},
   {id:100,h:"W95",a:"W96",d:"2026-07-12",t:"7:00 AM",venue:"Kansas City Stadium"},
 ];
 const SF=[
-  {id:101,h:"W97",a:"W98",d:"2026-07-15",t:"1:00 AM",venue:"Dallas Stadium"},
-  {id:102,h:"W99",a:"W100",d:"2026-07-16",t:"1:00 AM",venue:"Atlanta Stadium"},
+  {id:101,h:"W97",a:"W98",d:"2026-07-14",t:"1:00 AM",venue:"Dallas Stadium"},
+  {id:102,h:"W99",a:"W100",d:"2026-07-15",t:"1:00 AM",venue:"Atlanta Stadium"},
 ];
 const FINAL=[
   {id:103,h:"L101",a:"L102",d:"2026-07-19",t:"3:00 AM",venue:"Miami Stadium",label:"🥉 Bronze Final"},
-  {id:104,h:"W101",a:"W102",d:"2026-07-20",t:"1:00 AM",venue:"New York New Jersey Stadium",label:"🏆 Final"},
+  {id:104,h:"W101",a:"W102",d:"2026-07-19",t:"7:00 AM",venue:"New York New Jersey Stadium",label:"🏆 Final"},
 ];
 
 const ALL_DATES=new Set([...MATCHES,...R32,...R16,...QF,...SF,...FINAL].map(m=>m.d));
@@ -383,30 +383,27 @@ const ALL_KO_MATCHES=[...R32,...R16,...QF,...SF,...FINAL];
 const KO_MATCH_MAP={};
 ALL_KO_MATCHES.forEach(m=>{KO_MATCH_MAP[m.id]=m;});
 
-// Get bracket label for a slot code like "W73" or "1A" or "L101"
-function getBracketLabel(code, q, lang){
+// Get bracket label for a slot code
+// short=true → compact label for bracket card ("W73" or "ম্যাচ ৭৩ জয়ী")
+// short=false → full label for match card ("দক্ষিণ আফ্রিকা / কানাডা")
+function getBracketLabel(code, q, lang, short=false){
   if(!code)return lang==="bn"?"অপেক্ষা":"TBD";
-  // Already resolved to a real team
+  if(TEAMS[code])return tn(code,lang)||code;
   if(q[code])return tn(q[code],lang)||q[code];
-  // Loser slot
   if(code.startsWith("L")){
     const mid=Number(code.slice(1));
+    if(short)return lang==="bn"?`ম্যাচ ${String(mid).replace(/[0-9]/g,d=>"০১২৩৪৫৬৭৮৯"[d])} পরাজিত`:`L${mid}`;
     const m=KO_MATCH_MAP[mid];
     if(!m)return lang==="bn"?"অপেক্ষা":"TBD";
-    const h=getBracketLabel(m.h,q,lang);
-    const a=getBracketLabel(m.a,q,lang);
-    return (lang==="bn"?"পরাজিত: ":"Loser: ")+h+" / "+a;
+    return (lang==="bn"?"পরাজিত: ":"")+getBracketLabel(m.h,q,lang,false)+" / "+getBracketLabel(m.a,q,lang,false);
   }
-  // Winner slot e.g. "W73"
   if(code.startsWith("W")){
     const mid=Number(code.slice(1));
+    if(short)return lang==="bn"?`ম্যাচ ${String(mid).replace(/[0-9]/g,d=>"০১২৩৪৫৬৭৮৯"[d])} জয়ী`:`W${mid}`;
     const m=KO_MATCH_MAP[mid];
     if(!m)return lang==="bn"?"অপেক্ষা":"TBD";
-    const h=getBracketLabel(m.h,q,lang);
-    const a=getBracketLabel(m.a,q,lang);
-    return h+" / "+a;
+    return getBracketLabel(m.h,q,lang,false)+" / "+getBracketLabel(m.a,q,lang,false);
   }
-  // Group code like "1A","2B","3ABCDF"
   return tn(code,lang)||code;
 }
 
@@ -1455,12 +1452,14 @@ function MatchCard({m,T,lang,scores,myPreds,setPredictM,onTeam,isAdmin,setScoreM
   const isDraw=hasScore&&Number(sc?.hg)===Number(sc?.ag);
   // Knockout team resolution
   const isKO=Number(m.id)>=73;
+  const isR32=Number(m.id)<=88;
   const q=qualified||{};
   // If m.h is already a real team name (in TEAMS), use directly; else resolve from q
   const hEn=isKO?(TEAMS[m.h]?m.h:(q[m.h]||null)):m.h;
   const aEn=isKO?(TEAMS[m.a]?m.a:(q[m.a]||null)):m.a;
-  const hName=hEn?tn(hEn,lang):(isKO?getBracketLabel(m.h,q,lang):tn(m.h,lang));
-  const aName=aEn?tn(aEn,lang):(isKO?getBracketLabel(m.a,q,lang):tn(m.a,lang));
+  // R32: show full feeder names; R16+: short "W73 জয়ী" style
+  const hName=hEn?tn(hEn,lang):(isKO?getBracketLabel(m.h,q,lang,!isR32):tn(m.h,lang));
+  const aName=aEn?tn(aEn,lang):(isKO?getBracketLabel(m.a,q,lang,!isR32):tn(m.a,lang));
   const hPending=isKO&&!hEn;
   const aPending=isKO&&!aEn;
   return(
@@ -1470,12 +1469,13 @@ function MatchCard({m,T,lang,scores,myPreds,setPredictM,onTeam,isAdmin,setScoreM
       {(()=>{
         let pill="";
         if(isKO){
-          if(Number(m.id)>=104)pill="🏆 ফাইনাল";
-          else if(Number(m.id)>=103)pill="তৃতীয় স্থান";
-          else if(Number(m.id)>=101)pill="সেমিফাইনাল";
-          else if(Number(m.id)>=97)pill="কোয়ার্টার ফাইনাল";
-          else if(Number(m.id)>=89)pill="রাউন্ড অব ১৬";
-          else pill="রাউন্ড অব ৩২";
+          const mn=lang==="bn"?("ম্যাচ "+String(m.id).replace(/[0-9]/g,d=>"০১২৩৪৫৬৭৮৯"[d])):`#${m.id}`;
+          if(Number(m.id)>=104)pill=`🏆 ফাইনাল · ${mn}`;
+          else if(Number(m.id)>=103)pill=`তৃতীয় স্থান · ${mn}`;
+          else if(Number(m.id)>=101)pill=`সেমিফাইনাল · ${mn}`;
+          else if(Number(m.id)>=97)pill=`কোয়ার্টার ফাইনাল · ${mn}`;
+          else if(Number(m.id)>=89)pill=`রাউন্ড অব ১৬ · ${mn}`;
+          else pill=`রাউন্ড অব ৩২ · ${mn}`;
         } else if(m.g&&m.g.length===1){pill=`Group ${m.g}`;}
         else if(m.label||m.venue){pill=m.label||m.venue;}
         return pill?(
@@ -2133,11 +2133,12 @@ function BracketMatchCard({m,T,lang,scores,qualified}){
   const q=qualified||{};
   const hEn=TEAMS[m.h]?m.h:(q[m.h]||null);
   const aEn=TEAMS[m.a]?m.a:(q[m.a]||null);
-  const hName=hEn?tn(hEn,lang):getBracketLabel(m.h,q,lang);
-  const aName=aEn?tn(aEn,lang):getBracketLabel(m.a,q,lang);
-  // For unresolved slots show feeder team flags
-  const hFeeder=hEn?[hEn]:getFeederTeams(m.h,q);
-  const aFeeder=aEn?[aEn]:getFeederTeams(m.a,q);
+  // R32: show feeder flags; R16+: just short label
+  const isR32=Number(m.id)<=88;
+  const hName=hEn?tn(hEn,lang):getBracketLabel(m.h,q,lang,!isR32);
+  const aName=aEn?tn(aEn,lang):getBracketLabel(m.a,q,lang,!isR32);
+  const hFeeder=hEn?[hEn]:(isR32?getFeederTeams(m.h,q):[]);
+  const aFeeder=aEn?[aEn]:(isR32?getFeederTeams(m.a,q):[]);
   const hWon=hasScore&&Number(sc.hg)>Number(sc.ag);
   const aWon=hasScore&&Number(sc.ag)>Number(sc.hg);
   return(
@@ -2159,7 +2160,7 @@ function BracketMatchCard({m,T,lang,scores,qualified}){
         </div>
         {hasScore?
           <span style={{fontFamily:HS,fontSize:13,fontWeight:800,color:hWon?T.green:T.text,flexShrink:0,marginLeft:3}}>{sc.hg}</span>:
-          <span style={{fontFamily:HS,fontSize:9,color:T.textM,flexShrink:0,marginLeft:3}}>{t2}</span>
+          <span style={{fontFamily:HS,fontSize:9,color:T.textM,flexShrink:0,marginLeft:3}}>{t2}<span style={{fontSize:7}}>{ap}</span></span>
         }
       </div>
       {/* Away row */}
@@ -2177,9 +2178,10 @@ function BracketMatchCard({m,T,lang,scores,qualified}){
         </div>
         {hasScore&&<span style={{fontFamily:HS,fontSize:13,fontWeight:800,color:aWon?T.green:T.text,flexShrink:0,marginLeft:3}}>{sc.ag}</span>}
       </div>
-      {/* Date */}
-      <div style={{fontFamily:HS,fontSize:8,color:T.textS,textAlign:"center",borderTop:`1px solid ${T.border}`,paddingTop:2}}>
-        {dls(m.d,lang)}
+      {/* Date + Match number */}
+      <div style={{fontFamily:HS,fontSize:8,color:T.textS,textAlign:"center",borderTop:`1px solid ${T.border}`,paddingTop:2,display:"flex",justifyContent:"space-between"}}>
+        <span>{dls(m.d,lang)}</span>
+        <span style={{color:T.textM,fontWeight:600}}>#{m.id}</span>
       </div>
     </div>
   );
@@ -2397,7 +2399,15 @@ function KnockoutTab({T,lang,scores,myPreds,setPredictM,isAdmin,setScoreM,userNa
   },[scores]);
 
   const tabs=[{k:"R32",l:lang==="bn"?"রাউন্ড অব ৩২":"Round of 32"},{k:"R16",l:lang==="bn"?"রাউন্ড অব ১৬":"Round of 16"},{k:"QF",l:lang==="bn"?"কোয়ার্টার":"Quarter"},{k:"SF",l:lang==="bn"?"সেমি":"Semi"},{k:"F",l:lang==="bn"?"🏆 ফাইনাল":"🏆 Final"}];
-  const matchMap={R32,R16,QF,SF,F:FINAL};
+  // Sort matches by date+time for display
+  const sortByDate=(arr)=>[...arr].sort((a,b)=>tMs(a)-tMs(b));
+  const matchMap={
+    R32:sortByDate(R32),
+    R16:sortByDate(R16),
+    QF:sortByDate(QF),
+    SF:sortByDate(SF),
+    F:FINAL
+  };
   return(
     <div>
       <div style={{display:"flex",gap:8,padding:"10px 12px",background:T.card,borderBottom:`1px solid ${T.border}`,overflowX:"auto",scrollbarWidth:"none",WebkitOverflowScrolling:"touch"}}>
