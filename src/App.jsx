@@ -767,7 +767,7 @@ function ScoreModal({m,T,lang,scores,setScores,onClose,refreshPreds}){
   return(
     <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.75)",zIndex:999,
       display:"flex",alignItems:"flex-end"}} onClick={onClose}>
-      <div style={{background:T.card,borderRadius:"20px 20px 0 0",width:"100%",padding:"20px 20px 32px"}}
+      <div data-scoremodal="true" style={{background:T.card,borderRadius:"20px 20px 0 0",width:"100%",padding:"20px 20px 32px"}}
         onClick={e=>e.stopPropagation()}>
         <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:14}}>
           <div style={{width:36,height:4,background:T.border,borderRadius:2}}/>
@@ -3197,7 +3197,10 @@ export default function App(){
 
   useEffect(()=>{
     fetchScores();
-    const interval=setInterval(fetchScores,60000); // poll every 60 seconds
+    const interval=setInterval(()=>{
+      // Don't poll while score modal is open (admin is editing)
+      if(!document.querySelector('[data-scoremodal="true"]')) fetchScores();
+    },60000);
     return()=>clearInterval(interval);
   },[fetchScores]);
   const refreshPreds=useCallback(()=>{
