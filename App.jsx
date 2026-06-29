@@ -3256,6 +3256,15 @@ export default function App(){
   const[scores,setScores]=useState({});
   const[scoresLoaded,setScoresLoaded]=useState(false);
   const[lbRefreshKey,setLbRefreshKey]=useState(0);
+  const qualifiedTeams=useMemo(()=>{
+    const q={};
+    Object.entries(GRP).forEach(([g,teams])=>{
+      const rows=calcStandings(teams,scores);
+      const allDone=MATCHES.filter(m=>teams.includes(m.h)).every(m=>{const sc=scores[m.id]||scores[String(m.id)];return sc&&sc.hg!==""&&sc.ag!=="";});
+      if(allDone){q["1"+g]=rows[0]?.en||null;q["2"+g]=rows[1]?.en||null;}
+    });
+    return resolveKnockout(scores,q);
+  },[scores]);
   const[lbData,setLbData]=useState([]);
   const[userName,setUserName]=useState(()=>localStorage.getItem("kk_user")||"");
   const[myPreds,setMyPreds]=useState({});
