@@ -2525,9 +2525,56 @@ function DeleteAccountBtn({T,lang}){
   );
 }
 
+function ProfilePage({T,lang,userName,myPreds,onBack}){
+  const myPts=Object.values(myPreds).filter((_,i)=>i%2===0).reduce((sum,p)=>sum+(p.points||0),0);
+  const predCount=Object.values(myPreds).filter(p=>typeof p.home_score!=="undefined").length;
+  const[confirm,setConfirm]=useState(false);
+  return(
+    <div style={{minHeight:"100vh",background:T.bg}}>
+      {/* Header */}
+      <div style={{background:T.card,padding:"12px 14px",display:"flex",alignItems:"center",gap:10,borderBottom:`1px solid ${T.border}`}}>
+        <button onClick={onBack} style={{background:"transparent",border:"none",cursor:"pointer",fontSize:20,color:T.text,padding:"0 8px 0 0"}}>←</button>
+        <span style={{fontFamily:HS,fontSize:16,fontWeight:700,color:T.text}}>{lang==="bn"?"প্রোফাইল":"Profile"}</span>
+      </div>
+      {/* Profile card */}
+      <div style={{margin:"16px 12px",background:T.card,borderRadius:16,padding:24,textAlign:"center",boxShadow:T.glow}}>
+        <div style={{width:72,height:72,borderRadius:"50%",background:T.greenBg,border:`3px solid ${T.green}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:32,margin:"0 auto 12px"}}>👤</div>
+        <div style={{fontFamily:HS,fontSize:20,fontWeight:800,color:T.text,marginBottom:4}}>{userName}</div>
+        <div style={{fontFamily:HS,fontSize:13,color:T.textS}}>{predCount} {lang==="bn"?"টি প্রেডিকশন":"predictions"}</div>
+        <div style={{fontFamily:HS,fontSize:28,fontWeight:800,color:T.green,marginTop:8}}>{myPts} pts</div>
+      </div>
+      {/* Delete account */}
+      <div style={{margin:"0 12px"}}>
+        {!confirm?(
+          <button onClick={()=>setConfirm(true)} style={{width:"100%",padding:"14px",borderRadius:12,border:`1px solid ${T.red}44`,background:"transparent",color:T.red,fontFamily:HS,fontSize:14,fontWeight:600,cursor:"pointer"}}>
+            {lang==="bn"?"একাউন্ট মুছুন":"Delete Account"}
+          </button>
+        ):(
+          <div style={{background:T.card,borderRadius:12,padding:16,textAlign:"center",border:`1px solid ${T.red}44`}}>
+            <div style={{fontFamily:HS,fontSize:14,color:T.text,marginBottom:12}}>{lang==="bn"?"একাউন্ট মুছে ফেলবেন?":"Delete account?"}</div>
+            <div style={{display:"flex",gap:8}}>
+              <button onClick={()=>setConfirm(false)} style={{flex:1,padding:"10px",borderRadius:10,border:`1px solid ${T.border}`,background:T.card2,color:T.textS,fontFamily:HS,fontSize:13,cursor:"pointer"}}>{lang==="bn"?"না":"No"}</button>
+              <button onClick={()=>{
+                const email=localStorage.getItem("kk_email");
+                const name=localStorage.getItem("kk_user");
+                localStorage.removeItem("kk_user");
+                localStorage.removeItem("kk_email");
+                localStorage.removeItem("kk_did");
+                if(email&&name) gasPost("deleteUser",{email,name}).catch(()=>{});
+                window.location.reload();
+              }} style={{flex:1,padding:"10px",borderRadius:10,border:"none",background:T.red,color:"#fff",fontFamily:HS,fontSize:13,fontWeight:700,cursor:"pointer"}}>{lang==="bn"?"হ্যাঁ, মুছুন":"Yes, delete"}</button>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function PredictionTab({T,lang,userName,onSave,myPreds,setMyPreds,scores,setPredictM,isAdmin,setScoreM,lbRefreshKey=0}){
   const[sub,setSub]=useState("matches");
   const[lb,setLb]=useState([]);const[lbLoad,setLbLoad]=useState(false);
+  const[showProfile,setShowProfile]=useState(false);
   useEffect(()=>{if(sub==="lb"){setLbLoad(true);getLB().then(data=>{
     const sorted=data.filter(r=>r.name||r.predictor_name).map(r=>({
       name:r.name||r.predictor_name,
@@ -2566,10 +2613,12 @@ function PredictionTab({T,lang,userName,onSave,myPreds,setMyPreds,scores,setPred
     </div>
   );
 
+  if(showProfile) return <ProfilePage T={T} lang={lang} userName={userName} myPreds={myPreds} onBack={()=>setShowProfile(false)}/>;
+
   return(
     <div>
       <div style={{display:"flex",background:T.card,borderBottom:`1px solid ${T.border}`}}>
-        {[["matches",lang==="bn"?"ম্যাচ":"Matches"],["history",lang==="bn"?"আমার প্রেডিকশন":"My Predictions"]].map(([k,l])=>(
+        {[["matches",lang==="bn"?"প্রোফাইল":"Profile"],["history",lang==="bn"?"আমার প্রেডিকশন":"My Predictions"]].map(([k,l])=>(
           <button key={k} onClick={()=>setSub(k)} style={{flex:1,background:"transparent",border:"none",borderBottom:`2.5px solid ${sub===k?T.green:"transparent"}`,color:sub===k?T.green:T.textM,fontFamily:HS,fontSize:13,fontWeight:sub===k?700:400,padding:"11px 0",cursor:"pointer"}}>{l}</button>
         ))}
       </div>
@@ -2578,10 +2627,10 @@ function PredictionTab({T,lang,userName,onSave,myPreds,setMyPreds,scores,setPred
           <div style={{background:T.card,padding:"12px 14px",marginBottom:6,display:"flex",alignItems:"center",gap:10}}>
             <div style={{width:42,height:42,borderRadius:"50%",background:T.greenBg,border:`2px solid ${T.greenBr}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,flexShrink:0}}>👤</div>
             <div style={{flex:1}}>
-              <div style={{fontFamily:HS,fontSize:15,fontWeight:700,color:T.text}}>{userName}</div>
+              <div onClick={()=>setShowProfile(true)} style={{fontFamily:HS,fontSize:15,fontWeight:700,color:T.text,cursor:"pointer"}}>{userName} →</div>
               <div style={{fontFamily:HS,fontSize:12,color:T.textS}}>{Object.keys(myPreds).length} {lang==="bn"?"টি প্রেডিকশন":"predictions"} · <span style={{color:T.green,fontWeight:700}}>{myPts} pts</span></div>
             </div>
-            <DeleteAccountBtn T={T} lang={lang}/>
+
           </div>
           {upcoming.map(m=>{
             const pred=getPred(myPreds,m.id);const[t2,ap]=m.t.split(" ");
@@ -2610,7 +2659,7 @@ function PredictionTab({T,lang,userName,onSave,myPreds,setMyPreds,scores,setPred
           <div style={{background:T.card,padding:"12px 14px",marginBottom:6,display:"flex",alignItems:"center",gap:10}}>
             <div style={{width:42,height:42,borderRadius:"50%",background:T.greenBg,border:`2px solid ${T.greenBr}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:18,flexShrink:0}}>👤</div>
             <div style={{flex:1}}>
-              <div style={{fontFamily:HS,fontSize:15,fontWeight:700,color:T.text}}>{userName}</div>
+              <div onClick={()=>setShowProfile(true)} style={{fontFamily:HS,fontSize:15,fontWeight:700,color:T.text,cursor:"pointer"}}>{userName} →</div>
               <div style={{fontFamily:HS,fontSize:12,color:T.textS}}>{Object.keys(myPreds).filter(k=>!isNaN(k)).length} {lang==="bn"?"টি প্রেডিকশন":"predictions"} · <span style={{color:T.green,fontWeight:700}}>{myPts} pts</span></div>
             </div>
           </div>
