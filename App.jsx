@@ -1870,6 +1870,44 @@ function HomeTab({T,lang,favs,setFavs,onTeam,setSM,scores,myPreds,setPredictM,se
   const tomMs=SORTED.filter(m=>m.d===tms2);
   const pop=AT.filter(en=>TEAMS[en].pop&&!favs.includes(en));
   const ALL_SORTED=[...MATCHES,...R32,...R16,...QF,...SF,...FINAL].sort((a,b)=>tMs(a)-tMs(b));
+  // Get the round a team was eliminated in (returns label or null if still in)
+  function getEliminationRound(en){
+    const allKO=[...R32,...R16,...QF,...SF,...FINAL];
+    for(const m of allKO){
+      const sc=scores[m.id]||scores[String(m.id)];
+      if(!sc||sc.hg===""||sc.ag==="")continue;
+      const hR=qualifiedTeams[m.h]||m.h;
+      const aR=qualifiedTeams[m.a]||m.a;
+      if(hR!==en&&aR!==en)continue;
+      // team played this match - did they lose?
+      const hg=Number(sc.hg),ag=Number(sc.ag);
+      let loser=null;
+      if(hg>ag)loser=aR;
+      else if(ag>hg)loser=hR;
+      else if(sc.winner){const w=qualifiedTeams[sc.winner]||sc.winner;loser=(w===hR?aR:hR);}
+      if(loser===en){
+        const id=Number(m.id);
+        if(id>=103)return lang==="bn"?"ফাইনাল থেকে বিদায়":"Eliminated in Final";
+        if(id>=101)return lang==="bn"?"সেমিফাইনাল থেকে বিদায়":"Eliminated in Semi-final";
+        if(id>=97)return lang==="bn"?"কোয়ার্টার থেকে বিদায়":"Eliminated in Quarter-final";
+        if(id>=89)return lang==="bn"?"রাউন্ড অব ১৬ থেকে বিদায়":"Eliminated in Round of 16";
+        if(id>=73)return lang==="bn"?"রাউন্ড অব ৩২ থেকে বিদায়":"Eliminated in Round of 32";
+      }
+    }
+    // Check if eliminated in group stage
+    const grp=Object.entries(GRP).find(([g,teams])=>teams.includes(en));
+    if(grp){
+      const [g,teams]=grp;
+      const allDone=MATCHES.filter(m=>teams.includes(m.h)).every(m=>{const sc=scores[m.id]||scores[String(m.id)];return sc&&sc.hg!==""&&sc.ag!=="";});
+      if(allDone){
+        const rows=calcStandings(teams,scores);
+        const pos=rows.findIndex(r=>r.en===en);
+        if(pos>=2)return lang==="bn"?"গ্রুপ পর্ব থেকে বিদায়":"Eliminated in Group Stage";
+      }
+    }
+    return null;
+  }
+
   function gN(en){
     const n=Date.now();
     return ALL_SORTED.find(m=>{
@@ -1905,7 +1943,7 @@ function HomeTab({T,lang,favs,setFavs,onTeam,setSM,scores,myPreds,setPredictM,se
                   ))}
                 </div>}
               </>
-            ):<div style={{fontFamily:HS,fontSize:11,color:T.textM,marginTop:2}}>{lang==="bn"?"গ্রুপ পর্ব শেষ":"Group stage over"}</div>}
+            ):<div style={{fontFamily:HS,fontSize:11,color:"#e53935",fontWeight:600,marginTop:2}}>{getEliminationRound(en)||(lang==="bn"?"গ্রুপ পর্ব শেষ":"Group stage over")}</div>}
           </div>
         </div>
         <div style={{display:"flex",flexDirection:"column",gap:5,flexShrink:0}}>
@@ -3199,7 +3237,10 @@ export default function App(){
     fetchScores();
     const interval=setInterval(()=>{
       // Don't poll while score modal is open (admin is editing)
-      if(!document.querySelector('[data-scoremodal="true"]')) fetchScores();
+      if(!document.querySelector('[data-scoremodal="true"]')){
+        fetchScores();
+        if(userName) refreshPreds();
+      }
     },60000);
     return()=>clearInterval(interval);
   },[fetchScores]);
