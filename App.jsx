@@ -751,7 +751,7 @@ function ScoreModal({m,T,lang,scores,setScores,onClose,refreshPreds}){
         }).catch(()=>{});
         // Refresh predictions so points update after calcPoints runs on GAS
         if(refreshPreds) refreshPreds();
-      },3000);
+      },5000);
       onClose();
     }
     catch(e){
