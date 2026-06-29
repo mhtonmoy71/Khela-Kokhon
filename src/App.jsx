@@ -248,7 +248,7 @@ const R32=[
   {id:73,h:"South Africa",a:"Canada",d:"2026-06-29",t:"1:00 AM",venue:"Los Angeles Stadium"},
   {id:76,h:"Netherlands",a:"Morocco",d:"2026-06-30",t:"7:00 AM",venue:"Monterrey Stadium"},
   {id:84,h:"Portugal",a:"Croatia",d:"2026-07-03",t:"5:00 AM",venue:"Toronto Stadium"},
-  {id:83,h:"Spain",a:"2J",d:"2026-07-03",t:"1:00 AM",venue:"Los Angeles Stadium"},
+  {id:83,h:"Spain",a:"Austria",d:"2026-07-03",t:"1:00 AM",venue:"Los Angeles Stadium"},
   {id:82,h:"USA",a:"Bosnia",d:"2026-07-02",t:"6:00 AM",venue:"San Francisco Bay Area Stadium"},
   {id:81,h:"Belgium",a:"Senegal",d:"2026-07-02",t:"2:00 AM",venue:"Seattle Stadium"},
   {id:74,h:"Brazil",a:"Japan",d:"2026-06-29",t:"11:00 PM",venue:"Houston Stadium"},
@@ -257,7 +257,7 @@ const R32=[
   {id:80,h:"England",a:"DR Congo",d:"2026-07-01",t:"10:00 PM",venue:"Atlanta Stadium"},
   {id:86,h:"Argentina",a:"Cape Verde",d:"2026-07-04",t:"4:00 AM",venue:"Miami Stadium"},
   {id:87,h:"Australia",a:"Egypt",d:"2026-07-04",t:"12:00 AM",venue:"Dallas Stadium"},
-  {id:85,h:"Switzerland",a:"3EFGIJ",d:"2026-07-03",t:"9:00 AM",venue:"BC Place Vancouver"},
+  {id:85,h:"Switzerland",a:"Algeria",d:"2026-07-03",t:"9:00 AM",venue:"BC Place Vancouver"},
   {id:88,h:"Colombia",a:"Ghana",d:"2026-07-04",t:"7:30 AM",venue:"Kansas City Stadium"},
 ];
 const R16=[
@@ -2571,7 +2571,7 @@ function ProfilePage({T,lang,userName,myPreds,onBack}){
   );
 }
 
-function PredictionTab({T,lang,userName,onSave,myPreds,setMyPreds,scores,setPredictM,isAdmin,setScoreM,lbRefreshKey=0}){
+function PredictionTab({T,lang,userName,onSave,myPreds,setMyPreds,scores,setPredictM,isAdmin,setScoreM,lbRefreshKey=0,qualifiedTeams={}}){
   const[sub,setSub]=useState("matches");
   const[lb,setLb]=useState([]);const[lbLoad,setLbLoad]=useState(false);
   const[showProfile,setShowProfile]=useState(false);
@@ -2689,9 +2689,9 @@ function PredictionTab({T,lang,userName,onSave,myPreds,setMyPreds,scores,setPred
                   )}
                 </div>
                 <div style={{display:"flex",alignItems:"center",gap:8}}>
-                  {TEAMS[m.h]&&<Flag en={m.h} size={28}/>}
-                  <div style={{flex:1}}>
-                    <span style={{fontFamily:HS,fontSize:13,fontWeight:500,color:T.text}}>{m.g&&m.g.length===1?tn(m.h,lang):(m.h||"TBD")}</span>
+                  {(()=>{const isKO=Number(m.id)>=73;const q2=qualifiedTeams||{};const hEn=isKO?(TEAMS[m.h]?m.h:(q2[m.h]||null)):m.h;return hEn?<Flag en={hEn} size={28}/>:null;})()}
+                  <div style={{flex:1,minWidth:0}}>
+                    <span style={{fontFamily:HS,fontSize:12,fontWeight:500,color:T.text,display:"block",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{(()=>{const isKO=Number(m.id)>=73;const q2=qualifiedTeams||{};const hEn=isKO?(TEAMS[m.h]?m.h:(q2[m.h]||null)):m.h;return hEn?tn(hEn,lang):isKO?getBracketLabel(m.h,q2,lang,true):tn(m.h,lang);})()}</span>
                   </div>
                   <div style={{textAlign:"center",minWidth:80}}>
                     <div style={{fontFamily:HS,fontSize:13,fontWeight:700,color:T.textM}}>{lang==="bn"?"আমার":"My"}: <span style={{color:T.green}}>{pred.home_score}–{pred.away_score}</span></div>
@@ -2706,8 +2706,8 @@ function PredictionTab({T,lang,userName,onSave,myPreds,setMyPreds,scores,setPred
                       </div>
                     )}
                   </div>
-                  <div style={{flex:1,textAlign:"right"}}>
-                    <span style={{fontFamily:HS,fontSize:13,fontWeight:500,color:T.text}}>{m.g&&m.g.length===1?tn(m.a,lang):(m.a||"TBD")}</span>
+                  <div style={{flex:1,textAlign:"right",minWidth:0}}>
+                    <span style={{fontFamily:HS,fontSize:12,fontWeight:500,color:T.text,display:"block",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{(()=>{const isKO=Number(m.id)>=73;const q=qualifiedTeams||{};const aEn=isKO?(TEAMS[m.a]?m.a:(q[m.a]||null)):m.a;return aEn?tn(aEn,lang):isKO?getBracketLabel(m.a,q,lang,true):tn(m.a,lang);})()}</span>
                   </div>
                   {TEAMS[m.a]&&<Flag en={m.a} size={28}/>}
                 </div>
@@ -3474,7 +3474,7 @@ export default function App(){
         {mt==="wc"&&wt==="knockout"&&<KnockoutTab T={T} lang={lang} scores={scores} myPreds={myPreds} setPredictM={handlePredict} isAdmin={isAdmin} setScoreM={setScoreM} userName={userName}/>}
         {mt==="wc"&&wt==="table"&&<TableTab T={T} lang={lang} scores={scores}/>}
         {mt==="wc"&&wt==="bracket"&&<BracketTab T={T} lang={lang} scores={scores}/>}
-        {mt==="predict"&&<PredictionTab T={T} lang={lang} userName={userName} onSave={handleNameSave} myPreds={myPreds} setMyPreds={setMyPreds} scores={scores} setPredictM={handlePredict} isAdmin={isAdmin} setScoreM={setScoreM} lbRefreshKey={lbRefreshKey}/>}
+        {mt==="predict"&&<PredictionTab T={T} lang={lang} userName={userName} onSave={handleNameSave} myPreds={myPreds} setMyPreds={setMyPreds} scores={scores} setPredictM={handlePredict} isAdmin={isAdmin} setScoreM={setScoreM} lbRefreshKey={lbRefreshKey} qualifiedTeams={qualifiedTeams}/>}
         {mt==="lb"&&<LeaderboardTab T={T} lang={lang} userName={userName} initData={lbData}/>}
         {sm&&<AddModal favs={favs} onAdd={en=>setFavs(f=>{if(f.includes(en))return f;const nf=[...f,en];try{localStorage.setItem("kk_favs",JSON.stringify(nf));}catch(e){}return nf;})} onClose={()=>setSm(false)} lang={lang} T={T}/>}
         {predictM&&userName&&<PredictModal m={predictM} T={T} lang={lang} userName={userName} myPreds={myPreds} setMyPreds={setMyPreds} onClose={()=>setPredictM(null)} scores={scores}/>}
