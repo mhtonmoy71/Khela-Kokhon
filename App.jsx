@@ -2612,9 +2612,9 @@ function PredictionTab({T,lang,userName,onSave,myPreds,setMyPreds,scores,setPred
                     {/* KO winner display */}
                     {Number(m.id)>=73&&pred.winner&&(
                       <div style={{fontFamily:HS,fontSize:10,color:T.textM,marginTop:2}}>
-                        🏆 {lang==="bn"?"আমার winner":"My winner"}: <span style={{color:pts===5?T.gold:pts===2?"#3b82f6":"#e53935",fontWeight:700}}>{tn(pred.winner,lang)||pred.winner}</span>
+                        🏆 {lang==="bn"?"আমার winner":"My winner"}: <span style={{color:(pts===5||pts===3)?T.gold:pts===2?"#3b82f6":"#e53935",fontWeight:700}}>{tn(pred.winner,lang)||pred.winner}</span>
                         {hasScore&&sc.winner&&(
-                          <span style={{color:T.textM}}> → {pts===5?"✅":"❌"} {tn(sc.winner,lang)||sc.winner}</span>
+                          <span style={{color:T.textM}}> → {(pts===5||pts===3)?"✅":"❌"} {tn(sc.winner,lang)||sc.winner}</span>
                         )}
                       </div>
                     )}
