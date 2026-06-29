@@ -282,7 +282,7 @@ const SF=[
 ];
 const FINAL=[
   {id:103,h:"L101",a:"L102",d:"2026-07-19",t:"3:00 AM",venue:"Miami Stadium",label:"🥉 Bronze Final"},
-  {id:104,h:"W101",a:"W102",d:"2026-07-19",t:"7:00 AM",venue:"New York New Jersey Stadium",label:"🏆 Final"},
+  {id:104,h:"W101",a:"W102",d:"2026-07-20",t:"1:00 AM",venue:"New York New Jersey Stadium",label:"🏆 Final"},
 ];
 
 const ALL_DATES=new Set([...MATCHES,...R32,...R16,...QF,...SF,...FINAL].map(m=>m.d));
@@ -943,16 +943,20 @@ function PredictModal({m,T,lang,userName,myPreds,setMyPreds,onClose,scores}){
         <div style={{display:"flex",gap:6,marginBottom:16}}>
           {isKnockout?(<>
             <div style={{flex:1,background:T.card2,borderRadius:10,padding:"8px",textAlign:"center"}}>
-              <div style={{fontFamily:HS,fontSize:18,fontWeight:800,color:T.green}}>২</div>
-              <div style={{fontFamily:HS,fontSize:9,color:T.textS}}>{lang==="bn"?"ড্র+ভুল winner":"Draw+wrong winner"}</div>
+              <div style={{fontFamily:HS,fontSize:16,fontWeight:800,color:T.green}}>১</div>
+              <div style={{fontFamily:HS,fontSize:9,color:T.textS}}>{lang==="bn"?"ড্র ঠিক":"Draw only"}</div>
             </div>
             <div style={{flex:1,background:T.card2,borderRadius:10,padding:"8px",textAlign:"center"}}>
-              <div style={{fontFamily:HS,fontSize:18,fontWeight:800,color:T.gold}}>৩</div>
-              <div style={{fontFamily:HS,fontSize:9,color:T.textS}}>{lang==="bn"?"সঠিক স্কোর":"Exact score"}</div>
+              <div style={{fontFamily:HS,fontSize:16,fontWeight:800,color:"#3b82f6"}}>২</div>
+              <div style={{fontFamily:HS,fontSize:9,color:T.textS}}>{lang==="bn"?"ড্র+স্কোর ঠিক":"Draw+exact"}</div>
             </div>
             <div style={{flex:1,background:T.card2,borderRadius:10,padding:"8px",textAlign:"center"}}>
-              <div style={{fontFamily:HS,fontSize:18,fontWeight:800,color:"#f59e0b"}}>৫</div>
-              <div style={{fontFamily:HS,fontSize:9,color:T.textS}}>{lang==="bn"?"ড্র+সঠিক winner":"Draw+right winner"}</div>
+              <div style={{fontFamily:HS,fontSize:16,fontWeight:800,color:T.gold}}>৩</div>
+              <div style={{fontFamily:HS,fontSize:9,color:T.textS}}>{lang==="bn"?"ড্র+winner ঠিক":"Draw+winner"}</div>
+            </div>
+            <div style={{flex:1,background:T.card2,borderRadius:10,padding:"8px",textAlign:"center"}}>
+              <div style={{fontFamily:HS,fontSize:16,fontWeight:800,color:"#f59e0b"}}>৫</div>
+              <div style={{fontFamily:HS,fontSize:9,color:T.textS}}>{lang==="bn"?"সব ঠিক":"All correct"}</div>
             </div>
           </>):(<>
             <div style={{flex:1,background:T.card2,borderRadius:10,padding:"8px",textAlign:"center"}}>
