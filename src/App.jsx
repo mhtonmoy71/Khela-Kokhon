@@ -1599,7 +1599,7 @@ function MatchCard({m,T,lang,scores,myPreds,setPredictM,onTeam,isAdmin,setScoreM
       )}
       {/* Action bar */}
       <div style={{display:"flex",gap:6,padding:"6px 12px 12px"}}>
-        {(st==="up"||(isKO&&st==="live"&&!hasScore))&&!isAdmin&&(
+        {st==="up"&&!isAdmin&&(
           <button onClick={()=>setPredictM(m)} style={{
             flex:1,display:"flex",alignItems:"center",justifyContent:"center",gap:4,
             background:pred?T.greenBg:T.card2,border:`1.5px solid ${pred?T.greenBr:T.border}`,
