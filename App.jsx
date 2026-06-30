@@ -2526,7 +2526,7 @@ function DeleteAccountBtn({T,lang}){
 }
 
 function ProfilePage({T,lang,userName,myPreds,onBack}){
-  const myPts=Object.values(myPreds).filter((_,i)=>i%2===0).reduce((sum,p)=>sum+(p.points||0),0);
+  const myPts=Object.values(myPreds).reduce((sum,p)=>sum+(p.points||0),0);
   const predCount=Object.values(myPreds).filter(p=>typeof p.home_score!=="undefined").length;
   const[confirm,setConfirm]=useState(false);
   return(
