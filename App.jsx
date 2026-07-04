@@ -2618,7 +2618,7 @@ function PredictionTab({T,lang,userName,onSave,myPreds,setMyPreds,scores,setPred
   return(
     <div>
       <div style={{display:"flex",background:T.card,borderBottom:`1px solid ${T.border}`}}>
-        {[["matches",lang==="bn"?"প্রোফাইল":"Profile"],["history",lang==="bn"?"আমার প্রেডিকশন":"My Predictions"]].map(([k,l])=>(
+        {[["matches",lang==="bn"?"প্রোফাইল":"Profile"],["pending",lang==="bn"?"প্রেডিক্ট করুন":"Predict"],["history",lang==="bn"?"আমার প্রেডিকশন":"My Predictions"]].map(([k,l])=>(
           <button key={k} onClick={()=>setSub(k)} style={{flex:1,background:"transparent",border:"none",borderBottom:`2.5px solid ${sub===k?T.green:"transparent"}`,color:sub===k?T.green:T.textM,fontFamily:HS,fontSize:13,fontWeight:sub===k?700:400,padding:"11px 0",cursor:"pointer"}}>{l}</button>
         ))}
       </div>
@@ -2652,6 +2652,31 @@ function PredictionTab({T,lang,userName,onSave,myPreds,setMyPreds,scores,setPred
               </div>
             );
           })}
+        </div>
+      )}
+      {sub==="pending"&&(
+        <div style={{padding:"12px 12px 90px"}}>
+          {(()=>{
+            const allKO=[...R32,...R16,...QF,...SF,...FINAL];
+            const pendingMatches=[...SORTED,...allKO].filter(m=>{
+              const st=status(m,scores);
+              return st==="up" && !getPred(myPreds,m.id);
+            }).sort((a,b)=>tMs(a)-tMs(b));
+            if(pendingMatches.length===0) return(
+              <div style={{textAlign:"center",padding:40}}>
+                <div style={{fontSize:40,marginBottom:12}}>🎉</div>
+                <div style={{fontFamily:HS,fontSize:15,fontWeight:700,color:T.text,marginBottom:6}}>
+                  {lang==="bn"?"সব প্রেডিকশন করা হয়েছে!":"All predictions done!"}
+                </div>
+                <div style={{fontFamily:HS,fontSize:13,color:T.textS}}>
+                  {lang==="bn"?"দারুণ! কোনো ম্যাচ বাকি নেই।":"Great! No matches left."}
+                </div>
+              </div>
+            );
+            return pendingMatches.map(m=>(
+              <MatchCard key={m.id} m={m} T={T} lang={lang} scores={scores} myPreds={myPreds} setPredictM={setPredictM} onTeam={()=>{}} isAdmin={isAdmin} setScoreM={setScoreM} qualified={qualifiedTeams}/>
+            ));
+          })()}
         </div>
       )}
       {sub==="history"&&(
