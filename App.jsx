@@ -1998,11 +1998,19 @@ function HomeTab({T,lang,favs,setFavs,onTeam,setSM,scores,myPreds,setPredictM,se
                       {/* Divider */}
                       <div style={{width:1,height:40,background:"rgba(255,255,255,0.12)",flexShrink:0}}/>
                       {/* Home team */}
+                      {(()=>{
+                        const isKO=Number(m.id)>=73;
+                        const q=qualifiedTeams||{};
+                        const hEn=isKO?(TEAMS[m.h]?m.h:(q[m.h]||null)):m.h;
+                        const aEn=isKO?(TEAMS[m.a]?m.a:(q[m.a]||null)):m.a;
+                        const hName=hEn?tn(hEn,lang):getBracketLabel(m.h,q,lang,true);
+                        const aName=aEn?tn(aEn,lang):getBracketLabel(m.a,q,lang,true);
+                        return(<>
                       <div style={{display:"flex",alignItems:"center",gap:6,flex:1,minWidth:0}}>
-                        <Flag en={m.h} size={22}/>
+                        {hEn?<Flag en={hEn} size={22}/>:<div style={{width:22,height:22,borderRadius:"50%",background:"rgba(255,255,255,0.2)",flexShrink:0}}/>}
                         <span style={{fontFamily:HS,fontSize:12,fontWeight:600,color:"#fff",
                           overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>
-                          {tn(m.h,lang)}
+                          {hName}
                         </span>
                       </div>
                       {/* Score */}
@@ -2016,10 +2024,11 @@ function HomeTab({T,lang,favs,setFavs,onTeam,setSM,scores,myPreds,setPredictM,se
                       <div style={{display:"flex",alignItems:"center",gap:6,flex:1,minWidth:0,justifyContent:"flex-end"}}>
                         <span style={{fontFamily:HS,fontSize:12,fontWeight:600,color:"#fff",
                           overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap",textAlign:"right"}}>
-                          {tn(m.a,lang)}
+                          {aName}
                         </span>
-                        <Flag en={m.a} size={22}/>
+                        {aEn?<Flag en={aEn} size={22}/>:<div style={{width:22,height:22,borderRadius:"50%",background:"rgba(255,255,255,0.2)",flexShrink:0}}/>}
                       </div>
+                      </>);})()}
                     </div>
                   </div>
                 );
