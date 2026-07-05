@@ -776,9 +776,11 @@ function ScoreModal({m,T,lang,scores,setScores,onClose,refreshPreds,qualified={}
         <div style={{fontFamily:HS,fontWeight:700,fontSize:16,color:T.text,textAlign:"center",marginBottom:4}}>🔑 স্কোর এন্ট্রি</div>
         <div style={{fontFamily:HS,fontSize:12,color:T.textS,textAlign:"center",marginBottom:20}}>{(()=>{const q=qualified;const hE=TEAMS[m.h]?m.h:(q[m.h]||null);const aE=TEAMS[m.a]?m.a:(q[m.a]||null);return (hE?tn(hE,lang):m.h)+" vs "+(aE?tn(aE,lang):m.a);})()}</div>
         <div style={{display:"flex",alignItems:"center",justifyContent:"center",gap:16,marginBottom:isDraw&&isKnockout?12:20}}>
-          <div style={{textAlign:"center"}}><Flag en={m.h} size={40}/><div style={{fontFamily:HS,fontSize:11,color:T.textS,margin:"6px 0"}}>{tn(m.h,lang)}</div><input value={hg} onChange={e=>{setHg(e.target.value);setWinner("");}} style={inp} placeholder="0" maxLength={2}/></div>
+          {(()=>{const q=qualified||{};const hE=TEAMS[m.h]?m.h:(q[m.h]||null);const aE=TEAMS[m.a]?m.a:(q[m.a]||null);return(<>
+          <div style={{textAlign:"center"}}>{hE?<Flag en={hE} size={40}/>:<div style={{width:40,height:40,borderRadius:"50%",background:T.card2,margin:"0 auto"}}/>}<div style={{fontFamily:HS,fontSize:11,color:T.textS,margin:"6px 0"}}>{hE?tn(hE,lang):m.h}</div><input value={hg} onChange={e=>{const v=e.target.value.replace(/\D/g,"");setHg(v);if(v!==""&&ag!==""&&parseInt(v)!==parseInt(ag))setWinner("");}} style={inp} placeholder="0" maxLength={2}/></div>
           <div style={{fontFamily:HS,fontSize:22,color:T.textM,paddingTop:20}}>–</div>
-          <div style={{textAlign:"center"}}><Flag en={m.a} size={40}/><div style={{fontFamily:HS,fontSize:11,color:T.textS,margin:"6px 0"}}>{tn(m.a,lang)}</div><input value={ag} onChange={e=>{setAg(e.target.value);setWinner("");}} style={inp} placeholder="0" maxLength={2}/></div>
+          <div style={{textAlign:"center"}}>{aE?<Flag en={aE} size={40}/>:<div style={{width:40,height:40,borderRadius:"50%",background:T.card2,margin:"0 auto"}}/>}<div style={{fontFamily:HS,fontSize:11,color:T.textS,margin:"6px 0"}}>{aE?tn(aE,lang):m.a}</div><input value={ag} onChange={e=>{setAg(e.target.value);setWinner("");}} style={inp} placeholder="0" maxLength={2}/></div>
+          </>);})()}
         </div>
 
         {/* Tiebreaker winner selection for admin (knockout + draw) */}
@@ -790,9 +792,9 @@ function ScoreModal({m,T,lang,scores,setScores,onClose,refreshPreds,qualified={}
             <div style={{display:"flex",gap:8}}>
               {(()=>{
                 const isKO2=Number(m.id)>=73;
-                const q2={};
-                const scH=isKO2?(TEAMS[m.h]?m.h:null):m.h;
-                const scA=isKO2?(TEAMS[m.a]?m.a:null):m.a;
+                const q2=qualified||{};
+                const scH=isKO2?(TEAMS[m.h]?m.h:(q2[m.h]||null)):m.h;
+                const scA=isKO2?(TEAMS[m.a]?m.a:(q2[m.a]||null)):m.a;
                 const wH=scH||m.h; const wA=scA||m.a;
                 return(<>
                 <button onClick={()=>setWinner(wH)}
