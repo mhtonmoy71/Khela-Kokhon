@@ -724,7 +724,7 @@ function calcStandings(teams,scores){
 }
 
 /* ── Score Modal (admin) ─────────────────────── */
-function ScoreModal({m,T,lang,scores,setScores,onClose,refreshPreds}){
+function ScoreModal({m,T,lang,scores,setScores,onClose,refreshPreds,qualified={}}){
   const sc=scores[m.id]||scores[String(m.id)]||{hg:"",ag:""};
   const[hg,setHg]=useState(sc.hg);const[ag,setAg]=useState(sc.ag);const[saving,setSaving]=useState(false);
   const[winner,setWinner]=useState(sc?.winner||"");
@@ -774,7 +774,7 @@ function ScoreModal({m,T,lang,scores,setScores,onClose,refreshPreds}){
           <button onClick={onClose} style={{background:T.card2,border:"none",borderRadius:"50%",width:32,height:32,cursor:"pointer",fontSize:16,color:T.textS,display:"flex",alignItems:"center",justifyContent:"center"}}>✕</button>
         </div>
         <div style={{fontFamily:HS,fontWeight:700,fontSize:16,color:T.text,textAlign:"center",marginBottom:4}}>🔑 স্কোর এন্ট্রি</div>
-        <div style={{fontFamily:HS,fontSize:12,color:T.textS,textAlign:"center",marginBottom:20}}>{tn(m.h,lang)} vs {tn(m.a,lang)}</div>
+        <div style={{fontFamily:HS,fontSize:12,color:T.textS,textAlign:"center",marginBottom:20}}>{(()=>{const q=qualified;const hE=TEAMS[m.h]?m.h:(q[m.h]||null);const aE=TEAMS[m.a]?m.a:(q[m.a]||null);return (hE?tn(hE,lang):m.h)+" vs "+(aE?tn(aE,lang):m.a);})()}</div>
         <div style={{display:"flex",alignItems:"center",justifyContent:"center",gap:16,marginBottom:isDraw&&isKnockout?12:20}}>
           <div style={{textAlign:"center"}}><Flag en={m.h} size={40}/><div style={{fontFamily:HS,fontSize:11,color:T.textS,margin:"6px 0"}}>{tn(m.h,lang)}</div><input value={hg} onChange={e=>{setHg(e.target.value);setWinner("");}} style={inp} placeholder="0" maxLength={2}/></div>
           <div style={{fontFamily:HS,fontSize:22,color:T.textM,paddingTop:20}}>–</div>
@@ -3440,7 +3440,7 @@ export default function App(){
       {predictM&&userName&&<PredictModal m={predictM} T={T} lang={lang} userName={userName} myPreds={myPreds} setMyPreds={setMyPreds} onClose={()=>setPredictM(null)} scores={scores}/>}
       {predictM&&!userName&&!needName&&<NameModal T={T} lang={lang} onSave={handleNameSave} onClose={()=>setPredictM(null)}/>}
         {needName&&<SetNameModal T={T} lang={lang} email={needName.email} token={needName.token} onSave={(name)=>{localStorage.setItem("kk_user",name);setUserName(name);setNeedName(null);}} onClose={()=>setNeedName(null)}/>}
-      {scoreM&&isAdmin&&<ScoreModal m={scoreM} T={T} lang={lang} scores={scores} setScores={setScores} onClose={()=>setScoreM(null)} refreshPreds={refreshPreds}/>}
+      {scoreM&&isAdmin&&<ScoreModal m={scoreM} T={T} lang={lang} scores={scores} setScores={setScores} onClose={()=>setScoreM(null)} refreshPreds={refreshPreds} qualified={qualifiedTeams}/>}
     </>
   );
 
@@ -3522,7 +3522,7 @@ export default function App(){
         {sm&&<AddModal favs={favs} onAdd={en=>setFavs(f=>{if(f.includes(en))return f;const nf=[...f,en];try{localStorage.setItem("kk_favs",JSON.stringify(nf));}catch(e){}return nf;})} onClose={()=>setSm(false)} lang={lang} T={T}/>}
         {predictM&&userName&&<PredictModal m={predictM} T={T} lang={lang} userName={userName} myPreds={myPreds} setMyPreds={setMyPreds} onClose={()=>setPredictM(null)} scores={scores}/>}
         {predictM&&!userName&&<NameModal T={T} lang={lang} onSave={(name,did)=>{handleNameSave(name,did);}} onClose={()=>setPredictM(null)}/>}
-        {scoreM&&isAdmin&&<ScoreModal m={scoreM} T={T} lang={lang} scores={scores} setScores={setScores} onClose={()=>setScoreM(null)} refreshPreds={refreshPreds}/>}
+        {scoreM&&isAdmin&&<ScoreModal m={scoreM} T={T} lang={lang} scores={scores} setScores={setScores} onClose={()=>setScoreM(null)} refreshPreds={refreshPreds} qualified={qualifiedTeams}/>}
 
         {/* Header Calendar Popup */}
         {showHeaderCal&&<HeaderCalModal T={T} lang={lang} onClose={()=>setShowHeaderCal(false)} setDayPage={(ds)=>{setShowHeaderCal(false);setMt("home");setHeaderSelDate(ds);}}/>}
