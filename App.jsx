@@ -1251,7 +1251,19 @@ function CompactCal({T,lang,setDayPage,scores,headerSelDate,clearHeaderSelDate,q
     cur.setDate(cur.getDate()+dir);
     const newDs=`${cur.getFullYear()}-${String(cur.getMonth()+1).padStart(2,"0")}-${String(cur.getDate()).padStart(2,"0")}`;
     const MIN="2026-06-12";const MAX="2026-07-20";
-    if(newDs>=MIN&&newDs<=MAX){setSelDate(newDs);setExpandSel(false);}
+    if(newDs>=MIN&&newDs<=MAX){
+      setSelDate(newDs);
+      setExpandSel(false);
+      // Scroll strip to new date
+      setTimeout(()=>{
+        if(!stripRef.current)return;
+        const el=stripRef.current.querySelector(`[data-date="${newDs}"]`);
+        if(el){
+          const strip=stripRef.current;
+          strip.scrollLeft=el.offsetLeft-(strip.offsetWidth/2)+(el.offsetWidth/2);
+        }
+      },50);
+    }
   };
   const stripRef=useRef(null);
 
