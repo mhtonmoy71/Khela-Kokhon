@@ -1243,6 +1243,16 @@ function CompactCal({T,lang,setDayPage,scores,headerSelDate,clearHeaderSelDate,q
   const[today,setToday]=useState(todayStr());
   const[selDate,setSelDate]=useState(todayStr());
   const[expandSel,setExpandSel]=useState(false);
+  const swipeRef=useRef(null);
+  const touchStartX=useRef(null);
+
+  const navigateDay=(dir)=>{
+    const cur=new Date(selDate+"T12:00:00");
+    cur.setDate(cur.getDate()+dir);
+    const newDs=`${cur.getFullYear()}-${String(cur.getMonth()+1).padStart(2,"0")}-${String(cur.getDate()).padStart(2,"0")}`;
+    const MIN="2026-06-12";const MAX="2026-07-20";
+    if(newDs>=MIN&&newDs<=MAX){setSelDate(newDs);setExpandSel(false);}
+  };
   const stripRef=useRef(null);
 
   useEffect(()=>{const id=setInterval(()=>setToday(todayStr()),10000);return()=>clearInterval(id);},[]);
@@ -1358,7 +1368,15 @@ function CompactCal({T,lang,setDayPage,scores,headerSelDate,clearHeaderSelDate,q
       </div>
 
       {/* Inline match box */}
-      <div style={{background:T.card,marginBottom:8}}>
+      <div ref={swipeRef}
+        onTouchStart={e=>{touchStartX.current=e.touches[0].clientX;}}
+        onTouchEnd={e=>{
+          if(touchStartX.current===null)return;
+          const dx=e.changedTouches[0].clientX-touchStartX.current;
+          touchStartX.current=null;
+          if(Math.abs(dx)>50){navigateDay(dx<0?1:-1);}
+        }}
+        style={{background:T.card,marginBottom:8}}>
         {/* Header */}
         <div onClick={()=>setDayPage(selDate)}
           style={{display:"flex",alignItems:"center",justifyContent:"space-between",
