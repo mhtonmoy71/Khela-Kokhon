@@ -272,7 +272,7 @@ const R16=[
 ];
 const QF=[
   {id:97,h:"W90",a:"W89",d:"2026-07-10",t:"2:00 AM",venue:"Boston Stadium"},
-  {id:98,h:"W93",a:"W94",d:"2026-07-10",t:"6:00 AM",venue:"Los Angeles Stadium"},
+  {id:98,h:"W93",a:"W94",d:"2026-07-11",t:"1:00 AM",venue:"Los Angeles Stadium"},
   {id:99,h:"W91",a:"W92",d:"2026-07-12",t:"3:00 AM",venue:"Miami Stadium"},
   {id:100,h:"W95",a:"W96",d:"2026-07-12",t:"7:00 AM",venue:"Kansas City Stadium"},
 ];
