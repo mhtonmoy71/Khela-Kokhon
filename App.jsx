@@ -1367,7 +1367,7 @@ function CompactCal({T,lang,setDayPage,scores,headerSelDate,clearHeaderSelDate,q
                   borderBottom:`2.5px solid ${isSel?T.green:"transparent"}`,
                   transition:"border-color 0.15s",
                   background:isSel?"rgba(0,230,118,0.04)":"transparent"}}>
-                <span style={{fontFamily:HS,fontSize:11,fontWeight:isSel||isTod?700:500,
+                <span style={{fontFamily:HS,fontSize:11,fontWeight:isSel||isTod?800:600,
                   color:isSel?T.green:isTod?T.green:T.text,
                   opacity:1,whiteSpace:"nowrap"}}>
                   {displayText}
@@ -3182,122 +3182,78 @@ function LiveClock({T,onToggle}){
 function HeaderCalModal({T,lang,onClose,setDayPage}){
   const[vm,setVm]=useState(new Date());
   const[today]=useState(todayStr());
-  const[pop,setPop]=useState(null);
   const y=vm.getFullYear(),mo=vm.getMonth();
   const fd=new Date(y,mo,1).getDay(),dim=new Date(y,mo+1,0).getDate();
   const days=[];for(let i=0;i<fd;i++)days.push(null);for(let d=1;d<=dim;d++)days.push(d);
-  const popMs=pop?getMatchesForDate(pop):[];
+  const ALL_MATCH_DATES=new Set([...MATCHES,...R32,...R16,...QF,...SF,...FINAL].map(m=>m.d));
   return(
-    <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.4)",zIndex:500}}
-      onClick={onClose}>
-      <div style={{position:"absolute",top:56,right:4,width:200,
-        background:T.card,borderRadius:12,
-        boxShadow:"0 4px 24px rgba(0,0,0,0.4)",
-        overflow:"hidden",display:"flex",flexDirection:"column",
-        animation:"slideRight 0.2s ease-out"}}
-        onClick={e=>e.stopPropagation()}>
-        {/* Header */}
-        <div style={{background:T.green,padding:"5px 8px",display:"flex",
-          alignItems:"center",justifyContent:"space-between"}}>
-          <button onClick={()=>setVm(new Date(y,mo-1,1))}
-            style={{background:"rgba(255,255,255,0.2)",border:"none",borderRadius:6,
-              width:24,height:24,cursor:"pointer",color:"#fff",fontSize:16,
-              display:"flex",alignItems:"center",justifyContent:"center"}}>‹</button>
-          <span style={{fontFamily:HS,fontSize:11,fontWeight:700,color:"#fff"}}>
-            {lang==="bn"?BNMs[mo]:ENMs[mo]} {y}
-          </span>
-          <div style={{display:"flex",gap:6}}>
-            <button onClick={()=>setVm(new Date(y,mo+1,1))}
-              style={{background:"rgba(255,255,255,0.2)",border:"none",borderRadius:6,
-                width:24,height:24,cursor:"pointer",color:"#fff",fontSize:14,
-                display:"flex",alignItems:"center",justifyContent:"center"}}>›</button>
-            <button onClick={onClose}
-              style={{background:"rgba(255,255,255,0.2)",border:"none",borderRadius:6,
-                width:24,height:24,cursor:"pointer",color:"#fff",fontSize:12,
-                display:"flex",alignItems:"center",justifyContent:"center"}}>✕</button>
-          </div>
-        </div>
-        {/* Day headers */}
-        <div style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",
-          background:T.card2,padding:"3px 6px 2px"}}>
-          {["S","M","T","W","T","F","S"].map((d,i)=>(
-            <div key={i} style={{textAlign:"center",fontFamily:HS,fontSize:8,
-              color:T.textS,fontWeight:700}}>{d}</div>
-          ))}
-        </div>
-        {/* Days grid */}
-        <div style={{overflowY:"auto",padding:"3px 6px 12px"}}>
-          <div style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",gap:1}}>
-            {days.map((d,i)=>{
-              if(!d)return <div key={i}/>;
-              const ds=`${y}-${String(mo+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
-              const hasM=ALL_DATES.has(ds),isTod=ds===today;
-              return(
-                <div key={i} onClick={()=>hasM&&setPop(ds)}
-                  style={{display:"flex",flexDirection:"column",alignItems:"center",
-                    padding:"4px 1px",borderRadius:6,cursor:hasM?"pointer":"default",
-                    background:isTod?T.greenBg:"transparent",
-                    border:isTod?`1px solid ${T.green}`:"1px solid transparent"}}>
-                  <span style={{fontFamily:HS,fontSize:10,fontWeight:isTod?700:400,
-                    color:hasM?T.text:T.textM,opacity:hasM||isTod?1:0.35}}>{d}</span>
-                  {hasM&&<div style={{width:4,height:4,borderRadius:"50%",
-                    background:T.green,marginTop:2}}/>}
-                </div>
-              );
-            })}
-          </div>
+    <div style={{position:"fixed",inset:0,background:T.bg,zIndex:500,display:"flex",flexDirection:"column"}}>
+      {/* Header */}
+      <div style={{background:T.green,padding:"14px 16px",display:"flex",alignItems:"center",gap:12}}>
+        <button onClick={onClose} style={{background:"rgba(255,255,255,0.2)",border:"none",
+          borderRadius:8,width:32,height:32,cursor:"pointer",color:"#fff",fontSize:18,
+          display:"flex",alignItems:"center",justifyContent:"center"}}>←</button>
+        <span style={{fontFamily:HS,fontSize:17,fontWeight:700,color:"#fff",flex:1}}>
+          {lang==="bn"?"ক্যালেন্ডার":"Calendar"}
+        </span>
+      </div>
+      {/* Month navigation */}
+      <div style={{background:T.card,padding:"12px 16px",display:"flex",
+        alignItems:"center",justifyContent:"space-between",borderBottom:`1px solid ${T.border}`}}>
+        <button onClick={()=>setVm(new Date(y,mo-1,1))}
+          style={{background:T.card2,border:"none",borderRadius:8,width:36,height:36,
+            cursor:"pointer",color:T.text,fontSize:20,display:"flex",alignItems:"center",justifyContent:"center"}}>‹</button>
+        <span style={{fontFamily:HS,fontSize:16,fontWeight:700,color:T.text}}>
+          {lang==="bn"?BNMs[mo]:ENMs[mo]} {y}
+        </span>
+        <button onClick={()=>setVm(new Date(y,mo+1,1))}
+          style={{background:T.card2,border:"none",borderRadius:8,width:36,height:36,
+            cursor:"pointer",color:T.text,fontSize:20,display:"flex",alignItems:"center",justifyContent:"center"}}>›</button>
+      </div>
+      {/* Day headers */}
+      <div style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",
+        background:T.card2,padding:"8px 12px"}}>
+        {(lang==="bn"?["রবি","সোম","মঙ্গ","বুধ","বৃহ","শুক্র","শনি"]:["Sun","Mon","Tue","Wed","Thu","Fri","Sat"]).map((d,i)=>(
+          <div key={i} style={{textAlign:"center",fontFamily:HS,fontSize:11,
+            color:T.textS,fontWeight:700}}>{d}</div>
+        ))}
+      </div>
+      {/* Days grid */}
+      <div style={{flex:1,overflowY:"auto",padding:"8px 12px 24px"}}>
+        <div style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",gap:4}}>
+          {days.map((d,i)=>{
+            if(!d)return<div key={i}/>;
+            const ds=`${y}-${String(mo+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
+            const isToday=ds===today;
+            const hasMatch=ALL_MATCH_DATES.has(ds);
+            const ms=hasMatch?getMatchesForDate(ds):[];
+            return(
+              <div key={i} onClick={()=>{if(hasMatch){setDayPage(ds);onClose();}}}
+                style={{
+                  aspectRatio:"1",display:"flex",flexDirection:"column",
+                  alignItems:"center",justifyContent:"center",
+                  borderRadius:10,cursor:hasMatch?"pointer":"default",
+                  background:isToday?T.green:hasMatch?T.greenBg:"transparent",
+                  border:isToday?`2px solid ${T.green}`:hasMatch?`1px solid ${T.greenBr}`:`1px solid transparent`,
+                  position:"relative"
+                }}>
+                <span style={{fontFamily:HS,fontSize:15,fontWeight:isToday?800:hasMatch?600:400,
+                  color:isToday?"#fff":hasMatch?T.green:T.textM}}>
+                  {d}
+                </span>
+                {hasMatch&&ms.length>0&&(
+                  <span style={{fontFamily:HS,fontSize:9,color:isToday?"rgba(255,255,255,0.8)":T.green,
+                    fontWeight:600}}>{ms.length}</span>
+                )}
+              </div>
+            );
+          })}
         </div>
       </div>
-      {/* Day matches popup */}
-      {pop&&(
-        <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.7)",zIndex:600,
-          display:"flex",alignItems:"flex-end"}} onClick={()=>setPop(null)}>
-          <div style={{background:T.card,borderRadius:"20px 20px 0 0",width:"100%",
-            maxHeight:"70vh",overflow:"hidden",display:"flex",flexDirection:"column"}}
-            onClick={e=>e.stopPropagation()}>
-            <div style={{padding:"14px 16px 10px",borderBottom:`1px solid ${T.border}`,
-              display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-              <span style={{fontFamily:HS,fontSize:15,fontWeight:700,color:T.text}}>
-                {dl(pop,lang)}
-              </span>
-              <button onClick={()=>setPop(null)} style={{background:T.card2,border:"none",
-                borderRadius:20,width:28,height:28,cursor:"pointer",fontSize:14,color:T.text}}>✕</button>
-            </div>
-            <div style={{overflowY:"auto",padding:"8px 12px 28px"}}>
-              {popMs.length===0?(
-                <div style={{textAlign:"center",padding:30,fontFamily:HS,fontSize:13,color:T.textM}}>
-                  {lang==="bn"?"কোনো ম্যাচ নেই":"No matches"}
-                </div>
-              ):popMs.map((m,i)=>{
-                const isG=m.g&&m.g.length===1;
-                const[t2,ap]=m.t.split(" ");
-                return(
-                  <div key={m.id||i} onClick={()=>setDayPage(pop)}
-                    style={{background:T.card2,borderRadius:12,padding:"12px",marginBottom:8,cursor:"pointer"}}>
-                    <div style={{fontFamily:HS,fontSize:10,color:T.textS,marginBottom:6}}>
-                      {m.label||(isG?`Group ${m.g}`:m.venue||"")} · {t2}<span style={{fontSize:8}}>{ap}</span>
-                    </div>
-                    <div style={{display:"flex",alignItems:"center",gap:8}}>
-                      {isG&&<Flag en={m.h} size={24}/>}
-                      <span style={{fontFamily:HS,fontSize:13,fontWeight:600,color:T.text,flex:1}}>
-                        {isG?tn(m.h,lang):(m.h||"TBD")}
-                      </span>
-                      <span style={{fontFamily:HS,fontSize:11,color:T.textM}}>vs</span>
-                      <span style={{fontFamily:HS,fontSize:13,fontWeight:600,color:T.text,flex:1,textAlign:"right"}}>
-                        {isG?tn(m.a,lang):(m.a||"TBD")}
-                      </span>
-                      {isG&&<Flag en={m.a} size={24}/>}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }
+
 
 export default function App(){
   const isAdmin=new URLSearchParams(window.location.search).get("admin")===ADMIN_KEY;
