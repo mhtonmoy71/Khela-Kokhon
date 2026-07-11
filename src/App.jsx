@@ -277,8 +277,8 @@ const QF=[
   {id:100,h:"W95",a:"W96",d:"2026-07-12",t:"7:00 AM",venue:"Kansas City Stadium"},
 ];
 const SF=[
-  {id:101,h:"W97",a:"W98",d:"2026-07-14",t:"1:00 AM",venue:"Dallas Stadium"},
-  {id:102,h:"W99",a:"W100",d:"2026-07-15",t:"1:00 AM",venue:"Atlanta Stadium"},
+  {id:101,h:"W97",a:"W98",d:"2026-07-15",t:"1:00 AM",venue:"Dallas Stadium"},
+  {id:102,h:"W99",a:"W100",d:"2026-07-16",t:"1:00 AM",venue:"Atlanta Stadium"},
 ];
 const FINAL=[
   {id:103,h:"L101",a:"L102",d:"2026-07-19",t:"3:00 AM",venue:"Miami Stadium",label:"🥉 Bronze Final"},
