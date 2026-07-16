@@ -1250,8 +1250,8 @@ function CompactCal({T,lang,setDayPage,scores,headerSelDate,clearHeaderSelDate,q
     const cur=new Date(selDate+"T12:00:00");
     cur.setDate(cur.getDate()+dir);
     const newDs=`${cur.getFullYear()}-${String(cur.getMonth()+1).padStart(2,"0")}-${String(cur.getDate()).padStart(2,"0")}`;
-    const MIN="2026-06-12";const MAX="2026-07-20";
-    if(newDs>=MIN&&newDs<=MAX){
+    const MIN="2026-06-12";
+    if(newDs>=MIN){
       setSelDate(newDs);
       setExpandSel(false);
       // Scroll strip to new date
@@ -1301,9 +1301,8 @@ function CompactCal({T,lang,setDayPage,scores,headerSelDate,clearHeaderSelDate,q
     const endD=new Date(todayD);endD.setDate(endD.getDate()+10);
     // Clamp to tournament range
     const MIN=new Date("2026-06-12");
-    const MAX=new Date("2026-07-19");
     const s=startD<MIN?MIN:startD;
-    const e=endD>MAX?MAX:endD;
+    const e=endD; // No upper limit - always show today+10
     for(let d=new Date(s);d<=e;d.setDate(d.getDate()+1)){
       days.push(`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`);
     }
@@ -2370,17 +2369,9 @@ function BracketColumnRight({matches,T,lang,scores,level,drawConnectorsLeft,cont
   );
 }
 
-function BracketTab({T,lang,scores}){
+function BracketTab({T,lang,scores,qualifiedTeams}){
   const[zoom,setZoom]=useState(1);
-  const qualified=useMemo(()=>{
-    const q={};
-    Object.entries(GRP).forEach(([g,teams])=>{
-      const rows=calcStandings(teams,scores);
-      const allDone=MATCHES.filter(m=>teams.includes(m.h)).every(m=>{const sc=scores[m.id]||scores[String(m.id)];return sc&&sc.hg!==""&&sc.ag!=="";});
-      if(allDone){q["1"+g]=rows[0]?.en||null;q["2"+g]=rows[1]?.en||null;}
-    });
-    return resolveKnockout(scores,q);
-  },[scores]);
+  const qualified=qualifiedTeams||{};
   const RT=lang==="bn"
     ?{r32:"রাউন্ড অব ৩২",r16:"রাউন্ড অব ১৬",qf:"কো.ফা",sf:"সেমি",f:"ফাইনাল",b:"ব্রোঞ্জ",champ:"চ্যাম্পিয়ন"}
     :{r32:"R32",r16:"R16",qf:"QF",sf:"SF",f:"Final",b:"Bronze",champ:"Champion"};
@@ -2498,15 +2489,7 @@ function BracketTab({T,lang,scores}){
 /* ── KnockoutTab ─────────────────────────────── */
 function KnockoutTab({T,lang,scores,myPreds,setPredictM,isAdmin,setScoreM,userName}){
   const[round,setRound]=useState("R32");
-  const qualified=useMemo(()=>{
-    const q={};
-    Object.entries(GRP).forEach(([g,teams])=>{
-      const rows=calcStandings(teams,scores);
-      const allDone=MATCHES.filter(m=>teams.includes(m.h)).every(m=>{const sc=scores[m.id]||scores[String(m.id)];return sc&&sc.hg!==""&&sc.ag!=="";});
-      if(allDone){q["1"+g]=rows[0]?.en||null;q["2"+g]=rows[1]?.en||null;}
-    });
-    return resolveKnockout(scores,q);
-  },[scores]);
+  const qualified=qualifiedTeams||{};
 
   const tabs=[{k:"R32",l:lang==="bn"?"রাউন্ড অব ৩২":"Round of 32"},{k:"R16",l:lang==="bn"?"রাউন্ড অব ১৬":"Round of 16"},{k:"QF",l:lang==="bn"?"কোয়ার্টার":"Quarter"},{k:"SF",l:lang==="bn"?"সেমি":"Semi"},{k:"F",l:lang==="bn"?"🏆 ফাইনাল":"🏆 Final"}];
   // Sort matches by date+time for display
@@ -3504,7 +3487,7 @@ export default function App(){
         {mt==="wc"&&wt==="fixture"&&<GroupTab T={T} lang={lang} onTeam={openTeam} scores={scores} myPreds={myPreds} setPredictM={handlePredict} isAdmin={isAdmin} setScoreM={setScoreM}/>}
         {mt==="wc"&&wt==="knockout"&&<KnockoutTab T={T} lang={lang} scores={scores} myPreds={myPreds} setPredictM={handlePredict} isAdmin={isAdmin} setScoreM={setScoreM} userName={userName}/>}
         {mt==="wc"&&wt==="table"&&<TableTab T={T} lang={lang} scores={scores}/>}
-        {mt==="wc"&&wt==="bracket"&&<BracketTab T={T} lang={lang} scores={scores}/>}
+        {mt==="wc"&&wt==="bracket"&&<BracketTab T={T} lang={lang} scores={scores} qualifiedTeams={qualifiedTeams}/>}
         {mt==="predict"&&<PredictionTab T={T} lang={lang} userName={userName} onSave={handleNameSave} myPreds={myPreds} setMyPreds={setMyPreds} scores={scores} setPredictM={handlePredict} isAdmin={isAdmin} setScoreM={setScoreM} lbRefreshKey={lbRefreshKey} qualifiedTeams={qualifiedTeams}/>}
         {mt==="lb"&&<LeaderboardTab T={T} lang={lang} userName={userName} initData={lbData}/>}
         {sm&&<AddModal favs={favs} onAdd={en=>setFavs(f=>{if(f.includes(en))return f;const nf=[...f,en];try{localStorage.setItem("kk_favs",JSON.stringify(nf));}catch(e){}return nf;})} onClose={()=>setSm(false)} lang={lang} T={T}/>}
