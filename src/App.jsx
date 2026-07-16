@@ -2453,9 +2453,9 @@ function BracketTab({T,lang,scores,qualifiedTeams}){
               fontSize:26}}>🏆</div>
             <div style={{fontFamily:HS,fontSize:10,fontWeight:700,color:T.textS}}>{RT.champ}</div>
             <div style={{fontFamily:HS,fontSize:10,fontWeight:700,color:T.textS,marginTop:8}}>🏆 {RT.f}</div>
-            <BracketMatchCard m={FINAL[1]} T={T} lang={lang} scores={scores}/>
+            <BracketMatchCard m={FINAL[1]} T={T} lang={lang} scores={scores} qualified={qualified}/>
             <div style={{fontFamily:HS,fontSize:10,fontWeight:700,color:T.textS,marginTop:8}}>🥉 {RT.b}</div>
-            <BracketMatchCard m={FINAL[0]} T={T} lang={lang} scores={scores}/>
+            <BracketMatchCard m={FINAL[0]} T={T} lang={lang} scores={scores} qualified={qualified}/>
           </div>
         </div>
 
