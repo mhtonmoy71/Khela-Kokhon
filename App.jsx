@@ -352,14 +352,12 @@ function resolveKnockout(scores, groupQualified){
   };
 
   // Resolve R32 → set W73..W88
-  R32.forEach(m=>{const w=getWinner(m);if(w)q["W"+m.id]=w;});
-  
-  // Update R16 h/a based on R32 results
-  // R16[0]: W73 vs W74 → id 89
-  // R16[1]: W75 vs W78 → id 90  
-  // R16[2]: W74... etc (use KO_WINNER_MAP from R16 h/a fields)
-  R16.forEach(m=>{const w=getWinner(m);if(w)q["W"+m.id]=w;});
-  QF.forEach(m=>{const w=getWinner(m);if(w)q["W"+m.id]=w;});
+  // Run multiple passes to ensure full chain resolution
+  for(let pass=0;pass<3;pass++){
+    R32.forEach(m=>{const w=getWinner(m);if(w)q["W"+m.id]=w;});
+    R16.forEach(m=>{const w=getWinner(m);if(w)q["W"+m.id]=w;});
+    QF.forEach(m=>{const w=getWinner(m);if(w)q["W"+m.id]=w;});
+  }
   SF.forEach(m=>{
     const sc=scores[m.id]||scores[String(m.id)];
     const w=getWinner(m);
