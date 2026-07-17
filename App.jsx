@@ -2485,7 +2485,7 @@ function BracketTab({T,lang,scores,qualifiedTeams}){
 }
 
 /* ── KnockoutTab ─────────────────────────────── */
-function KnockoutTab({T,lang,scores,myPreds,setPredictM,isAdmin,setScoreM,userName}){
+function KnockoutTab({T,lang,scores,myPreds,setPredictM,isAdmin,setScoreM,userName,qualifiedTeams={}}){
   const[round,setRound]=useState("R32");
   const qualified=qualifiedTeams||{};
 
@@ -3483,7 +3483,7 @@ export default function App(){
         {/* Body */}
                 {mt==="home"&&<HomeTab T={T} lang={lang} favs={favs} setFavs={setFavs} onTeam={openTeam} setSM={setSm} scores={scores} myPreds={myPreds} setPredictM={handlePredict} setScoreM={setScoreM} isAdmin={isAdmin} dayPage={dayPage} setDayPage={openDayPage} lbData={lbData} scoresLoaded={scoresLoaded} headerSelDate={headerSelDate} clearHeaderSelDate={()=>setHeaderSelDate(null)}/>}
         {mt==="wc"&&wt==="fixture"&&<GroupTab T={T} lang={lang} onTeam={openTeam} scores={scores} myPreds={myPreds} setPredictM={handlePredict} isAdmin={isAdmin} setScoreM={setScoreM}/>}
-        {mt==="wc"&&wt==="knockout"&&<KnockoutTab T={T} lang={lang} scores={scores} myPreds={myPreds} setPredictM={handlePredict} isAdmin={isAdmin} setScoreM={setScoreM} userName={userName}/>}
+        {mt==="wc"&&wt==="knockout"&&<KnockoutTab T={T} lang={lang} scores={scores} myPreds={myPreds} setPredictM={handlePredict} isAdmin={isAdmin} setScoreM={setScoreM} userName={userName} qualifiedTeams={qualifiedTeams}/>}
         {mt==="wc"&&wt==="table"&&<TableTab T={T} lang={lang} scores={scores}/>}
         {mt==="wc"&&wt==="bracket"&&<BracketTab T={T} lang={lang} scores={scores} qualifiedTeams={qualifiedTeams}/>}
         {mt==="predict"&&<PredictionTab T={T} lang={lang} userName={userName} onSave={handleNameSave} myPreds={myPreds} setMyPreds={setMyPreds} scores={scores} setPredictM={handlePredict} isAdmin={isAdmin} setScoreM={setScoreM} lbRefreshKey={lbRefreshKey} qualifiedTeams={qualifiedTeams}/>}
