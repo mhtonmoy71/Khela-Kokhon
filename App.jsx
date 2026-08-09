@@ -3420,63 +3420,10 @@ export default function App(){
       <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet"/>
       <style>{`@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}*{-webkit-tap-highlight-color:transparent;}::-webkit-scrollbar{display:none;}`}</style>
       <div style={{background:T.bg,minHeight:"100vh",fontFamily:HS,transition:"background .3s"}}>
-        {/* Desktop layout wrapper */}
         <div style={{maxWidth:isDesktop?1280:480,margin:"0 auto",display:isDesktop?"flex":"block",minHeight:"100vh"}}>
-        {/* Desktop left sidebar */}
-        {isDesktop&&(
-          <div style={{width:220,flexShrink:0,background:T.card,borderRight:`1px solid ${T.border}`,position:"sticky",top:0,height:"100vh",overflowY:"auto",display:"flex",flexDirection:"column"}}>
-            {/* Logo */}
-            <div style={{padding:"20px 16px 12px",borderBottom:`1px solid ${T.border}`}}>
-              <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:8}}>
-                <LiveClock T={T} onToggle={()=>setShowClockTime(v=>!v)}/>
-                <div style={{fontFamily:HS,fontSize:16,fontWeight:800,color:T.text}}>খেলা কখন?</div>
-              </div>
-              <div style={{display:"flex",gap:6,marginTop:8}}>
-                <div onClick={()=>{setDark(d=>{localStorage.setItem("kk_dark",String(!d));return !d;})}}
-                  style={{background:T.card2,border:`1px solid ${T.border}`,borderRadius:8,width:32,height:32,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",fontSize:14}}>
-                  {dark?"☀️":"🌙"}
-                </div>
-                <button onClick={()=>{setLang(l=>{const nl=l==="bn"?"en":"bn";localStorage.setItem("kk_lang",nl);return nl;})}} style={{fontFamily:HS,background:T.card2,border:`1px solid ${T.border}`,color:T.text,borderRadius:8,padding:"0 10px",height:32,fontSize:11,fontWeight:700,cursor:"pointer"}}>{lang==="bn"?"EN":"বাং"}</button>
-                <button onClick={()=>setShowHeaderCal(true)} style={{background:T.card2,border:`1px solid ${T.border}`,color:T.text,borderRadius:8,width:32,height:32,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center"}}>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="3"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="16" y1="2" x2="16" y2="6"/></svg>
-                </button>
-              </div>
-            </div>
-            {/* Sidebar nav */}
-            {[
-              {id:"home",label:lang==="bn"?"হোম":"Home",icon:"🏠"},
-              {id:"wc",label:lang==="bn"?"বিশ্বকাপ":"World Cup",icon:"🏆"},
-              {id:"predict",label:lang==="bn"?"প্রেডিকশন":"Predict",icon:"⚡"},
-              {id:"lb",label:lang==="bn"?"লিডারবোর্ড":"Leaderboard",icon:"📊"},
-            ].map(({id,label,icon})=>(
-              <button key={id} onClick={()=>setMt(id)} style={{
-                display:"flex",alignItems:"center",gap:10,padding:"12px 16px",
-                background:mt===id?T.greenBg:"transparent",
-                border:"none",borderLeft:`3px solid ${mt===id?T.green:"transparent"}`,
-                color:mt===id?T.green:T.textS,fontFamily:HS,fontSize:13,fontWeight:mt===id?700:400,
-                cursor:"pointer",width:"100%",textAlign:"left"}}>
-                <span style={{fontSize:16}}>{icon}</span>{label}
-              </button>
-            ))}
-            {/* WC sub-tabs in sidebar */}
-            {mt==="wc"&&(
-              <div style={{borderTop:`1px solid ${T.border}`,marginTop:4}}>
-                {[[" fixture",lang==="bn"?"গ্রুপ পর্ব":"Group"],[" table",lang==="bn"?"টেবিল":"Table"],[" knockout",lang==="bn"?"নকআউট":"Knockout"],[" bracket",lang==="bn"?"রোড টু ফাইনাল":"Road to Final"]].map(([id,lb])=>(
-                  <button key={id.trim()} onClick={()=>setWt(id.trim())} style={{
-                    display:"flex",alignItems:"center",padding:"10px 16px 10px 32px",
-                    background:wt===id.trim()?T.card2:"transparent",
-                    border:"none",color:wt===id.trim()?T.text:T.textS,
-                    fontFamily:HS,fontSize:12,fontWeight:wt===id.trim()?600:400,
-                    cursor:"pointer",width:"100%",textAlign:"left"}}>{lb}</button>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
-        {/* Main content */}
         <div style={{flex:1,minWidth:0}}>
-        {/* Sticky header - hidden on desktop */}
-        {!isDesktop&&<div style={{background:T.hdr,position:"sticky",top:0,zIndex:50,boxShadow:"0 2px 20px rgba(0,0,0,0.4)"}}>
+        {/* Sticky header */}
+        <div style={{background:T.hdr,position:"sticky",top:0,zIndex:50,boxShadow:"0 2px 20px rgba(0,0,0,0.4)"}}>
           <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"14px 14px 12px"}}>
             <div style={{display:"flex",alignItems:"center",gap:10}}>
              <LiveClock T={T} onToggle={()=>setShowClockTime(v=>!v)}/>
@@ -3535,7 +3482,7 @@ export default function App(){
               ))}
             </div>
           )}
-        </div>}
+        </div>
 
         {/* Body */}
                 {mt==="home"&&<HomeTab T={T} lang={lang} favs={favs} setFavs={setFavs} onTeam={openTeam} setSM={setSm} scores={scores} myPreds={myPreds} setPredictM={handlePredict} setScoreM={setScoreM} isAdmin={isAdmin} dayPage={dayPage} setDayPage={openDayPage} lbData={lbData} scoresLoaded={scoresLoaded} headerSelDate={headerSelDate} clearHeaderSelDate={()=>setHeaderSelDate(null)}/>}
