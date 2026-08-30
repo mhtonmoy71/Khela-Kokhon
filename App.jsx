@@ -3280,9 +3280,6 @@ export default function App(){
     setDayPage(ds);
   };
   const T=mkT(dark);
-  const windowWidth=useWindowWidth();
-  const isDesktop=windowWidth>=768;
-
   const fetchScores=useCallback(()=>{
     getScores().then(data=>{
       const m={};
@@ -3420,8 +3417,7 @@ export default function App(){
       <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet"/>
       <style>{`@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}*{-webkit-tap-highlight-color:transparent;}::-webkit-scrollbar{display:none;}`}</style>
       <div style={{background:T.bg,minHeight:"100vh",fontFamily:HS,transition:"background .3s"}}>
-        <div style={{maxWidth:isDesktop?1280:480,margin:"0 auto",display:isDesktop?"flex":"block",minHeight:"100vh"}}>
-        <div style={{flex:1,minWidth:0}}>
+        <div style={{maxWidth:480,margin:"0 auto"}}>
         {/* Sticky header */}
         <div style={{background:T.hdr,position:"sticky",top:0,zIndex:50,boxShadow:"0 2px 20px rgba(0,0,0,0.4)"}}>
           <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"14px 14px 12px"}}>
@@ -3502,8 +3498,7 @@ export default function App(){
 
         {/* Exit confirm */}
         
-        </div>{/* end main content */}
-        </div>{/* end desktop wrapper */}
+        </div>
       </div>
     </>
   );
