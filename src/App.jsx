@@ -3412,12 +3412,31 @@ export default function App(){
     </>
   );
 
+  const MAINTENANCE=true;
+  if(MAINTENANCE) return(
+    <>
+      <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+      <div style={{minHeight:"100vh",background:"#0a0a0a",display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",padding:24,fontFamily:"'Hind Siliguri',sans-serif"}}>
+        <div style={{textAlign:"center",maxWidth:480}}>
+          <div style={{fontSize:64,marginBottom:24}}>🔧</div>
+          <div style={{fontSize:32,fontWeight:800,color:"#fff",marginBottom:12,lineHeight:1.2}}>Under Maintenance</div>
+          <div style={{fontSize:16,color:"#888",marginBottom:32,lineHeight:1.6}}>We're working hard to improve your experience. Khela Kokhon will be back shortly.</div>
+          <div style={{background:"#111",border:"1px solid #222",borderRadius:12,padding:"20px 24px",marginBottom:32}}>
+            <div style={{fontSize:13,color:"#555",marginBottom:6}}>Expected back</div>
+            <div style={{fontSize:20,fontWeight:700,color:"#00e676"}}>Very Soon</div>
+          </div>
+          <div style={{fontSize:13,color:"#444"}}>Questions? Contact us at<br/><span style={{color:"#00e676"}}>khelakokhon@gmail.com</span></div>
+        </div>
+      </div>
+    </>
+  );
+
   return(
     <>
       <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet"/>
       <style>{`@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}*{-webkit-tap-highlight-color:transparent;}::-webkit-scrollbar{display:none;}`}</style>
       <div style={{background:T.bg,minHeight:"100vh",fontFamily:HS,transition:"background .3s"}}>
-        <div style={{maxWidth:480,margin:"0 auto"}}>
+<div style={{maxWidth:480,margin:"0 auto"}}>
         {/* Sticky header */}
         <div style={{background:T.hdr,position:"sticky",top:0,zIndex:50,boxShadow:"0 2px 20px rgba(0,0,0,0.4)"}}>
           <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"14px 14px 12px"}}>
