@@ -3412,36 +3412,12 @@ export default function App(){
     </>
   );
 
-  const[winW,setWinW]=React.useState(typeof window!=="undefined"?window.innerWidth:480);
-  React.useEffect(()=>{const h=()=>setWinW(window.innerWidth);window.addEventListener("resize",h);return()=>window.removeEventListener("resize",h);},[]);
-  const isDesktop=winW>=900;
-
   return(
     <>
       <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet"/>
       <style>{`@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}*{-webkit-tap-highlight-color:transparent;}::-webkit-scrollbar{display:none;}`}</style>
       <div style={{background:T.bg,minHeight:"100vh",fontFamily:HS,transition:"background .3s"}}>
-        {/* Desktop sidebar */}
-        {isDesktop&&(
-          <div style={{position:"fixed",left:0,top:0,width:240,height:"100vh",background:T.card,borderRight:`1px solid ${T.border}`,display:"flex",flexDirection:"column",zIndex:100,overflowY:"auto"}}>
-            <div style={{padding:"20px 16px",borderBottom:`1px solid ${T.border}`}}>
-              <div style={{fontFamily:HS,fontSize:18,fontWeight:800,color:T.green,marginBottom:12}}>খেলা কখন?</div>
-              <div style={{display:"flex",gap:6}}>
-                <div onClick={()=>setDark(d=>{localStorage.setItem("kk_dark",String(!d));return !d;})} style={{background:T.card2,border:`1px solid ${T.border}`,borderRadius:8,width:32,height:32,cursor:"pointer",display:"flex",alignItems:"center",justifyContent:"center",fontSize:14}}>{dark?"☀️":"🌙"}</div>
-                <button onClick={()=>setLang(l=>{const nl=l==="bn"?"en":"bn";localStorage.setItem("kk_lang",nl);return nl;})} style={{fontFamily:HS,background:T.card2,border:`1px solid ${T.border}`,color:T.text,borderRadius:8,padding:"0 10px",height:32,fontSize:11,fontWeight:700,cursor:"pointer"}}>{lang==="bn"?"EN":"বাং"}</button>
-              </div>
-            </div>
-            {[{id:"home",icon:"🏠",label:lang==="bn"?"হোম":"Home"},{id:"wc",icon:"🏆",label:lang==="bn"?"বিশ্বকাপ":"World Cup"},{id:"predict",icon:"⚡",label:lang==="bn"?"প্রেডিকশন":"Predict"},{id:"lb",icon:"📊",label:lang==="bn"?"লিডারবোর্ড":"Leaderboard"}].map(({id,icon,label})=>(
-              <button key={id} onClick={()=>setMt(id)} style={{display:"flex",alignItems:"center",gap:10,padding:"13px 16px",background:mt===id?T.greenBg:"transparent",border:"none",borderLeft:`3px solid ${mt===id?T.green:"transparent"}`,color:mt===id?T.green:T.textS,fontFamily:HS,fontSize:13,fontWeight:mt===id?700:400,cursor:"pointer",width:"100%",textAlign:"left"}}>
-                <span>{icon}</span>{label}
-              </button>
-            ))}
-            {mt==="wc"&&[["fixture",lang==="bn"?"গ্রুপ পর্ব":"Group"],["table","Table"],["knockout",lang==="bn"?"নকআউট":"Knockout"],["bracket",lang==="bn"?"রোড টু ফাইনাল":"Road to Final"]].map(([id,lb])=>(
-              <button key={id} onClick={()=>setWt(id)} style={{display:"flex",alignItems:"center",padding:"10px 16px 10px 40px",background:wt===id?T.card2:"transparent",border:"none",color:wt===id?T.text:T.textM,fontFamily:HS,fontSize:12,fontWeight:wt===id?600:400,cursor:"pointer",width:"100%",textAlign:"left"}}>{lb}</button>
-            ))}
-          </div>
-        )}
-        <div style={{maxWidth:isDesktop?720:480,margin:"0 auto",marginLeft:isDesktop?"240px":"auto"}}>
+        <div style={{maxWidth:480,margin:"0 auto"}}>
         {/* Sticky header */}
         <div style={{background:T.hdr,position:"sticky",top:0,zIndex:50,boxShadow:"0 2px 20px rgba(0,0,0,0.4)"}}>
           <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"14px 14px 12px"}}>
