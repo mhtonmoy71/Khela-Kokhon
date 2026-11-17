@@ -227,6 +227,52 @@ img { display: block; }
 .ask-input input { flex: 1; height: 44px; border-radius: 22px; border: 1px solid var(--line); background: var(--card); padding: 0 16px; font-size: 15px; outline: none; }
 .ask-input input:focus { border-color: var(--green); }
 .ask-input .btn { height: 44px; border-radius: 22px; }
+
+/* ── লিগ ও দলের পাতা ── */
+.comp-h { width: 100%; text-align: left; }
+.comp-go { margin-left: auto; color: var(--muted); font-size: 18px; line-height: 1; }
+.hero-top { color: inherit; text-align: left; }
+.hero-team { color: inherit; }
+.page-head { display: flex; align-items: center; gap: 10px; padding: 14px 16px 0; }
+.page-head h1 { font-size: 21px; }
+.page-head img { background: #fff; border-radius: 8px; padding: 3px; }
+.back { width: 36px; height: 36px; border-radius: 50%; background: var(--card); border: 1px solid var(--line); font-size: 18px; font-weight: 700; flex: none; }
+.seg3 { grid-template-columns: repeat(3, 1fr); }
+.tbl { display: grid; grid-template-columns: 26px 1fr 26px 26px 26px 26px 34px 30px; align-items: center; gap: 2px; padding: 9px 10px 9px 8px; width: 100%; text-align: center;
+  font-size: 13px; border-bottom: 1px solid var(--line); border-left: 3px solid transparent; }
+.tbl:last-child { border-bottom: 0; }
+.tbl-h { font-size: 11.5px; color: var(--muted); font-weight: 600; padding-top: 10px; padding-bottom: 8px; }
+.tbl .tm { display: flex; align-items: center; gap: 7px; text-align: left; min-width: 0; }
+.tbl .tm b { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tbl .pos { color: var(--muted); font-weight: 600; }
+.tbl .pts { font-weight: 800; }
+.tbl.z-up { border-left-color: #16a34a; } .tbl.z-mid { border-left-color: #f59e0b; } .tbl.z-down { border-left-color: #dc2626; }
+.legend { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; font-size: 12px; color: var(--muted); margin-top: 8px; }
+.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-left: 6px; }
+.legend i.z-up { background: #16a34a; } .legend i.z-mid { background: #f59e0b; } .legend i.z-down { background: #dc2626; }
+.scr { display: grid; grid-template-columns: 26px 1fr 54px 44px; align-items: center; gap: 6px; padding: 10px 12px; border-bottom: 1px solid var(--line); font-size: 13.5px; text-align: center; }
+.scr:last-child { border-bottom: 0; }
+.scr-h { font-size: 11.5px; color: var(--muted); font-weight: 600; }
+.scr .pl { text-align: left; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.scr .pl b { font-weight: 600; font-family: Inter, "Hind Siliguri", sans-serif; }
+.pl-team { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; color: var(--muted); text-align: left; }
+.scr .pts { font-weight: 800; font-size: 16px; color: var(--green); }
+.scr .pos { color: var(--muted); font-weight: 600; }
+.team-hero { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 8px 16px 4px; text-align: center; }
+.team-hero h1 { font-size: 23px; margin-top: 6px; }
+.team-pos { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; margin-top: 8px; }
+.stat-row { display: grid; grid-template-columns: repeat(6, 1fr); padding: 12px 6px; text-align: center; }
+.stat-row b { display: block; font-size: 16px; }
+.stat-row span { font-size: 11px; color: var(--muted); }
+.form-row { display: flex; gap: 8px; }
+.badge.big { width: 38px; height: 38px; border-radius: 10px; font-size: 15px; }
+.league-strip { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; margin: 0 -16px; padding: 0 16px; }
+.league-strip::-webkit-scrollbar { display: none; }
+.league-tile { flex: none; width: 92px; padding: 12px 6px 10px; border-radius: 14px; background: var(--card); border: 1px solid var(--line); display: flex; flex-direction: column; align-items: center; gap: 7px; font-size: 12px; font-weight: 600; text-align: center; line-height: 1.2; }
+.league-tile img { background: #fff; border-radius: 8px; padding: 3px; }
+.tchip { color: inherit; }
+.tbl-h span:nth-child(2) { text-align: left; }
+.app { padding-bottom: 140px; }
 `;
 if (typeof document !== "undefined" && !document.getElementById("kk-css")) {
   const st = document.createElement("style");
@@ -498,6 +544,21 @@ const DEMO_LEADERS = [
   { display_name: "ঋতু", points: 22, exact: 3, played: 19 },
 ];
 
+// ডেমো টেবিল আর গোলদাতা
+function demoStandings(code) {
+  const r = rng(code.length * 97 + code.charCodeAt(0));
+  const pool = code === "CL" ? DEMO_TEAMS : DEMO_TEAMS.filter((t) => t.league === code);
+  return pool
+    .map((t) => { const w = Math.floor(r() * 10), d = Math.floor(r() * 4), l = 12 - w - d < 0 ? 0 : 12 - w - d, gf = w * 2 + d, ga = l * 2 + d;
+      return { competition_code: code, team_id: t.id, team: t, played: w + d + l, won: w, draw: d, lost: l, gf, ga, gd: gf - ga, points: w * 3 + d, form: "W,D,L,W,W" }; })
+    .sort((a, b) => b.points - a.points || b.gd - a.gd)
+    .map((x, i) => ({ ...x, position: i + 1 }));
+}
+function demoScorers(code) {
+  const pool = code === "CL" ? DEMO_TEAMS : DEMO_TEAMS.filter((t) => t.league === code);
+  return pool.slice(0, 8).map((t, i) => ({ competition_code: code, player_id: i, player_name: `Player ${i + 1}`, team_id: t.id, team: t, played: 12, goals: 12 - i, assists: (i * 3) % 5, penalties: i % 2 }));
+}
+
 // ════════════════ lib/data.js ════════════════
 // সাইটের সব ডেটা এখান দিয়ে যায়। সাইট শুধু Supabase থেকে পড়ে — football-data.org-এ সরাসরি কখনো না।
 // VITE_SUPABASE_URL/VITE_SUPABASE_ANON_KEY না থাকলে ডেমো মোডে চলে।
@@ -554,6 +615,27 @@ async function getNextMatchTime(afterISO) {
   if (DEMO) return demoMatches().find((m) => m.utc_date >= afterISO)?.utc_date || null;
   const rows = ok(await sb.from("matches").select("utc_date").gte("utc_date", afterISO).order("utc_date").limit(1));
   return rows[0]?.utc_date || null;
+}
+
+// ═════════ লিগ টেবিল, গোলদাতা, সাম্প্রতিক ফল ═════════
+async function getStandings(code) {
+  if (DEMO) return demoStandings(code);
+  return ok(await sb.from("standings").select("*, team:teams(*)").eq("competition_code", code).order("position"));
+}
+
+async function getScorers(code) {
+  if (DEMO) return demoScorers(code);
+  return ok(await sb.from("scorers").select("*, team:teams(*)").eq("competition_code", code).order("goals", { ascending: false }).order("assists", { ascending: false }).limit(20));
+}
+
+async function getTeamStandings(teamId) {
+  if (DEMO) return DEMO_COMPETITIONS.flatMap((c) => demoStandings(c.code).filter((r) => r.team_id === teamId).map((r) => ({ ...r, competition: c })));
+  return ok(await sb.from("standings").select("*, competition:competitions(*)").eq("team_id", teamId));
+}
+
+async function getCompRecent(code, limit = 10) {
+  if (DEMO) return demoMatches().filter((m) => m.competition_code === code && m.status === "FINISHED").reverse().slice(0, limit);
+  return ok(await sb.from("matches").select(MATCH_SELECT).eq("competition_code", code).eq("status", "FINISHED").order("utc_date", { ascending: false }).limit(limit));
 }
 
 // কোনো প্রতিযোগিতার সামনের খেলা
@@ -656,6 +738,10 @@ async function getLeaderboard() {
 }
 
 // ════════════════ components.jsx ════════════════
+// লিগ বা দলের পাতায় যাওয়ার জন্য (App থেকে আসে)
+const NavCtx = createContext({ openLeague: () => {}, openTeam: () => {} });
+const useNav = () => useContext(NavCtx);
+
 const teamName = (team, lang) =>
   !team ? (lang === "bn" ? "নির্ধারিত হয়নি" : "TBD") : lang === "bn" ? team.name_bn || team.short_en || team.name_en : team.short_en || team.name_en;
 const compName = (c, lang) => (c ? (lang === "bn" ? c.name_bn : c.name_en) : "");
@@ -771,6 +857,7 @@ function MatchRow({ m, pred, onOpen }) {
 // ── প্রতিযোগিতা অনুযায়ী ভাগ করা তালিকা ──
 function CompGroups({ matches, preds = {}, onOpen }) {
   const { lang } = useT();
+  const nav = useNav();
   const groups = [];
   const idx = {};
   for (const m of matches) {
@@ -781,7 +868,7 @@ function CompGroups({ matches, preds = {}, onOpen }) {
   groups.sort((a, b) => (a.c?.sort ?? 99) - (b.c?.sort ?? 99));
   return groups.map((g) => (
     <div className="card" style={{ marginBottom: 10 }} key={g.c?.code || "x"}>
-      <div className="comp-h"><CompIcon c={g.c} />{compName(g.c, lang)}</div>
+      <button className="comp-h" onClick={() => g.c && nav.openLeague(g.c.code)}><CompIcon c={g.c} />{compName(g.c, lang)}<span className="comp-go">›</span></button>
       {g.list.map((m) => <MatchRow key={m.id} m={m} pred={preds[m.id]} onOpen={onOpen} />)}
     </div>
   ));
@@ -823,6 +910,7 @@ function Stepper({ v, set }) {
 // ── ম্যাচের বিস্তারিত (নিচ থেকে ওঠা শিট) ──
 function MatchSheet({ m, user, pred, onClose, onSave, onLogin, toast }) {
   const { t, lang } = useT();
+  const nav = useNav();
   const now = useNow(1000 * 20);
   const [h, setH] = useState(pred?.home ?? 1);
   const [a, setA] = useState(pred?.away ?? 1);
@@ -843,15 +931,15 @@ function MatchSheet({ m, user, pred, onClose, onSave, onLogin, toast }) {
       <div className="sheet" onClick={(e) => e.stopPropagation()}>
         <div className="grab" />
         <div className="hero" style={{ boxShadow: "none" }}>
-          <div className="hero-top"><CompIcon c={m.competition} size={16} />{compName(m.competition, lang)}
-            {m.matchday ? <> · {t("matchday")} {num(m.matchday, lang)}</> : null}</div>
+          <button className="hero-top" onClick={() => m.competition && nav.openLeague(m.competition.code)}><CompIcon c={m.competition} size={16} />{compName(m.competition, lang)}
+            {m.matchday ? <> · {t("matchday")} {num(m.matchday, lang)}</> : null} ›</button>
           <div className="hero-teams">
-            <div className="hero-team"><Crest team={m.home} size={56} />{teamName(m.home, lang)}</div>
+            <button className="hero-team" onClick={() => m.home_id && nav.openTeam(m.home_id)}><Crest team={m.home} size={56} />{teamName(m.home, lang)}</button>
             <div className="hero-vs">
               {showScore ? <div style={{ fontFamily: "Inter", fontSize: 30, fontWeight: 800, opacity: 1 }}>{num(m.home_score, lang)} - {num(m.away_score, lang)}</div> : t("vs")}
               <div style={{ fontSize: 12, marginTop: 4 }}><StatusText m={m} /></div>
             </div>
-            <div className="hero-team"><Crest team={m.away} size={56} />{teamName(m.away, lang)}</div>
+            <button className="hero-team" onClick={() => m.away_id && nav.openTeam(m.away_id)}><Crest team={m.away} size={56} />{teamName(m.away, lang)}</button>
           </div>
           <div className="hero-time">
             <div className="big">{timeLabel(m.utc_date, lang)}</div>
@@ -1108,7 +1196,7 @@ function About({ goProfile, user }) {
   );
 }
 
-function Home({ user, myTeams, teamsById, preds, onOpen, goProfile, goMatches }) {
+function Home({ user, myTeams, teamsById, comps = [], preds, onOpen, goProfile, goMatches }) {
   const { t, lang } = useT();
   const [mine, setMine] = useState(null);
   const [day, setDay] = useState(dayKey(new Date()));
@@ -1166,6 +1254,13 @@ function Home({ user, myTeams, teamsById, preds, onOpen, goProfile, goMatches })
         <div className="sec">
           <div className="sec-h"><h2>{t("rivalWatch")}</h2></div>
           <RivalWatch rivals={rival} teamsById={teamsById} onOpen={onOpen} />
+        </div>
+      )}
+
+      {comps.length > 0 && (
+        <div className="sec" style={{ marginTop: 22 }}>
+          <div className="sec-h"><h2>{lang === "bn" ? "লিগ" : "Leagues"}</h2></div>
+          <LeagueStrip comps={comps} />
         </div>
       )}
 
@@ -1250,6 +1345,7 @@ function Matches({ comps, preds, onOpen }) {
   const { t, lang } = useT();
   const [day, setDay] = useState(dayKey(new Date()));
   const [comp, setComp] = useState("ALL");
+  const nav = useNav();
   return (
     <>
       <DateStrip day={day} setDay={setDay} />
@@ -1262,7 +1358,10 @@ function Matches({ comps, preds, onOpen }) {
         ))}
       </div>
       <div className="sec">
-        <div className="sec-h"><h2>{dayLabel(day, lang)}</h2></div>
+        <div className="sec-h">
+          <h2>{dayLabel(day, lang)}</h2>
+          {comp !== "ALL" && <button className="link" onClick={() => nav.openLeague(comp)}>{lang === "bn" ? "টেবিল দেখো" : "Table"} →</button>}
+        </div>
         <DayMatches day={day} setDay={setDay} comp={comp} preds={preds} onOpen={onOpen} />
       </div>
     </>
@@ -1559,8 +1658,9 @@ function Profile({ user, profile, myTeams, teamsById, lang, setLang, theme, setT
   if (!user) return <>{<AuthForm />}{settings}</>;
 
   const name = profile?.display_name || user.email;
+  const nav = useNav();
   const chips = (ids) => ids.map((id) => teamsById[id]).filter(Boolean).map((tm) => (
-    <span className="tchip" key={tm.id}><Crest team={tm} size={18} />{teamName(tm, lang)}</span>
+    <button className="tchip" key={tm.id} onClick={() => nav.openTeam(tm.id)}><Crest team={tm} size={18} />{teamName(tm, lang)}</button>
   ));
   return (
     <>
@@ -1853,6 +1953,226 @@ function AskSheet({ teams, preds, onOpen, onClose }) {
   );
 }
 
+// ════════════════ pages/League.jsx ════════════════
+const ord = (n, lang) => {
+  if (lang !== "bn") return n + (n % 10 === 1 && n % 100 !== 11 ? "st" : n % 10 === 2 && n % 100 !== 12 ? "nd" : n % 10 === 3 && n % 100 !== 13 ? "rd" : "th");
+  const special = { 1: "১ম", 2: "২য়", 3: "৩য়", 4: "৪র্থ", 6: "৬ষ্ঠ" };
+  return special[n] || num(n, "bn") + "তম";
+};
+
+// টেবিলের রঙের দাগ: চ্যাম্পিয়ন্স লিগে প্রথম ৮ সরাসরি, ৯–২৪ প্লে-অফ; লিগে প্রথম ৪ ইউসিএল, শেষ ৩ অবনমন
+function zone(code, pos, total) {
+  if (code === "CL") return pos <= 8 ? "z-up" : pos <= 24 ? "z-mid" : "";
+  if (pos <= 4) return "z-up";
+  const down = code === "BL1" || code === "FL1" ? 2 : 3;
+  return pos > total - down ? "z-down" : "";
+}
+
+function Loading() { return <div className="card"><div className="spin" /></div>; }
+
+function DatedRows({ list, preds, onOpen }) {
+  const { lang } = useT();
+  return list.map((m) => (
+    <div key={m.id}>
+      <div className="muted" style={{ fontSize: 11.5, padding: "8px 14px 0" }}>{dayLabel(dayKey(m.utc_date), lang, { short: true })}</div>
+      <MatchRow m={m} pred={preds[m.id]} onOpen={onOpen} />
+    </div>
+  ));
+}
+
+// ═════════ লিগের পাতা ═════════
+function League({ code, comps, preds, onOpen }) {
+  const { lang } = useT();
+  const nav = useNav();
+  const c = comps.find((x) => x.code === code) || { code, name_bn: code, name_en: code };
+  const [tab, setTab] = useState("table");
+  const [table, setTable] = useState(null);
+  const [scorers, setScorers] = useState(null);
+  const [games, setGames] = useState(null);
+  const bn = lang === "bn";
+
+  useEffect(() => { setTable(null); getStandings(code).then(setTable).catch(() => setTable([])); }, [code]);
+  useEffect(() => {
+    if (tab === "scorers" && scorers === null) getScorers(code).then(setScorers).catch(() => setScorers([]));
+    if (tab === "matches" && games === null)
+      Promise.all([getCompUpcoming(code, 10), getCompRecent(code, 10)]).then(([up, past]) => setGames({ up, past })).catch(() => setGames({ up: [], past: [] }));
+  }, [tab, code]);
+
+  const notYet = bn ? "এখনো আসেনি। প্রতিদিন সকালে হালনাগাদ হয়।" : "Not available yet. Updated every morning.";
+
+  return (
+    <>
+      <div className="page-head">
+        <button className="back" onClick={() => window.history.back()} aria-label="back">←</button>
+        <CompIcon c={c} size={34} />
+        <h1>{compName(c, lang)}</h1>
+      </div>
+      <div className="sec" style={{ marginTop: 10 }}>
+        <div className="seg seg3">
+          {[["table", bn ? "টেবিল" : "Table"], ["matches", bn ? "ম্যাচ" : "Matches"], ["scorers", bn ? "গোলদাতা" : "Scorers"]].map(([k, l]) => (
+            <button key={k} className={tab === k ? "on" : ""} onClick={() => setTab(k)}>{l}</button>
+          ))}
+        </div>
+      </div>
+
+      {tab === "table" && (
+        <div className="sec">
+          {table === null ? <Loading /> : !table.length ? <div className="card empty">{bn ? "টেবিল " : "Table "}{notYet}</div> : (
+            <>
+              <div className="card">
+                <div className="tbl tbl-h">
+                  <span>#</span><span>{bn ? "দল" : "Team"}</span><span>{bn ? "খে" : "P"}</span><span>{bn ? "জ" : "W"}</span><span>{bn ? "ড্র" : "D"}</span><span>{bn ? "হা" : "L"}</span><span>+/-</span><span>{bn ? "প" : "Pts"}</span>
+                </div>
+                {table.map((r) => (
+                  <button key={r.team_id} className={"tbl " + zone(code, r.position, table.length)} onClick={() => nav.openTeam(r.team_id)}>
+                    <span className="pos">{num(r.position, lang)}</span>
+                    <span className="tm"><Crest team={r.team} size={20} /><b>{teamName(r.team, lang)}</b></span>
+                    <span>{num(r.played, lang)}</span><span>{num(r.won, lang)}</span><span>{num(r.draw, lang)}</span><span>{num(r.lost, lang)}</span>
+                    <span>{r.gd > 0 ? "+" : ""}{num(r.gd, lang)}</span>
+                    <span className="pts">{num(r.points, lang)}</span>
+                  </button>
+                ))}
+              </div>
+              <div className="legend">
+                {code === "CL"
+                  ? <><i className="z-up" />{bn ? "শেষ ষোলোয় সরাসরি" : "Round of 16"} <i className="z-mid" />{bn ? "প্লে-অফ" : "Play-offs"}</>
+                  : <><i className="z-up" />{bn ? "চ্যাম্পিয়ন্স লিগ" : "Champions League"} <i className="z-down" />{bn ? "অবনমন" : "Relegation"}</>}
+              </div>
+            </>
+          )}
+        </div>
+      )}
+
+      {tab === "matches" && (
+        <div className="sec">
+          {games === null ? <Loading /> : (
+            <>
+              <div className="sec-h"><h2>{bn ? "সামনের খেলা" : "Upcoming"}</h2></div>
+              {games.up.length ? <div className="card"><DatedRows list={games.up} preds={preds} onOpen={onOpen} /></div> : <div className="card empty">{bn ? "সামনে কোনো খেলা নেই" : "No upcoming matches"}</div>}
+              <div className="sec-h" style={{ marginTop: 16 }}><h2>{bn ? "সাম্প্রতিক ফল" : "Recent results"}</h2></div>
+              {games.past.length ? <div className="card"><DatedRows list={games.past} preds={preds} onOpen={onOpen} /></div> : <div className="card empty">{bn ? "কোনো ফল নেই" : "No results"}</div>}
+            </>
+          )}
+        </div>
+      )}
+
+      {tab === "scorers" && (
+        <div className="sec">
+          {scorers === null ? <Loading /> : !scorers.length ? <div className="card empty">{bn ? "গোলদাতার তালিকা " : "Scorers "}{notYet}</div> : (
+            <div className="card">
+              <div className="scr scr-h"><span>#</span><span>{bn ? "খেলোয়াড়" : "Player"}</span><span>{bn ? "অ্যাসিস্ট" : "Ast"}</span><span>{bn ? "গোল" : "Goals"}</span></div>
+              {scorers.map((s, i) => (
+                <div className="scr" key={s.player_id}>
+                  <span className="pos">{num(i + 1, lang)}</span>
+                  <span className="pl">
+                    <b>{s.player_name}</b>
+                    <button className="pl-team" onClick={() => s.team_id && nav.openTeam(s.team_id)}><Crest team={s.team} size={14} />{teamName(s.team, lang)}</button>
+                  </span>
+                  <span className="muted">{num(s.assists ?? 0, lang)}</span>
+                  <span className="pts">{num(s.goals, lang)}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+    </>
+  );
+}
+
+// ═════════ দলের পাতা ═════════
+const RES = { W: ["জ", "W"], D: ["ড", "D"], L: ["হ", "L"] };
+
+function Team({ id, teamsById, preds, onOpen }) {
+  const { lang } = useT();
+  const nav = useNav();
+  const bn = lang === "bn";
+  const [pos, setPos] = useState(null);
+  const [up, setUp] = useState(null);
+  const [past, setPast] = useState(null);
+  const team = teamsById[id] || up?.map((m) => (m.home_id === id ? m.home : m.away))[0] || past?.map((m) => (m.home_id === id ? m.home : m.away))[0];
+
+  useEffect(() => {
+    setPos(null); setUp(null); setPast(null);
+    getTeamStandings(id).then((r) => setPos(r.sort((a, b) => (a.competition_code === "CL") - (b.competition_code === "CL")))).catch(() => setPos([]));
+    getTeamMatches([id], { upcoming: true, limit: 6 }).then(setUp).catch(() => setUp([]));
+    getTeamMatches([id], { upcoming: false, limit: 6 }).then(setPast).catch(() => setPast([]));
+  }, [id]);
+
+  const res = (m) => {
+    const me = m.home_id === id ? m.home_score : m.away_score, them = m.home_id === id ? m.away_score : m.home_score;
+    return me > them ? "W" : me < them ? "L" : "D";
+  };
+  const form = (past || []).slice(0, 5).reverse();
+  const main = pos?.[0];
+
+  return (
+    <>
+      <div className="page-head">
+        <button className="back" onClick={() => window.history.back()} aria-label="back">←</button>
+      </div>
+      <div className="team-hero">
+        <Crest team={team} size={84} />
+        <h1>{teamName(team, lang)}</h1>
+        {team && bn && <div className="muted" style={{ fontSize: 13 }}>{team.name_en}</div>}
+        {pos?.length > 0 && (
+          <div className="team-pos">
+            {pos.map((p) => (
+              <button key={p.competition_code} className="chip" onClick={() => nav.openLeague(p.competition_code)}>
+                <CompIcon c={p.competition} size={16} />{compName(p.competition, lang)} · {ord(p.position, lang)}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {main && (
+        <div className="sec">
+          <div className="card stat-row">
+            {[[bn ? "খেলা" : "Played", main.played], [bn ? "জয়" : "Won", main.won], [bn ? "ড্র" : "Drawn", main.draw], [bn ? "হার" : "Lost", main.lost], [bn ? "গোল" : "Goals", `${num(main.gf, lang)}-${num(main.ga, lang)}`], [bn ? "পয়েন্ট" : "Points", main.points]].map(([l, v]) => (
+              <div key={l}><b>{typeof v === "number" ? num(v, lang) : v}</b><span>{l}</span></div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {form.length > 0 && (
+        <div className="sec">
+          <div className="sec-h"><h2>{bn ? "শেষ পাঁচ ম্যাচের ফর্ম" : "Form (last 5)"}</h2></div>
+          <div className="form-row">
+            {form.map((m) => { const r = res(m); return <button key={m.id} className={"badge big " + r} onClick={() => onOpen(m)}>{RES[r][bn ? 0 : 1]}</button>; })}
+          </div>
+        </div>
+      )}
+
+      <div className="sec">
+        <div className="sec-h"><h2>{bn ? "সামনের খেলা" : "Upcoming"}</h2></div>
+        {up === null ? <Loading /> : up.length ? <div className="card"><DatedRows list={up} preds={preds} onOpen={onOpen} /></div> : <div className="card empty">{bn ? "সামনে কোনো খেলা সূচিতে নেই" : "No upcoming fixtures"}</div>}
+      </div>
+      <div className="sec">
+        <div className="sec-h"><h2>{bn ? "সাম্প্রতিক ফল" : "Recent results"}</h2></div>
+        {past === null ? <Loading /> : past.length ? <div className="card"><DatedRows list={past} preds={preds} onOpen={onOpen} /></div> : <div className="card empty">{bn ? "কোনো ফল নেই" : "No results"}</div>}
+      </div>
+    </>
+  );
+}
+
+// ═════════ লিগের সারি (হোম আর ম্যাচ পাতায়) ═════════
+function LeagueStrip({ comps }) {
+  const { lang } = useT();
+  const nav = useNav();
+  return (
+    <div className="league-strip">
+      {comps.map((c) => (
+        <button key={c.code} className="league-tile" onClick={() => nav.openLeague(c.code)}>
+          <CompIcon c={c} size={30} />
+          <span>{compName(c, lang)}</span>
+        </button>
+      ))}
+    </div>
+  );
+}
+
 // ════════════════ App.jsx ════════════════
 const TABS = [
   { id: "home", path: "/", Icon: HomeIcon },
@@ -1861,6 +2181,13 @@ const TABS = [
   { id: "profile", path: "/profile", Icon: UserIcon },
 ];
 const tabFromPath = () => TABS.find((x) => x.path === window.location.pathname)?.id || "home";
+// /league/PL বা /team/86 হলে সেই পাতা
+const viewFromPath = () => {
+  const [, kind, id] = window.location.pathname.split("/");
+  if (kind === "league" && id) return { kind: "league", code: id.toUpperCase() };
+  if (kind === "team" && /^\d+$/.test(id || "")) return { kind: "team", id: +id };
+  return null;
+};
 const stored = (k, d) => { try { return localStorage.getItem(k) || d; } catch { return d; } };
 const store = (k, v) => { try { localStorage.setItem(k, v); } catch { /* ignore */ } };
 
@@ -1883,6 +2210,7 @@ export default function App() {
   const [lang, setLangS] = useState(() => stored("kk_lang", "bn"));
   const [theme, setThemeS] = useState(() => stored("kk_theme", "dark"));
   const [tab, setTab] = useState(tabFromPath);
+  const [view, setView] = useState(viewFromPath);
   const [comps, setComps] = useState([]);
   const [teamsById, setTeamsById] = useState({});
   const [user, setUser] = useState(null);
@@ -1909,13 +2237,24 @@ export default function App() {
   const go = (id) => {
     const p = TABS.find((x) => x.id === id).path;
     if (window.location.pathname !== p) window.history.pushState({}, "", p);
-    setTab(id); setEditing(false); window.scrollTo(0, 0);
+    setTab(id); setView(null); setEditing(false); window.scrollTo(0, 0);
   };
   useEffect(() => {
-    const onPop = () => { setSheet(null); setTab(tabFromPath()); };
+    const onPop = () => { setSheet(null); setView(viewFromPath()); if (!viewFromPath()) setTab(tabFromPath()); window.scrollTo(0, 0); };
     window.addEventListener("popstate", onPop);
     return () => window.removeEventListener("popstate", onPop);
   }, []);
+  // লিগ/দলের পাতা খোলা (ম্যাচের শিট খোলা থাকলে সেটা বন্ধ করে)
+  const openView = (path, v) => {
+    if (window.history.state?.sheet) window.history.replaceState({}, "", path);
+    else window.history.pushState({}, "", path);
+    setSheet(null); setAsking(false); setEditing(false); setView(v); window.scrollTo(0, 0);
+  };
+  const nav = {
+    openLeague: (code) => openView(`/league/${code}`, { kind: "league", code }),
+    openTeam: (id) => openView(`/team/${id}`, { kind: "team", id }),
+  };
+
   const openMatch = (m) => { window.history.pushState({ sheet: 1 }, ""); setSheet(m); };
   const closeMatch = () => { if (window.history.state?.sheet) window.history.back(); else setSheet(null); };
 
@@ -1960,6 +2299,7 @@ export default function App() {
 
   return (
     <LangCtx.Provider value={lang}>
+    <NavCtx.Provider value={nav}>
       <div className="app">
         <header className="top">
           <div className="brand">
@@ -1986,8 +2326,12 @@ export default function App() {
             onDone={finishOnboarding}
             onCancel={editing ? () => setEditing(false) : skipOnboarding}
           />
+        ) : view?.kind === "league" ? (
+          <League key={view.code} code={view.code} comps={comps} preds={preds} onOpen={openMatch} />
+        ) : view?.kind === "team" ? (
+          <Team key={view.id} id={view.id} teamsById={teamsById} preds={preds} onOpen={openMatch} />
         ) : tab === "home" ? (
-          <Home user={user} myTeams={myTeams} teamsById={teamsById} preds={preds} onOpen={openMatch} goProfile={() => go("profile")} goMatches={() => go("matches")} />
+          <Home user={user} myTeams={myTeams} teamsById={teamsById} comps={comps} preds={preds} onOpen={openMatch} goProfile={() => go("profile")} goMatches={() => go("matches")} />
         ) : tab === "matches" ? (
           <Matches comps={comps} preds={preds} onOpen={openMatch} />
         ) : tab === "predict" ? (
@@ -2012,6 +2356,7 @@ export default function App() {
         />
       )}
       {toastMsg && <div className="toast">{toastMsg}</div>}
+    </NavCtx.Provider>
     </LangCtx.Provider>
   );
 }
