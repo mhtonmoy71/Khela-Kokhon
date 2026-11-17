@@ -52,22 +52,16 @@ async function fetchPlayer(id, club) {
   if (!r.ok) return { status: r.status };
   const p = await r.json();
   // এই মৌসুমে সাইটের ৬টা প্রতিযোগিতায় হিসাব; না পেলে শুধু পরিচয় দেখাবে
-  let stats = null, statsNote = null;
+  // ফ্রি টায়ারে মৌসুমের যোগফল (গোল, মিনিট, কার্ড) নেই — শুধু কয়টা ম্যাচে ছিল সেটা পাওয়া যায়
+  let stats = null;
   try {
     const from = seasonStart(), to = today();
-    const m = await fetch(`${FD}/persons/${id}/matches?competitions=${COMPS}&dateFrom=${from}&dateTo=${to}&limit=100`, h);
-    if (!m.ok) statsNote = `source ${m.status}`;
-    else {
-      const d = await m.json();
-      const a = d.aggregations || {};
-      if (a.matchesOnPitch == null) statsNote = ("agg " + JSON.stringify(d.aggregations) + " rs " + JSON.stringify(d.resultSet) + " f " + JSON.stringify(d.filters)).slice(0, 400);
-      else stats = {
-        from, to, matches: a.matchesOnPitch ?? 0, starts: a.startingXI ?? 0, minutes: a.minutesPlayed ?? 0,
-        goals: a.goals ?? 0, assists: a.assists ?? 0, penalties: a.penalties ?? 0,
-        yellow: a.yellowCards ?? 0, red: (a.redCards ?? 0) + (a.yellowRedCards ?? 0),
-      };
+    const m = await fetch(`${FD}/persons/${id}/matches?competitions=${COMPS}&dateFrom=${from}&dateTo=${to}&limit=1`, h);
+    if (m.ok) {
+      const rs = (await m.json()).resultSet || {};
+      if (rs.count != null) stats = { from, to, matches: rs.count, competitions: rs.competitions || null };
     }
-  } catch (e) { statsNote = String(e.message || e).slice(0, 80); /* হিসাব ছাড়াই চলবে */ }
+  } catch { /* হিসাব ছাড়াই চলবে */ }
   // আন্তর্জাতিক বিরতিতে currentTeam জাতীয় দল হতে পারে; সাইটের জানা ক্লাব থাকলে সেটাই দেখাই
   let t = p.currentTeam;
   if (club && (!t || t.id !== club.id)) t = { id: club.id, name: club.name, shortName: club.shortName || null, crest: club.crest || null };
@@ -77,7 +71,7 @@ async function fetchPlayer(id, club) {
       dateOfBirth: p.dateOfBirth || null, nationality: p.nationality || null,
       position: p.position || p.section || null, shirtNumber: p.shirtNumber ?? null,
       team: t ? { id: t.id, name: t.name, shortName: t.shortName || null, crest: t.crest || null, contractUntil: t.contract?.until || null } : null,
-      stats, statsNote,
+      stats,
     },
   };
 }
@@ -103,7 +97,7 @@ export default async function handler(req, res) {
   if (q.type === "team" && /^\d{1,7}$/.test(q.id || "")) {
     cacheKey = `team:${q.id}`; fdPath = `/teams/${q.id}`; maxAge = 7 * DAY; trim = trimTeam; check = `teams?id=eq.${q.id}&select=id`;
   } else if (q.type === "player" && /^\d{1,9}$/.test(q.id || "")) {
-    cacheKey = `player3:${q.id}`; maxAge = 2 * DAY;
+    cacheKey = `player4:${q.id}`; maxAge = 2 * DAY;
     // সাইটে দেখা খেলোয়াড় হলেই: গোলদাতার তালিকায় আছে, বা কোনো দলের জমা স্কোয়াডে আছে
     check = [`scorers?player_id=eq.${q.id}&select=player_id&limit=1`,
       `api_cache?key=like.team%3A*&data->squad=cs.${encodeURIComponent(JSON.stringify([{ id: +q.id }]))}&select=key&limit=1`];
