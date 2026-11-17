@@ -2372,6 +2372,11 @@ const poss = (name, lang) => (lang !== "bn" ? `${name}'s` : /[\u09BE-\u09CC]$/.t
 // ════════ খেলোয়াড়ের প্রশ্ন ════════
 const COMP_LABEL = { CL: ["চ্যাম্পিয়ন্স লিগ", "Champions League"], PL: ["প্রিমিয়ার লিগ", "Premier League"], PD: ["লা লিগা", "La Liga"], BL1: ["বুন্দেসলিগা", "Bundesliga"], SA: ["সিরি আ", "Serie A"], FL1: ["লিগ আঁ", "Ligue 1"] };
 const compLabel = (code, lang) => (COMP_LABEL[code] || [code, code])[lang === "bn" ? 0 : 1];
+// একটা দল/খেলোয়াড় যে প্রতিযোগিতাগুলোয় আছে, নাম ধরে: "লা লিগা ও চ্যাম্পিয়ন্স লিগ" (লিগ আগে, ইউসিএল পরে)
+const compList = (codes, lang) => {
+  const list = [...new Set(codes.filter(Boolean))].sort((a, b) => (a === "CL") - (b === "CL")).map((c) => compLabel(c, lang));
+  return list.length < 2 ? list.join("") : list.slice(0, -1).join(", ") + (lang === "bn" ? " ও " : " & ") + list[list.length - 1];
+};
 // বাংলায় লেখা নাম (এমবাপ্পে) আর ইংরেজি নাম (Mbappé) একই "কঙ্কালে" নামিয়ে মেলানো
 const BN2L = {
   "ক": "k", "খ": "k", "গ": "g", "ঘ": "g", "ঙ": "n", "চ": "c", "ছ": "c", "জ": "j", "ঝ": "j", "ঞ": "n",
@@ -2510,7 +2515,7 @@ async function answerPlayer(q, teams, lang) {
   }
   const total = rows.reduce((t, x) => t + x.goals, 0), totalA = rows.reduce((t, x) => t + (x.assists || 0), 0);
   const head = rows.length > 1
-    ? (bn ? `${name}${club ? ` (${club})` : ""} এই মৌসুমে সাইটের প্রতিযোগিতাগুলোয় মোট ${num(total, "bn")} গোল, ${num(totalA, "bn")} অ্যাসিস্ট।\n` : `${name}${club ? ` (${club})` : ""}: ${total} goals and ${totalA} assists this season.\n`)
+    ? (bn ? `${name}${club ? ` (${club})` : ""} এই মৌসুমে ${compList(rows.map((x) => x.competition_code), "bn")} মিলিয়ে মোট ${num(total, "bn")} গোল, ${num(totalA, "bn")} অ্যাসিস্ট।\n` : `${name}${club ? ` (${club})` : ""}: ${total} goals and ${totalA} assists this season across ${compList(rows.map((x) => x.competition_code), "en")}.\n`)
     : (bn ? `${name}${club ? ` (${club})` : ""}, এই মৌসুমে ` : `${name}${club ? ` (${club})` : ""} this season — `);
   return { text: head + rows.map(line).join("\n") + note, matches: [], players: rows.map((x) => ({ ...x, code: x.competition_code })) };
 }
@@ -2938,7 +2943,7 @@ function Player({ id, teamsById, comps }) {
       )}
       {(st || scoring.length > 0) && (
         <div className="sec">
-          <div className="sec-h"><h2>{bn ? "এই মৌসুমে" : "This season"}</h2><span className="muted" style={{ fontSize: 12 }}>{bn ? "সাইটের ৬ প্রতিযোগিতায়" : "In the 6 competitions"}</span></div>
+          <div className="sec-h"><h2>{bn ? "এই মৌসুমে" : "This season"}</h2><span className="muted" style={{ fontSize: 12 }}>{compList([...(st?.competitions || "").split(","), ...scoring.map((r) => r.competition_code)], lang)}</span></div>
           <div className="card stat-grid" style={{ gridTemplateColumns: `repeat(${tiles.length}, 1fr)` }}>
             {tiles.map(([l, v]) => <div key={l}><b>{num(v, lang)}</b><span>{l}</span></div>)}
           </div>
@@ -3036,17 +3041,22 @@ function Team({ id, teamsById, preds, onOpen }) {
       {tab === "squad" ? <div className="sec"><Squad info={info} lang={lang} /></div> : (<>
       {main && (
         <div className="sec">
-          <div className="card stat-row">
-            {[[bn ? "খেলা" : "Played", main.played], [bn ? "জয়" : "Won", main.won], [bn ? "ড্র" : "Drawn", main.draw], [bn ? "হার" : "Lost", main.lost], [bn ? "গোল" : "Goals", `${num(main.gf, lang)}-${num(main.ga, lang)}`], [bn ? "পয়েন্ট" : "Points", main.points]].map(([l, v]) => (
-              <div key={l}><b>{typeof v === "number" ? num(v, lang) : v}</b><span>{l}</span></div>
-            ))}
-          </div>
+          {pos.map((st) => (
+            <div key={st.competition_code} style={{ marginBottom: 10 }}>
+              <div className="sec-h"><h2 className="my-h"><CompIcon c={st.competition} size={16} />{compLabel(st.competition_code, lang)}{st.position ? <span className="muted" style={{ fontWeight: 500, fontSize: 13 }}> · {ord(st.position, lang)}</span> : null}</h2></div>
+              <div className="card stat-row">
+                {[[bn ? "খেলা" : "Played", st.played], [bn ? "জয়" : "Won", st.won], [bn ? "ড্র" : "Drawn", st.draw], [bn ? "হার" : "Lost", st.lost], [bn ? "গোল" : "Goals", `${num(st.gf, lang)}-${num(st.ga, lang)}`], [bn ? "পয়েন্ট" : "Points", st.points]].map(([l, v]) => (
+                  <div key={l}><b>{typeof v === "number" ? num(v, lang) : v}</b><span>{l}</span></div>
+                ))}
+              </div>
+            </div>
+          ))}
         </div>
       )}
 
       {form.length > 0 && (
         <div className="sec">
-          <div className="sec-h"><h2>{bn ? "শেষ পাঁচ ম্যাচের ফর্ম" : "Form (last 5)"}</h2></div>
+          <div className="sec-h"><h2>{bn ? "শেষ পাঁচ ম্যাচের ফর্ম" : "Form (last 5)"}</h2><span className="muted" style={{ fontSize: 12 }}>{compList(form.map((m) => m.competition_code), lang)}</span></div>
           <div className="form-row">
             {form.map((m) => { const r = res(m); return <button key={m.id} className={"badge big " + r} onClick={() => onOpen(m)}>{RES[r][bn ? 0 : 1]}</button>; })}
           </div>
