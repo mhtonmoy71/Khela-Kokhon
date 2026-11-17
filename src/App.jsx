@@ -356,6 +356,19 @@ img { display: block; }
 .row.my { background: color-mix(in srgb, var(--amber) 6%, transparent); }
 .my-h { display: flex; align-items: center; gap: 6px; }
 .fav-wrap { display: grid; gap: 10px; }
+.follow-h { display: flex; align-items: center; gap: 10px; width: 100%; padding: 13px 16px; background: var(--card2); border-bottom: 1px solid var(--line); font-size: 15.5px; text-align: left; }
+.follow-h .fav-star { font-size: 17px; margin: 0; }
+.follow-h b { flex: 1; }
+.chev { font-size: 18px; line-height: 1; color: var(--muted); transform: rotate(180deg); transition: transform .15s; }
+.chev.up { transform: none; }
+.row { position: relative; }
+.row.has-badge { padding-left: 52px; }
+.row.has-badge .mid .st { display: none; }
+.rbadge { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); min-width: 36px; padding: 4px 6px; border-radius: 9px; background: var(--card2);
+  color: var(--muted); font-size: 11px; font-weight: 700; text-align: center; line-height: 1.2; display: flex; flex-direction: column; }
+.rbadge.day { font-weight: 500; font-size: 10px; }
+.rbadge.day b { font-size: 11px; }
+.rbadge.live { color: var(--red); background: color-mix(in srgb, var(--red) 12%, transparent); }
 
 /* ── লিগের তালিকা ── */
 .lg-list { display: grid; gap: 10px; }
@@ -398,8 +411,7 @@ img { display: block; }
   .row:hover, .comp-h:hover, .fl-row:hover { background: var(--card2); }
   .league-strip { margin: 0; padding: 0; flex-wrap: wrap; }
 
-  /* প্রিয় দলের খেলা: বড় কার্ড আর বাকি তালিকা পাশাপাশি */
-  .fav-wrap { grid-template-columns: 1fr 1fr; align-items: start; gap: 16px; }
+  .follow { max-width: 760px; }
   .lg-list { grid-template-columns: repeat(3, 1fr); gap: 14px; }
   .lg-card:hover { background: var(--card2); border-color: color-mix(in srgb, var(--green) 40%, transparent); }
 
@@ -438,6 +450,7 @@ const S = {
   matches: ["ম্যাচ", "Matches"],
   leagues: ["লিগ", "Leagues"],
   myTeamGames: ["তোমার দলের খেলা", "Your teams"],
+  following: ["ফলো করা দল", "Following"],
   predict: ["প্রেডিকশন", "Predict"],
   profile: ["প্রোফাইল", "Profile"],
   nextMatch: ["পরের খেলা", "Next match"],
@@ -1168,13 +1181,15 @@ function StatusText({ m }) {
 }
 
 // ── ম্যাচের সারি ──
-function MatchRow({ m, pred, onOpen }) {
-  const favs = useContext(FavCtx);
+function MatchRow({ m, pred, onOpen, badge, plain }) {
+  const allFavs = useContext(FavCtx);
+  const favs = plain ? [] : allFavs; // "ফলো করা" কার্ডে সবই প্রিয় দল, তাই আলাদা চিহ্ন লাগে না
   const { lang } = useT();
   const showScore = (isLive(m) || isDone(m)) && m.home_score != null;
   const hw = isDone(m) && m.home_score > m.away_score, aw = isDone(m) && m.away_score > m.home_score;
   return (
-    <button className={"row" + (favs.includes(m.home_id) || favs.includes(m.away_id) ? " my" : "")} onClick={() => onOpen?.(m)}>
+    <button className={"row" + (favs.includes(m.home_id) || favs.includes(m.away_id) ? " my" : "") + (badge ? " has-badge" : "")} onClick={() => onOpen?.(m)}>
+      {badge}
       <div className={"side home" + (hw ? " win" : "")}>
         <span>{favs.includes(m.home_id) && <i className="fav-star">★</i>}{teamName(m.home, lang)}</span>
         <Crest team={m.home} />
@@ -1431,29 +1446,6 @@ const SunIcon = I(<><circle cx="12" cy="12" r="4" /><path d="M12 2v2M12 20v2M4.9
 const MoonIcon = I(<path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z" />);
 
 // ════════════════ pages/Home.jsx ════════════════
-function NextHero({ m, onOpen }) {
-  const { t, lang } = useT();
-  const now = useNow(30000);
-  const live = isLive(m);
-  return (
-    <button className="nx" onClick={() => onOpen(m)}>
-      <div className="nx-top">
-        <span><CompIcon c={m.competition} size={14} />{compName(m.competition, lang)}</span>
-        {live ? <span className="lv"><i className="dot" />{t("live")}</span> : <span className="nx-cd">{countdown(new Date(m.utc_date) - now, lang)}</span>}
-      </div>
-      <div className="nx-mid">
-        <span className="nx-team"><Crest team={m.home} size={30} /><b>{teamName(m.home, lang)}</b></span>
-        <span className="nx-time">
-          {live && m.home_score != null
-            ? <b className="nx-score">{num(m.home_score, lang)} - {num(m.away_score, lang)}</b>
-            : <><b>{timeLabel(m.utc_date, lang)}</b><small>{dayLabel(dayKey(m.utc_date), lang, { short: true })}</small></>}
-        </span>
-        <span className="nx-team r"><b>{teamName(m.away, lang)}</b><Crest team={m.away} size={30} /></span>
-      </div>
-    </button>
-  );
-}
-
 // ── খেলা কখন? কী / কীভাবে কাজ করে / ডেভেলপার ──
 const DEV_PHOTO = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBAUEBAYFBQUGBgYHCQ4JCQgICRINDQoOFRIWFhUSFBQXGiEcFxgfGRQUHScdHyIjJSUlFhwpLCgkKyEkJST/2wBDAQYGBgkICREJCREkGBQYJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCQkJCT/wAARCADwAPADASIAAhEBAxEB/8QAHAAAAgMBAQEBAAAAAAAAAAAABAUCAwYBBwAI/8QAPhAAAgEDAwIFAgQDBwIGAwAAAQIDAAQRBRIhMUEGEyJRYXGBFDJCkSOxwQcVM1JiodEI4RYkQ3Lw8YKisv/EABsBAAIDAQEBAAAAAAAAAAAAAAMEAQIFAAYH/8QALBEAAgIBBAEEAQQBBQAAAAAAAAECEQMEEiExQQUTIlFhFCMycQYzQqGx4f/aAAwDAQACEQMRAD8A8m8S/wBo+oavI6b9qZwMVkptRkl65z7k0MTmo0zPNKbtsHg0uLDHbjVFpuGznJou1vnVwCxxS+vgcVWM2naDtWbyxIeEODn3qxs+YCpI+lZTT9alt8IenStLZXK3O0inYapbrYN5pYsdP7GYd4EEgOSK+j8Qyo2GB+1WXe1bbqBxSVmi/wA4FW0ywyvcjWl6zqNM4rHKjUW3iSNuGOPrTSDU4Zh+YVgdy9pB+9RW+EUm2O4Jb2TJquo0mnq1Kjf0P+XahcZY2j0djHMv5hWU8QT2djOPMlG72HJoFdYu4V5bI+Tg0BDKk92bq6Kl93Cnoo7Vj5tPFPh2aes9dw6rGoxjT/Pg0EGsIIEkazuUj7OU4NPbLVba5hBhkVvjvSiPVYpolQEMo60nvr6Kzn8yAHaevOOc/wAqqsTXgYx+pLSP3FJSj5+zaOY5Vw6A5pRf6JZz8sFAPTIrJ3es3f40XUczooIAjU9BxkURLHLeK93JdS28DEhMsS5rtriEn69g1EZRWPdX39ff4C5vDFq+4QuNy8+k0Guh30MmIZ3x2zzQTyTWHlNt2E5IlHX71ODXfJO+aZ3OegJ5H9DU7peOTLer0m9bobH/AHQ5t31a04kAYe4p5pMzzDLjDVm7bxrZxqYpYbmRex280dpvijTGnw0jQZPHmKRQ5J90a2n1+m9yG3Na/LNScV0VTHMkyh43VlPQg5BqwGus9SmnyiVdqOa6DXEn2BXCtdrtScQKmuYIqyuEVBxHNcaNH6qKngV8BXWRVnhJNcr419Th8Go4a5mvs1yuJR3NOdO1L8LFknkUmHWpHJGKlOis4KapjS91+6ufSHIWo2q3EyedJKYoQcbz1P0HeqtN05rqQM4Plj370+FnFMVkcEqnCL0A+lUlOuhiGLdyymCzE6b3ZooB/mPqapy6lBZJ5duoUY645q6ZFeTZuO1eAq/1qBsYIxudUQH4yTQ277Gar+ItOqXMzfw0kYfI4qX42Rhygz7Z61fJ5ZBVC5HsxxQEyAHhVI/93NSijbXkYw3JismaLIJYnrQL6g0qlX4NdhcLblRxnI4NLdrGQBc8noatFvoiU2lwOLZvMYlj6R3+auku3ZQqMSF4XuBQEkpijjiX8xGatjkRAFZj/wC0f1qL+yYzceEXiLcCzlnP1qOZOdlsR/8AjU1uVJA6D9K0dFO6ryuz5JxUNl6vyCRTY/xYgAO+MVZNcxz8FgCfcDmozzlmPIb/AHoSSNDyANx/2qG7CRk4qky7T9XvdAusxMzwk5KHlW/4Nej6bqMWpWkdzCfS4z9D7V5cJjGNrcj2IpvoGvjSZSCuYX5ZR0+oqk43yjf9D9Zeln7WaXwf/H/h6MDX2aHsruC/hWa2cOjDt2onaaDZ9EhOM4qUXaZ9ur7dXMGvq6yx9k19uNczX2amzrJbqlmpQWs1w2Io2b6CnFn4XuZcNMwQe1XjGUuhbPrMOBXkkkfm6uGu1w02fDzhrmK7XwriUWwxNKwVRkmm0GkiNN9wML/M+1T8MWIuJmlf8qDNML0i4vNzNtih9+mfahzsbwKO1yfZUziJFRE6AYQdz2Bo2OCQQAkrvI6d19/pS43KJJtiVnkY545Yn+gomW5ltIt0xUyEemNei/X3NVZeISkSQqXZgvcnNC3Nyh/wwX++aCEFzdnzrjcI/wDVwD9qhNcx2ylY9ufgVFHOZyW4cZBQY+aAmuBk4xXJbiSYnAJFUNE5HrUD+dXSASm30SW46rnj618koDF2J46CqWUdAKsMZwO4+Kkomwlptp345wAp9qlBmQ+o4B9hzVH5gBg5HSpNuUetiB7Cql0w7zGtz/AiDP8A5m5NWI12+HmcIv8Aq6/YUsW7MIIjAGe55Nd/Fs5/McV1Ft6DZrpIiVQkk/vQxaWU7icfeuZTqEzn5rpZlABAHsBXEOTZMSsBtf1j561HeCp2HFVPME471FGRunBNdR3ueBzoGvTaVdKyk7GOGTtXoVtr8Myg7hzXkhBByp6dvatFptwZ7ZcnleKY0+GGWWyRsaD13PoobY8r6PRo7+GT9Qq3ejjg1g0mmiPpdqPs9Ru3lSNAXZjgAd6Pk9HfcWeg03+YYpcZYtGrWCSRgqAkn2rQ6T4Z3AS3Z+dtEeHNHNrapNdAGZhnB7U83cUgtOsb+XIXXetSn8cDpfZyCCG2ULFGoA+KIBJGaHLEdBXUnJ4IxXSmzAlJydtn5IrhqboVJqBoh5iiNWQRmWVY1BYscACoYpvotrhZLjHIG0H29zXNloq2M7KP8HaeQjEAcyuO/wACqIjJdF2/LApzk9z8VNEaaRoQWAIwf9IP9a7fsFhEFuCEXjihsYVIrjuEhYJAoyxwW7mi2KI3mzEEgftQOY7NAduZOgHtUgcD+IP4h5IJ4Uf81UJdHZJZ75sQqce56Vz+5P1Tu7N/lFSXU4YCSWLf6V4FU3GuMw/hxBfvmpKNrySmt44BgIEA9+TSqdw77UyxPGa7PcS3D+tiSewrqQ7Mov5z1PtUopKV9FXlFsKvTnn3NE21rOzbUBOcdqL06wedwAM44Fbiw8P+SpLRbnRcDHvQp5do1h0u6mzHnTJVQF8q3sB1oGfTG5IDH616QNFLrukTntS660je5AUfXtQPfHXok0edyWjoelffhnxxxW3m0BcHAyaAm0N06LiirOmLy0LXRm0ideh+9dkkCdMM3vTOfTpF420uuLJhkkc9jRYzTFcmCUANniZvUCPmuPFgZQ5HxUHDI2GH71JSyZHbrRBW/slFKTweCK0Ghspib3BrOnH5x2rff2OaXb654vjsLlN6PC5HGQGGCM1D1H6dPLXRGRvY6CLHRL7UMfh7aRx744rceC/CBs2N7fJiQflU9q9QfQLTRbNiERWIwMCkbkDgdKtpfWs2qhJuO1B/S8TyP3J+D7zM/SukgDOaq3DFVSTDb6TzQ5PyboT5gQZNVPIOoNDGQsvqPNVqGz1OKG2dR+dbmxG84oY2Ypi+SapZCTU7mCeix90CpYh2CjPJ6Cm0qrZWqRR4yOny3cn6VXZRBd8zcBRgfFdnPnXQQ8KoyfpV4u+zP1EIwltiXxkWenmQnMkpwPcmueWsKlTy6j/9jUinmyQDOVjy5+MUsS6dRJIxJZ2qWARZIfKl8xhu8scZ7mgmkkkJyxBY5J96tEjSjLZHPQ1LaigeYuR7d65IhysHOFGWBH0rigyHCkAewFEjywMoGx8mq2kZlKoNoPU+9cVoixSD0oA0p6n/AC0Tpli9y+ACxY84r6y0+Sd1jiTc78AfFek+GvCkdlGkkhy3VnPAzQsk6VIa0+Hc7fRLwt4VESpNOgGeQD2rSWFmZ/NuET0EkLn9Q96Mht/xKCGIHyjw79Mj2FM1g8kCMABQAAB0ApOX5NaLXgTNa5jCsAT0I9qok0+Jl24XNNJ09WQfrVJjUc9/egsaXQkn0odhQs2lIy4IFaF4QQef96ElhAJ5OKsmc42ZO80UKTgZ+aSXulDBBQA/zrbXC4HI4pRdRnOCuQe1XjNp0CniTR5vqunGJt23pQbx79x/0Vs9UsxJG2FzWSnHkTOuMArjBp7HO0YeqwKDsXp05Ne1/wDTJojX/iLU70KwNtbAI/bJbkftivFcYr3v/pr19dO0zxBA/LjyzEPYtw3/APIoetjKWJxj26/7Edrl8Uena7qBnmMQb0xkj70mOPepzyGR2c8ljk1STV4JQiorwbuDGscFFEJBxxQcjlH3Y+tXyyY5oeRtymusMWbg+DU2xGuTS+2mKTGFz16Gr7y4wVjXn3rmcnZ4KWqJK9TUPNFcLgjJ61Ay5hUeGt35GAwB/nVEswlmJTgbQWPsAKimTbyID/iMqjPY8/0odg3KDqzAce1Fj0YOsf7rDYpisO5eODmgLX+LIQenQUa5KxmPgAfzoCJzbJKy9SePipoXb6OqViZlY8g8Grgg4aQ/Y1RBL5uGCjeTjOKkoeVjk4A4LHuakraLHHmcDgZq61s5LqVYYF3u3Ax0H1qVva72A5Y1uvDOji2jVvLBZs+rHU/8UOc1EYw43NlmgeFVgVQcmQ43ODg//VbKw0qNHXzPXju5JqFnAYlHAzTKIqFy3SlHO3wasMe1Uw1MIu0AcVGX1d+aBk1a3jfb5qdOSTwKpXX9OU7TcoW69e1Ukm+i8Wl2wqZRig5U2nPIFSk8SaUWEYuYWfpwaGn8QaYh2yXEYPcZoLjJsbhkil2XpyvUmoSRZP1qq31Gzuf8GQEfB4plbmGTGarXgK5LtCWezLHj9qW3FnIjAhSQO2K2FwtnGudw4FIL/WbCHJMqrjualKV8EvJCueBBd2ttOuMbW71ifE2iFGaeLBx129612p+JNKYn+IhPutI5tZs7ljFvBDcAmm8O5c0I6l4MsdlqzAtxg16n/YblbjVWDfojGPua811GAQ3ksY6ZyPpXoX9isgTVb6PfhngBC+4Df0yKevgwtPGstM9hZ898VWzEV8QT2qDBloDZrEH56iqHBxxV0kuPzr9xVJZW5VhUFkwK6RsBk4ZeQa7HOJ4w54bv9aukIOcigh/DkPYGuTK9M8Nr5uRXMiu5A96kImW2+X2oB0O6pWww7uQMhiBVcDBSxOeRir36bAcY6n570WHRkar/AFGDXDl9qg8sc/aq7hQIdi8u2P50VKqbhtGCf9hQ2cyux7HirCxK3iCyMVHpRdg+vc1YoXDHnbGMDjqalAmyI84J4qe0CGNO7NuNcckMtKhJZMgbjyPrXqOmWXkwIMZO0Vg9CgEs0MioxEfLAV6Vp0glhBWN1UDq64JpLO7ZsaSKUS0Msa88YrO63rkwkMEQKjGMDqf+Kf3aSzAiPauOMn+lALYW0GTIilupJoHuKPY28Up8Ixl1NqLRnbA5XvgUpnh1KUZ2MqkccVvL7UbWL+EAGY8BQMsftSDUbm92kpZvGvvJhP50SOeT6QKejgv5SMdNaX4JDZz1rsVldn1HdmrrvVJopDu8ph/pbOKNsbzz1DLRJZJpW0Bx4MMpUmNtBaa3dV5GcVsReNFEvNZrS7eWdlKLTbULO4jg3ergUjP5OzWxpQjRTquqsInAfkjpWA1SS7nkY7jjsKY6hdStKY8nOaDVXlciNDKR154FMYE4dCWqccnDFIsLqc8KTVx0O6UcLlqcmSe1X1i1T4MoBqUWrRh/LlGCeRzkH70w8s/oTjpsL88mP1BJEkHmD1rxzWj/ALN9T/uvxXZOMBLjdC2T/mH/ACBS7xKqyOkyAAEleKh4XKJrunM7bQLhCW9uaYi90bEXF481H6R27hVTB175HtRMeHQEdMVGRMdMUKjVA2G7ofsaGlhJ5Awfii5Uz1OKEeOQcrIaiiQZgyk7qHuOR7GiZHmXsrCh5JgfzoBXHPk8HANSANXM6A4FQLqoJpt4UuxNaht0jiNtLHoQM0QoJQL+pmyaDiJMu49OlMbaMyJuB9zmquNdCWWe6VspjGTIzflXih8+pRjknNESLshKKMsSNx+tU+WwnVSDxXAiySXA2gc9M+1dQktwDgVx1xMygekMCD9qth9KZxwe9QSb/wAG2zNa+YoUFmwSea3cCYUDPHSsh4TxHpyDGCea2tkFZFz25rNyu5NG9p41BM5cQblynH0rPapb3jZWFC7dgK3VtDbRoTIoJoiO2gCNJ5SAkdcUFY1dtjHvOKpI8l0uz1JbkpKG08d5ym9j9+1PNY8J+GLjSZ5Dq8l1e+WfVJJzu+BTzVbWeNme3VHB6DPNZa+ivZGObMk+/FHhmp8IFLTe4rcjya802Z7kBYpSoO3dswMVoPCtnw6zxSKF5DkcEe1aJtA1K9kwIhCvck040zww8XoLEr3Zu9XyZ9y5BYtGscriy/SYI4WRlXCDuaeaixu7UhY1A249I612DSDvCAYVetN4raIRmNh8Ui25GinGNN8nh3iCyntbxwqMzOeMd6e+GND0W4gDanfSI+P8LYVX9/en3i/R1Kl9ucdx2rIpbXmMQTbj/lbvTeLJcfyK6jT1K/DFXj3SdOttUB01hJA6rgoMgEdQaQ2VtKJsIpKjnFaqeC+dtslmT81ZFZuhzIgB9hTCy2qEv0a3WmZ/VrRn01nKkbSDQvhzCaxZM/RJlJ/etXfWQmspI8YyCMVm/DaH/wAQWKFc7plBGP3ouN2gOqwuGSL+z9D28Yhj2oPQRkDPT/tXzEd6+iBSFFJ5CgVB8mqscISH70LIynsaudviqJAT0FcWRRIM9KHkUMOVzV8gk7AChpEkJ5Y/aoOPBohkkmrDHvI9qshh9OTViKuevStCrZkwg1H8sr/DbADnk030G3Et7aW2Awc8jPb2paWDP9KO0+5/Batayk4CyKft0oWaNR47IqKmvqwiz0/8ZPJlcEyEADtg0xvtCht7ZXyWlyCw24ptoNiYfEk1s35PNMqn4YUw8QaraWMjokaSMuRtasqWWSZtx0+NpqjE3OmN+HLKmSeB9KAQFYtnACn9q1WntPfRrJLCqb5PQqj9PSgPFOn/AIC+DRoNkigt9aYw5m3tZm6vTKK3RNP4bc/3bEc85PStzpJYhcYII71514YmP4NY24Kk4rdaXdbIkI9qUycTdmjh+WNUP0gZpQOue1NI7dggU+mk1vfDIppFdmXjOR25qiSZeVpciu7t3jlJ5yep7Gg3XB5UZ+lPrlFEfrGTSyaMITmgtNMbxuMkCQW6SODJ+XPNOYbWBYBsC/XvSQXsPls0ZzgkH4q2zuprlSdxCZ2j/VVop3yDyxtcBrHBO3A+a7b25lbIJarLewaUFpTtHbJ6URHc2VkwXzt574qO2dSivtizWtHMkLB04Ye1eevYGzvGiPvlTXqOs63CVJC5TbgZrzzU7uC4uwQdrVaNXQZO4ptFkMCuu11z80HqOmqrB16fSmVjOjqFJAIq24jWRMda5Npl1ta6Mtc2+ITimvgjwnZCQawRuk3OAD+kn/5/vVV/b7FPFOfBEv8A5S5hz+WTOPqKdwTvgR1UU6b8GjbgVSzYqxmzVLkUcVKpGz3oaTJHLNVz0PI3GDXdnFLL7Mf3qhgw5DkVZI2KoeT5qCTxdlKjAr4IVXPvXUUu2K7KpHHtWjzwjJdcyo5DHubNXXCllR0OCGBI/eop6Ez3qCyCT0dcjFVlzyVyJKKVHoeh3YvItN1Rcb0/8vPj3HTNA67pcj+K0tHb+HcONpPQg0H4E1GM302mTnbHdr6fhx3FbN9NGoNHHfxHzLZh5UqnBP3rGzR2TNrS5vcxp+Tt1YxaPqECSgBEPlKF6Af/AHWf8dqm9GwMcA1o7/TCZ0uGmedACGjdsY+hrM+NFJtopD+ng1XA/nZGqX7bKvDsmYgF9sg1sdOmymB1HFedeH9RWGXGeOg5rb6bdq4yp6812pi7O0eROJooHZec0yt7vYRlsUgjueME1dFcFSSWyOwpVWmPUmaOfUg8Z3cYH70pur85znrQ34gMCf50FdScE/tVm75JhFRITXLTP5cZ5Y9BTRpm0y3t3ZSEUncfmhtAsRNMZXU4HArVTwwGEq6Ky4wVI61avsrkyJNUef8Air+0C7gtzDpkDTzsOAOgrK6Nr3jR7gz3FoHh/MVkG3I+K215pWj21400YUMf05xigr+a3mhCE7cDGRRoQio01YtkybpKm0Bap4ll8oeYrR+nJU9R8Vjf71vrvUBKf4aE4WMj1Ee9NLuxkVDK8hcg+lTS6C9jt7sPNGNwOCfarwxKKK5NQ5SSfRr9NeWKNC5wfY0xN56Rg/vSqC7huYwY3Df0NRac52ngil5IdjILvp8xk5q3wXeBbu5gyAzgMPtSa4uD5bLk0Bo+oSWviOyKbcncDu6YxTOnQpqZ0j1otkdqpepqR5SOSAGUGqJGBztphsAiuRhQssgOc1ZIxxihZGqVZJByD0NVM8cYy1fOc9K+isGnbJzUnHj9scEnFcd971yLAjJrsIBfk07uVtmdUnGMb7K7qQxqF71XCSoHHOc1y5YS3G0dBV0cXtXRS4KT3OTotgm/CzJdLlWRwwI7V7do+o2GqWMM6HO9Qc5rw+UYyvbFW6Zr2oaJk2khaPPqjboPkUlqMPuK4jODItNL59M9tazEkzMzDyx0FYbxbdJctdW6FTsUMo+M1nrn+0q/ktyix7SRjOaW6Dqct7eTCc5lkBH2NK48E48say6zDNbIu2we3Z45wuSAGzWx0m5eFE2nORzWXuIUjuiobAzWg0uQeWpUZPYkUbNyrE9NcZUaeC7bcOg496Ywy7xnOaynnNCy+vHqpxZXe4H1ZGaRnDya2LJzQ8WTdwMgV3yN5BIzQ8DbsZop5hFDvJwBVYhpPjgtn1mDSQsW71EdBQS67cahExWXaob8xPAFYfWdYM1wXYkruPTrili6/PeP+FgJWPptU/m+tN+3wZ/upvlnovm2Mkgd2N1MOuDhf3q+e8iVMG3tVB/TtzWU0XSdS1JGaO5jgRTjrk5p9F4G1KeFZW1DcCOPTVHD7GIZIohd3sYiUQ2duueNxOR+1Z++tYXl8yURSN7AYp8/gu5K5/vBtykjGOKyHiCzl0tJJDfROytgpuwatCPPBGTJGgWaX8FIZreRlAPKE9KcQagl/CsoPqxgisU2om6cBSTkUy0Wd47nZyFPaizx2uROGoqfHRoJ5PQc9qz4vGXWrcqzDDADHXrTTUJxGpyaWeGLf+8PEMW5NyRtvb7dP96nBGuSNXktqKPaLZXNvEJWP5Bx7cVNuFFWw27NAjsQq47mq5Z4VOEBkar0FQNKpPbih3XdwOaMSGe5OAuBX1zcWWkJumdXk/yirElUOncb5fSvzQ+oa5aacnlxeuTtigbnU7/WH2W6tHGe9X2mhRW+Gl/iSn3rv6OPGY1Pl11QUjZ6sziICqrqXEYjHemrdf2Z9RTtvpA0KlnLU2R4/wAOAq+r3oKABR0o0EJFgDk1eTaiV0+NOV2BSllznqaHkVlj3CjJ8F8VTcshjCgc1R8RSrstlgpuTvoUvIWNXWF2bS8jmHGDz9KocHfjHWonOcUN8iCbTs1d6EkmEijIIB/70dptwwXG8g+3xSW0vt+nouAzx+n5xV8NyYgr54zzQZRtUO48ny3I1U0XmQpIjeoY+9W2MkmFJGCDgj2pVYXeVwxJXAKnNNoCojyg5zk0lJVwakHfKH1vcAHB6Dv71LUbndauiZyRgUujnyuSe1WFjKuMmg1zY0nwJrXRkuJWDjKtwfpTnS/B2j2UhmWCN936Ze1EW6pGnpHNSlndEx+ZfpzR1kYv7UexpHbaPGoiFr5IXkbDwKLVNOUei5lAYdA3SshPqUsIOxuPZqXXPiYxDHljPwamtweOSMf5G4ey044U3UzKvON1IdWsvD0JLCDzX6+vmsy3i6ToFPNCSajJduW28nuatGDRE9TjS+KLLq2tpJ2khhC54UAdBQaQLDOGIwfaj7dT1P8AvVdyoLFvartvoSdN7hbqd1kcnmj/AOz5X/HzyLGHLoQM9c//AA0g1ObLEL1Nbb+y78GEmju28mUnep7sB2HzTEIvbwJbt2ZG/sIbm5j8qZydnAAPWjJVs9OjzPIoI/SOpoY3sjqYdOg8qPu+OvzVUWlpI+6eUSyfLVVD6KbjWbu8zFYxeVH03EVC10AzHzbpi56ktToRW9rHltvA4UVSvn6g+1AUjHYVavskrVY4v4NsmfdqsIS2Uu5yR3q2Ux2MflqAZDSmZpL+UQpnaOpqGSeYNo1lKAIr0ce+KGk8Lyu+9LiNh80PPAIxlTVKyzLwHYfQ0XezOc4vhxDhoF0hHCsPg19LYyxfmjbAoJr29h6Tv++arGs3ucM+4fIq0sjl2TjzY4J8EJInaXlSPqKHuAQ2DR66vKpBaNWrjX1tO2ZoMZ9hXOfNg1slFpPlip7fcM1Q0WSelaRYNOuYtqTCN/k0pvrLyXIB3AfqHSq3YPNiUUnEr0wbWdG/K4x96IGYYyjZx2NLw0kR4JBznNO5LQXVulwrHLLx8/FUlXkpjTa4JWl75ahd3HStJpt0HiVSRkVhkkaFirAjHBBprp2qCNNrHPt70DLitcD2m1CTpm2jkVztHSjl/KO1Za11QZGGBHuacwakMBif3NK7GaPupmhtbQyj+tHpopdcnmlFhq8XdgKeQa5GqgZBAqvKLrnoDl8LmZiMCl114IhVSS4z3p/ceJYIoN24Ak1l9U8Yu0pEeAuOc96JHc+gc9q/kLJPC0SSlVZWxz1q1PD8SkFSB8Uvn8RkksoCkdhVb+JPM6HFGqbF1PGmMrjT0hU8DjvWf1CZUV+e1HXXiBJLX83PeslqeombKqep5q2OD8g9Rmgl8Qfd+IuQBkgHrWm09ngCSLlGTBBHas9psZB3FcknitBZhn2pk5Y4xitTDGjJUrdl/iq61XT5Uzf3MkFwoePLn7j7UJpt9LvijZ23Nyea1XjKzzoBkCZktdrKT2HQ1i9BjM10ZpSQqDA570fUYvayUvJOHM5q2zUpe3URCrNIpAzkGnVj4m1O3UAXOVx+oA0ntrK4unBjXco53Z4FMU0xI/4jBZGPRd2FFDcbGFka8jiLXFukLzejnG73rSaXBB+HEysrR9dwPWvObiz1C5Uqbq0hROdqsTgfYUfpYvdPieNNRjaKT8ygH96FLAnzENj1fiR51KzGqySBzRIBJB21GZQRwMUnYEBmlIHNQVw3apXKrgCoJhRVkwUm+giMAjBFEvDCIRwN1AocHNWtKSK6TC4IA88YB4qK7jnBIGKsZt3zUGbykNVRfJdgs0yg4ZAf9jTzQJYp7R4OcI2QD2zSGKKS9uFihjaSRjhVUZJrR6JpM1gJJZhtduNoIOAPpRJQcougOKW2Sfgqv9MDqWjxuzz3zSvyGi5PPODiteI9w9J49qBuLFW34Ug56UvHJ4Y1k06fyQlS5eLJz0q+PV3UAe1QubQx7vSemRS9wVPJoiSYs5zgPF1mQHhj7/SioPE8saldxzjHNZjzNucNk1w3G7rg1zxJkrUyRp31yed+HO0DODS6bUnLHcfv70uNxtjAHp9+5qoyF+T0/nVo40ik9RKXYab0vwD161WZyF3Z6HFB79vNRaXPerUgbm2FXFyzjCnAoeIF29xmoZzkAGi7WLJGBV4rko5WNLKPaoK8ce1PtEiM+oRJj0g5/bmlFoh2ZIx9a0nheFjM83XA28+5rQ00N00ik3tg2O/EBL6Jdb8cR4571jtIRcJb24aSRjuIK4+p5rS+LbjydJaMgrvYKB7ih9Hsfw1qLm4B811AA7qvYUfXP9xJfRGk4iwsTLZKkboISejq3B+M1N7eSfcsTkjOfp/2qCs1ycEKUPGG5yKLt7UWSk/i2jgHVccD4B60qkHbsrh0Tby0+7uCOo+KNSFYDuRUkKjGH5yPYULA818xjt12W4OPMH6qa21nHaJkHcefrV0iP6PNJtE1eD/0kcfBoCeDUoz67V+PYZp1+Ov06TsfrzXRq16v5tjfUVj7vwO7I/bMtK0gP8SF1+q1V5iE88VurFrvUklkFnD5UQ9cjnao+9Gjw3bTReZdWsfK7gsfPHyT0o0IuXSBSxpf7jzrcOxr5ia3cfhfSbhspYREZxzcsP5DFWy+FLG0j81tJgdMf+nO5/n1on6dspHLXB54WCDJ600j8Kate6cL1I41RuVR22sw9/p9a0cfh/Sbi8hnFqDGpzsRztbHuDTfW9QlsbLzo5Qqt+nZkYq8MFcsrOZlNK0x9F0p7qNPOv7jMeE58pR2Hye9NfJFvZIr/nCerI796Z+G7T8VDHduCsMEBuWBXAZzkgfvz9qW6xKYbNjnBIpr29sFL7Ft9tpeAW3lWVQynIPeijbiZeOvY1nfDt75wmgJy0bbl+Qf+9aS3l+ftWBlVSdG7p5b4Ji+axUMd3Wgp9JR42O0e4K0/uIxMP8AKwoCQGIFX4Px3qsMjLzwoyFxbmOQqUIP86pMOOmfvT2+ZMnkGlb+o8CmozbEJ4FFgXlMp6/tXDHIRnOB80cIWPsKmLZT2q+8H7AtETPwBVn4cRruPNHiEDtgVTIu+VUHbk1yk26IliUI2VQw5+tNLWDAHFUwxAdaYW6Z5ycim4IWoIhUKeBkjmtd4ch8qw345cluaysakvtHfpx3rXyyiysgsf6VCjHc1p6KKtzfgDqXworyDakgvr6PdhoLf1kdi3auTy/iJFSMqQOoqsymOIRq6+Y3LZ70dp1jwGYl2J574pfLPfNyD447YqITb28Vpbs8m1VAyTmlcH4jxLd5RWgsIjgkDG6jbi2bW5xbKTFp8JzI3QyEdh8fNHRurRLa6bGoiX0mY/lH0Hc1VIlsvM9ppkSpvVQBwMc/tUreaa5YMkRjQnO6Qc1y20yKFhLJuml7s/P7DtTFMY9O7J7KMVdI4//Z";
 const ABOUT = {
@@ -1598,6 +1590,35 @@ function DayMatches({ day, setDay, comp = "ALL", preds, onOpen }) {
   );
 }
 
+// ── ফলো করা দলের খেলা: একটা কার্ড, ভাঁজ করা যায় ──
+// বাম পাশের ছোট চিহ্ন: শেষ / লাইভ / অন্য দিনের তারিখ। আজকের খেলায় কিছু না।
+function rowBadge(m, t, lang) {
+  if (isLive(m) || m.status === "PAUSED") return <span className="rbadge live">{m.status === "PAUSED" ? t("ht") : t("live")}</span>;
+  if (isDone(m)) return <span className="rbadge">{t("ft")}</span>;
+  const k = dayKey(m.utc_date);
+  if (k === dayKey(new Date())) return null;
+  const l = stripLabel(k, lang);
+  return <span className="rbadge day"><b>{l.top}</b>{l.bottom}</span>;
+}
+
+function Following({ list, preds, onOpen }) {
+  const { t, lang } = useT();
+  const [open, setOpen] = useState(() => stored("kk_follow_open", "1") === "1");
+  const toggle = () => { setOpen(!open); store("kk_follow_open", open ? "0" : "1"); };
+  return (
+    <div className="card follow">
+      <button className="follow-h" onClick={toggle} aria-expanded={open}>
+        <span className="fav-star">★</span>
+        <b>{t("following")}</b>
+        <span className={"chev" + (open ? " up" : "")}>⌃</span>
+      </button>
+      {open && (list === null ? <div className="spin" />
+        : list.length ? list.map((m) => <MatchRow key={m.id} m={m} pred={preds[m.id]} onOpen={onOpen} plain badge={rowBadge(m, t, lang)} />)
+        : <div className="empty">{t("noUpcoming")}</div>)}
+    </div>
+  );
+}
+
 function Matches({ user, myTeams, comps, preds, onOpen, goProfile }) {
   const { t, lang } = useT();
   const [day, setDay] = useState(dayKey(new Date()));
@@ -1609,11 +1630,23 @@ function Matches({ user, myTeams, comps, preds, onOpen, goProfile }) {
   useEffect(() => {
     let live = true;
     if (!fav.length) { setMine([]); return; }
-    getTeamMatches(fav, { upcoming: true, limit: 8 }).then((r) => live && setMine(r)).catch(() => live && setMine([]));
+    Promise.all([getTeamMatches(fav, { upcoming: true, limit: 4 }), getTeamMatches(fav, { upcoming: false, limit: 6 })])
+      .then(([up, past]) => {
+        if (!live) return;
+        // প্রতিটা প্রিয় দলের সবশেষ ফল একটা করে (৫ দিনের মধ্যে), তারপর সামনের খেলা
+        const recent = [], seen = new Set();
+        for (const m of past) {
+          if (Date.now() - new Date(m.utc_date) > 5 * 86400000) continue;
+          const tid = fav.find((id) => id === m.home_id || id === m.away_id);
+          if (seen.has(tid) || recent.some((x) => x.id === m.id)) continue;
+          seen.add(tid); recent.push(m);
+        }
+        setMine([...up.slice(0, 3), ...recent]);
+      })
+      .catch(() => live && setMine([]));
     return () => { live = false; };
   }, [fav.join(",")]);
 
-  const hero = mine?.[0];
   return (
     <>
       {fav.length === 0 ? (
@@ -1626,24 +1659,7 @@ function Matches({ user, myTeams, comps, preds, onOpen, goProfile }) {
         </div>
       ) : (
         <div className="sec">
-          <div className="sec-h"><h2 className="my-h"><span className="fav-star">★</span>{t("myTeamGames")}</h2></div>
-          <div className="fav-wrap">
-            {mine === null ? <div className="card"><div className="spin" /></div>
-              : hero ? <NextHero m={hero} onOpen={onOpen} />
-              : <div className="card empty">{t("noUpcoming")}</div>}
-            {mine?.length > 1 && (
-              <div className="card">
-                {mine.slice(1, 4).map((m) => (
-                  <div key={m.id}>
-                    <div className="muted" style={{ fontSize: 11.5, padding: "8px 14px 0", display: "flex", gap: 6, alignItems: "center" }}>
-                      <CompIcon c={m.competition} size={13} /> {dayLabel(dayKey(m.utc_date), lang, { short: true })}
-                    </div>
-                    <MatchRow m={m} pred={preds[m.id]} onOpen={onOpen} />
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
+          <Following list={mine} preds={preds} onOpen={onOpen} />
         </div>
       )}
 
