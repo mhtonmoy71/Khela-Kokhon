@@ -376,6 +376,18 @@ img { display: block; }
 .rbadge { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); width: 32px; padding: 3px 0; border-radius: 8px; background: var(--card2);
   color: var(--muted); font-size: 10.5px; font-weight: 700; text-align: center; line-height: 1.2; white-space: nowrap; overflow: hidden; }
 
+/* ── খেলোয়াড় ── */
+button.sq { width: 100%; text-align: left; }
+.sq-go { font-style: normal; margin-left: 8px; color: var(--muted); }
+.pl-name { text-align: left; }
+.pl-name b:hover { text-decoration: underline; }
+button.scr { width: 100%; }
+.pl-avatar { width: 84px; height: 84px; border-radius: 50%; display: grid; place-items: center; background: linear-gradient(150deg, #0a3d2f, #064e3b 60%, #08261f);
+  color: #7dffb8; font-family: Inter, sans-serif; font-weight: 800; font-size: 32px; box-shadow: 0 0 0 3px var(--greenDim); }
+.stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px 4px; padding: 16px 8px; text-align: center; }
+.stat-grid b { display: block; font-size: 19px; font-family: Inter, "Hind Siliguri", sans-serif; }
+.stat-grid span { font-size: 11.5px; color: var(--muted); line-height: 1.3; display: block; margin-top: 2px; }
+
 /* ── লিগের তালিকা ── */
 .lg-list { display: grid; gap: 10px; }
 .lg-card { display: flex; align-items: center; gap: 14px; width: 100%; padding: 14px; text-align: left; background: var(--card); border: 1px solid var(--line); border-radius: 14px; }
@@ -1113,6 +1125,20 @@ async function getTeamInfo(id) {
   return extra({ type: "team", id });
 }
 
+async function getPlayer(id) {
+  if (DEMO) return {
+    id, name: `Player ${id + 1}`, dateOfBirth: "1996-05-11", nationality: "Spain", position: "Centre-Forward", shirtNumber: 9,
+    team: { id: 86, name: "Real Madrid CF", shortName: "Real Madrid", crest: "https://crests.football-data.org/86.png", contractUntil: "2028-06" },
+    stats: { from: "2026-07-01", to: "2026-11-18", matches: 14, starts: 12, minutes: 1104, goals: 9, assists: 4, penalties: 2, yellow: 2, red: 0 },
+  };
+  return extra({ type: "player", id });
+}
+// গোলদাতার তালিকায় এই খেলোয়াড় (প্রতিযোগিতা অনুযায়ী)
+async function getPlayerScoring(id) {
+  if (DEMO) return [{ competition_code: "PD", goals: 7, assists: 3, played: 11, penalties: 2 }, { competition_code: "CL", goals: 2, assists: 1, played: 4, penalties: 0 }];
+  return ok(await sb.from("scorers").select("competition_code, goals, assists, played, penalties").eq("player_id", id));
+}
+
 async function getH2H(matchId, homeId, awayId) {
   if (DEMO) return {
     aggregates: { numberOfMatches: 5, totalGoals: 14, homeTeam: { id: homeId, wins: 2, draws: 1, losses: 2 }, awayTeam: { id: awayId, wins: 2, draws: 1, losses: 2 } },
@@ -1123,7 +1149,7 @@ async function getH2H(matchId, homeId, awayId) {
 
 // ════════════════ components.jsx ════════════════
 // লিগ বা দলের পাতায় যাওয়ার জন্য (App থেকে আসে)
-const NavCtx = createContext({ openLeague: () => {}, openTeam: () => {} });
+const NavCtx = createContext({ openLeague: () => {}, openTeam: () => {}, openPlayer: () => {} });
 // প্রিয় দলের id-গুলো — ম্যাচের সারিতে ★ দেখাতে
 const FavCtx = createContext([]);
 const useNav = () => useContext(NavCtx);
@@ -2590,7 +2616,7 @@ function League({ code, comps, preds, onOpen }) {
                 <div className="scr" key={s.player_id}>
                   <span className="pos">{num(i + 1, lang)}</span>
                   <span className="pl">
-                    <b>{s.player_name}</b>
+                    <button className="pl-name" onClick={() => nav.openPlayer(s.player_id)}><b>{s.player_name}</b></button>
                     <button className="pl-team" onClick={() => s.team_id && nav.openTeam(s.team_id)}><Crest team={s.team} size={14} />{teamName(s.team, lang)}</button>
                   </span>
                   <span className="muted">{num(s.assists ?? 0, lang)}</span>
@@ -2623,6 +2649,7 @@ const age = (dob) => {
 
 function Squad({ info, lang }) {
   const bn = lang === "bn";
+  const nav = useNav();
   if (info === null) return <div className="card"><div className="spin" /></div>;
   if (info === false || !info.squad?.length) return <div className="card empty">{bn ? "খেলোয়াড় তালিকা এখন পাওয়া যাচ্ছে না। কিছুক্ষণ পরে আবার চেষ্টা করো।" : "Squad isn't available right now. Try again later."}</div>;
   const groups = [...POS.map(([k, , b, e]) => [k, bn ? b : e]), ["OTH", bn ? "অন্যান্য" : "Others"]]
@@ -2638,15 +2665,112 @@ function Squad({ info, lang }) {
           <div className="lg-h">{label} <span className="muted" style={{ fontWeight: 500 }}>({num(list.length, lang)})</span></div>
           <div className="card">
             {list.map((p) => (
-              <div className="sq" key={p.id}>
+              <button className="sq" key={p.id} onClick={() => nav.openPlayer(p.id)}>
                 <b>{p.name}</b>
                 <span className="muted">{[p.position, p.nationality].filter(Boolean).join(" · ")}</span>
-                <span className="sq-age">{age(p.dateOfBirth) != null ? `${num(age(p.dateOfBirth), lang)} ${bn ? "বছর" : "y"}` : ""}</span>
-              </div>
+                <span className="sq-age">{age(p.dateOfBirth) != null ? `${num(age(p.dateOfBirth), lang)} ${bn ? "বছর" : "y"}` : ""}<i className="sq-go">›</i></span>
+              </button>
             ))}
           </div>
         </div>
       ))}
+    </>
+  );
+}
+
+// ════════════════ pages/Player.jsx ════════════════
+const POS_BN = {
+  Goalkeeper: "গোলরক্ষক", Defence: "ডিফেন্ডার", Midfield: "মিডফিল্ডার", Offence: "ফরোয়ার্ড",
+  "Centre-Back": "সেন্টার-ব্যাক", "Left-Back": "লেফট-ব্যাক", "Right-Back": "রাইট-ব্যাক",
+  "Defensive Midfield": "ডিফেন্সিভ মিডফিল্ডার", "Central Midfield": "সেন্ট্রাল মিডফিল্ডার", "Attacking Midfield": "অ্যাটাকিং মিডফিল্ডার",
+  "Left Midfield": "লেফট মিডফিল্ডার", "Right Midfield": "রাইট মিডফিল্ডার",
+  "Left Winger": "লেফট উইঙ্গার", "Right Winger": "রাইট উইঙ্গার", "Centre-Forward": "সেন্টার-ফরোয়ার্ড",
+};
+function Player({ id, teamsById, comps }) {
+  const { lang } = useT();
+  const bn = lang === "bn";
+  const nav = useNav();
+  const [p, setP] = useState(null);
+  const [scoring, setScoring] = useState([]);
+  useEffect(() => {
+    let live = true;
+    getPlayer(id).then((d) => live && setP(d)).catch(() => live && setP(false));
+    getPlayerScoring(id).then((r) => live && setScoring(r)).catch(() => {});
+    return () => { live = false; };
+  }, [id]);
+
+  const back = <div className="page-head"><button className="back" onClick={() => window.history.back()} aria-label="back">←</button></div>;
+  if (p === null) return <>{back}<div className="sec"><Loading /></div></>;
+  if (p === false) return <>{back}<div className="sec"><div className="card empty">{bn ? "খেলোয়াড়ের তথ্য এখন পাওয়া যাচ্ছে না। কিছুক্ষণ পরে আবার চেষ্টা করো।" : "Player info isn't available right now. Try again later."}</div></div></>;
+
+  const team = p.team ? { ...(teamsById[p.team.id] || {}), ...p.team, crest: teamsById[p.team.id]?.crest || p.team.crest } : null;
+  const a = age(p.dateOfBirth);
+  const st = p.stats;
+  const compOf = (code) => comps.find((c) => c.code === code);
+  const born = p.dateOfBirth && (() => { const [y, m, d] = p.dateOfBirth.split("-").map(Number); return bn ? `${num(d, "bn")} ${BN_MONTHS[m - 1]} ${num(y, "bn")}` : `${d} ${EN_MONTHS[m - 1]} ${y}`; })();
+  const contract = team?.contractUntil && (() => { const [y, m] = team.contractUntil.split("-").map(Number); return bn ? `${BN_MONTHS[(m || 6) - 1]} ${num(y, "bn")}` : `${EN_MONTHS[(m || 6) - 1]} ${y}`; })();
+  const info = [
+    [bn ? "পজিশন" : "Position", bn ? POS_BN[p.position] || p.position : p.position],
+    [bn ? "বয়স" : "Age", a != null ? `${num(a, lang)} ${bn ? "বছর" : ""}`.trim() : null],
+    [bn ? "জন্ম" : "Born", born],
+    [bn ? "দেশ" : "Nationality", p.nationality],
+    [bn ? "জার্সি" : "Shirt", p.shirtNumber != null ? num(p.shirtNumber, lang) : null],
+    [bn ? "চুক্তি" : "Contract until", contract],
+  ].filter(([, v]) => v);
+
+  return (
+    <>
+      {back}
+      <div className="team-hero">
+        <div className="pl-avatar">{p.shirtNumber != null ? num(p.shirtNumber, lang) : (p.name || "?").slice(0, 1)}</div>
+        <h1>{p.name}</h1>
+        {team && (
+          <button className="chip" onClick={() => nav.openTeam(team.id)}><Crest team={team} size={18} />{teamName(team, lang) || team.shortName || team.name}</button>
+        )}
+      </div>
+
+      {st && (
+        <div className="sec">
+          <div className="sec-h"><h2>{bn ? "এই মৌসুমে" : "This season"}</h2><span className="muted" style={{ fontSize: 12 }}>{bn ? "সাইটের ৬ প্রতিযোগিতায়" : "In the 6 competitions"}</span></div>
+          <div className="card stat-grid">
+            {[[bn ? "ম্যাচ" : "Matches", st.matches], [bn ? "গোল" : "Goals", st.goals], [bn ? "অ্যাসিস্ট" : "Assists", st.assists],
+              [bn ? "মিনিট" : "Minutes", st.minutes], [bn ? "শুরু থেকে" : "Starts", st.starts], [bn ? "পেনাল্টি গোল" : "Penalty goals", st.penalties],
+              [bn ? "হলুদ কার্ড" : "Yellow cards", st.yellow], [bn ? "লাল কার্ড" : "Red cards", st.red]].map(([l, v]) => (
+              <div key={l}><b>{num(v ?? 0, lang)}</b><span>{l}</span></div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {scoring.length > 0 && (
+        <div className="sec">
+          <div className="sec-h"><h2>{bn ? "গোলদাতার তালিকায়" : "In the scoring charts"}</h2></div>
+          <div className="card">
+            <div className="scr scr-h"><span /><span style={{ textAlign: "left" }}>{bn ? "প্রতিযোগিতা" : "Competition"}</span><span>{bn ? "অ্যাসিস্ট" : "Ast"}</span><span>{bn ? "গোল" : "Goals"}</span></div>
+            {scoring.map((r) => (
+              <button className="scr" key={r.competition_code} onClick={() => nav.openLeague(r.competition_code)}>
+                <span><CompIcon c={compOf(r.competition_code)} size={18} /></span>
+                <span className="pl"><b>{compName(compOf(r.competition_code), lang) || r.competition_code}</b>{r.played != null && <span className="muted" style={{ fontSize: 12 }}>{num(r.played, lang)} {bn ? "ম্যাচ" : "matches"}</span>}</span>
+                <span className="muted">{num(r.assists ?? 0, lang)}</span>
+                <span className="pts">{num(r.goals, lang)}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {info.length > 0 && (
+        <div className="sec">
+          <div className="sec-h"><h2>{bn ? "পরিচয়" : "Profile"}</h2></div>
+          <div className="card">
+            {info.map(([k, v]) => <div className="info-row" key={k}><span className="muted">{k}</span><b>{v}</b></div>)}
+          </div>
+        </div>
+      )}
+
+      {!st && !scoring.length && (
+        <div className="sec"><div className="card empty">{bn ? "এই মৌসুমের পরিসংখ্যান এখনো পাওয়া যায়নি।" : "No stats for this season yet."}</div></div>
+      )}
     </>
   );
 }
@@ -2762,6 +2886,7 @@ const viewFromPath = () => {
   const [, kind, id] = window.location.pathname.split("/");
   if (kind === "league" && id) return { kind: "league", code: id.toUpperCase() };
   if (kind === "team" && /^\d+$/.test(id || "")) return { kind: "team", id: +id };
+  if (kind === "player" && /^\d+$/.test(id || "")) return { kind: "player", id: +id };
   return null;
 };
 const stored = (k, d) => { try { return localStorage.getItem(k) || d; } catch { return d; } };
@@ -2848,6 +2973,7 @@ export default function App() {
   const nav = {
     openLeague: (code) => openView(`/league/${code}`, { kind: "league", code }),
     openTeam: (id) => openView(`/team/${id}`, { kind: "team", id }),
+    openPlayer: (id) => openView(`/player/${id}`, { kind: "player", id }),
   };
 
   const openMatch = (m) => { window.history.pushState({ sheet: 1 }, ""); setSheet(m); };
@@ -2944,6 +3070,8 @@ export default function App() {
           <League key={view.code} code={view.code} comps={comps} preds={preds} onOpen={openMatch} />
         ) : view?.kind === "team" ? (
           <Team key={view.id} id={view.id} teamsById={teamsById} preds={preds} onOpen={openMatch} />
+        ) : view?.kind === "player" ? (
+          <Player key={view.id} id={view.id} teamsById={teamsById} comps={comps} />
         ) : tab === "matches" ? (
           <Matches user={user} myTeams={myTeams} comps={comps} preds={preds} onOpen={openMatch} goProfile={() => go("profile")} />
         ) : tab === "leagues" ? (
