@@ -183,6 +183,13 @@ img { display: block; }
 .toast { position: fixed; left: 50%; bottom: 96px; transform: translateX(-50%); z-index: 60; background: var(--text); color: var(--bg); padding: 9px 16px; border-radius: 999px; font-size: 13.5px; font-weight: 600; animation: fade .2s; }
 .spin { width: 22px; height: 22px; border-radius: 50%; border: 2.5px solid var(--line); border-top-color: var(--green); animation: rot .7s linear infinite; margin: 30px auto; }
 @keyframes rot { to { transform: rotate(360deg) } }
+
+/* ── ফুটার ── */
+.foot { text-align: center; padding: 30px 16px 24px; margin-top: 24px; border-top: 1px solid var(--line); }
+.foot-made { font-size: 12.5px; font-weight: 600; color: var(--muted); margin-bottom: 8px; font-family: Inter, "Hind Siliguri", sans-serif; }
+.foot-links { display: flex; justify-content: center; gap: 16px; flex-wrap: wrap; margin-bottom: 8px; }
+.foot-links a { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; text-decoration: none; font-family: Inter, sans-serif; font-weight: 500; }
+.foot-copy { font-size: 11px; color: var(--muted); opacity: .8; }
 `;
 if (typeof document !== "undefined" && !document.getElementById("kk-css")) {
   const st = document.createElement("style");
@@ -834,6 +841,27 @@ function MatchSheet({ m, user, pred, onClose, onSave, onLogin, toast }) {
         </button>
       </div>
     </div>
+  );
+}
+
+// ── ফুটার (v1-এর মতো) ──
+function Footer() {
+  const { lang } = useT();
+  return (
+    <footer className="foot">
+      <div className="foot-made">Crafted with <span style={{ color: "#e53935" }}>❤️</span> by Mahbub Hasan Tonmoy</div>
+      <div className="foot-links">
+        <a href="mailto:khelakokhon@gmail.com" style={{ color: "var(--green)" }}>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="4" width="20" height="16" rx="2" /><polyline points="22,6 12,13 2,6" /></svg>
+          khelakokhon@gmail.com
+        </a>
+        <a href="https://www.facebook.com/khelakokhon" target="_blank" rel="noopener noreferrer" style={{ color: "#1877f2" }}>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="#1877f2"><path d="M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z" /></svg>
+          khelakokhon
+        </a>
+      </div>
+      <div className="foot-copy">{lang === "bn" ? "© ২০২৬ খেলা কখন? সকল স্বত্ব সংরক্ষিত।" : "© 2026 Khela Kokhon? All rights reserved."}</div>
+    </footer>
   );
 }
 
@@ -1526,9 +1554,7 @@ export default function App() {
           <Profile user={user} profile={profile} myTeams={myTeams} teamsById={teamsById} lang={lang} setLang={setLang} theme={theme} setTheme={setTheme} onEditTeams={() => { setEditing(true); window.scrollTo(0, 0); }} />
         )}
 
-        <div style={{ textAlign: "center", fontSize: 11.5, padding: "28px 16px 8px" }} className="muted">
-          খেলা কখন? · khelakokhon.com
-        </div>
+        <Footer />
       </div>
 
       {!onboarding && <Nav tab={tab} go={go} />}
