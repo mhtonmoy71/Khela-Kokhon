@@ -183,6 +183,13 @@ img { display: block; }
 .toast { position: fixed; left: 50%; bottom: 96px; transform: translateX(-50%); z-index: 60; background: var(--text); color: var(--bg); padding: 9px 16px; border-radius: 999px; font-size: 13.5px; font-weight: 600; animation: fade .2s; }
 .spin { width: 22px; height: 22px; border-radius: 50%; border: 2.5px solid var(--line); border-top-color: var(--green); animation: rot .7s linear infinite; margin: 30px auto; }
 @keyframes rot { to { transform: rotate(360deg) } }
+
+/* ── ফুটার ── */
+.foot { text-align: center; padding: 30px 16px 24px; margin-top: 24px; border-top: 1px solid var(--line); }
+.foot-made { font-size: 12.5px; font-weight: 600; color: var(--muted); margin-bottom: 8px; font-family: Inter, "Hind Siliguri", sans-serif; }
+.foot-links { display: flex; justify-content: center; gap: 16px; flex-wrap: wrap; margin-bottom: 8px; }
+.foot-links a { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; text-decoration: none; font-family: Inter, sans-serif; font-weight: 500; }
+.foot-copy { font-size: 11px; color: var(--muted); opacity: .8; }
 `;
 if (typeof document !== "undefined" && !document.getElementById("kk-css")) {
   const st = document.createElement("style");
@@ -602,18 +609,49 @@ const teamName = (team, lang) =>
   !team ? (lang === "bn" ? "নির্ধারিত হয়নি" : "TBD") : lang === "bn" ? team.name_bn || team.short_en || team.name_en : team.short_en || team.name_en;
 const compName = (c, lang) => (c ? (lang === "bn" ? c.name_bn : c.name_en) : "");
 
-// ── লোগো (আগের ঘড়ির লোগো) ──
-function Logo({ size = 30 }) {
+// ── লোগো: চলমান ঘড়ি, ভেতরে "খ" আর "?" (v1-এর লোগো) — বাংলাদেশ সময়ে চলে ──
+function Logo({ size = 30, onClick }) {
+  const [now, setNow] = useState(Date.now());
+  useEffect(() => { const id = setInterval(() => setNow(Date.now()), 1000); return () => clearInterval(id); }, []);
+  const { h, mi } = dhaka(now);
+  const s = new Date(now).getSeconds();
+  const hDeg = ((h % 12) / 12) * 360 + (mi / 60) * 30;
+  const mDeg = (mi / 60) * 360 + (s / 60) * 6;
+  const sDeg = (s / 60) * 360;
+  const pt = (deg, r) => { const rad = ((deg - 90) * Math.PI) / 180; return [40 + r * Math.cos(rad), 40 + r * Math.sin(rad)]; };
+  const [hx, hy] = pt(hDeg, 13), [mx, my] = pt(mDeg, 21), [sx, sy] = pt(sDeg, 24);
+  const minor = [[59, 8.5, 56, 13.5], [71.5, 21, 66.5, 24], [71.5, 59, 66.5, 56], [59, 71.5, 56, 66.5], [21, 71.5, 24, 66.5], [8.5, 59, 13.5, 56], [8.5, 21, 13.5, 24], [21, 8.5, 24, 13.5]];
   return (
-    <svg width={size} height={size} viewBox="0 0 80 80" aria-hidden="true">
+    <svg width={size} height={size} viewBox="0 0 80 80" aria-hidden="true" onClick={onClick} style={{ flex: "none", cursor: onClick ? "pointer" : undefined }}>
       <circle cx="40" cy="40" r="38" fill="#064e3b" stroke="#00e676" strokeWidth="3" />
+      <text x="32" y="50" fontFamily="'Hind Siliguri',sans-serif" fontSize="34" fontWeight="800" fill="rgba(255,255,255,0.18)">খ</text>
+      <text x="54" y="62" fontFamily="'Hind Siliguri',sans-serif" fontSize="22" fontWeight="800" fill="#f59e0b" opacity="0.9">?</text>
       {[[40, 4, 40, 12], [76, 40, 68, 40], [4, 40, 12, 40], [40, 76, 40, 68]].map(([a, b, c, d], i) => (
-        <line key={i} x1={a} y1={b} x2={c} y2={d} stroke="rgba(255,255,255,.5)" strokeWidth="2.5" />
+        <line key={"M" + i} x1={a} y1={b} x2={c} y2={d} stroke="rgba(255,255,255,0.5)" strokeWidth="2.5" />
       ))}
-      <line x1="40" y1="40" x2="40" y2="24" stroke="#fff" strokeWidth="5" strokeLinecap="round" />
-      <line x1="40" y1="40" x2="55" y2="32" stroke="#00e676" strokeWidth="3" strokeLinecap="round" />
+      {minor.map(([a, b, c, d], i) => (
+        <line key={"m" + i} x1={a} y1={b} x2={c} y2={d} stroke="rgba(255,255,255,0.2)" strokeWidth="1.5" />
+      ))}
+      <line x1="40" y1="40" x2={hx} y2={hy} stroke="#fff" strokeWidth="5" strokeLinecap="round" />
+      <line x1="40" y1="40" x2={mx} y2={my} stroke="#00e676" strokeWidth="3" strokeLinecap="round" />
+      <line x1="40" y1="40" x2={sx} y2={sy} stroke="#e11d48" strokeWidth="1.5" strokeLinecap="round" />
       <circle cx="40" cy="40" r="3" fill="#e11d48" />
+      <circle cx="40" cy="40" r="1.5" fill="#064e3b" />
     </svg>
+  );
+}
+
+// ── লোগোতে চাপলে নামের নিচে ডিজিটাল সময় (বাংলাদেশ সময়) ──
+function ClockText() {
+  const [now, setNow] = useState(Date.now());
+  useEffect(() => { const id = setInterval(() => setNow(Date.now()), 1000); return () => clearInterval(id); }, []);
+  const { h, mi } = dhaka(now);
+  const s = new Date(now).getSeconds();
+  const p2 = (n) => String(n).padStart(2, "0");
+  return (
+    <div style={{ fontFamily: "monospace", fontSize: 11, fontWeight: 700, color: "#00e676", letterSpacing: 1.5, lineHeight: 1, marginTop: 3 }}>
+      {p2(h % 12 || 12)}:{p2(mi)}:{p2(s)} {h >= 12 ? "PM" : "AM"}
+    </div>
   );
 }
 
@@ -803,6 +841,27 @@ function MatchSheet({ m, user, pred, onClose, onSave, onLogin, toast }) {
         </button>
       </div>
     </div>
+  );
+}
+
+// ── ফুটার (v1-এর মতো) ──
+function Footer() {
+  const { lang } = useT();
+  return (
+    <footer className="foot">
+      <div className="foot-made">Crafted with <span style={{ color: "#e53935" }}>❤️</span> by Mahbub Hasan Tonmoy</div>
+      <div className="foot-links">
+        <a href="mailto:khelakokhon@gmail.com" style={{ color: "var(--green)" }}>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="4" width="20" height="16" rx="2" /><polyline points="22,6 12,13 2,6" /></svg>
+          khelakokhon@gmail.com
+        </a>
+        <a href="https://www.facebook.com/khelakokhon" target="_blank" rel="noopener noreferrer" style={{ color: "#1877f2" }}>
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="#1877f2"><path d="M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z" /></svg>
+          khelakokhon
+        </a>
+      </div>
+      <div className="foot-copy">{lang === "bn" ? "© ২০২৬ খেলা কখন? সকল স্বত্ব সংরক্ষিত।" : "© 2026 Khela Kokhon? All rights reserved."}</div>
+    </footer>
   );
 }
 
@@ -1395,6 +1454,7 @@ export default function App() {
   const [sheet, setSheet] = useState(null);
   const [editing, setEditing] = useState(false);
   const [toastMsg, setToastMsg] = useState("");
+  const [showClock, setShowClock] = useState(false);
 
   const setLang = (v) => { setLangS(v); store("kk_lang", v); };
   const setTheme = (v) => { setThemeS(v); store("kk_theme", v); };
@@ -1460,7 +1520,13 @@ export default function App() {
     <LangCtx.Provider value={lang}>
       <div className="app">
         <header className="top">
-          <button className="brand" onClick={() => go("home")}><Logo size={30} /><span>খেলা কখন<b>?</b></span></button>
+          <div className="brand">
+            <Logo size={36} onClick={() => setShowClock((v) => !v)} />
+            <button onClick={() => go("home")} style={{ textAlign: "left", fontWeight: 700, fontSize: 19, lineHeight: 1.1 }}>
+              <span>খেলা কখন<b>?</b></span>
+              {showClock && <ClockText />}
+            </button>
+          </div>
           <div className="sp" />
           <button className="pill-btn" onClick={() => setLang(lang === "bn" ? "en" : "bn")}>{lang === "bn" ? "EN" : "বাং"}</button>
           <button className="pill-btn" onClick={() => setTheme(theme === "dark" ? "light" : "dark")} aria-label="theme">
@@ -1488,9 +1554,7 @@ export default function App() {
           <Profile user={user} profile={profile} myTeams={myTeams} teamsById={teamsById} lang={lang} setLang={setLang} theme={theme} setTheme={setTheme} onEditTeams={() => { setEditing(true); window.scrollTo(0, 0); }} />
         )}
 
-        <div style={{ textAlign: "center", fontSize: 11.5, padding: "28px 16px 8px" }} className="muted">
-          খেলা কখন? · khelakokhon.com
-        </div>
+        <Footer />
       </div>
 
       {!onboarding && <Nav tab={tab} go={go} />}
