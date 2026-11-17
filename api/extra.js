@@ -52,11 +52,12 @@ async function fetchPlayer(id, club) {
   if (!r.ok) return { status: r.status };
   const p = await r.json();
   // এই মৌসুমে সাইটের ৬টা প্রতিযোগিতায় হিসাব; না পেলে শুধু পরিচয় দেখাবে
-  // ফ্রি টায়ারে মৌসুমের যোগফল (গোল, মিনিট, কার্ড) নেই — শুধু কয়টা ম্যাচে ছিল সেটা পাওয়া যায়
+  // ফ্রি টায়ারে মৌসুমের যোগফল (গোল, মিনিট, কার্ড) নেই — শুধু কয়টা ম্যাচে ছিল সেটা পাওয়া যায়।
+  // resultSet.count ফেরত আসা ম্যাচ গোনে, তাই limit বড় রাখতে হয়
   let stats = null;
   try {
     const from = seasonStart(), to = today();
-    const m = await fetch(`${FD}/persons/${id}/matches?competitions=${COMPS}&dateFrom=${from}&dateTo=${to}&limit=1`, h);
+    const m = await fetch(`${FD}/persons/${id}/matches?competitions=${COMPS}&dateFrom=${from}&dateTo=${to}&limit=200`, h);
     if (m.ok) {
       const rs = (await m.json()).resultSet || {};
       if (rs.count != null) stats = { from, to, matches: rs.count, competitions: rs.competitions || null };
@@ -97,7 +98,7 @@ export default async function handler(req, res) {
   if (q.type === "team" && /^\d{1,7}$/.test(q.id || "")) {
     cacheKey = `team:${q.id}`; fdPath = `/teams/${q.id}`; maxAge = 7 * DAY; trim = trimTeam; check = `teams?id=eq.${q.id}&select=id`;
   } else if (q.type === "player" && /^\d{1,9}$/.test(q.id || "")) {
-    cacheKey = `player4:${q.id}`; maxAge = 2 * DAY;
+    cacheKey = `player5:${q.id}`; maxAge = 2 * DAY;
     // সাইটে দেখা খেলোয়াড় হলেই: গোলদাতার তালিকায় আছে, বা কোনো দলের জমা স্কোয়াডে আছে
     check = [`scorers?player_id=eq.${q.id}&select=player_id&limit=1`,
       `api_cache?key=like.team%3A*&data->squad=cs.${encodeURIComponent(JSON.stringify([{ id: +q.id }]))}&select=key&limit=1`];
