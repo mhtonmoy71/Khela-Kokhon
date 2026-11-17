@@ -209,6 +209,24 @@ img { display: block; }
 .dev-links a { width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; background: var(--card2); border: 1px solid var(--line); color: var(--green); }
 .dev-links a.fb { color: #1877f2; }
 .dev-photo { width: 72px; height: 72px; border-radius: 50%; object-fit: cover; border: 2px solid var(--green); flex: none; }
+
+/* ── জিজ্ঞেস করো ── */
+.ask-fab { position: fixed; z-index: 35; right: max(14px, calc(50vw - 246px)); bottom: calc(76px + env(safe-area-inset-bottom)); height: 44px; padding: 0 16px 0 14px; border-radius: 22px;
+  background: linear-gradient(135deg, #064e3b, #0a7a55); color: #fff; font-weight: 700; font-size: 14.5px; display: inline-flex; align-items: center; gap: 7px;
+  box-shadow: 0 6px 20px rgba(0,0,0,.35); border: 1px solid rgba(0,230,118,.45); }
+.ask-spark { color: #7dffb8; font-size: 15px; }
+.sheet.ask { display: flex; flex-direction: column; height: 82vh; }
+.ask-head { font-weight: 700; font-size: 16.5px; display: flex; align-items: center; gap: 8px; padding: 4px 2px 10px; border-bottom: 1px solid var(--line); }
+.ask-body { flex: 1; overflow-y: auto; padding: 12px 0; display: flex; flex-direction: column; gap: 10px; }
+.ask-ex { display: flex; flex-wrap: wrap; gap: 6px; }
+.bubble { max-width: 92%; padding: 10px 13px; border-radius: 16px; font-size: 14.5px; line-height: 1.6; }
+.bubble.me { align-self: flex-end; background: var(--green); color: #04130d; border-bottom-right-radius: 5px; }
+.bubble.bot { align-self: flex-start; background: var(--card); border: 1px solid var(--line); border-bottom-left-radius: 5px; width: 92%; }
+.bubble .card .row { padding: 10px 6px; }
+.ask-input { display: flex; gap: 8px; padding-top: 10px; border-top: 1px solid var(--line); }
+.ask-input input { flex: 1; height: 44px; border-radius: 22px; border: 1px solid var(--line); background: var(--card); padding: 0 16px; font-size: 15px; outline: none; }
+.ask-input input:focus { border-color: var(--green); }
+.ask-input .btn { height: 44px; border-radius: 22px; }
 `;
 if (typeof document !== "undefined" && !document.getElementById("kk-css")) {
   const st = document.createElement("style");
@@ -536,6 +554,13 @@ async function getNextMatchTime(afterISO) {
   if (DEMO) return demoMatches().find((m) => m.utc_date >= afterISO)?.utc_date || null;
   const rows = ok(await sb.from("matches").select("utc_date").gte("utc_date", afterISO).order("utc_date").limit(1));
   return rows[0]?.utc_date || null;
+}
+
+// কোনো প্রতিযোগিতার সামনের খেলা
+async function getCompUpcoming(code, limit = 6) {
+  const from = new Date(Date.now() - 3 * 3600000).toISOString();
+  if (DEMO) return demoMatches().filter((m) => m.competition_code === code && m.status !== "FINISHED" && m.utc_date >= from).slice(0, limit);
+  return ok(await sb.from("matches").select(MATCH_SELECT).eq("competition_code", code).neq("status", "FINISHED").gte("utc_date", from).order("utc_date").limit(limit));
 }
 
 async function getMatchesByIds(ids) {
@@ -999,7 +1024,7 @@ const ABOUT = {
     devH: "এবাউট দ্য ডেভেলপার",
     devName: "মাহবুব হাসান তন্ময়",
     devRole: "প্রতিষ্ঠাতা ও ডেভেলপার",
-    dev: "ক্রীড়া সাংবাদিক। খেলা৭১-এ সাব-এডিটর হিসেবে কাজ করেছেন, বাংলা ও ইংরেজিতে লিখেছেন ১,৭০০-র বেশি ক্রীড়া প্রতিবেদন। গোপালগঞ্জ বিজ্ঞান ও প্রযুক্তি বিশ্ববিদ্যালয় থেকে বিবিএ শেষ করে এখন একটি বেসরকারি ব্যাংকে কর্মরত। আগ্রহের জায়গা খেলার ইতিহাস। প্রোগ্রামিংয়ে প্রাতিষ্ঠানিক পড়াশোনা নেই; নিজে শিখে বানিয়েছেন খেলা কখন?।",
+    dev: "ক্রীড়া লেখক। খেলা৭১-এ সাব-এডিটর হিসেবে কাজ করেছেন, বাংলা ও ইংরেজিতে লিখেছেন ১,৭০০-র বেশি ক্রীড়া প্রতিবেদন। গোপালগঞ্জ বিজ্ঞান ও প্রযুক্তি বিশ্ববিদ্যালয় থেকে বিবিএ শেষ করে এখন একটি বেসরকারি ব্যাংকে কর্মরত। আগ্রহের জায়গা খেলার ইতিহাস। প্রোগ্রামিংয়ে প্রাতিষ্ঠানিক পড়াশোনা নেই; নিজে শিখে বানিয়েছেন খেলা কখন?।",
     cta: "শুরু করো",
   },
   en: {
@@ -1016,7 +1041,7 @@ const ABOUT = {
     devH: "About the Developer",
     devName: "Mahbub Hasan Tonmoy",
     devRole: "Founder & developer",
-    dev: "Sports journalist. Former sub-editor at Khela71, with more than 1,700 sports articles in Bangla and English. Holds a BBA from Gopalganj Science and Technology University and now works at a private bank. Has a keen interest in sports history. No formal training in programming; self-taught, he built Khela Kokhon himself.",
+    dev: "Sports writer. Former sub-editor at Khela71, with more than 1,700 sports articles in Bangla and English. Holds a BBA from Gopalganj Science and Technology University and now works at a private bank. Has a keen interest in sports history. No formal training in programming; self-taught, he built Khela Kokhon himself.",
     cta: "Get started",
   },
 };
@@ -1568,6 +1593,266 @@ function Profile({ user, profile, myTeams, teamsById, lang, setLang, theme, setT
   );
 }
 
+// ════════════════ pages/Ask.jsx ════════════════
+// ═══════════════════════════════════════════════════════════════
+//  "খেলা কখন? জিজ্ঞেস করো" — প্রশ্ন বুঝে সাইটের সূচি থেকে উত্তর
+//  কোনো AI বা বাইরের API নেই: দলের নাম আর প্রশ্নের ধরন মিলিয়ে উত্তর বানায়।
+// ═══════════════════════════════════════════════════════════════
+
+// দলের ডাকনাম (বাংলা আর ইংরেজি) — name_bn/name_en ছাড়াও এগুলো চেনে
+const NICK = {
+  86: ["রিয়াল", "রিয়াল মাদ্রিদ", "মাদ্রিদ", "real", "real madrid", "madrid", "rma"],
+  81: ["বার্সা", "বার্সেলোনা", "barca", "barça", "barcelona"],
+  78: ["অ্যাটলেটিকো", "আতলেতিকো", "এটলেটিকো", "অ্যাতলেতিকো", "atletico", "atleti"],
+  66: ["ম্যানইউ", "ম্যান ইউ", "ম্যানচেস্টার ইউনাইটেড", "ইউনাইটেড", "man utd", "man united", "manchester united", "united", "mufc"],
+  65: ["ম্যান সিটি", "ম্যানসিটি", "সিটি", "man city", "manchester city", "city"],
+  64: ["লিভারপুল", "liverpool", "pool"],
+  57: ["আর্সেনাল", "গানার্স", "arsenal", "gunners"],
+  61: ["চেলসি", "chelsea"],
+  73: ["টটেনহ্যাম", "টটেনহাম", "স্পার্স", "tottenham", "spurs"],
+  67: ["নিউক্যাসল", "নিউকাসল", "newcastle"],
+  5: ["বায়ার্ন", "বায়ার্ন মিউনিখ", "bayern", "bayern munich"],
+  4: ["ডর্টমুন্ড", "dortmund", "bvb"],
+  3: ["লেভারকুসেন", "leverkusen"],
+  524: ["পিএসজি", "পিএসজির", "psg", "paris saint germain"],
+  109: ["জুভেন্টাস", "জুভ", "juventus", "juve"],
+  98: ["এসি মিলান", "মিলান", "ac milan", "milan"],
+  108: ["ইন্টার", "ইন্টার মিলান", "inter", "inter milan"],
+  113: ["নাপোলি", "napoli"],
+  100: ["রোমা", "roma"],
+  90: ["বেতিস", "betis"],
+  92: ["সোসিয়েদাদ", "sociedad"],
+};
+
+const COMP_WORDS = {
+  CL: ["চ্যাম্পিয়ন্স লিগ", "চ্যাম্পিয়নস লিগ", "ইউসিএল", "champions league", "ucl"],
+  PL: ["প্রিমিয়ার লিগ", "ইপিএল", "premier league", "epl"],
+  PD: ["লা লিগা", "লালিগা", "la liga", "laliga"],
+  BL1: ["বুন্দেসলিগা", "bundesliga"],
+  SA: ["সিরি আ", "সিরিয়া", "সিরি এ", "serie a"],
+  FL1: ["লিগ আঁ", "লিগ ওয়ান", "ligue 1", "ligue un"],
+};
+
+const W = {
+  last: ["শেষ", "আগের", "গত", "ফল", "রেজাল্ট", "স্কোর", "জিত", "হার", "হেরে", "ড্র", "last", "result", "score", "won", "lost", "previous"],
+  today: ["আজ", "today", "tonight"],
+  tomorrow: ["আগামীকাল", "কালকে", "কাল", "tomorrow"],
+  yesterday: ["গতকাল", "yesterday"],
+};
+
+const norm = (s) => (s || "").normalize("NFC").replace(/[‌‍]/g, "").toLowerCase().replace(/[?!।,.;:"'’()]/g, " ").replace(/\s+/g, " ").trim();
+const isBn = (s) => /[ঀ-৿]/.test(s);
+const esc = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+// প্রশ্নে কোন কোন দলের নাম আছে (লম্বা নাম আগে, একই জায়গা দুবার নয়)
+// সাধারণ ইংরেজি শব্দ, দলের নাম হলেও প্রশ্নে অন্য অর্থে আসে
+const STOP = ["nice", "club", "real", "city", "united", "sport", "racing"];
+
+function findTeams(q, teams) {
+  // নামের যে শব্দগুলো শুধু একটা দলেরই আছে (বেতিস, সেল্টা, হটস্পার), সেগুলোও চেনে
+  const wordOwners = {};
+  for (const t of teams)
+    for (const w of new Set([t.name_bn, t.name_en, t.short_en].filter(Boolean).flatMap((x) => norm(x).split(" "))))
+      if (w.length >= 3 && !/^\d+$/.test(w)) (wordOwners[w] ||= new Set()).add(t.id);
+  const aliases = [];
+  for (const t of teams) {
+    const words = Object.entries(wordOwners).filter(([, ids]) => ids.size === 1 && ids.has(t.id)).map(([w]) => w);
+    const list = new Set([t.name_bn, t.name_en, t.short_en, ...(NICK[t.id] || [])].filter(Boolean).map(norm).concat(words));
+    for (const a of list) if (a.length >= 3 && !STOP.includes(a)) aliases.push([a, t.id]);
+  }
+  aliases.sort((x, y) => y[0].length - x[0].length);
+  const taken = [];
+  const found = [];
+  for (const [a, id] of aliases) {
+    // বাংলা: শব্দের শুরুতে মিললেই হবে (রিয়ালের, বার্সার); ইংরেজি: পুরো শব্দ
+    const re = isBn(a) ? new RegExp("(^|\\s)" + esc(a)) : new RegExp("(^|[^a-z])" + esc(a) + "($|[^a-z])");
+    const m = re.exec(q);
+    if (!m) continue;
+    const start = m.index + m[1].length, end = start + a.length;
+    if (taken.some(([s, e]) => start < e && end > s)) continue;
+    taken.push([start, end]);
+    if (!found.includes(id)) found.push(id);
+  }
+  return found;
+}
+
+// শব্দের শুরুতে মিললে ধরা হবে ("কাল" মিলবে, "গতকাল"-এর ভেতরের "কাল" নয়)
+const wordAt = (q, w) => {
+  const a = norm(w);
+  return (isBn(a) ? new RegExp("(^|\\s)" + esc(a)) : new RegExp("(^|[^a-z])" + esc(a))).test(q);
+};
+const has = (q, words) => words.some((w) => wordAt(q, w));
+
+function findComp(q) {
+  for (const [code, words] of Object.entries(COMP_WORDS)) if (words.some((w) => q.includes(norm(w)))) return code;
+  return null;
+}
+
+// "শনিবার দিবাগত রাত" — মাঝরাতের পরের খেলার জন্য
+function whenText(m, lang) {
+  const k = dayKey(m.utc_date);
+  const { h } = dhaka(m.utc_date);
+  if (lang === "bn" && h < 6) return `${dayLabel(addDays(k, -1), "bn")} দিবাগত ${timeLabel(m.utc_date, "bn")}`;
+  return `${dayLabel(k, lang)}, ${timeLabel(m.utc_date, lang)}`;
+}
+
+// বাংলায় "-এর" রূপ: বার্সেলোনার, চেলসির, লিভারপুলের
+const poss = (name, lang) => (lang !== "bn" ? `${name}'s` : /[\u09BE-\u09CC]$/.test(name) ? name + "র" : name + "ের");
+
+// উত্তর বানানো: { text, matches }
+async function answer(raw, teams, lang) {
+  const q = norm(raw);
+  const bn = lang === "bn";
+  if (!q) return null;
+  const ids = findTeams(q, teams);
+  const byId = Object.fromEntries(teams.map((t) => [t.id, t]));
+  const nm = (id) => teamName(byId[id], lang);
+  const wantLast = has(q, W.last) && !has(q, ["পরের", "নেক্সট", "next", "upcoming", "সামনে"]);
+  const comp = findComp(q);
+
+  // দুই দল: একে অপরের বিপক্ষে
+  if (ids.length >= 2) {
+    const [a, b] = ids;
+    const list = await getTeamMatches([a], { upcoming: !wantLast, limit: 60 });
+    const m = list.find((x) => [x.home_id, x.away_id].includes(b));
+    if (!m) return { text: bn ? `সাইটের সূচিতে ${nm(a)} বনাম ${poss(nm(b), "bn")} ${wantLast ? "সাম্প্রতিক কোনো ম্যাচ" : "সামনে কোনো ম্যাচ"} নেই।` : `No ${wantLast ? "recent" : "upcoming"} ${nm(a)} vs ${nm(b)} match in the fixtures.`, matches: [] };
+    return { text: describe(m, null, wantLast, lang), matches: [m] };
+  }
+
+  // এক দল
+  if (ids.length === 1) {
+    const id = ids[0];
+    if (wantLast) {
+      const [m] = await getTeamMatches([id], { upcoming: false, limit: 1 });
+      if (!m) return { text: bn ? `${poss(nm(id), lang)} কোনো ফল এখনো সূচিতে নেই।` : `No results yet for ${nm(id)}.`, matches: [] };
+      return { text: describe(m, id, true, lang), matches: [m] };
+    }
+    const list = await getTeamMatches([id], { upcoming: true, limit: 3 });
+    if (!list.length) return { text: bn ? `${poss(nm(id), lang)} সামনে কোনো খেলা সূচিতে নেই।` : `No upcoming matches for ${nm(id)}.`, matches: [] };
+    return { text: describe(list[0], id, false, lang) + (list.length > 1 ? (bn ? " এর পরের খেলাগুলোও নিচে দিলাম।" : " The next few are below.") : ""), matches: list };
+  }
+
+  // কোনো দল নেই, দিনের প্রশ্ন
+  const today = dayKey(new Date());
+  const day = has(q, W.yesterday) ? addDays(today, -1) : has(q, W.tomorrow) ? addDays(today, 1) : has(q, W.today) ? today : null;
+  if (day) {
+    const list = (await getMatchesOnDay(day)).filter((m) => !comp || m.competition_code === comp);
+    const label = dayLabel(day, lang);
+    if (!list.length) return { text: bn ? `${label} ${comp ? "এই প্রতিযোগিতার " : ""}কোনো খেলা নেই।` : `No matches ${label.toLowerCase()}.`, matches: [] };
+    return { text: bn ? `${label} মোট ${num(list.length, "bn")}টা খেলা।` : `${list.length} matches ${label.toLowerCase()}.`, matches: list };
+  }
+
+  // শুধু প্রতিযোগিতার নাম
+  if (comp) {
+    const list = await getCompUpcoming(comp, 6);
+    if (!list.length) return { text: bn ? "এই প্রতিযোগিতার সামনে কোনো খেলা সূচিতে নেই।" : "No upcoming matches in this competition.", matches: [] };
+    return { text: bn ? `${poss(compName(list[0].competition, lang), "bn")} পরের খেলাগুলো:` : `Next ${compName(list[0].competition, lang)} matches:`, matches: list };
+  }
+
+  return {
+    text: bn
+      ? "প্রশ্নটা ধরতে পারিনি। দলের নাম দিয়ে জিজ্ঞেস করো, যেমন: “রিয়ালের পরের খেলা কবে”, “বার্সার শেষ ম্যাচের ফল”, “আজ কী খেলা”, “লিভারপুল বনাম ম্যানইউ কবে”।"
+      : "I couldn't follow that. Try a team name, e.g. “Real Madrid next match”, “Barça last result”, “today's matches”, “Liverpool vs Man United”.",
+    matches: [],
+  };
+}
+
+function describe(m, id, past, lang) {
+  const bn = lang === "bn";
+  const home = teamName(m.home, lang), away = teamName(m.away, lang);
+  const comp = compName(m.competition, lang);
+  if (past || isDone(m)) {
+    const s = `${num(m.home_score, lang)}-${num(m.away_score, lang)}`;
+    return bn ? `${dayLabel(dayKey(m.utc_date), "bn")} (${comp}): ${home} ${s} ${away}।` : `${dayLabel(dayKey(m.utc_date), "en")}, ${comp}: ${home} ${s} ${away}.`;
+  }
+  if (isLive(m)) return bn ? `${home} বনাম ${away} এখন চলছে: ${num(m.home_score ?? 0, "bn")}-${num(m.away_score ?? 0, "bn")}।` : `${home} vs ${away} is live now.`;
+  const opp = id ? (m.home_id === id ? away : home) : null;
+  const left = countdown(new Date(m.utc_date) - Date.now(), lang);
+  if (bn)
+    return id
+      ? `${poss(teamName(m.home_id === id ? m.home : m.away, "bn"), "bn")} পরের খেলা ${whenText(m, "bn")}, ${poss(opp, "bn")} বিপক্ষে (${comp})। শুরু হতে বাকি ${left}।`
+      : `${home} বনাম ${away}: ${whenText(m, "bn")} (${comp})। শুরু হতে বাকি ${left}।`;
+  return id
+    ? `${teamName(m.home_id === id ? m.home : m.away, "en")} play ${opp} on ${whenText(m, "en")} Bangladesh time (${comp}). Kickoff in ${left}.`
+    : `${home} vs ${away}: ${whenText(m, "en")} Bangladesh time (${comp}). Kickoff in ${left}.`;
+}
+
+const EXAMPLES = {
+  bn: ["রিয়ালের পরের খেলা কবে", "বার্সার শেষ ম্যাচের ফল", "আজ কী খেলা", "লিভারপুল বনাম ম্যানইউ কবে", "চ্যাম্পিয়ন্স লিগ"],
+  en: ["Real Madrid next match", "Barça last result", "Today's matches", "Liverpool vs Man United", "Champions League"],
+};
+
+function AskButton({ onClick }) {
+  const { lang } = useT();
+  return (
+    <button className="ask-fab" onClick={onClick} aria-label="ask">
+      <span className="ask-spark">✦</span>{lang === "bn" ? "জিজ্ঞেস করো" : "Ask"}
+    </button>
+  );
+}
+
+function AskSheet({ teams, preds, onOpen, onClose }) {
+  const { lang } = useT();
+  const [q, setQ] = useState("");
+  const [chat, setChat] = useState([]);
+  const [busy, setBusy] = useState(false);
+  const endRef = useRef(null);
+  useEffect(() => { endRef.current?.scrollIntoView({ block: "end" }); }, [chat, busy]);
+
+  async function ask(text) {
+    const t = text.trim();
+    if (!t || busy) return;
+    setQ(""); setBusy(true);
+    setChat((c) => [...c, { me: t }]);
+    try {
+      const a = await answer(t, teams, lang);
+      setChat((c) => [...c, a || { text: "…", matches: [] }]);
+    } catch {
+      setChat((c) => [...c, { text: lang === "bn" ? "দুঃখিত, এখন উত্তর আনা যাচ্ছে না। একটু পরে চেষ্টা করো।" : "Sorry, couldn't fetch that right now.", matches: [] }]);
+    }
+    setBusy(false);
+  }
+
+  return (
+    <div className="veil" onClick={onClose}>
+      <div className="sheet ask" onClick={(e) => e.stopPropagation()}>
+        <div className="grab" />
+        <div className="ask-head"><span className="ask-spark">✦</span>{lang === "bn" ? "খেলা কখন? জিজ্ঞেস করো" : "Ask Khela Kokhon"}</div>
+        <div className="ask-body">
+          {chat.length === 0 && (
+            <>
+              <p className="muted" style={{ fontSize: 13.5, lineHeight: 1.6, marginBottom: 10 }}>
+                {lang === "bn" ? "দলের নাম লিখে জিজ্ঞেস করো, সূচি দেখে বাংলাদেশ সময়ে বলে দেব।" : "Ask about any team and get the answer in Bangladesh time."}
+              </p>
+              <div className="ask-ex">
+                {EXAMPLES[lang === "bn" ? "bn" : "en"].map((e) => <button key={e} className="chip" onClick={() => ask(e)}>{e}</button>)}
+              </div>
+            </>
+          )}
+          {chat.map((m, i) => m.me ? (
+            <div key={i} className="bubble me">{m.me}</div>
+          ) : (
+            <div key={i} className="bubble bot">
+              <div>{m.text}</div>
+              {m.matches?.length > 0 && (
+                <div className="card" style={{ marginTop: 8 }}>
+                  {m.matches.slice(0, 8).map((x) => <MatchRow key={x.id} m={x} pred={preds[x.id]} onOpen={onOpen} />)}
+                </div>
+              )}
+            </div>
+          ))}
+          {busy && <div className="bubble bot muted">…</div>}
+          <div ref={endRef} />
+        </div>
+        <form className="ask-input" onSubmit={(e) => { e.preventDefault(); ask(q); }}>
+          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={lang === "bn" ? "যেমন: রিয়ালের পরের খেলা কবে" : "e.g. Real Madrid next match"} autoFocus />
+          <button className="btn" disabled={!q.trim() || busy}>{lang === "bn" ? "পাঠাও" : "Send"}</button>
+        </form>
+      </div>
+    </div>
+  );
+}
+
 // ════════════════ App.jsx ════════════════
 const TABS = [
   { id: "home", path: "/", Icon: HomeIcon },
@@ -1608,6 +1893,7 @@ export default function App() {
   const [editing, setEditing] = useState(false);
   const [toastMsg, setToastMsg] = useState("");
   const [showClock, setShowClock] = useState(false);
+  const [asking, setAsking] = useState(false);
 
   const setLang = (v) => { setLangS(v); store("kk_lang", v); };
   const setTheme = (v) => { setThemeS(v); store("kk_theme", v); };
@@ -1650,6 +1936,9 @@ export default function App() {
     getMyTeams(user).then(setMyTeams).catch(() => {});
     getMyPredictions(user).then(setPreds).catch(() => {});
   }, [user?.id]);
+
+  // সাইটে কোথাও "?ask" থাকলে সরাসরি জিজ্ঞেস-বক্স খোলে
+  useEffect(() => { if (new URLSearchParams(window.location.search).has("ask")) setAsking(true); }, []);
 
   const onboarding = user && profile && (!profile.onboarded || editing);
 
@@ -1711,6 +2000,8 @@ export default function App() {
       </div>
 
       {!onboarding && <Nav tab={tab} go={go} />}
+      {!onboarding && !asking && <AskButton onClick={() => setAsking(true)} />}
+      {asking && <AskSheet teams={Object.values(teamsById)} preds={preds} onOpen={openMatch} onClose={() => setAsking(false)} />}
       {sheet && (
         <MatchSheet
           key={sheet.id}
