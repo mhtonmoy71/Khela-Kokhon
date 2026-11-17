@@ -1138,10 +1138,17 @@ function H2H({ m }) {
     try { setData(await getH2H(m.id, m.home_id, m.away_id)); setState("done"); } catch { setState("error"); }
   }
   if (!m.home_id || !m.away_id) return null;
-  const ag = data?.aggregates;
-  const homeAg = ag && (ag.homeTeam?.id === m.home_id ? ag.homeTeam : ag.awayTeam);
-  const awayAg = ag && (ag.homeTeam?.id === m.home_id ? ag.awayTeam : ag.homeTeam);
-  const past = (data?.matches || []).filter((x) => x.status !== "SCHEDULED" && x.status !== "TIMED" && x.score?.home != null).slice(0, 5);
+  // জয়-ড্রয়ের হিসাব আগের ম্যাচগুলো থেকেই গোনা (উৎসের সারাংশে মাঝে মাঝে গরমিল থাকে)
+  const all = (data?.matches || []).filter((x) => x.status === "FINISHED" && x.score?.home != null);
+  const tally = { h: 0, d: 0, a: 0 };
+  for (const x of all) {
+    const hs = x.homeTeam?.id === m.home_id ? x.score.home : x.score.away;
+    const as = x.homeTeam?.id === m.home_id ? x.score.away : x.score.home;
+    tally[hs > as ? "h" : hs < as ? "a" : "d"]++;
+  }
+  const homeAg = all.length ? { wins: tally.h, draws: tally.d } : null;
+  const awayAg = all.length ? { wins: tally.a } : null;
+  const past = all.slice(0, 5);
   return (
     <div className="sec" style={{ margin: "16px 0 0" }}>
       <div className="sec-h"><h2>{bn ? "মুখোমুখি" : "Head to head"}</h2></div>
@@ -1153,7 +1160,7 @@ function H2H({ m }) {
           {homeAg && awayAg && (
             <div className="h2h-agg">
               <div><b>{num(homeAg.wins, lang)}</b><span>{teamName(m.home, lang)}</span></div>
-              <div><b>{num(homeAg.draws, lang)}</b><span>{bn ? "ড্র" : "Draws"}</span></div>
+              <div><b>{num(homeAg.draws, lang)}</b><span>{bn ? `ড্র (শেষ ${num(all.length, lang)} লড়াই)` : `Draws (last ${all.length})`}</span></div>
               <div><b>{num(awayAg.wins, lang)}</b><span>{teamName(m.away, lang)}</span></div>
             </div>
           )}
