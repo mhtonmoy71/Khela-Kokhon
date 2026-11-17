@@ -362,13 +362,11 @@ img { display: block; }
 .chev { font-size: 18px; line-height: 1; color: var(--muted); transform: rotate(180deg); transition: transform .15s; }
 .chev.up { transform: none; }
 .row { position: relative; }
-.row.has-badge { padding-left: 52px; }
+.row.has-badge { padding-left: 50px; }
 .row.has-badge .mid .st { display: none; }
-.rbadge { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); min-width: 36px; padding: 4px 6px; border-radius: 9px; background: var(--card2);
-  color: var(--muted); font-size: 11px; font-weight: 700; text-align: center; line-height: 1.2; display: flex; flex-direction: column; }
-.rbadge.day { font-weight: 500; font-size: 10px; }
-.rbadge.day b { font-size: 11px; }
-.rbadge.live { color: var(--red); background: color-mix(in srgb, var(--red) 12%, transparent); }
+.mid .st { white-space: nowrap; }
+.rbadge { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); width: 32px; padding: 3px 0; border-radius: 8px; background: var(--card2);
+  color: var(--muted); font-size: 10.5px; font-weight: 700; text-align: center; line-height: 1.2; white-space: nowrap; overflow: hidden; }
 
 /* ── লিগের তালিকা ── */
 .lg-list { display: grid; gap: 10px; }
@@ -1181,7 +1179,7 @@ function StatusText({ m }) {
 }
 
 // ── ম্যাচের সারি ──
-function MatchRow({ m, pred, onOpen, badge, plain }) {
+function MatchRow({ m, pred, onOpen, badge, plain, sub }) {
   const allFavs = useContext(FavCtx);
   const favs = plain ? [] : allFavs; // "ফলো করা" কার্ডে সবই প্রিয় দল, তাই আলাদা চিহ্ন লাগে না
   const { lang } = useT();
@@ -1200,7 +1198,7 @@ function MatchRow({ m, pred, onOpen, badge, plain }) {
         ) : (
           <div className="t" style={isOff(m) ? { textDecoration: "line-through", opacity: 0.6 } : null}>{timeLabel(m.utc_date, lang)}</div>
         )}
-        <div className="st"><StatusText m={m} /></div>
+        <div className="st">{sub || <StatusText m={m} />}</div>
         {pred && (
           <span className="pred-tag">
             🎯 {num(pred.home, lang)}-{num(pred.away, lang)}
@@ -1592,13 +1590,14 @@ function DayMatches({ day, setDay, comp = "ALL", preds, onOpen }) {
 
 // ── ফলো করা দলের খেলা: একটা কার্ড, ভাঁজ করা যায় ──
 // বাম পাশের ছোট চিহ্ন: শেষ / লাইভ / অন্য দিনের তারিখ। আজকের খেলায় কিছু না।
-function rowBadge(m, t, lang) {
-  if (isLive(m) || m.status === "PAUSED") return <span className="rbadge live">{m.status === "PAUSED" ? t("ht") : t("live")}</span>;
-  if (isDone(m)) return <span className="rbadge">{t("ft")}</span>;
-  const k = dayKey(m.utc_date);
-  if (k === dayKey(new Date())) return null;
-  const l = stripLabel(k, lang);
-  return <span className="rbadge day"><b>{l.top}</b>{l.bottom}</span>;
+// শুধু শেষ হওয়া খেলায় বাঁয়ে ছোট "শেষ"; সামনের খেলার দিন লেখা থাকে সময়ের নিচে
+function rowBadge(m, t) {
+  return isDone(m) ? <span className="rbadge">{t("ft")}</span> : null;
+}
+function rowSub(m, lang) {
+  if (isLive(m) || m.status === "PAUSED" || isDone(m) || isOff(m)) return null; // নিজের অবস্থা দেখায়
+  const k = dayKey(m.utc_date), l = stripLabel(k, lang);
+  return k === dayKey(new Date()) ? l.top : `${l.top}, ${l.bottom}`;
 }
 
 function Following({ list, preds, onOpen }) {
@@ -1613,7 +1612,7 @@ function Following({ list, preds, onOpen }) {
         <span className={"chev" + (open ? " up" : "")}>⌃</span>
       </button>
       {open && (list === null ? <div className="spin" />
-        : list.length ? list.map((m) => <MatchRow key={m.id} m={m} pred={preds[m.id]} onOpen={onOpen} plain badge={rowBadge(m, t, lang)} />)
+        : list.length ? list.map((m) => <MatchRow key={m.id} m={m} pred={preds[m.id]} onOpen={onOpen} plain badge={rowBadge(m, t)} sub={rowSub(m, lang)} />)
         : <div className="empty">{t("noUpcoming")}</div>)}
     </div>
   );
