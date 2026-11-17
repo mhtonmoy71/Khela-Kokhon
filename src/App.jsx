@@ -289,11 +289,15 @@ img { display: block; }
 .info-row:last-child { border-bottom: 0; }
 .info-row b { text-align: right; font-weight: 600; }
 .card.info-row { margin-bottom: 4px; }
-.sq { display: grid; grid-template-columns: 1fr auto; grid-template-rows: auto auto; column-gap: 10px; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+.sq { display: grid; grid-template-columns: 40px 1fr auto; grid-template-rows: auto auto; column-gap: 10px; padding: 9px 14px; border-bottom: 1px solid var(--line); align-items: center; }
+.sq-av { grid-column: 1; grid-row: 1 / span 2; display: flex; }
+.sq > b { grid-column: 2; }
+.av { border-radius: 50%; object-fit: cover; object-position: 50% 18%; background: var(--card2); flex: none; display: block; }
+.av-fb { display: grid; place-items: center; color: var(--muted); font-family: Inter, sans-serif; font-weight: 700; }
 .sq:last-child { border-bottom: 0; }
 .sq b { font-weight: 600; font-size: 14px; font-family: Inter, "Hind Siliguri", sans-serif; }
-.sq .muted { grid-column: 1; font-size: 12px; }
-.sq-age { grid-column: 2; grid-row: 1 / span 2; align-self: center; font-size: 13px; color: var(--muted); }
+.sq .muted { grid-column: 2; font-size: 12px; }
+.sq-age { grid-column: 3; grid-row: 1 / span 2; align-self: center; font-size: 13px; color: var(--muted); }
 .h2h-agg { display: grid; grid-template-columns: 1fr 1fr 1fr; text-align: center; padding: 14px 8px; border-bottom: 1px solid var(--line); }
 .h2h-agg b { display: block; font-size: 24px; font-family: Inter, sans-serif; }
 .h2h-agg span { font-size: 12px; color: var(--muted); }
@@ -1183,6 +1187,16 @@ async function getPlayerScoring(id) {
   if (DEMO) return [{ competition_code: "PD", goals: 7, assists: 3, played: 11, penalties: 2 }, { competition_code: "CL", goals: 2, assists: 1, played: 4, penalties: 0 }];
   return ok(await sb.from("scorers").select("competition_code, goals, assists, played, penalties").eq("player_id", id));
 }
+
+// খেলোয়াড়দের ছোট ছবি: দলের পুরো স্কোয়াড বা কয়েকজন (id) — একবার আনা ছবি মনে রাখে
+const photoMemo = {};
+async function getPhotos(params) {
+  if (DEMO) return {};
+  const d = await extra({ type: "photos", ...params });
+  Object.assign(photoMemo, d);
+  return d;
+}
+const smallPhoto = (url) => url && url.replace(/width=\d+/, "width=96");
 
 async function getH2H(matchId, homeId, awayId) {
   if (DEMO) return {
@@ -2829,6 +2843,14 @@ function SearchSheet({ comps, teams, onClose }) {
     players: pick(players, (r) => [r.player_name, ...Object.entries(PLAYER_NICK).filter(([, part]) => plain(r.player_name).split(" ").includes(part)).map(([n]) => n)], 8),
   };
   const empty = res && !res.comps.length && !res.teams.length && !res.players.length;
+  // খেলোয়াড়ের ছবি: টাইপ থামলে একবারে আনা
+  const [, bump] = useState(0);
+  const pids = (res?.players || []).map((r) => r.player_id).filter((x) => !(x in photoMemo)).join(",");
+  useEffect(() => {
+    if (!pids) return;
+    const t = setTimeout(() => getPhotos({ ids: pids }).then(() => bump((x) => x + 1)).catch(() => {}), 350);
+    return () => clearTimeout(t);
+  }, [pids]);
 
   return (
     <div className="search-ov">
@@ -2873,7 +2895,7 @@ function SearchSheet({ comps, teams, onClose }) {
           <div className="lg-h">{bn ? "খেলোয়াড়" : "Players"}</div>
           <div className="card">{res.players.map((r) => (
             <button key={r.player_id} className="s-row" onClick={() => nav.openPlayer(r.player_id)}>
-              <Crest team={r.team} size={28} />
+              <Avatar url={photoMemo[r.player_id]} name={r.player_name} team={r.team} size={36} />
               <span className="s-txt"><b>{r.player_name}</b><small className="muted">{r.team ? teamName(r.team, lang) : ""}</small></span>
             </button>
           ))}</div>
@@ -3108,7 +3130,7 @@ const age = (dob) => {
   return n.getFullYear() - d.getFullYear() - (n < new Date(n.getFullYear(), d.getMonth(), d.getDate()) ? 1 : 0);
 };
 
-function Squad({ info, lang }) {
+function Squad({ info, lang, photos = {} }) {
   const bn = lang === "bn";
   const nav = useNav();
   if (info === null) return <div className="card"><div className="spin" /></div>;
@@ -3127,6 +3149,7 @@ function Squad({ info, lang }) {
           <div className="card">
             {list.map((p) => (
               <button className="sq" key={p.id} onClick={() => nav.openPlayer(p.id)}>
+                <span className="sq-av"><Avatar url={photos[p.id]} name={p.name} /></span>
                 <b>{p.name}</b>
                 <span className="muted">{[p.position, p.nationality].filter(Boolean).join(" · ")}</span>
                 <span className="sq-age">{age(p.dateOfBirth) != null ? `${num(age(p.dateOfBirth), lang)} ${bn ? "বছর" : "y"}` : ""}<i className="sq-go">›</i></span>
@@ -3137,6 +3160,15 @@ function Squad({ info, lang }) {
       ))}
     </>
   );
+}
+
+// ছোট গোল ছবি; ছবি না থাকলে বা না এলে নামের আদ্যক্ষর (বা দলের লোগো)
+function Avatar({ url, name, team, size = 34 }) {
+  const [bad, setBad] = useState(false);
+  if (url && !bad) return <img className="av" src={smallPhoto(url)} alt="" width={size} height={size} loading="lazy" onError={() => setBad(true)} style={{ width: size, height: size }} />;
+  if (team) return <span className="av av-fb" style={{ width: size, height: size }}><Crest team={team} size={Math.round(size * 0.62)} /></span>;
+  const ini = (name || "?").split(" ").filter(Boolean).map((w) => w[0]).slice(0, 2).join("").toUpperCase();
+  return <span className="av av-fb" style={{ width: size, height: size, fontSize: size * 0.36 }}>{ini}</span>;
 }
 
 // ════════════════ pages/Player.jsx ════════════════
@@ -3271,6 +3303,14 @@ function Team({ id, teamsById, preds, onOpen }) {
   const [past, setPast] = useState(null);
   const [tab, setTab] = useState("overview");
   const [info, setInfo] = useState(null);
+  const [photos, setPhotos] = useState({});
+  // স্কোয়াড ট্যাব খুললে ছবি আনা (প্রথমবার একটু সময় লাগে, পরে জমা থেকে)
+  useEffect(() => {
+    if (tab !== "squad" || !info) return;
+    let live = true;
+    getPhotos({ team: id }).then((d) => live && setPhotos(d)).catch(() => {});
+    return () => { live = false; };
+  }, [tab, !!info, id]);
   const team = teamsById[id] || up?.map((m) => (m.home_id === id ? m.home : m.away))[0] || past?.map((m) => (m.home_id === id ? m.home : m.away))[0];
 
   useEffect(() => {
@@ -3316,7 +3356,7 @@ function Team({ id, teamsById, preds, onOpen }) {
         </div>
       </div>
 
-      {tab === "squad" ? <div className="sec"><Squad info={info} lang={lang} /></div> : (<>
+      {tab === "squad" ? <div className="sec"><Squad info={info} lang={lang} photos={photos} /></div> : (<>
       {main && (
         <div className="sec">
           {pos.map((st) => (
