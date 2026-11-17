@@ -361,7 +361,7 @@ img { display: block; }
 .follow-h b { flex: 1; }
 .chev { flex: none; color: var(--text); transform: rotate(180deg); transition: transform .2s; }
 .chev.up { transform: none; }
-.follow { margin-bottom: 12px; }
+
 /* সরু দাগ ছাড়া, FotMob-এর মতো পরিষ্কার কার্ড */
 .card { border: 0; }
 .row, .comp-h, .follow-h { border-bottom: 0; }
@@ -1184,7 +1184,7 @@ function StatusText({ m }) {
 }
 
 // ── ম্যাচের সারি ──
-function MatchRow({ m, pred, onOpen, badge, plain }) {
+function MatchRow({ m, pred, onOpen, badge, plain, sub }) {
   const allFavs = useContext(FavCtx);
   const favs = plain ? [] : allFavs; // "ফলো করা" কার্ডে সবই প্রিয় দল, তাই আলাদা চিহ্ন লাগে না
   const { lang } = useT();
@@ -1203,7 +1203,7 @@ function MatchRow({ m, pred, onOpen, badge, plain }) {
         ) : (
           <div className="t" style={isOff(m) ? { textDecoration: "line-through", opacity: 0.6 } : null}>{timeLabel(m.utc_date, lang)}</div>
         )}
-        <div className="st"><StatusText m={m} /></div>
+        <div className="st">{sub || <StatusText m={m} />}</div>
         {pred && (
           <span className="pred-tag">
             🎯 {num(pred.home, lang)}-{num(pred.away, lang)}
@@ -1562,7 +1562,6 @@ function DateStrip({ day, setDay }) {
 // ── একটা দিনের ম্যাচ; ফাঁকা হলে পরের ম্যাচের দিনে যাওয়ার বাটন ──
 function DayMatches({ day, setDay, comp = "ALL", preds, onOpen }) {
   const { t, lang } = useT();
-  const favs = useContext(FavCtx);
   const [list, setList] = useState(null);
   const [next, setNext] = useState(null);
 
@@ -1579,14 +1578,7 @@ function DayMatches({ day, setDay, comp = "ALL", preds, onOpen }) {
 
   const shown = (list || []).filter((m) => comp === "ALL" || m.competition_code === comp);
   if (list === null) return <div className="card"><div className="spin" /></div>;
-  // FotMob-এর মতো: বাছাই করা দিনে প্রিয় দলের খেলা থাকলে শুধু সেগুলো উপরে আলাদা কার্ডে
-  const followed = comp === "ALL" ? shown.filter((m) => favs.includes(m.home_id) || favs.includes(m.away_id)) : [];
-  if (shown.length) return (
-    <>
-      {followed.length > 0 && <Following list={followed} preds={preds} onOpen={onOpen} />}
-      <CompGroups matches={shown} preds={preds} onOpen={onOpen} />
-    </>
-  );
+  if (shown.length) return <CompGroups matches={shown} preds={preds} onOpen={onOpen} />;
   return (
     <div className="card empty">
       {t("noMatchDay")}
@@ -1607,13 +1599,19 @@ function DayMatches({ day, setDay, comp = "ALL", preds, onOpen }) {
 function rowBadge(m, t) {
   return isDone(m) ? <span className="rbadge">{t("ft")}</span> : null;
 }
+// সামনের খেলার দিন, সময়ের নিচে ছোট করে (আজ / রবি, ২২ নভে)
+function rowSub(m, lang) {
+  if (isLive(m) || m.status === "PAUSED" || isDone(m) || isOff(m)) return null;
+  const k = dayKey(m.utc_date), l = stripLabel(k, lang);
+  return k === dayKey(new Date()) ? l.top : `${l.top}, ${l.bottom}`;
+}
 
 const ChevronIcon = (p) => (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" {...p}><path d="m6 15 6-6 6 6" /></svg>
 );
 
 function Following({ list, preds, onOpen }) {
-  const { t } = useT();
+  const { t, lang } = useT();
   const [open, setOpen] = useState(() => stored("kk_follow_open", "1") === "1");
   const toggle = () => { setOpen(!open); store("kk_follow_open", open ? "0" : "1"); };
   return (
@@ -1623,7 +1621,7 @@ function Following({ list, preds, onOpen }) {
         <b>{t("following")}</b>
         <ChevronIcon className={"chev" + (open ? " up" : "")} />
       </button>
-      {open && list.map((m) => <MatchRow key={m.id} m={m} pred={preds[m.id]} onOpen={onOpen} plain badge={rowBadge(m, t)} />)}
+      {open && list.map((m) => <MatchRow key={m.id} m={m} pred={preds[m.id]} onOpen={onOpen} plain badge={rowBadge(m, t)} sub={rowSub(m, lang)} />)}
     </div>
   );
 }
@@ -1634,6 +1632,29 @@ function Matches({ user, myTeams, comps, preds, onOpen, goProfile }) {
   const [comp, setComp] = useState("ALL");
   const nav = useNav();
   const fav = myTeams?.fav || [];
+  const [mine, setMine] = useState(null);
+
+  // প্রতিটা প্রিয় দলের একটা করে খেলা: চলতি খেলা, নইলে আজ শেষ হওয়া খেলা, নইলে পরের ম্যাচ
+  useEffect(() => {
+    let live = true;
+    if (!fav.length) { setMine([]); return; }
+    Promise.all([getTeamMatches(fav, { upcoming: true, limit: 30 }), getTeamMatches(fav, { upcoming: false, limit: 10 })])
+      .then(([up, past]) => {
+        if (!live) return;
+        const today = dayKey(new Date());
+        const doneToday = past.filter((m) => dayKey(m.utc_date) === today);
+        const picked = [];
+        for (const id of fav) {
+          const has = (m) => m.home_id === id || m.away_id === id;
+          const m = up.find((x) => has(x) && isLive(x)) || doneToday.find(has) || up.find(has);
+          if (m && !picked.some((x) => x.id === m.id)) picked.push(m);
+        }
+        picked.sort((a, b) => new Date(a.utc_date) - new Date(b.utc_date));
+        setMine(picked);
+      })
+      .catch(() => live && setMine([]));
+    return () => { live = false; };
+  }, [fav.join(",")]);
 
   return (
     <>
@@ -1641,9 +1662,14 @@ function Matches({ user, myTeams, comps, preds, onOpen, goProfile }) {
         <div className="sec">
           <button className="slim" onClick={goProfile}>
             <span className="slim-star">★</span>
-            <span>{lang === "bn" ? "প্রিয় দল বেছে নাও, যেদিন খেলা সেদিন সবার উপরে দেখাবে" : "Pick your teams to see their matches first"}</span>
+            <span>{lang === "bn" ? "প্রিয় দল বেছে নাও, তাদের পরের খেলা এখানে সবার উপরে দেখাবে" : "Pick your teams to see their next match here"}</span>
             <span className="muted">›</span>
           </button>
+        </div>
+      )}
+      {fav.length > 0 && mine?.length > 0 && (
+        <div className="sec">
+          <Following list={mine} preds={preds} onOpen={onOpen} />
         </div>
       )}
 
