@@ -301,6 +301,53 @@ img { display: block; }
 .h2h-row:last-child { border-bottom: 0; }
 .h2h-row .muted { font-size: 11.5px; }
 .h2h-score b { font-family: Inter, sans-serif; margin: 0 4px; }
+
+/* ══════ মিনিমাল ডিজাইন ══════ */
+.sec { margin-top: 22px; }
+.sec-h h2 { font-size: 15px; font-weight: 700; letter-spacing: .1px; }
+.card { border-radius: 14px; }
+/* পরের খেলা — কমপ্যাক্ট */
+.nx { width: 100%; text-align: left; border-radius: 16px; padding: 12px 14px 14px; color: #fff;
+  background: linear-gradient(135deg, #0a3d2f, #064e3b 60%, #08261f); border: 1px solid rgba(0,230,118,.22); }
+.nx-top { display: flex; justify-content: space-between; align-items: center; font-size: 12px; opacity: .85; margin-bottom: 10px; }
+.nx-top > span:first-child { display: inline-flex; align-items: center; gap: 6px; }
+.nx-top img { background: #fff; border-radius: 4px; padding: 1px; }
+.nx-cd { color: #7dffb8; font-weight: 600; }
+.nx-mid { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 8px; }
+.nx-team { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.nx-team.r { justify-content: flex-end; text-align: right; }
+.nx-team b { font-size: 14.5px; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.nx-time { text-align: center; display: flex; flex-direction: column; line-height: 1.15; }
+.nx-time b { font-size: 16px; }
+.nx-time small { font-size: 11px; opacity: .75; }
+.nx-score { font-family: Inter, sans-serif; font-size: 20px !important; }
+/* অতিথির জন্য সরু লাইন */
+.slim { width: 100%; display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-radius: 14px; background: var(--card); border: 1px dashed color-mix(in srgb, var(--green) 45%, transparent); font-size: 14px; text-align: left; }
+.slim span:nth-child(2) { flex: 1; }
+.slim-star { color: var(--amber); font-size: 16px; }
+/* লিগ — ছোট গোল আইকন */
+.league-strip { gap: 14px; }
+.league-tile { width: 64px; padding: 0; background: none; border: 0; gap: 6px; font-size: 11px; font-weight: 500; color: var(--muted); }
+.league-tile img { width: 48px; height: 48px; padding: 9px; border-radius: 50%; background: #fff; box-shadow: 0 0 0 1px var(--line); }
+/* পরিচিতি — হালকা লেখা, কার্ড ছাড়া */
+.about-wrap { margin-top: 36px; border-top: 1px solid var(--line); padding-top: 6px; }
+.about-blk { padding: 16px 0 6px; }
+.about-blk h3 { font-size: 14px; font-weight: 700; margin-bottom: 8px; }
+.about-blk p { font-size: 13.5px; line-height: 1.7; color: var(--muted); }
+.about-blk p.clamp { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.steps { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.steps > div { background: var(--card); border-radius: 12px; padding: 10px 12px; }
+.steps .step-n { width: 22px; height: 22px; font-size: 12px; margin-bottom: 6px; }
+.steps b { display: block; font-size: 13.5px; }
+.steps p { font-size: 12px; line-height: 1.5; margin-top: 2px; }
+.dev-mini { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; }
+.dev-mini .dev-photo { width: 52px; height: 52px; border-width: 1.5px; }
+.dev-mini b { font-size: 15px; }
+.dev-mini .dev-links { margin: 0; gap: 8px; }
+.dev-mini .dev-links a { width: 34px; height: 34px; }
+/* জিজ্ঞেস বাটন — ছোট */
+.ask-fab { height: 40px; padding: 0 14px 0 12px; font-size: 13.5px; border-radius: 20px; }
+.foot { margin-top: 28px; }
 `;
 if (typeof document !== "undefined" && !document.getElementById("kk-css")) {
   const st = document.createElement("style");
@@ -1304,25 +1351,19 @@ function NextHero({ m, onOpen }) {
   const now = useNow(30000);
   const live = isLive(m);
   return (
-    <button className="hero" style={{ width: "100%", textAlign: "inherit" }} onClick={() => onOpen(m)}>
-      <div className="hero-top"><CompIcon c={m.competition} size={16} />{compName(m.competition, lang)}</div>
-      <div className="hero-teams">
-        <div className="hero-team"><Crest team={m.home} size={60} />{teamName(m.home, lang)}</div>
-        <div className="hero-vs">
+    <button className="nx" onClick={() => onOpen(m)}>
+      <div className="nx-top">
+        <span><CompIcon c={m.competition} size={14} />{compName(m.competition, lang)}</span>
+        {live ? <span className="lv"><i className="dot" />{t("live")}</span> : <span className="nx-cd">{countdown(new Date(m.utc_date) - now, lang)}</span>}
+      </div>
+      <div className="nx-mid">
+        <span className="nx-team"><Crest team={m.home} size={30} /><b>{teamName(m.home, lang)}</b></span>
+        <span className="nx-time">
           {live && m.home_score != null
-            ? <div style={{ fontFamily: "Inter", fontSize: 30, fontWeight: 800 }}>{num(m.home_score, lang)} - {num(m.away_score, lang)}</div>
-            : t("vs")}
-        </div>
-        <div className="hero-team"><Crest team={m.away} size={60} />{teamName(m.away, lang)}</div>
-      </div>
-      <div className="hero-time">
-        <div className="big">{timeLabel(m.utc_date, lang)}</div>
-        <div className="when">{dayLabel(dayKey(m.utc_date), lang)} · {t("bdTime")}</div>
-      </div>
-      <div className="cd">
-        {live
-          ? <span><i className="dot" />{t("live")}</span>
-          : <span>{t("startsIn")} <b>{countdown(new Date(m.utc_date) - now, lang)}</b></span>}
+            ? <b className="nx-score">{num(m.home_score, lang)} - {num(m.away_score, lang)}</b>
+            : <><b>{timeLabel(m.utc_date, lang)}</b><small>{dayLabel(dayKey(m.utc_date), lang, { short: true })}</small></>}
+        </span>
+        <span className="nx-team r"><b>{teamName(m.away, lang)}</b><Crest team={m.away} size={30} /></span>
       </div>
     </button>
   );
@@ -1419,62 +1460,45 @@ const ABOUT = {
 function About({ goProfile, user }) {
   const { lang } = useT();
   const A = ABOUT[lang === "bn" ? "bn" : "en"];
+  const [more, setMore] = useState(false);
   return (
-    <>
-      <div className="sec" style={{ marginTop: 30 }}>
-        <div className="card about">
-          <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 10 }}>
-            <Logo size={40} />
-            <h2 style={{ fontSize: 18 }}>{A.whatH}</h2>
-          </div>
-          <p>{A.what}</p>
-          <div className="facts">
-            {A.facts.map(([v, l]) => (
-              <div key={l}><b>{v}</b><span>{l}</span></div>
-            ))}
-          </div>
-        </div>
+    <div className="sec about-wrap">
+      <div className="about-blk">
+        <h3>{A.whatH}</h3>
+        <p>{A.what}</p>
       </div>
 
-      <div className="sec">
-        <div className="sec-h"><h2>{A.howH}</h2></div>
-        <div className="card">
+      <div className="about-blk">
+        <h3>{A.howH}</h3>
+        <div className="steps">
           {A.steps.map(([h, d], i) => (
-            <div className="step" key={h}>
-              <span className="step-n">{num(i + 1, lang)}</span>
-              <div><b>{h}</b><p>{d}</p></div>
-            </div>
+            <div key={h}><span className="step-n">{num(i + 1, lang)}</span><b>{h}</b><p>{d}</p></div>
           ))}
-          {!user && (
-            <div style={{ padding: "4px 14px 14px" }}>
-              <button className="btn block" onClick={goProfile}>{A.cta}</button>
-            </div>
-          )}
         </div>
+        {!user && <button className="link" style={{ marginTop: 10 }} onClick={goProfile}>{A.cta} →</button>}
       </div>
 
-      <div className="sec">
-        <div className="sec-h"><h2>{A.devH}</h2></div>
-        <div className="card dev">
-          <div className="dev-top">
-            <img className="dev-photo" src={DEV_PHOTO} alt={A.devName} width="72" height="72" />
-            <div>
-              <div style={{ fontWeight: 700, fontSize: 16.5 }}>{A.devName}</div>
-              <div className="muted" style={{ fontSize: 13 }}>{A.devRole}</div>
-            </div>
+      <div className="about-blk">
+        <h3>{A.devH}</h3>
+        <div className="dev-mini">
+          <img className="dev-photo" src={DEV_PHOTO} alt={A.devName} width="52" height="52" />
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <b>{A.devName}</b>
+            <div className="muted" style={{ fontSize: 12.5 }}>{A.devRole}</div>
           </div>
-          <p>{A.dev}</p>
           <div className="dev-links">
             <a href="mailto:khelakokhon@gmail.com" aria-label="Email" title="khelakokhon@gmail.com">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="4" width="20" height="16" rx="2" /><polyline points="22,6 12,13 2,6" /></svg>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="4" width="20" height="16" rx="2" /><polyline points="22,6 12,13 2,6" /></svg>
             </a>
             <a href="https://www.facebook.com/mahbub.tonmoy.71/" target="_blank" rel="noopener noreferrer" aria-label="Facebook" title="Facebook" className="fb">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z" /></svg>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z" /></svg>
             </a>
           </div>
         </div>
+        <p className={more ? "" : "clamp"}>{A.dev}</p>
+        {!more && <button className="link" onClick={() => setMore(true)}>{lang === "bn" ? "আরও পড়ো" : "Read more"}</button>}
       </div>
-    </>
+    </div>
   );
 }
 
@@ -1497,14 +1521,11 @@ function Home({ user, myTeams, teamsById, comps = [], preds, onOpen, goProfile, 
     <>
       {fav.length === 0 ? (
         <div className="sec">
-          <div className="card cta">
-            <Logo size={46} />
-            <div style={{ flex: 1 }}>
-              <h3>{t("ctaTitle")}</h3>
-              <p>{t("ctaBody")}</p>
-              <button className="btn" style={{ marginTop: 12, height: 40 }} onClick={goProfile}>{t("ctaBtn")}</button>
-            </div>
-          </div>
+          <button className="slim" onClick={goProfile}>
+            <span className="slim-star">★</span>
+            <span>{lang === "bn" ? "প্রিয় দল বেছে নাও, পরের খেলা এখানে দেখাবে" : "Pick your teams to see their next match here"}</span>
+            <span className="muted">›</span>
+          </button>
         </div>
       ) : (
         <>
@@ -1518,7 +1539,7 @@ function Home({ user, myTeams, teamsById, comps = [], preds, onOpen, goProfile, 
             <div className="sec">
               <div className="sec-h"><h2>{t("yourTeams")}</h2></div>
               <div className="card">
-                {mine.slice(1, 6).map((m) => (
+                {mine.slice(1, 4).map((m) => (
                   <div key={m.id}>
                     <div className="muted" style={{ fontSize: 11.5, padding: "8px 14px 0", display: "flex", gap: 6, alignItems: "center" }}>
                       <CompIcon c={m.competition} size={13} /> {dayLabel(dayKey(m.utc_date), lang, { short: true })}
