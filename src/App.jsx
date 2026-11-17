@@ -273,6 +273,34 @@ img { display: block; }
 .tchip { color: inherit; }
 .tbl-h span:nth-child(2) { text-align: left; }
 .app { padding-bottom: 140px; }
+
+/* ── বন্ধুদের লিগ ── */
+.fl-head { display: flex; align-items: center; gap: 12px; }
+.fl-row { display: flex; align-items: center; gap: 12px; width: 100%; padding: 12px 14px; border-bottom: 1px solid var(--line); }
+.fl-row:last-child { border-bottom: 0; }
+.fl-icon { width: 38px; height: 38px; border-radius: 12px; background: var(--brand); color: #fff; display: grid; place-items: center; font-weight: 700; font-size: 17px; flex: none; }
+.inline-form { display: flex; gap: 8px; }
+.inline-form input { flex: 1; min-width: 0; height: 44px; border-radius: 12px; border: 1px solid var(--line); background: var(--card2); padding: 0 12px; font-size: 15px; outline: none; }
+.inline-form input:focus { border-color: var(--green); }
+.code { font-family: Inter, sans-serif; letter-spacing: 1.5px; color: var(--green); }
+
+/* ── খেলোয়াড় আর মুখোমুখি ── */
+.info-row { display: flex; justify-content: space-between; gap: 12px; padding: 12px 14px; border-bottom: 1px solid var(--line); font-size: 14px; }
+.info-row:last-child { border-bottom: 0; }
+.info-row b { text-align: right; font-weight: 600; }
+.card.info-row { margin-bottom: 4px; }
+.sq { display: grid; grid-template-columns: 1fr auto; grid-template-rows: auto auto; column-gap: 10px; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+.sq:last-child { border-bottom: 0; }
+.sq b { font-weight: 600; font-size: 14px; font-family: Inter, "Hind Siliguri", sans-serif; }
+.sq .muted { grid-column: 1; font-size: 12px; }
+.sq-age { grid-column: 2; grid-row: 1 / span 2; align-self: center; font-size: 13px; color: var(--muted); }
+.h2h-agg { display: grid; grid-template-columns: 1fr 1fr 1fr; text-align: center; padding: 14px 8px; border-bottom: 1px solid var(--line); }
+.h2h-agg b { display: block; font-size: 24px; font-family: Inter, sans-serif; }
+.h2h-agg span { font-size: 12px; color: var(--muted); }
+.h2h-row { display: flex; flex-direction: column; gap: 2px; padding: 10px 14px; border-bottom: 1px solid var(--line); font-size: 13.5px; }
+.h2h-row:last-child { border-bottom: 0; }
+.h2h-row .muted { font-size: 11.5px; }
+.h2h-score b { font-family: Inter, sans-serif; margin: 0 4px; }
 `;
 if (typeof document !== "undefined" && !document.getElementById("kk-css")) {
   const st = document.createElement("style");
@@ -430,10 +458,10 @@ function timeLabel(date, lang = "bn") {
 }
 
 // "আজ" / "আগামীকাল" / "শুক্রবার, ২০ নভেম্বর"
-function dayLabel(key, lang = "bn", { short = false } = {}) {
+function dayLabel(key, lang = "bn", { short = false, abs = false } = {}) {
   const today = dayKey(new Date());
   const rel = { [today]: ["আজ", "Today"], [addDays(today, 1)]: ["আগামীকাল", "Tomorrow"], [addDays(today, -1)]: ["গতকাল", "Yesterday"] }[key];
-  if (rel && !short) return lang === "bn" ? rel[0] : rel[1];
+  if (rel && !short && !abs) return lang === "bn" ? rel[0] : rel[1];
   const [y, m, d] = key.split("-").map(Number);
   const wd = new Date(Date.UTC(y, m - 1, d)).getUTCDay();
   if (lang === "bn") return `${(short ? BN_DAYS_SHORT : BN_DAYS)[wd]}, ${num(d, "bn")} ${BN_MONTHS[m - 1]}`;
@@ -466,6 +494,138 @@ const isLive = (m) => LIVE.includes(m.status);
 const isDone = (m) => m.status === "FINISHED";
 const isOff = (m) => ["POSTPONED", "CANCELLED", "SUSPENDED"].includes(m.status);
 const canPredict = (m) => !isOff(m) && new Date(m.utc_date) > new Date();
+
+// "শনিবার, ২১ নভেম্বর দিবাগত রাত ২:০০" — মাঝরাতের পরের খেলা আগের দিনের নামে
+function whenText(date, lang = "bn", { abs = false } = {}) {
+  const k = dayKey(date);
+  const { h } = dhaka(date);
+  if (lang === "bn" && h < 6) return `${dayLabel(addDays(k, -1), "bn", { abs })} দিবাগত ${timeLabel(date, "bn")}`;
+  return `${dayLabel(k, lang, { abs })}, ${timeLabel(date, lang)}`;
+}
+
+// ════════════════ lib/card.js ════════════════
+// ম্যাচের শেয়ার-কার্ড (১০৮০×১০৮০ ছবি) — ব্রাউজারেই আঁকা হয়, কোনো সার্ভার খরচ নেই
+const CARD_W = 1080;
+const CARD_FONT = "'Hind Siliguri', sans-serif";
+
+function loadImg(src) {
+  return new Promise((ok) => {
+    if (!src) return ok(null);
+    const img = new Image();
+    img.onload = () => ok(img);
+    img.onerror = () => ok(null);
+    img.src = src;
+  });
+}
+const proxied = (crest) => (crest && crest.startsWith("https://crests.football-data.org/") ? `/api/extra?type=crest&u=${encodeURIComponent(crest)}` : null);
+
+function fitText(ctx, text, maxW, size, weight = 700) {
+  let s = size;
+  do { ctx.font = `${weight} ${s}px ${CARD_FONT}`; s -= 2; } while (ctx.measureText(text).width > maxW && s > 20);
+}
+
+function clockLogo(ctx, x, y, r) {
+  ctx.save(); ctx.translate(x, y);
+  ctx.beginPath(); ctx.arc(0, 0, r, 0, Math.PI * 2); ctx.fillStyle = "#064e3b"; ctx.fill();
+  ctx.lineWidth = r * 0.08; ctx.strokeStyle = "#00e676"; ctx.stroke();
+  ctx.lineCap = "round";
+  const hand = (deg, len, w, c) => { const a = ((deg - 90) * Math.PI) / 180; ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(Math.cos(a) * len, Math.sin(a) * len); ctx.lineWidth = w; ctx.strokeStyle = c; ctx.stroke(); };
+  hand(0, r * 0.42, r * 0.13, "#fff"); hand(60, r * 0.55, r * 0.08, "#00e676");
+  ctx.beginPath(); ctx.arc(0, 0, r * 0.08, 0, Math.PI * 2); ctx.fillStyle = "#e11d48"; ctx.fill();
+  ctx.restore();
+}
+
+function crestOrBadge(ctx, img, team, cx, cy, size) {
+  ctx.save();
+  ctx.beginPath(); ctx.arc(cx, cy, size / 2 + 26, 0, Math.PI * 2); ctx.fillStyle = "rgba(255,255,255,0.96)"; ctx.fill();
+  if (img) {
+    const ratio = Math.min(size / img.width, size / img.height);
+    const w = img.width * ratio, h = img.height * ratio;
+    ctx.drawImage(img, cx - w / 2, cy - h / 2, w, h);
+  } else {
+    ctx.fillStyle = "#064e3b"; ctx.font = `800 ${size * 0.32}px Inter, sans-serif`; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+    ctx.fillText((team?.tla || team?.short_en || "?").slice(0, 3), cx, cy);
+  }
+  ctx.restore();
+}
+
+async function makeCard(m, { lang = "bn", teamName, compName }) {
+  try { await Promise.all([document.fonts.load(`700 60px ${CARD_FONT}`, "খেলা"), document.fonts.load(`500 40px ${CARD_FONT}`, "খেলা")]); } catch { /* ignore */ }
+  const [hImg, aImg] = await Promise.all([loadImg(proxied(m.home?.crest)), loadImg(proxied(m.away?.crest))]);
+  const c = document.createElement("canvas");
+  c.width = CARD_W; c.height = CARD_W;
+  const ctx = c.getContext("2d");
+  const bn = lang === "bn";
+
+  // পটভূমি
+  const g = ctx.createLinearGradient(0, 0, CARD_W, CARD_W);
+  g.addColorStop(0, "#0a3d2f"); g.addColorStop(0.5, "#064e3b"); g.addColorStop(1, "#06201a");
+  ctx.fillStyle = g; ctx.fillRect(0, 0, CARD_W, CARD_W);
+  const glow = ctx.createRadialGradient(CARD_W * 0.85, 0, 0, CARD_W * 0.85, 0, CARD_W * 0.8);
+  glow.addColorStop(0, "rgba(0,230,118,0.30)"); glow.addColorStop(1, "rgba(0,230,118,0)");
+  ctx.fillStyle = glow; ctx.fillRect(0, 0, CARD_W, CARD_W);
+
+  // ওপরে ব্র্যান্ড আর প্রতিযোগিতা
+  clockLogo(ctx, 110, 108, 44);
+  ctx.textBaseline = "middle"; ctx.textAlign = "left"; ctx.fillStyle = "#fff";
+  ctx.font = `700 50px ${CARD_FONT}`; ctx.fillText("খেলা কখন", 172, 112);
+  const bw = ctx.measureText("খেলা কখন").width;
+  ctx.fillStyle = "#f59e0b"; ctx.fillText("?", 172 + bw + 4, 112);
+  ctx.textAlign = "right"; ctx.fillStyle = "rgba(255,255,255,0.8)"; fitText(ctx, compName, 440, 38, 600); ctx.fillText(compName, CARD_W - 70, 112);
+
+  // দুই দল
+  const cy = 400, cs = 190;
+  crestOrBadge(ctx, hImg, m.home, 270, cy, cs);
+  crestOrBadge(ctx, aImg, m.away, CARD_W - 270, cy, cs);
+  ctx.textAlign = "center"; ctx.fillStyle = "#fff";
+  const hn = teamName(m.home), an = teamName(m.away);
+  fitText(ctx, hn, 400, 50); ctx.fillText(hn, 270, cy + 175);
+  fitText(ctx, an, 400, 50); ctx.fillText(an, CARD_W - 270, cy + 175);
+
+  const done = isDone(m) || isLive(m);
+  if (done && m.home_score != null) {
+    ctx.font = `800 96px Inter, sans-serif`; ctx.fillStyle = "#fff";
+    ctx.fillText(`${m.home_score} - ${m.away_score}`, CARD_W / 2, cy);
+    ctx.font = `600 36px ${CARD_FONT}`; ctx.fillStyle = "#7dffb8";
+    ctx.fillText(isLive(m) ? (bn ? "লাইভ" : "LIVE") : (bn ? "খেলা শেষ" : "Full time"), CARD_W / 2, cy + 80);
+  } else {
+    ctx.font = `600 44px ${CARD_FONT}`; ctx.fillStyle = "rgba(255,255,255,0.65)";
+    ctx.fillText(bn ? "বনাম" : "vs", CARD_W / 2, cy);
+  }
+
+  // সময়ের বাক্স
+  const bx = 90, by = 680, bw2 = CARD_W - 180, bh = 250;
+  ctx.fillStyle = "rgba(0,0,0,0.28)"; ctx.strokeStyle = "rgba(255,255,255,0.14)"; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.roundRect(bx, by, bw2, bh, 36); ctx.fill(); ctx.stroke();
+  const { h } = dhaka(m.utc_date);
+  const dayText = !done && bn && h < 6 ? whenText(m.utc_date, "bn", { abs: true }).replace(/ রাত .*$/, "") : dayLabel(dayKey(m.utc_date), lang, { abs: true });
+  ctx.fillStyle = "rgba(255,255,255,0.85)"; fitText(ctx, dayText, bw2 - 80, 44, 600); ctx.fillText(dayText, CARD_W / 2, by + 62);
+  ctx.fillStyle = "#00e676"; ctx.font = `700 100px ${CARD_FONT}`; ctx.fillText(timeLabel(m.utc_date, lang), CARD_W / 2, by + 150);
+  ctx.fillStyle = "rgba(255,255,255,0.6)"; ctx.font = `500 32px ${CARD_FONT}`; ctx.fillText(bn ? "বাংলাদেশ সময়" : "Bangladesh time", CARD_W / 2, by + 218);
+
+  // নিচে ঠিকানা
+  ctx.fillStyle = "rgba(255,255,255,0.75)"; ctx.font = `600 34px Inter, sans-serif`;
+  ctx.fillText("khelakokhon.com", CARD_W / 2, CARD_W - 62);
+
+  return new Promise((ok) => c.toBlob((b) => ok(b), "image/png"));
+}
+
+async function shareCard(m, opts, toast) {
+  const blob = await makeCard(m, opts);
+  if (!blob) throw new Error("card");
+  const file = new File([blob], `khelakokhon-${m.id}.png`, { type: "image/png" });
+  try {
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      await navigator.share({ files: [file], text: "khelakokhon.com" });
+      return;
+    }
+  } catch (e) { if (e?.name === "AbortError") return; }
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob); a.download = file.name;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+  toast?.(opts.lang === "bn" ? "ছবি ডাউনলোড হয়েছে" : "Image downloaded");
+}
 
 // ════════════════ lib/demo.js ════════════════
 // ডেমো ডেটা — Supabase কী সেট করা না থাকলে (লোকাল টেস্ট বা প্রিভিউ) এটা দেখায়
@@ -737,6 +897,65 @@ async function getLeaderboard() {
   return ok(await sb.rpc("get_leaderboard", { lim: 50 }));
 }
 
+// ═════════ বন্ধুদের লিগ ═════════
+const rpc = async (fn, args) => ok(await sb.rpc(fn, args));
+const demoLeagues = () => ls.get("pleagues", []);
+
+async function myLeagues() {
+  if (DEMO) return demoLeagues().map((l) => ({ ...l, members: l.board.length, is_owner: true }));
+  return rpc("my_pleagues");
+}
+
+async function createLeague(name) {
+  if (DEMO) {
+    const code = Math.random().toString(36).slice(2, 8).toUpperCase();
+    const l = { id: code, name, code, board: [{ display_name: "তুমি", points: 0, exact: 0, played: 0, is_me: true }, ...DEMO_LEADERS.slice(0, 3)] };
+    ls.set("pleagues", [l, ...demoLeagues()]);
+    return { id: l.id, code };
+  }
+  return (await rpc("create_pleague", { p_name: name }))[0];
+}
+
+async function joinLeague(code) {
+  if (DEMO) { const l = demoLeagues().find((x) => x.code === code.toUpperCase()); if (!l) throw new Error("এই কোডের কোনো লিগ নেই"); return l; }
+  return (await rpc("join_pleague", { p_code: code }))[0];
+}
+
+async function leagueBoard(id) {
+  if (DEMO) return demoLeagues().find((x) => x.id === id)?.board || [];
+  return rpc("pleague_board", { p_id: id });
+}
+
+async function leaveLeague(user, id) {
+  if (DEMO) { ls.set("pleagues", demoLeagues().filter((x) => x.id !== id)); return; }
+  ok(await sb.from("pleague_members").delete().eq("league_id", id).eq("user_id", user.id));
+}
+
+// ═════════ খেলোয়াড় তালিকা আর মুখোমুখি (দরকার হলে /api/extra থেকে) ═════════
+async function extra(params) {
+  const r = await fetch("/api/extra?" + new URLSearchParams(params));
+  const j = await r.json().catch(() => ({ ok: false }));
+  if (!j.ok) throw new Error(j.error || "unavailable");
+  return j.data;
+}
+
+async function getTeamInfo(id) {
+  if (DEMO) return {
+    id, venue: "Demo Stadium", founded: 1902, coach: { name: "Demo Coach", nationality: "Spain" },
+    squad: ["Goalkeeper", "Goalkeeper", "Centre-Back", "Left-Back", "Right-Back", "Centre-Back", "Central Midfield", "Defensive Midfield", "Attacking Midfield", "Left Winger", "Right Winger", "Centre-Forward"]
+      .map((pos, i) => ({ id: i, name: `Player ${i + 1}`, position: pos, dateOfBirth: `${1990 + i}-03-0${(i % 9) + 1}`, nationality: ["Spain", "France", "Brazil", "England"][i % 4] })),
+  };
+  return extra({ type: "team", id });
+}
+
+async function getH2H(matchId, homeId, awayId) {
+  if (DEMO) return {
+    aggregates: { numberOfMatches: 5, totalGoals: 14, homeTeam: { id: homeId, wins: 2, draws: 1, losses: 2 }, awayTeam: { id: awayId, wins: 2, draws: 1, losses: 2 } },
+    matches: [0, 1, 2, 3, 4].map((i) => ({ id: i, utcDate: `202${5 - (i >> 1)}-0${(i % 9) + 1}-12T19:00:00Z`, competition: { code: "PD" }, homeTeam: { id: i % 2 ? awayId : homeId }, awayTeam: { id: i % 2 ? homeId : awayId }, score: { home: i % 3, away: (i + 1) % 3 } })),
+  };
+  return extra({ type: "h2h", match: matchId });
+}
+
 // ════════════════ components.jsx ════════════════
 // লিগ বা দলের পাতায় যাওয়ার জন্য (App থেকে আসে)
 const NavCtx = createContext({ openLeague: () => {}, openTeam: () => {} });
@@ -907,6 +1126,49 @@ function Stepper({ v, set }) {
   );
 }
 
+// ── দুই দলের আগের মুখোমুখি লড়াই ──
+function H2H({ m }) {
+  const { lang } = useT();
+  const bn = lang === "bn";
+  const [data, setData] = useState(null);
+  const [state, setState] = useState("idle");
+  const name = (side) => (side?.id === m.home_id ? teamName(m.home, lang) : side?.id === m.away_id ? teamName(m.away, lang) : side?.shortName || side?.name || "?");
+  async function load() {
+    setState("loading");
+    try { setData(await getH2H(m.id, m.home_id, m.away_id)); setState("done"); } catch { setState("error"); }
+  }
+  if (!m.home_id || !m.away_id) return null;
+  const ag = data?.aggregates;
+  const homeAg = ag && (ag.homeTeam?.id === m.home_id ? ag.homeTeam : ag.awayTeam);
+  const awayAg = ag && (ag.homeTeam?.id === m.home_id ? ag.awayTeam : ag.homeTeam);
+  const past = (data?.matches || []).filter((x) => x.status !== "SCHEDULED" && x.status !== "TIMED" && x.score?.home != null).slice(0, 5);
+  return (
+    <div className="sec" style={{ margin: "16px 0 0" }}>
+      <div className="sec-h"><h2>{bn ? "মুখোমুখি" : "Head to head"}</h2></div>
+      {state === "idle" && <button className="btn ghost block" onClick={load}>{bn ? "আগের লড়াইগুলো দেখো" : "Show previous meetings"}</button>}
+      {state === "loading" && <div className="card"><div className="spin" /></div>}
+      {state === "error" && <div className="card empty">{bn ? "এখন তথ্যটা পাওয়া যাচ্ছে না। একটু পরে আবার চেষ্টা করো।" : "Not available right now."}</div>}
+      {state === "done" && (
+        <div className="card">
+          {homeAg && awayAg && (
+            <div className="h2h-agg">
+              <div><b>{num(homeAg.wins, lang)}</b><span>{teamName(m.home, lang)}</span></div>
+              <div><b>{num(homeAg.draws, lang)}</b><span>{bn ? "ড্র" : "Draws"}</span></div>
+              <div><b>{num(awayAg.wins, lang)}</b><span>{teamName(m.away, lang)}</span></div>
+            </div>
+          )}
+          {past.length ? past.map((x) => (
+            <div className="h2h-row" key={x.id}>
+              <span className="muted">{dayLabel(dayKey(x.utcDate), lang, { short: true, abs: true })} {new Date(x.utcDate).getUTCFullYear() !== new Date().getUTCFullYear() ? num(new Date(x.utcDate).getUTCFullYear(), lang) : ""}</span>
+              <span className="h2h-score">{name(x.homeTeam)} <b>{num(x.score.home, lang)}-{num(x.score.away, lang)}</b> {name(x.awayTeam)}</span>
+            </div>
+          )) : <div className="empty">{bn ? "আগে কোনো লড়াইয়ের তথ্য নেই" : "No previous meetings"}</div>}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ── ম্যাচের বিস্তারিত (নিচ থেকে ওঠা শিট) ──
 function MatchSheet({ m, user, pred, onClose, onSave, onLogin, toast }) {
   const { t, lang } = useT();
@@ -916,6 +1178,7 @@ function MatchSheet({ m, user, pred, onClose, onSave, onLogin, toast }) {
   const [a, setA] = useState(pred?.away ?? 1);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
+  const [making, setMaking] = useState(false);
   const open = canPredict(m);
   const showScore = (isLive(m) || isDone(m)) && m.home_score != null;
 
@@ -975,9 +1238,21 @@ function MatchSheet({ m, user, pred, onClose, onSave, onLogin, toast }) {
           )}
         </div>
 
-        <button className="btn ghost block" style={{ marginTop: 12 }} onClick={() => shareMatch(m, lang, toast)}>
-          <ShareIcon /> {t("share")}
-        </button>
+        <H2H m={m} />
+
+        <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
+          <button className="btn block" style={{ flex: 1 }} disabled={making} onClick={async () => {
+            setMaking(true);
+            try { await shareCard(m, { lang, teamName: (tm) => teamName(tm, lang), compName: compName(m.competition, lang) }, toast); }
+            catch { toast(lang === "bn" ? "ছবি বানানো গেল না" : "Couldn't make the image"); }
+            setMaking(false);
+          }}>
+            🖼️ {making ? "…" : lang === "bn" ? "ছবি শেয়ার" : "Share image"}
+          </button>
+          <button className="btn ghost" style={{ flex: 1 }} onClick={() => shareMatch(m, lang, toast)}>
+            <ShareIcon /> {lang === "bn" ? "লেখা শেয়ার" : "Share text"}
+          </button>
+        </div>
       </div>
     </div>
   );
@@ -1368,6 +1643,153 @@ function Matches({ comps, preds, onOpen }) {
   );
 }
 
+// ════════════════ pages/Friends.jsx ════════════════
+const inviteText = (l, bn) => {
+  const link = `https://khelakokhon.com/join/${l.code}`;
+  return bn
+    ? `⚽ "${l.name}" প্রেডিকশন লিগে যোগ দাও — খেলা কখন?-এ\n\nলিংক: ${link}\nকোড: ${l.code}`
+    : `⚽ Join my "${l.name}" prediction league on Khela Kokhon\n\n${link}\nCode: ${l.code}`;
+};
+
+async function shareInvite(l, bn, toast) {
+  const text = inviteText(l, bn);
+  try { if (navigator.share) { await navigator.share({ text }); return; } } catch (e) { if (e?.name === "AbortError") return; }
+  try { await navigator.clipboard.writeText(text); toast(bn ? "আমন্ত্রণ কপি হয়েছে" : "Invite copied"); } catch { /* ignore */ }
+}
+
+function Board({ league, user, onBack, onLeft, toast }) {
+  const { lang } = useT();
+  const bn = lang === "bn";
+  const [rows, setRows] = useState(null);
+  const [err, setErr] = useState("");
+  useEffect(() => { leagueBoard(league.id).then(setRows).catch((e) => { setErr(e.message); setRows([]); }); }, [league.id]);
+
+  async function leave() {
+    if (!window.confirm(bn ? `"${league.name}" লিগ ছেড়ে দেবে?` : `Leave "${league.name}"?`)) return;
+    await leaveLeague(user, league.id).catch(() => {});
+    onLeft();
+  }
+
+  return (
+    <>
+      <div className="fl-head">
+        <button className="back" onClick={onBack} aria-label="back">←</button>
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontWeight: 700, fontSize: 17 }}>{league.name}</div>
+          <div className="muted" style={{ fontSize: 12.5 }}>{bn ? "কোড" : "Code"}: <b className="code">{league.code}</b> · {num(league.members ?? rows?.length ?? 0, lang)} {bn ? "জন" : "members"}</div>
+        </div>
+      </div>
+      <button className="btn block" style={{ margin: "12px 0" }} onClick={() => shareInvite(league, bn, toast)}>{bn ? "বন্ধুদের আমন্ত্রণ পাঠাও" : "Invite friends"}</button>
+      {err && <div className="err">{err}</div>}
+      {rows === null ? <div className="card"><div className="spin" /></div> : (
+        <div className="card">
+          {rows.map((r, i) => (
+            <div className="lb" key={i} style={r.is_me ? { background: "var(--greenDim)" } : null}>
+              <div className={"rk" + (i < 3 ? " top" : "")}>{i < 3 ? ["🥇", "🥈", "🥉"][i] : num(i + 1, lang)}</div>
+              <div>
+                <div style={{ fontWeight: 600 }}>{r.display_name}{r.is_me ? (bn ? " (তুমি)" : " (you)") : ""}</div>
+                <div className="sub">{bn ? `${num(r.played, lang)} ম্যাচ · হুবহু ${num(r.exact, lang)}` : `${r.played} played · ${r.exact} exact`}</div>
+              </div>
+              <div className="pt">{num(r.points, lang)} <span className="sub">{bn ? "পয়েন্ট" : "pts"}</span></div>
+            </div>
+          ))}
+        </div>
+      )}
+      <button className="link" style={{ color: "var(--red)", marginTop: 14 }} onClick={leave}>{bn ? "লিগ ছেড়ে দাও" : "Leave league"}</button>
+    </>
+  );
+}
+
+function Friends({ user, goProfile, toast, openId, reloadKey }) {
+  const { lang } = useT();
+  const bn = lang === "bn";
+  const [list, setList] = useState(null);
+  const [open, setOpen] = useState(null);
+  const [name, setName] = useState("");
+  const [code, setCode] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState("");
+
+  const load = () => myLeagues().then((r) => { setList(r); if (openId) setOpen(r.find((x) => x.id === openId) || null); }).catch(() => setList([]));
+  useEffect(() => { if (user) load(); }, [user?.id, reloadKey]);
+
+  if (!user) return (
+    <div className="card empty">
+      <div style={{ marginBottom: 12 }}>{bn ? "বন্ধুদের লিগে খেলতে আগে লগইন করো" : "Log in to play in friends' leagues"}</div>
+      <button className="btn" onClick={goProfile}>{bn ? "লগইন" : "Log in"}</button>
+    </div>
+  );
+
+  if (open) return <Board league={open} user={user} toast={toast} onBack={() => setOpen(null)} onLeft={() => { setOpen(null); load(); }} />;
+
+  async function create(e) {
+    e.preventDefault(); setErr("");
+    if (name.trim().length < 2) return setErr(bn ? "লিগের একটা নাম দাও" : "Give the league a name");
+    setBusy(true);
+    try {
+      const r = await createLeague(name.trim());
+      setName("");
+      const fresh = await myLeagues();
+      setList(fresh);
+      setOpen(fresh.find((x) => x.id === r.id) || { id: r.id, code: r.code, name: name.trim(), members: 1 });
+    } catch (e2) { setErr(e2.message || "…"); }
+    setBusy(false);
+  }
+
+  async function join(e) {
+    e.preventDefault(); setErr("");
+    if (code.trim().length !== 6) return setErr(bn ? "৬ অক্ষরের কোড দাও" : "Enter the 6-letter code");
+    setBusy(true);
+    try {
+      const r = await joinLeague(code.trim());
+      setCode("");
+      toast(bn ? `"${r.name}" লিগে যোগ দিয়েছ` : `Joined "${r.name}"`);
+      const fresh = await myLeagues();
+      setList(fresh);
+      setOpen(fresh.find((x) => x.id === r.id) || null);
+    } catch (e2) { setErr(e2.message || "…"); }
+    setBusy(false);
+  }
+
+  return (
+    <>
+      <p className="muted" style={{ fontSize: 13, lineHeight: 1.55, marginBottom: 12 }}>
+        {bn ? "অফিস, বন্ধু বা পরিবারের জন্য নিজের লিগ খোলো। সবাই যার যার মতো প্রেডিকশন দেবে, আর লিগের আলাদা লিডারবোর্ডে দেখা যাবে কে এগিয়ে।"
+            : "Start a league for your office, friends or family. Everyone predicts as usual; the league has its own leaderboard."}
+      </p>
+      {list === null ? <div className="card"><div className="spin" /></div> : list.length > 0 && (
+        <div className="card" style={{ marginBottom: 14 }}>
+          {list.map((l) => (
+            <button key={l.id} className="fl-row" onClick={() => setOpen(l)}>
+              <div className="fl-icon">{l.name.slice(0, 1)}</div>
+              <div style={{ flex: 1, minWidth: 0, textAlign: "left" }}>
+                <div style={{ fontWeight: 700 }}>{l.name}</div>
+                <div className="muted" style={{ fontSize: 12.5 }}>{num(l.members, lang)} {bn ? "জন" : "members"} · {bn ? "কোড" : "code"} {l.code}{l.is_owner ? (bn ? " · তুমি খুলেছ" : " · yours") : ""}</div>
+              </div>
+              <span className="muted">›</span>
+            </button>
+          ))}
+        </div>
+      )}
+      {err && <div className="err">{err}</div>}
+      <div className="card" style={{ padding: 14, marginBottom: 12 }}>
+        <div style={{ fontWeight: 700, marginBottom: 8 }}>{bn ? "নতুন লিগ খোলো" : "Start a league"}</div>
+        <form className="inline-form" onSubmit={create}>
+          <input value={name} onChange={(e) => setName(e.target.value)} maxLength={40} placeholder={bn ? "যেমন: অফিস লিগ" : "e.g. Office league"} />
+          <button className="btn" disabled={busy}>{bn ? "খোলো" : "Start"}</button>
+        </form>
+      </div>
+      <div className="card" style={{ padding: 14 }}>
+        <div style={{ fontWeight: 700, marginBottom: 8 }}>{bn ? "কোড দিয়ে যোগ দাও" : "Join with a code"}</div>
+        <form className="inline-form" onSubmit={join}>
+          <input value={code} onChange={(e) => setCode(e.target.value.toUpperCase())} maxLength={6} placeholder="ABC123" style={{ letterSpacing: 3, fontFamily: "Inter, sans-serif", fontWeight: 700 }} />
+          <button className="btn" disabled={busy}>{bn ? "যোগ দাও" : "Join"}</button>
+        </form>
+      </div>
+    </>
+  );
+}
+
 // ════════════════ pages/Predict.jsx ════════════════
 function Leaderboard({ me }) {
   const { t, lang } = useT();
@@ -1461,19 +1883,22 @@ function Mine({ user, preds, fav, onOpen, goProfile }) {
   );
 }
 
-function Predict({ user, profile, preds, fav, onOpen, goProfile }) {
-  const { t } = useT();
-  const [tab, setTab] = useState("mine");
+function Predict({ user, profile, preds, fav, onOpen, goProfile, toast, initialTab = "mine", openLeagueId, reloadKey }) {
+  const { t, lang } = useT();
+  const [tab, setTab] = useState(initialTab);
+  useEffect(() => { setTab(initialTab); }, [initialTab, reloadKey]);
   return (
     <div className="sec">
-      <div className="seg" style={{ marginBottom: 12 }}>
-        <button className={tab === "mine" ? "on" : ""} onClick={() => setTab("mine")}>{t("myPredictions")}</button>
+      <div className="seg seg3" style={{ marginBottom: 12 }}>
+        <button className={tab === "mine" ? "on" : ""} onClick={() => setTab("mine")}>{lang === "bn" ? "আমার" : "Mine"}</button>
         <button className={tab === "lb" ? "on" : ""} onClick={() => setTab("lb")}>{t("leaderboard")}</button>
+        <button className={tab === "friends" ? "on" : ""} onClick={() => setTab("friends")}>{lang === "bn" ? "বন্ধুদের লিগ" : "Friends"}</button>
       </div>
-      <p className="muted" style={{ fontSize: 12.5, lineHeight: 1.5, marginBottom: 12 }}>{t("rules")}</p>
+      {tab !== "friends" && <p className="muted" style={{ fontSize: 12.5, lineHeight: 1.5, marginBottom: 12 }}>{t("rules")}</p>}
       {tab === "mine"
         ? <Mine user={user} preds={preds} fav={fav} onOpen={onOpen} goProfile={goProfile} />
-        : <Leaderboard me={profile?.display_name} />}
+        : tab === "lb" ? <Leaderboard me={profile?.display_name} />
+        : <Friends user={user} goProfile={goProfile} toast={toast} openId={openLeagueId} reloadKey={reloadKey} />}
     </div>
   );
 }
@@ -1788,15 +2213,6 @@ function findComp(q) {
   return null;
 }
 
-// "শনিবার দিবাগত রাত" — মাঝরাতের পরের খেলার জন্য
-function whenText(m, lang) {
-  const k = dayKey(m.utc_date);
-  const { h } = dhaka(m.utc_date);
-  if (lang === "bn" && h < 6) return `${dayLabel(addDays(k, -1), "bn")} দিবাগত ${timeLabel(m.utc_date, "bn")}`;
-  return `${dayLabel(k, lang)}, ${timeLabel(m.utc_date, lang)}`;
-}
-
-// বাংলায় "-এর" রূপ: বার্সেলোনার, চেলসির, লিভারপুলের
 const poss = (name, lang) => (lang !== "bn" ? `${name}'s` : /[\u09BE-\u09CC]$/.test(name) ? name + "র" : name + "ের");
 
 // উত্তর বানানো: { text, matches }
@@ -2083,6 +2499,49 @@ function League({ code, comps, preds, onOpen }) {
 // ═════════ দলের পাতা ═════════
 const RES = { W: ["জ", "W"], D: ["ড", "D"], L: ["হ", "L"] };
 
+const POS = [
+  ["GK", /goal/i, "গোলরক্ষক", "Goalkeepers"],
+  ["DEF", /back|defen/i, "ডিফেন্ডার", "Defenders"],
+  ["MID", /midfield/i, "মিডফিল্ডার", "Midfielders"],
+  ["FWD", /wing|forward|offen|striker|attack/i, "ফরোয়ার্ড", "Forwards"],
+];
+const posOf = (p) => (POS.find(([, re]) => re.test(p || "")) || ["OTH"])[0];
+const age = (dob) => {
+  if (!dob) return null;
+  const d = new Date(dob), n = new Date();
+  return n.getFullYear() - d.getFullYear() - (n < new Date(n.getFullYear(), d.getMonth(), d.getDate()) ? 1 : 0);
+};
+
+function Squad({ info, lang }) {
+  const bn = lang === "bn";
+  if (info === null) return <div className="card"><div className="spin" /></div>;
+  if (info === false || !info.squad?.length) return <div className="card empty">{bn ? "খেলোয়াড় তালিকা এখন পাওয়া যাচ্ছে না। কিছুক্ষণ পরে আবার চেষ্টা করো।" : "Squad isn't available right now. Try again later."}</div>;
+  const groups = [...POS.map(([k, , b, e]) => [k, bn ? b : e]), ["OTH", bn ? "অন্যান্য" : "Others"]]
+    .map(([k, label]) => [label, info.squad.filter((p) => posOf(p.position) === k)])
+    .filter(([, list]) => list.length);
+  return (
+    <>
+      {info.coach && (
+        <div className="card info-row"><span className="muted">{bn ? "কোচ" : "Coach"}</span><b>{info.coach.name}</b></div>
+      )}
+      {groups.map(([label, list]) => (
+        <div key={label}>
+          <div className="lg-h">{label} <span className="muted" style={{ fontWeight: 500 }}>({num(list.length, lang)})</span></div>
+          <div className="card">
+            {list.map((p) => (
+              <div className="sq" key={p.id}>
+                <b>{p.name}</b>
+                <span className="muted">{[p.position, p.nationality].filter(Boolean).join(" · ")}</span>
+                <span className="sq-age">{age(p.dateOfBirth) != null ? `${num(age(p.dateOfBirth), lang)} ${bn ? "বছর" : "y"}` : ""}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
+    </>
+  );
+}
+
 function Team({ id, teamsById, preds, onOpen }) {
   const { lang } = useT();
   const nav = useNav();
@@ -2090,6 +2549,8 @@ function Team({ id, teamsById, preds, onOpen }) {
   const [pos, setPos] = useState(null);
   const [up, setUp] = useState(null);
   const [past, setPast] = useState(null);
+  const [tab, setTab] = useState("overview");
+  const [info, setInfo] = useState(null);
   const team = teamsById[id] || up?.map((m) => (m.home_id === id ? m.home : m.away))[0] || past?.map((m) => (m.home_id === id ? m.home : m.away))[0];
 
   useEffect(() => {
@@ -2097,6 +2558,8 @@ function Team({ id, teamsById, preds, onOpen }) {
     getTeamStandings(id).then((r) => setPos(r.sort((a, b) => (a.competition_code === "CL") - (b.competition_code === "CL")))).catch(() => setPos([]));
     getTeamMatches([id], { upcoming: true, limit: 6 }).then(setUp).catch(() => setUp([]));
     getTeamMatches([id], { upcoming: false, limit: 6 }).then(setPast).catch(() => setPast([]));
+    setInfo(null);
+    getTeamInfo(id).then(setInfo).catch(() => setInfo(false));
   }, [id]);
 
   const res = (m) => {
@@ -2126,6 +2589,14 @@ function Team({ id, teamsById, preds, onOpen }) {
         )}
       </div>
 
+      <div className="sec" style={{ marginTop: 14 }}>
+        <div className="seg">
+          <button className={tab === "overview" ? "on" : ""} onClick={() => setTab("overview")}>{bn ? "ওভারভিউ" : "Overview"}</button>
+          <button className={tab === "squad" ? "on" : ""} onClick={() => setTab("squad")}>{bn ? "খেলোয়াড়" : "Squad"}</button>
+        </div>
+      </div>
+
+      {tab === "squad" ? <div className="sec"><Squad info={info} lang={lang} /></div> : (<>
       {main && (
         <div className="sec">
           <div className="card stat-row">
@@ -2153,6 +2624,16 @@ function Team({ id, teamsById, preds, onOpen }) {
         <div className="sec-h"><h2>{bn ? "সাম্প্রতিক ফল" : "Recent results"}</h2></div>
         {past === null ? <Loading /> : past.length ? <div className="card"><DatedRows list={past} preds={preds} onOpen={onOpen} /></div> : <div className="card empty">{bn ? "কোনো ফল নেই" : "No results"}</div>}
       </div>
+      {info && (info.venue || info.founded) && (
+        <div className="sec">
+          <div className="card">
+            {info.venue && <div className="info-row"><span className="muted">{bn ? "মাঠ" : "Stadium"}</span><b>{info.venue}</b></div>}
+            {info.founded && <div className="info-row"><span className="muted">{bn ? "প্রতিষ্ঠা" : "Founded"}</span><b>{num(info.founded, lang)}</b></div>}
+            {info.coach && <div className="info-row"><span className="muted">{bn ? "কোচ" : "Coach"}</span><b>{info.coach.name}</b></div>}
+          </div>
+        </div>
+      )}
+      </>)}
     </>
   );
 }
@@ -2222,6 +2703,7 @@ export default function App() {
   const [toastMsg, setToastMsg] = useState("");
   const [showClock, setShowClock] = useState(false);
   const [asking, setAsking] = useState(false);
+  const [predTab, setPredTab] = useState({ tab: "mine", league: null, key: 0 });
 
   const setLang = (v) => { setLangS(v); store("kk_lang", v); };
   const setTheme = (v) => { setThemeS(v); store("kk_theme", v); };
@@ -2274,6 +2756,22 @@ export default function App() {
     getProfile(user).then(setProfile).catch(() => {});
     getMyTeams(user).then(setMyTeams).catch(() => {});
     getMyPredictions(user).then(setPreds).catch(() => {});
+  }, [user?.id]);
+
+  // আমন্ত্রণ লিংক: /join/ABC123 → লগইন থাকলে যোগ দেয়, না থাকলে লগইনের পর
+  useEffect(() => {
+    const m = window.location.pathname.match(/^\/join\/([A-Za-z0-9]{6})$/);
+    if (m) { store("kk_join", m[1].toUpperCase()); window.history.replaceState({}, "", "/predict"); setTab("predict"); }
+  }, []);
+  useEffect(() => {
+    let code = null;
+    try { code = localStorage.getItem("kk_join"); } catch { /* ignore */ }
+    if (!code) return;
+    if (!user) { setTab("profile"); window.history.replaceState({}, "", "/profile"); toast(lang === "bn" ? "লিগে যোগ দিতে আগে লগইন করো" : "Log in to join the league"); return; }
+    try { localStorage.removeItem("kk_join"); } catch { /* ignore */ }
+    joinLeague(code)
+      .then((r) => { toast(lang === "bn" ? `"${r.name}" লিগে যোগ দিয়েছ` : `Joined "${r.name}"`); setPredTab((p) => ({ tab: "friends", league: r.id, key: p.key + 1 })); go("predict"); })
+      .catch((e) => toast(e.message || "…"));
   }, [user?.id]);
 
   // সাইটে কোথাও "?ask" থাকলে সরাসরি জিজ্ঞেস-বক্স খোলে
@@ -2335,7 +2833,7 @@ export default function App() {
         ) : tab === "matches" ? (
           <Matches comps={comps} preds={preds} onOpen={openMatch} />
         ) : tab === "predict" ? (
-          <Predict user={user} profile={profile} preds={preds} fav={myTeams.fav} onOpen={openMatch} goProfile={() => go("profile")} />
+          <Predict user={user} profile={profile} preds={preds} fav={myTeams.fav} onOpen={openMatch} goProfile={() => go("profile")} toast={toast} initialTab={predTab.tab} openLeagueId={predTab.league} reloadKey={predTab.key} />
         ) : (
           <Profile user={user} profile={profile} myTeams={myTeams} teamsById={teamsById} lang={lang} setLang={setLang} theme={theme} setTheme={setTheme} onEditTeams={() => { setEditing(true); window.scrollTo(0, 0); }} />
         )}
