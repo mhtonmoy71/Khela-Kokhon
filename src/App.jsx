@@ -362,9 +362,12 @@ img { display: block; }
 .chev { flex: none; color: var(--text); transform: rotate(180deg); transition: transform .2s; }
 .chev.up { transform: none; }
 
-/* সরু দাগ ছাড়া, FotMob-এর মতো পরিষ্কার কার্ড */
+/* সরু দাগ ছাড়া, FotMob-এর মতো পরিষ্কার কার্ড আর টেবিল */
 .card { border: 0; }
 .row, .comp-h, .follow-h { border-bottom: 0; }
+.tbl, .scr, .lb, .rival, .kv, .step, .fl-row, .info-row, .sq, .h2h-agg, .h2h-row, .ask-head { border-top: 0; border-bottom: 0; }
+.seg, .lg-card, .bubble.bot { border: 0; }
+.ask-input { border-top: 0; }
 .follow-h { padding: 14px 16px; }
 .row { position: relative; }
 .row.has-badge { padding-left: 50px; }
