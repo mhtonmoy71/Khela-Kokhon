@@ -46,6 +46,32 @@ const COMPS = "CL,PL,PD,BL1,SA,FL1";
 const seasonStart = () => { const d = new Date(); const y = d.getUTCMonth() >= 6 ? d.getUTCFullYear() : d.getUTCFullYear() - 1; return `${y}-07-01`; };
 const today = () => new Date().toISOString().slice(0, 10);
 
+// ── খেলোয়াড়ের ছবি: Wikidata-য় নাম দিয়ে খুঁজে জন্মতারিখ মিলিয়ে Wikimedia Commons-এর ছবি ──
+const WD = "https://www.wikidata.org/w/api.php";
+const UA = { headers: { "User-Agent": "KhelaKokhon/1.0 (https://khelakokhon.com)" } };
+async function findPhoto(p) {
+  if (!p.dateOfBirth) return null;
+  const names = [...new Set([p.name, [p.firstName, p.lastName].filter(Boolean).join(" "), p.lastName].filter((x) => x && x.length > 2))];
+  for (const name of names) {
+    const sr = await fetch(`${WD}?action=wbsearchentities&search=${encodeURIComponent(name)}&language=en&type=item&limit=8&format=json`, UA).then((r) => r.json()).catch(() => null);
+    const ids = (sr?.search || []).map((x) => x.id);
+    if (!ids.length) continue;
+    const ent = await fetch(`${WD}?action=wbgetentities&ids=${ids.join("|")}&props=claims&format=json`, UA).then((r) => r.json()).catch(() => null);
+    for (const id of ids) {
+      const c = ent?.entities?.[id]?.claims || {};
+      const dob = c.P569?.[0]?.mainsnak?.datavalue?.value?.time || "";
+      const file = c.P18?.[0]?.mainsnak?.datavalue?.value;
+      if (file && dob.slice(1, 11) === p.dateOfBirth) {
+        return {
+          url: `https://commons.wikimedia.org/wiki/Special:FilePath/${encodeURIComponent(file)}?width=320`,
+          page: `https://commons.wikimedia.org/wiki/File:${encodeURIComponent(file.replace(/ /g, "_"))}`,
+        };
+      }
+    }
+  }
+  return null;
+}
+
 async function fetchPlayer(id, club) {
   const h = { headers: { "X-Auth-Token": process.env.FD_KEY } };
   const r = await fetch(`${FD}/persons/${id}`, h);
@@ -73,6 +99,7 @@ async function fetchPlayer(id, club) {
       position: p.position || p.section || null, shirtNumber: p.shirtNumber ?? null,
       team: t ? { id: t.id, name: t.name, shortName: t.shortName || null, crest: t.crest || null, contractUntil: t.contract?.until || null } : null,
       stats,
+      photo: await findPhoto(p).catch(() => null),
     },
   };
 }
@@ -98,7 +125,7 @@ export default async function handler(req, res) {
   if (q.type === "team" && /^\d{1,7}$/.test(q.id || "")) {
     cacheKey = `team:${q.id}`; fdPath = `/teams/${q.id}`; maxAge = 7 * DAY; trim = trimTeam; check = `teams?id=eq.${q.id}&select=id`;
   } else if (q.type === "player" && /^\d{1,9}$/.test(q.id || "")) {
-    cacheKey = `player5:${q.id}`; maxAge = 2 * DAY;
+    cacheKey = `player6:${q.id}`; maxAge = 2 * DAY;
     // সাইটে দেখা খেলোয়াড় হলেই: গোলদাতার তালিকায় আছে, বা কোনো দলের জমা স্কোয়াডে আছে
     check = [`scorers?player_id=eq.${q.id}&select=player_id&limit=1`,
       `api_cache?key=like.team%3A*&data->squad=cs.${encodeURIComponent(JSON.stringify([{ id: +q.id }]))}&select=key&limit=1`];
