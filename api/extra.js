@@ -46,34 +46,38 @@ const COMPS = "CL,PL,PD,BL1,SA,FL1";
 const seasonStart = () => { const d = new Date(); const y = d.getUTCMonth() >= 6 ? d.getUTCFullYear() : d.getUTCFullYear() - 1; return `${y}-07-01`; };
 const today = () => new Date().toISOString().slice(0, 10);
 
-async function fetchPlayer(id) {
+async function fetchPlayer(id, club) {
   const h = { headers: { "X-Auth-Token": process.env.FD_KEY } };
   const r = await fetch(`${FD}/persons/${id}`, h);
   if (!r.ok) return { status: r.status };
   const p = await r.json();
   // এই মৌসুমে সাইটের ৬টা প্রতিযোগিতায় হিসাব; না পেলে শুধু পরিচয় দেখাবে
-  let stats = null;
+  let stats = null, statsNote = null;
   try {
     const from = seasonStart(), to = today();
     const m = await fetch(`${FD}/persons/${id}/matches?competitions=${COMPS}&dateFrom=${from}&dateTo=${to}&limit=100`, h);
-    if (m.ok) {
+    if (!m.ok) statsNote = `source ${m.status}`;
+    else {
       const d = await m.json();
       const a = d.aggregations || {};
-      if (a.matchesOnPitch != null) stats = {
+      if (a.matchesOnPitch == null) statsNote = "no aggregations: " + Object.keys(d).join(",");
+      else stats = {
         from, to, matches: a.matchesOnPitch ?? 0, starts: a.startingXI ?? 0, minutes: a.minutesPlayed ?? 0,
         goals: a.goals ?? 0, assists: a.assists ?? 0, penalties: a.penalties ?? 0,
         yellow: a.yellowCards ?? 0, red: (a.redCards ?? 0) + (a.yellowRedCards ?? 0),
       };
     }
-  } catch { /* হিসাব ছাড়াই চলবে */ }
-  const t = p.currentTeam;
+  } catch (e) { statsNote = String(e.message || e).slice(0, 80); /* হিসাব ছাড়াই চলবে */ }
+  // আন্তর্জাতিক বিরতিতে currentTeam জাতীয় দল হতে পারে; সাইটের জানা ক্লাব থাকলে সেটাই দেখাই
+  let t = p.currentTeam;
+  if (club && (!t || t.id !== club.id)) t = { id: club.id, name: club.name, shortName: club.shortName || null, crest: club.crest || null };
   return {
     data: {
       id: p.id, name: p.name, firstName: p.firstName || null, lastName: p.lastName || null,
       dateOfBirth: p.dateOfBirth || null, nationality: p.nationality || null,
       position: p.position || p.section || null, shirtNumber: p.shirtNumber ?? null,
       team: t ? { id: t.id, name: t.name, shortName: t.shortName || null, crest: t.crest || null, contractUntil: t.contract?.until || null } : null,
-      stats,
+      stats, statsNote,
     },
   };
 }
@@ -99,7 +103,7 @@ export default async function handler(req, res) {
   if (q.type === "team" && /^\d{1,7}$/.test(q.id || "")) {
     cacheKey = `team:${q.id}`; fdPath = `/teams/${q.id}`; maxAge = 7 * DAY; trim = trimTeam; check = `teams?id=eq.${q.id}&select=id`;
   } else if (q.type === "player" && /^\d{1,9}$/.test(q.id || "")) {
-    cacheKey = `player:${q.id}`; maxAge = 2 * DAY;
+    cacheKey = `player2:${q.id}`; maxAge = 2 * DAY;
     // সাইটে দেখা খেলোয়াড় হলেই: গোলদাতার তালিকায় আছে, বা কোনো দলের জমা স্কোয়াডে আছে
     check = [`scorers?player_id=eq.${q.id}&select=player_id&limit=1`,
       `api_cache?key=like.team%3A*&data->squad=cs.${encodeURIComponent(JSON.stringify([{ id: +q.id }]))}&select=key&limit=1`];
@@ -116,13 +120,24 @@ export default async function handler(req, res) {
       return res.status(200).json({ ok: true, data: cached.data });
     }
     // শুধু সাইটের ডাটাবেসে থাকা দল বা ম্যাচের জন্যই football-data-তে যাবে
-    let found = false;
-    for (const c of [].concat(check)) { if ((await sb(c)).length) { found = true; break; } }
+    let found = false, club = null;
+    if (q.type === "player") {
+      const [sq] = await sb(`api_cache?key=like.team%3A*&data->squad=cs.${encodeURIComponent(JSON.stringify([{ id: +q.id }]))}&select=data->id,data->name&limit=1`);
+      const [sc] = await sb(`scorers?player_id=eq.${q.id}&select=team_id&limit=1`);
+      const clubId = sq?.id ?? sc?.team_id;
+      found = Boolean(sq || sc);
+      if (clubId) {
+        const [tm] = await sb(`teams?id=eq.${clubId}&select=id,name_en,short_en,crest`);
+        club = { id: clubId, name: tm?.name_en || sq?.name || null, shortName: tm?.short_en || null, crest: tm?.crest || null };
+      }
+    } else {
+      for (const c of [].concat(check)) { if ((await sb(c)).length) { found = true; break; } }
+    }
     if (!found) return res.status(404).json({ ok: false, error: "not found" });
 
     let data;
     if (q.type === "player") {
-      const out = await fetchPlayer(q.id);
+      const out = await fetchPlayer(q.id, club);
       if (!out.data) {
         if (cached) return res.status(200).json({ ok: true, data: cached.data, stale: true });
         return res.status(out.status === 429 ? 503 : 502).json({ ok: false, error: `source ${out.status}` });
