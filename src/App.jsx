@@ -384,6 +384,12 @@ button.sq { width: 100%; text-align: left; }
 button.scr { width: 100%; }
 .pl-avatar { width: 84px; height: 84px; border-radius: 50%; display: grid; place-items: center; background: linear-gradient(150deg, #0a3d2f, #064e3b 60%, #08261f);
   color: #7dffb8; font-family: Inter, sans-serif; font-weight: 800; font-size: 32px; box-shadow: 0 0 0 3px var(--greenDim); }
+.pl-photo-wrap { position: relative; width: 112px; height: 112px; }
+.pl-photo { width: 112px; height: 112px; border-radius: 50%; object-fit: cover; object-position: 50% 15%; background: var(--card2); box-shadow: 0 0 0 3px var(--greenDim); }
+.pl-shirt { position: absolute; right: -2px; bottom: 2px; min-width: 32px; height: 32px; padding: 0 6px; border-radius: 16px; display: grid; place-items: center;
+  background: var(--brand); color: #7dffb8; font-family: Inter, sans-serif; font-weight: 800; font-size: 14px; box-shadow: 0 0 0 3px var(--bg); }
+.pl-credit { text-align: center; font-size: 10.5px; margin-top: 6px; }
+.pl-credit a { color: var(--muted); text-decoration: none; }
 .stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px 4px; padding: 16px 8px; text-align: center; }
 .stat-grid b { display: block; font-size: 19px; font-family: Inter, "Hind Siliguri", sans-serif; }
 .stat-grid span { font-size: 11.5px; color: var(--muted); line-height: 1.3; display: block; margin-top: 2px; }
@@ -1130,6 +1136,7 @@ async function getPlayer(id) {
     id, name: `Player ${id + 1}`, dateOfBirth: "1996-05-11", nationality: "Spain", position: "Centre-Forward", shirtNumber: 9,
     team: { id: 86, name: "Real Madrid CF", shortName: "Real Madrid", crest: "https://crests.football-data.org/86.png", contractUntil: "2028-06" },
     stats: { from: "2026-07-01", to: "2026-11-18", matches: 14, competitions: "PD,CL" },
+    photo: { url: "/icon-512x512.png", page: "https://commons.wikimedia.org/" },
   };
   return extra({ type: "player", id });
 }
@@ -2679,6 +2686,18 @@ function Squad({ info, lang }) {
 }
 
 // ════════════════ pages/Player.jsx ════════════════
+// ছবি না পেলে বা না এলে জার্সি নম্বর
+function PlayerPhoto({ p, lang }) {
+  const [bad, setBad] = useState(false);
+  const shirt = p.shirtNumber != null ? num(p.shirtNumber, lang) : (p.name || "?").slice(0, 1);
+  if (!p.photo?.url || bad) return <div className="pl-avatar">{shirt}</div>;
+  return (
+    <div className="pl-photo-wrap">
+      <img className="pl-photo" src={p.photo.url} alt={p.name} width="112" height="112" onError={() => setBad(true)} />
+      {p.shirtNumber != null && <span className="pl-shirt">{shirt}</span>}
+    </div>
+  );
+}
 const POS_BN = {
   Goalkeeper: "গোলরক্ষক", Defence: "ডিফেন্ডার", Midfield: "মিডফিল্ডার", Offence: "ফরোয়ার্ড",
   "Centre-Back": "সেন্টার-ব্যাক", "Left-Back": "লেফট-ব্যাক", "Right-Back": "রাইট-ব্যাক",
@@ -2729,13 +2748,16 @@ function Player({ id, teamsById, comps }) {
     <>
       {back}
       <div className="team-hero">
-        <div className="pl-avatar">{p.shirtNumber != null ? num(p.shirtNumber, lang) : (p.name || "?").slice(0, 1)}</div>
+        <PlayerPhoto p={p} lang={lang} />
         <h1>{p.name}</h1>
         {team && (
           <button className="chip" onClick={() => nav.openTeam(team.id)}><Crest team={team} size={18} />{teamName(team, lang) || team.shortName || team.name}</button>
         )}
       </div>
 
+      {p.photo?.url && (
+        <p className="pl-credit"><a href={p.photo.page} target="_blank" rel="noopener noreferrer">{bn ? "ছবি: Wikimedia Commons" : "Photo: Wikimedia Commons"}</a></p>
+      )}
       {(st || scoring.length > 0) && (
         <div className="sec">
           <div className="sec-h"><h2>{bn ? "এই মৌসুমে" : "This season"}</h2><span className="muted" style={{ fontSize: 12 }}>{bn ? "সাইটের ৬ প্রতিযোগিতায়" : "In the 6 competitions"}</span></div>
