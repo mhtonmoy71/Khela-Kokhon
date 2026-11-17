@@ -1,4 +1,8 @@
 {
-  "crons": [{ "path": "/api/sync", "schedule": "0 0 * * *" }],
+  "crons": [
+    { "path": "/api/sync", "schedule": "0 0 * * *" },
+    { "path": "/api/sync?mode=tables", "schedule": "0 2 * * *" },
+    { "path": "/api/sync?mode=scorers", "schedule": "0 4 * * *" }
+  ],
   "rewrites": [{ "source": "/((?!api/).*)", "destination": "/index.html" }]
 }
