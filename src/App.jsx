@@ -348,6 +348,7 @@ img { display: block; }
 /* জিজ্ঞেস বাটন — ছোট */
 .ask-fab { height: 40px; padding: 0 14px 0 12px; font-size: 13.5px; border-radius: 20px; }
 .foot { margin-top: 28px; }
+.league-tile img { object-fit: contain; padding: 10px; }
 `;
 if (typeof document !== "undefined" && !document.getElementById("kk-css")) {
   const st = document.createElement("style");
@@ -2193,6 +2194,12 @@ const W = {
   yesterday: ["গতকাল", "yesterday"],
 };
 
+// সপ্তাহের দিন: রবিবার = 0
+const WEEKDAYS = [
+  ["রবি", "sunday", "sun"], ["সোম", "monday", "mon"], ["মঙ্গল", "tuesday", "tue"], ["বুধ", "wednesday", "wed"],
+  ["বৃহস্পতি", "thursday", "thu"], ["শুক্র", "friday", "fri"], ["শনি", "saturday", "sat"],
+];
+
 const norm = (s) => (s || "").normalize("NFC").replace(/[‌‍]/g, "").toLowerCase().replace(/[?!।,.;:"'’()]/g, " ").replace(/\s+/g, " ").trim();
 const isBn = (s) => /[ঀ-৿]/.test(s);
 const esc = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -2278,12 +2285,20 @@ async function answer(raw, teams, lang) {
 
   // কোনো দল নেই, দিনের প্রশ্ন
   const today = dayKey(new Date());
-  const day = has(q, W.yesterday) ? addDays(today, -1) : has(q, W.tomorrow) ? addDays(today, 1) : has(q, W.today) ? today : null;
+  let day = has(q, W.yesterday) ? addDays(today, -1) : has(q, W.tomorrow) ? addDays(today, 1) : has(q, W.today) ? today : null;
+  if (!day) {
+    const wd = WEEKDAYS.findIndex((names) => has(q, names));
+    if (wd >= 0) {
+      const [y, mo, d] = today.split("-").map(Number);
+      const todayWd = new Date(Date.UTC(y, mo - 1, d)).getUTCDay();
+      day = addDays(today, (wd - todayWd + 7) % 7);
+    }
+  }
   if (day) {
     const list = (await getMatchesOnDay(day)).filter((m) => !comp || m.competition_code === comp);
     const label = dayLabel(day, lang);
-    if (!list.length) return { text: bn ? `${label} ${comp ? "এই প্রতিযোগিতার " : ""}কোনো খেলা নেই।` : `No matches ${label.toLowerCase()}.`, matches: [] };
-    return { text: bn ? `${label} মোট ${num(list.length, "bn")}টা খেলা।` : `${list.length} matches ${label.toLowerCase()}.`, matches: list };
+    if (!list.length) return { text: bn ? `${label} ${comp ? "এই প্রতিযোগিতার " : ""}কোনো খেলা নেই।` : `${label}: no matches.`, matches: [] };
+    return { text: bn ? `${label} মোট ${num(list.length, "bn")}টা খেলা।` : `${label}: ${list.length} matches.`, matches: list };
   }
 
   // শুধু প্রতিযোগিতার নাম
@@ -2314,11 +2329,11 @@ function describe(m, id, past, lang) {
   const left = countdown(new Date(m.utc_date) - Date.now(), lang);
   if (bn)
     return id
-      ? `${poss(teamName(m.home_id === id ? m.home : m.away, "bn"), "bn")} পরের খেলা ${whenText(m, "bn")}, ${poss(opp, "bn")} বিপক্ষে (${comp})। শুরু হতে বাকি ${left}।`
-      : `${home} বনাম ${away}: ${whenText(m, "bn")} (${comp})। শুরু হতে বাকি ${left}।`;
+      ? `${poss(teamName(m.home_id === id ? m.home : m.away, "bn"), "bn")} পরের খেলা ${whenText(m.utc_date, "bn")}, ${poss(opp, "bn")} বিপক্ষে (${comp})। শুরু হতে বাকি ${left}।`
+      : `${home} বনাম ${away}: ${whenText(m.utc_date, "bn")} (${comp})। শুরু হতে বাকি ${left}।`;
   return id
-    ? `${teamName(m.home_id === id ? m.home : m.away, "en")} play ${opp} on ${whenText(m, "en")} Bangladesh time (${comp}). Kickoff in ${left}.`
-    : `${home} vs ${away}: ${whenText(m, "en")} Bangladesh time (${comp}). Kickoff in ${left}.`;
+    ? `${teamName(m.home_id === id ? m.home : m.away, "en")} vs ${opp}: ${whenText(m.utc_date, "en")} Bangladesh time (${comp}). Kickoff in ${left}.`
+    : `${home} vs ${away}: ${whenText(m.utc_date, "en")} Bangladesh time (${comp}). Kickoff in ${left}.`;
 }
 
 const EXAMPLES = {
