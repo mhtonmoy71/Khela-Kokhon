@@ -1007,6 +1007,11 @@ async function getCompRecent(code, limit = 10) {
 }
 
 // কোনো প্রতিযোগিতার সামনের খেলা
+// কোনো প্রতিযোগিতার গোলদাতার তালিকা পুরো কিনা (১ গোলের খেলোয়াড় পর্যন্ত নেমেছে) — তবেই "০ গোল" বলা যায়
+const scorersComplete = (all, code) => {
+  const l = all.filter((x) => x.competition_code === code);
+  return l.length > 20 || (l.length > 0 && Math.min(...l.map((x) => x.goals)) <= 1);
+};
 // সব প্রতিযোগিতার গোলদাতা (জিজ্ঞেস-বক্সের খেলোয়াড়ের প্রশ্নের জন্য, একবার এনে রাখা)
 let allScorersP = null;
 function getAllScorers() {
@@ -2508,7 +2513,7 @@ function findComp(q) {
   return null;
 }
 
-const poss = (name, lang) => (lang !== "bn" ? `${name}'s` : /[\u09BE-\u09CC]$/.test(name) ? name + "র" : name + "ের");
+const poss = (name, lang) => (lang !== "bn" ? `${name}'s` : /[\u09BE-\u09CC\u0981]$/.test(name) ? name + "র" : name + "ের");
 
 // ════════ খেলোয়াড়ের প্রশ্ন ════════
 const COMP_LABEL = { CL: ["চ্যাম্পিয়ন্স লিগ", "Champions League"], PL: ["প্রিমিয়ার লিগ", "Premier League"], PD: ["লা লিগা", "La Liga"], BL1: ["বুন্দেসলিগা", "Bundesliga"], SA: ["সিরি আ", "Serie A"], FL1: ["লিগ আঁ", "Ligue 1"] };
@@ -2628,12 +2633,23 @@ async function answerPlayer(q, teams, lang) {
   if (!r) {
     // গোলের প্রশ্ন, কিন্তু কোনো দল বা চেনা খেলোয়াড় নেই
     if (goalish && !findTeams(q, teams).length && !has(q, ["আজ", "কাল", "today", "tomorrow"]))
-      return { text: bn ? "এই খেলোয়াড়কে খুঁজে পাইনি। গোলের হিসাব আছে শুধু প্রতিটা লিগের শীর্ষ ২০ গোলদাতার। নামটা অন্যভাবে লিখে দেখো, যেমন ইংরেজিতে।" : "Couldn't find that player. Goal counts exist only for each league's top 20 scorers. Try the name another way, e.g. in English.", matches: [] };
+      return { text: bn ? "এই খেলোয়াড়কে খুঁজে পাইনি। গোলের হিসাব আছে শুধু যারা এই মৌসুমে অন্তত ১ গোল করেছে তাদের। নামটা অন্যভাবে লিখে দেখো, যেমন ইংরেজিতে।" : "Couldn't find that player. Goal counts exist only for players with at least one goal this season. Try the name another way, e.g. in English.", matches: [] };
     return null;
   }
   const name = r.player_name;
   const rows = scorers.filter((x) => x.player_id === r.player_id).sort((a, b) => b.goals - a.goals);
   const club = r.team ? teamName(r.team, lang) : null;
+  // খেলোয়াড়ের দল কোন কোন প্রতিযোগিতায় খেলে (ঘরোয়া লিগ + চ্যাম্পিয়ন্স লিগে থাকলে)
+  const clubComps = async () => {
+    const out = [];
+    const lg = teams.find((t) => t.id === r.team_id)?.league;
+    if (lg && lg !== "CL") out.push(lg);
+    try { if ((await getStandings("CL")).some((x) => x.team_id === r.team_id)) out.push("CL"); } catch { /* ইউসিএল জানা না গেলে বাদ */ }
+    return out;
+  };
+  const zeroLine = (code) => scorersComplete(scorers, code)
+    ? (bn ? `${cName(code)}: ০ গোল, এই মৌসুমে এখনো গোল পাননি।` : `${cName(code)}: 0 goals so far this season.`)
+    : (bn ? `${cName(code)}: গোলের পুরো হিসাব এখনো সাইটে আসেনি।` : `${cName(code)}: full scoring data isn't in yet.`);
   const lastGoal = has(q, ["কবে", "লাস্ট", "শেষ গোল", "সর্বশেষ", "last goal", "when"]) && goalish;
   const note = lastGoal ? (bn ? " কোন ম্যাচে কে গোল করেছে সেই তথ্য সাইটের ফ্রি ডেটায় নেই, তাই শেষ গোল কবে বলতে পারছি না।" : " Who scored in each match isn't in the site's free data, so I can't tell when the last goal was.") : "";
   const line = (x) => {
@@ -2651,14 +2667,23 @@ async function answerPlayer(q, teams, lang) {
 
   if (comp) {
     const x = rows.find((y) => y.competition_code === comp);
-    if (!x) return { text: (bn ? `${poss(cName(comp), "bn")} শীর্ষ ২০ গোলদাতায় ${name} নেই, তাই সেখানে তার গোলের হিসাব সাইটে নেই।` : `${name} isn't in the ${cName(comp)} top 20 scorers, so the site has no goal count there.`) + note, matches: [], players: [{ ...rows[0], code: rows[0].competition_code }] };
+    if (!x) {
+      const plays = (await clubComps()).includes(comp);
+      const text = plays
+        ? (bn ? `${name}${club ? ` (${club})` : ""}, এই মৌসুমে ` : `${name}${club ? ` (${club})` : ""} this season — `) + zeroLine(comp)
+        : (bn ? `${name}-এর দল${club ? ` ${club}` : ""} এই মৌসুমে ${cName(comp)} খেলছে না।` : `${name}'s club${club ? ` ${club}` : ""} isn't in the ${cName(comp)} this season.`);
+      return { text: text + note, matches: [], players: [{ ...rows[0], code: rows[0].competition_code }] };
+    }
     return { text: (bn ? `${name}${club ? ` (${club})` : ""}, এই মৌসুমে ` : `${name}${club ? ` (${club})` : ""} this season — `) + line(x) + note, matches: [], players: [{ ...x, code: comp }] };
   }
   const total = rows.reduce((t, x) => t + x.goals, 0), totalA = rows.reduce((t, x) => t + (x.assists || 0), 0);
-  const head = rows.length > 1
-    ? (bn ? `${name}${club ? ` (${club})` : ""} এই মৌসুমে ${compList(rows.map((x) => x.competition_code), "bn")} মিলিয়ে মোট ${num(total, "bn")} গোল, ${num(totalA, "bn")} অ্যাসিস্ট।\n` : `${name}${club ? ` (${club})` : ""}: ${total} goals and ${totalA} assists this season across ${compList(rows.map((x) => x.competition_code), "en")}.\n`)
+  // দল যে প্রতিযোগিতায় খেলে কিন্তু গোলদাতার তালিকায় নেই, সেগুলোও লেখা হবে (০ গোল)
+  const extra = (await clubComps()).filter((c) => !rows.some((x) => x.competition_code === c));
+  const allCodes = [...rows.map((x) => x.competition_code), ...extra];
+  const head = allCodes.length > 1
+    ? (bn ? `${name}${club ? ` (${club})` : ""} এই মৌসুমে ${compList(allCodes, "bn")} মিলিয়ে মোট ${num(total, "bn")} গোল, ${num(totalA, "bn")} অ্যাসিস্ট।\n` : `${name}${club ? ` (${club})` : ""}: ${total} goals and ${totalA} assists this season across ${compList(allCodes, "en")}.\n`)
     : (bn ? `${name}${club ? ` (${club})` : ""}, এই মৌসুমে ` : `${name}${club ? ` (${club})` : ""} this season — `);
-  return { text: head + rows.map(line).join("\n") + note, matches: [], players: rows.map((x) => ({ ...x, code: x.competition_code })) };
+  return { text: head + [...rows.map(line), ...extra.map(zeroLine)].join("\n") + note, matches: [], players: rows.map((x) => ({ ...x, code: x.competition_code })) };
 }
 
 // উত্তর বানানো: { text, matches, players? }
@@ -2852,7 +2877,7 @@ function SearchSheet({ comps, teams, onClose }) {
               <span className="s-txt"><b>{r.player_name}</b><small className="muted">{r.team ? teamName(r.team, lang) : ""}</small></span>
             </button>
           ))}</div>
-          <p className="muted" style={{ fontSize: 11.5, margin: "6px 2px 0" }}>{bn ? "খেলোয়াড় খোঁজা যায় প্রতিটা লিগের শীর্ষ গোলদাতাদের মধ্যে।" : "Players: each league's top scorers."}</p>
+          <p className="muted" style={{ fontSize: 11.5, margin: "6px 2px 0" }}>{bn ? "খেলোয়াড় খোঁজা যায় এই মৌসুমে গোল করা খেলোয়াড়দের মধ্যে।" : "Players: those who have scored this season."}</p>
         
           </>)}</Fragment>
         ))}
@@ -3140,10 +3165,12 @@ function Player({ id, teamsById, comps }) {
   const nav = useNav();
   const [p, setP] = useState(null);
   const [scoring, setScoring] = useState([]);
+  const [allSc, setAllSc] = useState([]);
   useEffect(() => {
     let live = true;
     getPlayer(id).then((d) => live && setP(d)).catch(() => live && setP(false));
     getPlayerScoring(id).then((r) => live && setScoring(r)).catch(() => {});
+    getAllScorers().then((r) => live && setAllSc(r)).catch(() => {});
     return () => { live = false; };
   }, [id]);
 
@@ -3154,6 +3181,11 @@ function Player({ id, teamsById, comps }) {
   const team = p.team ? { ...(teamsById[p.team.id] || {}), ...p.team, crest: teamsById[p.team.id]?.crest || p.team.crest } : null;
   const a = age(p.dateOfBirth);
   const st = p.stats;
+  // যে প্রতিযোগিতায় খেলেছে কিন্তু গোল নেই, সেগুলোও সারিতে (০, বা পুরো হিসাব না এলে —)
+  const playedIn = [...new Set([...(st?.competitions || "").split(",").filter(Boolean), teamsById[p.team?.id]?.league].filter((c) => c && c in COMP_LABEL))];
+  const compRows = [...scoring, ...playedIn.filter((c) => !scoring.some((r) => r.competition_code === c))
+    .map((c) => ({ competition_code: c, goals: scorersComplete(allSc, c) ? 0 : null, assists: scorersComplete(allSc, c) ? 0 : null, played: null }))]
+    .sort((a, b) => (a.competition_code === "CL") - (b.competition_code === "CL"));
   const sum = (k) => scoring.reduce((t, r) => t + (r[k] || 0), 0);
   const tiles = [
     st && [bn ? "ম্যাচ" : "Matches", st.matches],
@@ -3193,21 +3225,21 @@ function Player({ id, teamsById, comps }) {
           <div className="card stat-grid" style={{ gridTemplateColumns: `repeat(${tiles.length}, 1fr)` }}>
             {tiles.map(([l, v]) => <div key={l}><b>{num(v, lang)}</b><span>{l}</span></div>)}
           </div>
-          {!scoring.length && <p className="muted" style={{ fontSize: 12, marginTop: 6 }}>{bn ? "গোল-অ্যাসিস্ট দেখা যায় শুধু প্রতিটা লিগের শীর্ষ ২০ গোলদাতার।" : "Goals and assists are shown only for each league's top 20 scorers."}</p>}
+          {!scoring.length && <p className="muted" style={{ fontSize: 12, marginTop: 6 }}>{bn ? "এই মৌসুমে এখনো গোল নেই, তাই গোল-অ্যাসিস্টের হিসাব দেখানো হয়নি।" : "No goals yet this season, so no goal/assist figures."}</p>}
         </div>
       )}
 
-      {scoring.length > 0 && (
+      {compRows.length > 0 && (
         <div className="sec">
-          <div className="sec-h"><h2>{bn ? "গোলদাতার তালিকায়" : "In the scoring charts"}</h2></div>
+          <div className="sec-h"><h2>{bn ? "প্রতিযোগিতা অনুযায়ী" : "By competition"}</h2></div>
           <div className="card">
             <div className="scr scr-h"><span /><span style={{ textAlign: "left" }}>{bn ? "প্রতিযোগিতা" : "Competition"}</span><span>{bn ? "অ্যাসিস্ট" : "Ast"}</span><span>{bn ? "গোল" : "Goals"}</span></div>
-            {scoring.map((r) => (
+            {compRows.map((r) => (
               <button className="scr" key={r.competition_code} onClick={() => nav.openLeague(r.competition_code)}>
                 <span><CompIcon c={compOf(r.competition_code)} size={18} /></span>
                 <span className="pl"><b>{compName(compOf(r.competition_code), lang) || r.competition_code}</b>{r.played != null && <span className="muted" style={{ fontSize: 12 }}>{num(r.played, lang)} {bn ? "ম্যাচ" : "matches"}</span>}</span>
-                <span className="muted">{num(r.assists ?? 0, lang)}</span>
-                <span className="pts">{num(r.goals, lang)}</span>
+                <span className="muted">{r.assists == null ? "—" : num(r.assists, lang)}</span>
+                <span className="pts">{r.goals == null ? "—" : num(r.goals, lang)}</span>
               </button>
             ))}
           </div>
