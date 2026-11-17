@@ -2406,7 +2406,7 @@ const lev = (a, b) => {
 const PLAYER_NICK = {
   "ভিনি": "vinicius", "vini": "vinicius", "ভিনিসিয়ুস": "vinicius", "লেভা": "lewandowski", "লেওয়ানডফস্কি": "lewandowski", "lewa": "lewandowski",
   "কেইন": "kane", "কেন": "kane", "হ্যারি কেইন": "kane", "সালাহ": "salah", "সালা": "salah", "লামিন": "yamal", "ইয়ামাল": "yamal",
-  "সন": "son", "ডি ব্রুইনে": "bruyne", "ব্রুনো": "bruno", "রোনালদো": "ronaldo", "মেসি": "messi", "নেইমার": "neymar",
+  "লাউতারো": "lautaro", "lautaro": "lautaro", "এমবাপে": "mbappe", "সন": "son", "ডি ব্রুইনে": "bruyne", "ব্রুনো": "bruno", "রোনালদো": "ronaldo", "মেসি": "messi", "নেইমার": "neymar",
 };
 const ASK_STOP = ["গোল", "গোলদাতা", "করেছে", "করছে", "কয়টা", "কয়টি", "কত", "কতটা", "কবে", "কখন", "লাস্ট", "শেষ", "পরের", "খেলা", "এই", "মৌসুমে", "সিজনে",
   "অ্যাসিস্ট", "এসিস্ট", "সর্বোচ্চ", "টপ", "স্কোরার", "কে", "কোন", "কেন", "কিনা", "দলে", "বনাম", "আজ", "কাল", "আগামীকাল", "কার", "বেশি", "সবচেয়ে", "মোট", "লিগে", "লিগায়", "পেনাল্টি", "ম্যাচ", "খেলেছে", "দিয়েছে"];
@@ -2432,7 +2432,7 @@ function findPlayer(q, scorers, teams) {
       if (r) return r;
     }
   // ৩) বাংলা শব্দ → কঙ্কাল মিলিয়ে
-  const words = q.split(" ").filter((w) => isBn(w) && !nickUsed.some((n) => w.startsWith(n))).map(stripBn).filter((w) => w.length >= 3 && !ASK_STOP.includes(w) && ![...teamWords].some((t) => isBn(t) && (t.startsWith(w) || w.startsWith(t))));
+  const words = q.split(" ").filter((w) => isBn(w) && !nickUsed.some((n) => w.startsWith(n))).map(stripBn).filter((w) => w.length >= 3 && !ASK_STOP.includes(w) && ![...teamWords].some((t) => isBn(t) && (t.startsWith(w) || (w.startsWith(t) && w.length - t.length <= 2))));
   // শুধু শেষ নাম (বা এক-নামের খেলোয়াড়) — প্রথম নামে মেলালে ভুল হয় (ওসিমেন ≠ Ousmane)
   let best = null;
   for (const w of words) {
