@@ -1194,8 +1194,131 @@ const NavCtx = createContext({ openLeague: () => {}, openTeam: () => {}, openPla
 const FavCtx = createContext([]);
 const useNav = () => useContext(NavCtx);
 
+// দলের নাম যেভাবে দেখাবে: [ইংরেজি, বাংলা] — ইংরেজিতে প্রচলিত নাম (Barça নয় Barcelona), বাংলায় পত্রিকার বানান
+// ডেটাবেসের নামগুলো খোঁজার জন্য থাকে (বার্সা, atleti লিখলেও পাওয়া যায়)
+const TEAM_NAMES = {
+  1: ["Köln", "কোলন"],
+  2: ["Hoffenheim", "হফেনহাইম"],
+  3: ["Bayer Leverkusen", "বায়ার লেভারকুসেন"],
+  4: ["Borussia Dortmund", "বরুসিয়া ডর্টমুন্ড"],
+  5: ["Bayern Munich", "বায়ার্ন মিউনিখ"],
+  6: ["Schalke 04", "শালকে"],
+  7: ["Hamburg", "হামবুর্গ"],
+  10: ["Stuttgart", "স্টুটগার্ট"],
+  12: ["Werder Bremen", "ভেরডার ব্রেমেন"],
+  15: ["Mainz", "মাইনৎস"],
+  16: ["Augsburg", "আউগসবুর্গ"],
+  17: ["Freiburg", "ফ্রাইবুর্গ"],
+  18: ["Borussia Mönchengladbach", "বরুসিয়া মনশেনগ্লাডবাখ"],
+  19: ["Eintracht Frankfurt", "আইনট্রাখট ফ্রাঙ্কফুর্ট"],
+  28: ["Union Berlin", "উনিয়ন বার্লিন"],
+  29: ["Paderborn", "পাডারবর্ন"],
+  57: ["Arsenal", "আর্সেনাল"],
+  58: ["Aston Villa", "অ্যাস্টন ভিলা"],
+  61: ["Chelsea", "চেলসি"],
+  62: ["Everton", "এভারটন"],
+  63: ["Fulham", "ফুলহাম"],
+  64: ["Liverpool", "লিভারপুল"],
+  65: ["Manchester City", "ম্যানচেস্টার সিটি"],
+  66: ["Manchester United", "ম্যানচেস্টার ইউনাইটেড"],
+  67: ["Newcastle", "নিউক্যাসল"],
+  71: ["Sunderland", "সান্ডারল্যান্ড"],
+  73: ["Tottenham", "টটেনহাম"],
+  76: ["Wolverhampton", "উলভারহ্যাম্পটন"],
+  77: ["Athletic Bilbao", "অ্যাথলেটিক বিলবাও"],
+  78: ["Atlético Madrid", "আতলেতিকো মাদ্রিদ"],
+  79: ["Osasuna", "ওসাসুনা"],
+  80: ["Espanyol", "এস্পানিওল"],
+  81: ["Barcelona", "বার্সেলোনা"],
+  82: ["Getafe", "হেতাফে"],
+  84: ["Málaga", "মালাগা"],
+  86: ["Real Madrid", "রিয়াল মাদ্রিদ"],
+  87: ["Rayo Vallecano", "রায়ো ভায়েকানো"],
+  88: ["Levante", "লেভান্তে"],
+  90: ["Real Betis", "রিয়াল বেতিস"],
+  92: ["Real Sociedad", "রিয়াল সোসিয়েদাদ"],
+  94: ["Villarreal", "ভিয়ারিয়াল"],
+  95: ["Valencia", "ভালেন্সিয়া"],
+  98: ["AC Milan", "এসি মিলান"],
+  99: ["Fiorentina", "ফিওরেন্তিনা"],
+  100: ["Roma", "রোমা"],
+  102: ["Atalanta", "আতালান্তা"],
+  103: ["Bologna", "বোলোনিয়া"],
+  104: ["Cagliari", "কালিয়ারি"],
+  107: ["Genoa", "জেনোয়া"],
+  108: ["Inter Milan", "ইন্টার মিলান"],
+  109: ["Juventus", "জুভেন্টাস"],
+  110: ["Lazio", "লাৎসিও"],
+  112: ["Parma", "পারমা"],
+  113: ["Napoli", "নাপোলি"],
+  115: ["Udinese", "উদিনেসে"],
+  263: ["Alavés", "আলাভেস"],
+  285: ["Elche", "এলচে"],
+  322: ["Hull City", "হাল সিটি"],
+  341: ["Leeds United", "লিডস ইউনাইটেড"],
+  349: ["Ipswich Town", "ইপসউইচ টাউন"],
+  351: ["Nottingham Forest", "নটিংহাম ফরেস্ট"],
+  354: ["Crystal Palace", "ক্রিস্টাল প্যালেস"],
+  397: ["Brighton", "ব্রাইটন"],
+  402: ["Brentford", "ব্রেন্টফোর্ড"],
+  454: ["Venezia", "ভেনেৎসিয়া"],
+  470: ["Frosinone", "ফ্রোসিনোনে"],
+  471: ["Sassuolo", "সাসুয়োলো"],
+  498: ["Sporting CP", "স্পোর্টিং লিসবন"],
+  503: ["Porto", "পোর্তো"],
+  511: ["Toulouse", "তুলুজ"],
+  512: ["Brest", "ব্রেস্ত"],
+  516: ["Marseille", "মার্সেই"],
+  519: ["Auxerre", "অক্সের"],
+  521: ["Lille", "লিল"],
+  522: ["Nice", "নিস"],
+  523: ["Lyon", "লিওঁ"],
+  524: ["Paris Saint-Germain", "পিএসজি"],
+  525: ["Lorient", "লরিয়াঁ"],
+  529: ["Rennes", "রেন"],
+  531: ["Troyes", "ত্রোয়া"],
+  532: ["Angers", "অঁজে"],
+  533: ["Le Havre", "লে আভ্র"],
+  535: ["Le Mans", "লে মাঁ"],
+  546: ["Lens", "লঁস"],
+  548: ["Monaco", "মোনাকো"],
+  558: ["Celta Vigo", "সেল্তা ভিগো"],
+  559: ["Sevilla", "সেভিয়া"],
+  560: ["Deportivo La Coruña", "দেপোর্তিভো লা করুনিয়া"],
+  563: ["West Ham", "ওয়েস্ট হাম"],
+  576: ["Strasbourg", "স্ত্রাসবুর্গ"],
+  586: ["Torino", "তোরিনো"],
+  610: ["Galatasaray", "গালাতাসারাই"],
+  613: ["Fenerbahçe", "ফেনারবাহচে"],
+  674: ["PSV Eindhoven", "পিএসভি আইন্দহোভেন"],
+  675: ["Feyenoord", "ফেইনুর্ড"],
+  678: ["Ajax", "আয়াক্স"],
+  719: ["Elversberg", "এলভার্সবার্গ"],
+  721: ["RB Leipzig", "আরবি লাইপজিগ"],
+  851: ["Club Brugge", "ক্লাব ব্রুগা"],
+  930: ["Slavia Prague", "স্লাভিয়া প্রাগ"],
+  1044: ["Bournemouth", "বোর্নমাউথ"],
+  1045: ["Paris FC", "প্যারিস এফসি"],
+  1076: ["Coventry City", "কভেন্ট্রি সিটি"],
+  1887: ["Shakhtar Donetsk", "শাখতার দোনেৎস্ক"],
+  1899: ["AEK Athens", "এইকে এথেন্স"],
+  1903: ["Benfica", "বেনফিকা"],
+  2016: ["LASK", "লাস্ক"],
+  5335: ["Racing Santander", "রেসিং সান্তান্দের"],
+  5720: ["Viking", "ভাইকিং"],
+  5721: ["Bodø/Glimt", "বোডো/গ্লিমট"],
+  5890: ["Lecce", "লেচে"],
+  5911: ["Monza", "মনৎসা"],
+  7397: ["Como", "কোমো"],
+  7509: ["Slovan Bratislava", "স্লোভান ব্রাতিস্লাভা"],
+  10233: ["Sabah", "সাবাহ"],
+};
 const teamName = (team, lang) =>
-  !team ? (lang === "bn" ? "নির্ধারিত হয়নি" : "TBD") : lang === "bn" ? team.name_bn || team.short_en || team.name_en : team.short_en || team.name_en;
+  !team ? (lang === "bn" ? "নির্ধারিত হয়নি" : "TBD")
+    : TEAM_NAMES[team.id] ? TEAM_NAMES[team.id][lang === "bn" ? 1 : 0]
+    : lang === "bn" ? team.name_bn || team.short_en || team.name_en : team.short_en || team.name_en;
+// খোঁজার জন্য দলের সব নাম
+const teamAliases = (t) => [t.name_bn, t.name_en, t.short_en, ...(TEAM_NAMES[t.id] || [])];
 const compName = (c, lang) => (c ? (lang === "bn" ? c.name_bn : c.name_en) : "");
 
 // ── লোগো: চলমান ঘড়ি, ভেতরে "খ" আর "?" (v1-এর লোগো) — বাংলাদেশ সময়ে চলে ──
@@ -2093,7 +2216,7 @@ function Onboarding({ initial, comps, needPhone, onDone, onCancel }) {
 
   const groups = useMemo(() => {
     const s = q.trim().toLowerCase();
-    const list = (teams || []).filter((tm) => !s || [tm.name_bn, tm.name_en, tm.short_en, tm.tla].some((x) => x?.toLowerCase().includes(s)));
+    const list = (teams || []).filter((tm) => !s || [...teamAliases(tm), tm.tla].some((x) => x?.toLowerCase().includes(s)));
     return comps
       .map((c) => ({ c, list: list.filter((tm) => (tm.league || "CL") === c.code).sort((a, b) => teamName(a, lang).localeCompare(teamName(b, lang))) }))
       .filter((g) => g.list.length);
@@ -2349,12 +2472,12 @@ function findTeams(q, teams) {
   // নামের যে শব্দগুলো শুধু একটা দলেরই আছে (বেতিস, সেল্টা, হটস্পার), সেগুলোও চেনে
   const wordOwners = {};
   for (const t of teams)
-    for (const w of new Set([t.name_bn, t.name_en, t.short_en].filter(Boolean).flatMap((x) => norm(x).split(" "))))
+    for (const w of new Set(teamAliases(t).filter(Boolean).flatMap((x) => norm(x).split(" "))))
       if (w.length >= 3 && !/^\d+$/.test(w)) (wordOwners[w] ||= new Set()).add(t.id);
   const aliases = [];
   for (const t of teams) {
     const words = Object.entries(wordOwners).filter(([, ids]) => ids.size === 1 && ids.has(t.id)).map(([w]) => w);
-    const list = new Set([t.name_bn, t.name_en, t.short_en, ...(NICK[t.id] || [])].filter(Boolean).map(norm).concat(words));
+    const list = new Set([...teamAliases(t), ...(NICK[t.id] || [])].filter(Boolean).map(norm).concat(words));
     for (const a of list) if (a.length >= 3 && !STOP.includes(a)) aliases.push([a, t.id]);
   }
   aliases.sort((x, y) => y[0].length - x[0].length);
@@ -2436,7 +2559,7 @@ const ASK_STOP = ["গোল", "গোলদাতা", "করেছে", "ক�
 
 function findPlayer(q, scorers, teams) {
   if (!scorers.length) return null;
-  const teamWords = new Set(teams.flatMap((t) => [t.name_bn, t.name_en, t.short_en, ...(NICK[t.id] || [])].filter(Boolean).flatMap((x) => norm(x).split(" "))));
+  const teamWords = new Set(teams.flatMap((t) => [...teamAliases(t), ...(NICK[t.id] || [])].filter(Boolean).flatMap((x) => norm(x).split(" "))));
   // এক খেলোয়াড় অনেক লিগে থাকতে পারে, তাই id ধরে একবার
   const people = [...new Map(scorers.map((r) => [r.player_id, r])).values()];
   const latinQ = q.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
@@ -2677,7 +2800,7 @@ function SearchSheet({ comps, teams, onClose }) {
   const players = [...new Map(scorers.map((r) => [r.player_id, r])).values()];
   const res = query.length < 2 ? null : {
     comps: pick(comps, (c) => [c.name_bn, c.name_en, c.code, ...(COMP_WORDS[c.code] || [])], 6),
-    teams: pick(teams, (t) => [t.name_bn, t.name_en, t.short_en, t.tla, ...(NICK[t.id] || [])], 8),
+    teams: pick(teams, (t) => [...teamAliases(t), t.tla, ...(NICK[t.id] || [])], 8),
     players: pick(players, (r) => [r.player_name, ...Object.entries(PLAYER_NICK).filter(([, part]) => plain(r.player_name).split(" ").includes(part)).map(([n]) => n)], 8),
   };
   const empty = res && !res.comps.length && !res.teams.length && !res.players.length;
@@ -3142,7 +3265,7 @@ function Team({ id, teamsById, preds, onOpen }) {
       <div className="team-hero">
         <Crest team={team} size={84} />
         <h1>{teamName(team, lang)}</h1>
-        {team && bn && <div className="muted" style={{ fontSize: 13 }}>{team.name_en}</div>}
+        {team && bn && <div className="muted" style={{ fontSize: 13 }}>{teamName(team, "en")}</div>}
         {pos?.length > 0 && (
           <div className="team-pos">
             {pos.map((p) => (
