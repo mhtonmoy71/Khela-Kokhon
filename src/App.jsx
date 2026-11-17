@@ -121,7 +121,7 @@ img { display: block; }
 /* ── নিচের ন্যাভ ── */
 .nav { position: fixed; bottom: 0; left: 0; right: 0; z-index: 30; background: var(--card); border-top: 1px solid var(--line);
   padding-bottom: env(safe-area-inset-bottom); }
-.nav-in { max-width: 520px; margin: 0 auto; display: grid; grid-template-columns: repeat(4, 1fr); }
+.nav-in { max-width: 520px; margin: 0 auto; display: grid; grid-template-columns: repeat(5, 1fr); }
 .nav button { display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 9px 0 10px; font-size: 11.5px; color: var(--muted); font-weight: 500; }
 .nav button svg { width: 22px; height: 22px; }
 .nav button.on { color: var(--green); font-weight: 700; }
@@ -389,7 +389,22 @@ img { display: block; }
   background: color-mix(in srgb, var(--card) 92%, transparent); backdrop-filter: blur(14px); }
 .nav-in { padding: 2px 6px; }
 .nav button { border-radius: 18px; }
-.ask-fab { bottom: calc(86px + env(safe-area-inset-bottom)); }
+/* মাঝখানের উঁচু গোল "জিজ্ঞেস করো" বাটন */
+.nav button.nav-ask { position: relative; padding-top: 32px; color: var(--muted); white-space: nowrap; font-size: 11px; }
+.nav button.nav-ask.on { color: var(--green); }
+.ask-orb { display: grid; place-items: center; width: 54px; height: 54px; border-radius: 50%; color: #fff;
+  background: radial-gradient(circle at 30% 25%, #7dffb8 0%, #00b36b 38%, #064e3b 100%);
+  box-shadow: 0 6px 18px rgba(0,160,90,.35), 0 0 0 4px var(--card); }
+.ask-orb svg { width: 26px; height: 26px; }
+.nav-ask .ask-orb { position: absolute; top: -30px; left: 50%; transform: translateX(-50%); }
+.nav-ask.on .ask-orb { box-shadow: 0 6px 18px rgba(0,160,90,.5), 0 0 0 4px var(--card), 0 0 0 6px var(--green); }
+.ask-orb.sm { width: 32px; height: 32px; box-shadow: none; }
+.ask-orb.sm svg { width: 17px; height: 17px; }
+/* জিজ্ঞেস-পাতা: লেখার ঘর নিচের ন্যাভের ঠিক ওপরে আটকে থাকে */
+.ask-page { margin: 0 16px; min-height: calc(100vh - 170px); min-height: calc(100dvh - 170px); display: flex; flex-direction: column; }
+.ask-page .ask-head { padding: 16px 0 12px; border-bottom: 0; font-size: 18px; gap: 10px; }
+.ask-page .ask-body { overflow: visible; flex: 1; }
+.ask-page .ask-input { position: sticky; bottom: calc(92px + env(safe-area-inset-bottom)); background: var(--bg); padding: 10px 0; border-top: 0; }
 .toast { bottom: calc(100px + env(safe-area-inset-bottom)); }
 
 /* ══════ ডেস্কটপ (১০২৪px বা তার বেশি চওড়া স্ক্রিন) ══════ */
@@ -436,7 +451,8 @@ img { display: block; }
   .sheet .grab { display: none; }
   .sheet.ask { height: 78vh; }
   .nav { display: none; }
-  .ask-fab { right: 28px; bottom: 28px; }
+  .ask-page { max-width: 760px; margin: 0 auto; min-height: calc(100vh - 140px); }
+  .ask-page .ask-input { bottom: 0; padding-bottom: 24px; }
   .toast { bottom: 32px; }
 }
 `;
@@ -452,6 +468,7 @@ const S = {
   home: ["হোম", "Home"],
   matches: ["ম্যাচ", "Matches"],
   leagues: ["লিগ", "Leagues"],
+  ask: ["জিজ্ঞেস করো", "Ask"],
   myTeamGames: ["তোমার দলের খেলা", "Your teams"],
   following: ["ফলো করা দল", "Following"],
   predict: ["প্রেডিকশন", "Predict"],
@@ -1440,6 +1457,9 @@ function Footer() {
 const I = (d) => (p) => (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...p}>{d}</svg>
 );
+const SparkIcon = (p) => (
+  <svg viewBox="0 0 24 24" fill="currentColor" {...p}><path d="M12 2.5c.5 4.6 2.9 7 7.5 7.5-4.6.5-7 2.9-7.5 7.5-.5-4.6-2.9-7-7.5-7.5 4.6-.5 7-2.9 7.5-7.5z" /><path d="M19 15.5c.2 1.9 1.1 2.8 3 3-1.9.2-2.8 1.1-3 3-.2-1.9-1.1-2.8-3-3 1.9-.2 2.8-1.1 3-3z" opacity=".85" /></svg>
+);
 const TrophyIcon = I(<><path d="M8 4h8v5a4 4 0 0 1-8 0z" /><path d="M16 5h3v2a3 3 0 0 1-3 3M8 5H5v2a3 3 0 0 0 3 3" /><path d="M12 13v4M8 21h8M9 17h6v4H9z" /></>);
 const BallIcon = I(<><circle cx="12" cy="12" r="9" /><path d="m12 7 4 3-1.5 4.5h-5L8 10z" /><path d="M12 3v4M21 10.5l-5-.5M18 19l-3.5-4.5M6 19l3.5-4.5M3 10.5l5-.5" /></>);
 const TargetIcon = I(<><circle cx="12" cy="12" r="9" /><circle cx="12" cy="12" r="5" /><circle cx="12" cy="12" r="1" /></>);
@@ -2384,22 +2404,13 @@ const EXAMPLES = {
   en: ["Real Madrid next match", "Barça last result", "Today's matches", "Liverpool vs Man United", "Champions League"],
 };
 
-function AskButton({ onClick }) {
-  const { lang } = useT();
-  return (
-    <button className="ask-fab" onClick={onClick} aria-label="ask">
-      <span className="ask-spark">✦</span>{lang === "bn" ? "জিজ্ঞেস করো" : "Ask"}
-    </button>
-  );
-}
-
-function AskSheet({ teams, preds, onOpen, onClose }) {
+// ── জিজ্ঞেস করো: আলাদা পাতা (/ask) ──
+function AskPage({ teams, preds, onOpen, chat, setChat }) {
   const { lang } = useT();
   const [q, setQ] = useState("");
-  const [chat, setChat] = useState([]);
   const [busy, setBusy] = useState(false);
   const endRef = useRef(null);
-  useEffect(() => { endRef.current?.scrollIntoView({ block: "end" }); }, [chat, busy]);
+  useEffect(() => { if (chat.length || busy) endRef.current?.scrollIntoView({ block: "end" }); }, [chat, busy]);
 
   async function ask(text) {
     const t = text.trim();
@@ -2416,10 +2427,8 @@ function AskSheet({ teams, preds, onOpen, onClose }) {
   }
 
   return (
-    <div className="veil" onClick={onClose}>
-      <div className="sheet ask" onClick={(e) => e.stopPropagation()}>
-        <div className="grab" />
-        <div className="ask-head"><span className="ask-spark">✦</span>{lang === "bn" ? "খেলা কখন? জিজ্ঞেস করো" : "Ask Khela Kokhon"}</div>
+    <div className="ask-page">
+        <div className="ask-head"><span className="ask-orb sm"><SparkIcon /></span>{lang === "bn" ? "খেলা কখন? জিজ্ঞেস করো" : "Ask Khela Kokhon"}</div>
         <div className="ask-body">
           {chat.length === 0 && (
             <>
@@ -2447,10 +2456,9 @@ function AskSheet({ teams, preds, onOpen, onClose }) {
           <div ref={endRef} />
         </div>
         <form className="ask-input" onSubmit={(e) => { e.preventDefault(); ask(q); }}>
-          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={lang === "bn" ? "যেমন: রিয়ালের পরের খেলা কবে" : "e.g. Real Madrid next match"} autoFocus />
+          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={lang === "bn" ? "যেমন: রিয়ালের পরের খেলা কবে" : "e.g. Real Madrid next match"} />
           <button className="btn" disabled={!q.trim() || busy}>{lang === "bn" ? "পাঠাও" : "Send"}</button>
         </form>
-      </div>
     </div>
   );
 }
@@ -2729,6 +2737,7 @@ function Team({ id, teamsById, preds, onOpen }) {
 const TABS = [
   { id: "matches", path: "/", Icon: BallIcon },
   { id: "leagues", path: "/leagues", Icon: TrophyIcon },
+  { id: "ask", path: "/ask", Icon: SparkIcon, center: true },
   { id: "predict", path: "/predict", Icon: TargetIcon },
   { id: "profile", path: "/profile", Icon: UserIcon },
 ];
@@ -2762,7 +2771,11 @@ function Nav({ tab, go }) {
   return (
     <nav className="nav">
       <div className="nav-in">
-        {TABS.map(({ id, Icon }) => (
+        {TABS.map(({ id, Icon, center }) => center ? (
+          <button key={id} className={"nav-ask" + (tab === id ? " on" : "")} onClick={() => go(id)}>
+            <span className="ask-orb"><Icon /></span>{t(id)}
+          </button>
+        ) : (
           <button key={id} className={tab === id ? "on" : ""} onClick={() => go(id)}>
             <Icon />{t(id)}
           </button>
@@ -2787,7 +2800,7 @@ export default function App() {
   const [editing, setEditing] = useState(false);
   const [toastMsg, setToastMsg] = useState("");
   const [showClock, setShowClock] = useState(false);
-  const [asking, setAsking] = useState(false);
+  const [askChat, setAskChat] = useState([]); // ট্যাব বদলালেও কথোপকথন থাকে
   const [predTab, setPredTab] = useState({ tab: "mine", league: null, key: 0 });
 
   const setLang = (v) => { setLangS(v); store("kk_lang", v); };
@@ -2815,7 +2828,7 @@ export default function App() {
   const openView = (path, v) => {
     if (window.history.state?.sheet) window.history.replaceState({}, "", path);
     else window.history.pushState({}, "", path);
-    setSheet(null); setAsking(false); setEditing(false); setView(v); window.scrollTo(0, 0);
+    setSheet(null); setEditing(false); setView(v); window.scrollTo(0, 0);
   };
   const nav = {
     openLeague: (code) => openView(`/league/${code}`, { kind: "league", code }),
@@ -2860,7 +2873,7 @@ export default function App() {
   }, [user?.id]);
 
   // সাইটে কোথাও "?ask" থাকলে সরাসরি জিজ্ঞেস-বক্স খোলে
-  useEffect(() => { if (new URLSearchParams(window.location.search).has("ask")) setAsking(true); }, []);
+  useEffect(() => { if (new URLSearchParams(window.location.search).has("ask")) { window.history.replaceState({}, "", "/ask"); setTab("ask"); } }, []);
 
   const onboarding = user && profile && (!profile.onboarded || editing);
 
@@ -2920,6 +2933,8 @@ export default function App() {
           <Matches user={user} myTeams={myTeams} comps={comps} preds={preds} onOpen={openMatch} goProfile={() => go("profile")} />
         ) : tab === "leagues" ? (
           <Leagues comps={comps} />
+        ) : tab === "ask" ? (
+          <AskPage teams={Object.values(teamsById)} preds={preds} onOpen={openMatch} chat={askChat} setChat={setAskChat} />
         ) : tab === "predict" ? (
           <Predict user={user} profile={profile} preds={preds} fav={myTeams.fav} onOpen={openMatch} goProfile={() => go("profile")} toast={toast} initialTab={predTab.tab} openLeagueId={predTab.league} reloadKey={predTab.key} />
         ) : (
@@ -2927,12 +2942,10 @@ export default function App() {
         )}
         </main>
 
-        <Footer />
+        {!(tab === "ask" && !view && !onboarding) && <Footer />}
       </div>
 
       {!onboarding && <Nav tab={tab} go={go} />}
-      {!onboarding && !asking && <AskButton onClick={() => setAsking(true)} />}
-      {asking && <AskSheet teams={Object.values(teamsById)} preds={preds} onOpen={openMatch} onClose={() => setAsking(false)} />}
       {sheet && (
         <MatchSheet
           key={sheet.id}
