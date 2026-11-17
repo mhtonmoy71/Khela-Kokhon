@@ -394,6 +394,14 @@ button.scr { width: 100%; }
 .stat-grid b { display: block; font-size: 19px; font-family: Inter, "Hind Siliguri", sans-serif; }
 .stat-grid span { font-size: 11.5px; color: var(--muted); line-height: 1.3; display: block; margin-top: 2px; }
 
+/* ── জিজ্ঞেস-বক্সে খেলোয়াড় ── */
+.ask-pl { display: flex; align-items: center; gap: 10px; width: 100%; padding: 9px 10px; text-align: left; }
+.ask-pl-n { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.ask-pl-n b { font-size: 14px; font-family: Inter, "Hind Siliguri", sans-serif; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ask-pl-n small { font-size: 11.5px; }
+.ask-pl-g { font-family: Inter, sans-serif; font-weight: 800; font-size: 17px; color: var(--green); display: flex; flex-direction: column; align-items: center; line-height: 1.1; }
+.ask-pl-g small { font-size: 10px; font-weight: 500; color: var(--muted); font-family: "Hind Siliguri", sans-serif; }
+
 /* ── লিগের তালিকা ── */
 .lg-list { display: grid; gap: 10px; }
 .lg-card { display: flex; align-items: center; gap: 14px; width: 100%; padding: 14px; text-align: left; background: var(--card); border: 1px solid var(--line); border-radius: 14px; }
@@ -982,6 +990,14 @@ async function getCompRecent(code, limit = 10) {
 }
 
 // কোনো প্রতিযোগিতার সামনের খেলা
+// সব প্রতিযোগিতার গোলদাতা (জিজ্ঞেস-বক্সের খেলোয়াড়ের প্রশ্নের জন্য, একবার এনে রাখা)
+let allScorersP = null;
+function getAllScorers() {
+  if (DEMO) return Promise.resolve(["CL", "PL", "PD", "BL1", "SA", "FL1"].flatMap((c) => demoScorers(c).map((r) => ({ ...r, player_id: r.team_id * 100 + r.player_id }))));
+  allScorersP ||= sb.from("scorers").select("*, team:teams(*)").then(ok).catch((e) => { allScorersP = null; throw e; });
+  return allScorersP;
+}
+
 async function getCompUpcoming(code, limit = 6) {
   const from = new Date(Date.now() - 3 * 3600000).toISOString();
   if (DEMO) return demoMatches().filter((m) => m.competition_code === code && m.status !== "FINISHED" && m.utc_date >= from).slice(0, limit);
@@ -2353,7 +2369,153 @@ function findComp(q) {
 
 const poss = (name, lang) => (lang !== "bn" ? `${name}'s` : /[\u09BE-\u09CC]$/.test(name) ? name + "র" : name + "ের");
 
-// উত্তর বানানো: { text, matches }
+// ════════ খেলোয়াড়ের প্রশ্ন ════════
+const COMP_LABEL = { CL: ["চ্যাম্পিয়ন্স লিগ", "Champions League"], PL: ["প্রিমিয়ার লিগ", "Premier League"], PD: ["লা লিগা", "La Liga"], BL1: ["বুন্দেসলিগা", "Bundesliga"], SA: ["সিরি আ", "Serie A"], FL1: ["লিগ আঁ", "Ligue 1"] };
+const compLabel = (code, lang) => (COMP_LABEL[code] || [code, code])[lang === "bn" ? 0 : 1];
+// বাংলায় লেখা নাম (এমবাপ্পে) আর ইংরেজি নাম (Mbappé) একই "কঙ্কালে" নামিয়ে মেলানো
+const BN2L = {
+  "ক": "k", "খ": "k", "গ": "g", "ঘ": "g", "ঙ": "n", "চ": "c", "ছ": "c", "জ": "j", "ঝ": "j", "ঞ": "n",
+  "ট": "t", "ঠ": "t", "ড": "d", "ঢ": "d", "ণ": "n", "ত": "t", "থ": "t", "দ": "d", "ধ": "d", "ন": "n",
+  "প": "p", "ফ": "f", "ব": "b", "ভ": "b", "ম": "m", "য": "j", "র": "r", "ল": "l", "শ": "s", "ষ": "s", "স": "s", "হ": "h",
+  "ড়": "r", "ঢ়": "r", "য়": "", "ৎ": "t", "ং": "n", "ঁ": "", "ঃ": "",
+};
+const skel = (latin) => latin.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase()
+  .replace(/ph/g, "f").replace(/ch|sch|sh|zh/g, "s").replace(/th/g, "t").replace(/[vw]/g, "b").replace(/[zx]/g, "s")
+  .replace(/q|ck|c(?=[aou]|$)/g, "k").replace(/c/g, "s").replace(/gu(?=[ei])/g, "g").replace(/j/g, "j").replace(/y/g, "")
+  .replace(/[^a-z]/g, "").replace(/[aeiouh]/g, "").replace(/(.)\1+/g, "$1");
+// য়, ড়, ঢ় ইউনিকোডে দুই চিহ্নে ভাঙে (য + ়), তাই আগে এক অক্ষরে আনা
+const bnPrep = (w) => w.normalize("NFC").replace(/\u09AF\u09BC/g, "Y").replace(/[\u09A1\u09A2]\u09BC/g, "R");
+const bnSkel = (word) => skel([...bnPrep(word)].map((ch) => (ch === "Y" ? "" : ch === "R" ? "r" : BN2L[ch] ?? "")).join(""));
+// স্বরবর্ণসহ পুরো উচ্চারণ (কঙ্কাল মিললেও উচ্চারণ অনেক আলাদা হলে বাদ: ওসিমেন ≠ Simeone)
+const BN_V = { "া": "a", "ি": "i", "ী": "i", "ু": "u", "ূ": "u", "ৃ": "ri", "ে": "e", "ৈ": "oi", "ো": "o", "ৌ": "ou",
+  "অ": "o", "আ": "a", "ই": "i", "ঈ": "i", "উ": "u", "ঊ": "u", "ঋ": "ri", "এ": "e", "ঐ": "oi", "ও": "o", "ঔ": "ou", "য়": "y" };
+const sound = (latin) => latin.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase()
+  .replace(/ph/g, "f").replace(/sch|sh|ch|zh/g, "s").replace(/th/g, "t").replace(/[vw]/g, "b").replace(/z/g, "s").replace(/x/g, "ks")
+  .replace(/q|ck|c(?=[aou]|$)/g, "k").replace(/c/g, "s").replace(/y/g, "i").replace(/[^a-z]/g, "").replace(/(.)\1+/g, "$1");
+const bnSound = (word) => sound([...bnPrep(word)].map((ch) => (ch === "Y" ? "y" : ch === "R" ? "r" : BN_V[ch] ?? BN2L[ch] ?? "")).join(""));
+// শব্দের শেষের বিভক্তি বাদ: এমবাপ্পের, হালান্ডকে, কেইনের
+const stripBn = (w) => w.replace(/(দের|এর|ের|কে|রা|ও|র|য়ের|য়)$/u, "");
+const lev = (a, b) => {
+  const d = Array.from({ length: a.length + 1 }, (_, i) => [i]);
+  for (let j = 1; j <= b.length; j++) d[0][j] = j;
+  for (let i = 1; i <= a.length; i++) for (let j = 1; j <= b.length; j++)
+    d[i][j] = Math.min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+  return d[a.length][b.length];
+};
+// জনপ্রিয় ডাকনাম → নামের অংশ
+const PLAYER_NICK = {
+  "ভিনি": "vinicius", "vini": "vinicius", "ভিনিসিয়ুস": "vinicius", "লেভা": "lewandowski", "লেওয়ানডফস্কি": "lewandowski", "lewa": "lewandowski",
+  "কেইন": "kane", "কেন": "kane", "হ্যারি কেইন": "kane", "সালাহ": "salah", "সালা": "salah", "লামিন": "yamal", "ইয়ামাল": "yamal",
+  "সন": "son", "ডি ব্রুইনে": "bruyne", "ব্রুনো": "bruno", "রোনালদো": "ronaldo", "মেসি": "messi", "নেইমার": "neymar",
+};
+const ASK_STOP = ["গোল", "গোলদাতা", "করেছে", "করছে", "কয়টা", "কয়টি", "কত", "কতটা", "কবে", "কখন", "লাস্ট", "শেষ", "পরের", "খেলা", "এই", "মৌসুমে", "সিজনে",
+  "অ্যাসিস্ট", "এসিস্ট", "সর্বোচ্চ", "টপ", "স্কোরার", "কে", "কোন", "কেন", "কিনা", "দলে", "বনাম", "আজ", "কাল", "আগামীকাল", "কার", "বেশি", "সবচেয়ে", "মোট", "লিগে", "লিগায়", "পেনাল্টি", "ম্যাচ", "খেলেছে", "দিয়েছে"];
+
+function findPlayer(q, scorers, teams) {
+  if (!scorers.length) return null;
+  const teamWords = new Set(teams.flatMap((t) => [t.name_bn, t.name_en, t.short_en, ...(NICK[t.id] || [])].filter(Boolean).flatMap((x) => norm(x).split(" "))));
+  // এক খেলোয়াড় অনেক লিগে থাকতে পারে, তাই id ধরে একবার
+  const people = [...new Map(scorers.map((r) => [r.player_id, r])).values()];
+  const latinQ = q.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+  // ১) ইংরেজি পুরো নাম বা শেষ নাম
+  for (const r of people) {
+    const full = norm(r.player_name).normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    const parts = full.split(" ").filter((w) => w.length >= 4 && !teamWords.has(w));
+    if (latinQ.includes(full) || parts.some((w) => new RegExp("(^|[^a-z])" + esc(w) + "($|[^a-z])").test(latinQ))) return r;
+  }
+  // ২) ডাকনাম (খেলোয়াড় তালিকায় না থাকলে "নেই" বলার জন্য ডাকনামটা আর কঙ্কাল-মেলায় যায় না)
+  const nickUsed = [];
+  for (const [nick, part] of Object.entries(PLAYER_NICK))
+    if (wordAt(q, nick)) {
+      nickUsed.push(norm(nick));
+      const r = people.find((x) => norm(x.player_name).normalize("NFD").replace(/[\u0300-\u036f]/g, "").split(" ").includes(part));
+      if (r) return r;
+    }
+  // ৩) বাংলা শব্দ → কঙ্কাল মিলিয়ে
+  const words = q.split(" ").filter((w) => isBn(w) && !nickUsed.some((n) => w.startsWith(n))).map(stripBn).filter((w) => w.length >= 3 && !ASK_STOP.includes(w) && ![...teamWords].some((t) => isBn(t) && (t.startsWith(w) || w.startsWith(t))));
+  // শুধু শেষ নাম (বা এক-নামের খেলোয়াড়) — প্রথম নামে মেলালে ভুল হয় (ওসিমেন ≠ Ousmane)
+  let best = null;
+  for (const w of words) {
+    const ws = bnSkel(w), wv = bnSound(w).replace(/[aeiou]+$/, "");
+    if (ws.length < 2) continue;
+    for (const r of people) {
+      const parts = norm(r.player_name).split(" ");
+      const last = parts.length > 1 ? parts.slice(1) : parts;
+      for (const part of last.filter((x) => x.length >= 3)) {
+        const ps = skel(part);
+        if (ps.length < 2) continue;
+        const d = lev(ws, ps);
+        const pv = sound(part).replace(/[aeiou]+$/, "");
+        const ratio = lev(wv, pv) / Math.max(wv.length, pv.length, 1);
+        // ছোট কঙ্কাল (বায়েনা → bn) হলে উচ্চারণ প্রায় হুবহু মিলতে হবে
+        const okD = (Math.min(ws.length, ps.length) >= 5 ? d <= 1 : d === 0) && ratio <= (ws.length < 3 ? 0.2 : 0.3);
+        if (okD && (!best || d < best.d)) best = { r, d, n: 1 };
+        else if (okD && best && d === best.d && best.r.player_id !== r.player_id) best.n++;
+      }
+    }
+  }
+  return best?.r || null;
+}
+
+async function answerPlayer(q, teams, lang) {
+  const bn = lang === "bn";
+  const wantTop = has(q, ["সর্বোচ্চ গোলদাতা", "টপ স্কোরার", "সবচেয়ে বেশি গোল", "গোলদাতার তালিকা", "top scorer", "top scorers", "golden boot"]);
+  const goalish = has(q, ["গোল", "অ্যাসিস্ট", "এসিস্ট", "পেনাল্টি", "goal", "goals", "assist", "scored", "score"]);
+  let scorers;
+  try { scorers = await getAllScorers(); } catch { return null; }
+  const comp = findComp(q);
+  const rank = (code) => scorers.filter((r) => r.competition_code === code).sort((a, b) => b.goals - a.goals || (b.assists || 0) - (a.assists || 0));
+  const cName = (code) => compLabel(code, lang);
+
+  if (wantTop) {
+    const codes = comp ? [comp] : ["CL", "PL", "PD", "BL1", "SA", "FL1"];
+    if (comp) {
+      const list = rank(comp).slice(0, 5);
+      if (!list.length) return { text: bn ? "এই প্রতিযোগিতার গোলদাতার তালিকা এখনো আসেনি।" : "No scorers list for this competition yet.", matches: [] };
+      return { text: bn ? `${poss(cName(comp), "bn")} শীর্ষ গোলদাতা:` : `${cName(comp)} top scorers:`, matches: [], players: list.map((r) => ({ ...r, code: comp })) };
+    }
+    const tops = codes.map((c) => rank(c)[0] && { ...rank(c)[0], code: c }).filter(Boolean);
+    return { text: bn ? "প্রতিটা প্রতিযোগিতার সর্বোচ্চ গোলদাতা:" : "Top scorer in each competition:", matches: [], players: tops };
+  }
+
+  const r = findPlayer(q, scorers, teams);
+  if (!r) {
+    // গোলের প্রশ্ন, কিন্তু কোনো দল বা চেনা খেলোয়াড় নেই
+    if (goalish && !findTeams(q, teams).length && !has(q, ["আজ", "কাল", "today", "tomorrow"]))
+      return { text: bn ? "এই খেলোয়াড়কে খুঁজে পাইনি। গোলের হিসাব আছে শুধু প্রতিটা লিগের শীর্ষ ২০ গোলদাতার। নামটা অন্যভাবে লিখে দেখো, যেমন ইংরেজিতে।" : "Couldn't find that player. Goal counts exist only for each league's top 20 scorers. Try the name another way, e.g. in English.", matches: [] };
+    return null;
+  }
+  const name = r.player_name;
+  const rows = scorers.filter((x) => x.player_id === r.player_id).sort((a, b) => b.goals - a.goals);
+  const club = r.team ? teamName(r.team, lang) : null;
+  const lastGoal = has(q, ["কবে", "লাস্ট", "শেষ গোল", "সর্বশেষ", "last goal", "when"]) && goalish;
+  const note = lastGoal ? (bn ? " কোন ম্যাচে কে গোল করেছে সেই তথ্য সাইটের ফ্রি ডেটায় নেই, তাই শেষ গোল কবে বলতে পারছি না।" : " Who scored in each match isn't in the site's free data, so I can't tell when the last goal was.") : "";
+  const line = (x) => {
+    const pos = rank(x.competition_code).findIndex((y) => y.player_id === x.player_id) + 1;
+    return bn
+      ? `${cName(x.competition_code)}: ${num(x.goals, "bn")} গোল, ${num(x.assists ?? 0, "bn")} অ্যাসিস্ট${x.played != null ? `, ${num(x.played, "bn")} ম্যাচে` : ""}${x.penalties ? ` (পেনাল্টিতে ${num(x.penalties, "bn")})` : ""}। গোলদাতার তালিকায় ${ord(pos, "bn")}।`
+      : `${cName(x.competition_code)}: ${x.goals} goals, ${x.assists ?? 0} assists${x.played != null ? ` in ${x.played} matches` : ""}${x.penalties ? ` (${x.penalties} pens)` : ""}. ${ord(pos, "en")} in the scoring chart.`;
+  };
+
+  // খেলোয়াড়ের দলের পরের খেলা
+  if (!goalish && has(q, ["পরের", "নেক্সট", "খেলা কবে", "next", "match"]) && r.team_id) {
+    const list = await getTeamMatches([r.team_id], { upcoming: true, limit: 3 });
+    if (list.length) return { text: (bn ? `${name} খেলেন ${club}-এ। ` : `${name} plays for ${club}. `) + describe(list[0], r.team_id, false, lang), matches: list, players: [{ ...rows[0], code: rows[0].competition_code }] };
+  }
+
+  if (comp) {
+    const x = rows.find((y) => y.competition_code === comp);
+    if (!x) return { text: (bn ? `${poss(cName(comp), "bn")} শীর্ষ ২০ গোলদাতায় ${name} নেই, তাই সেখানে তার গোলের হিসাব সাইটে নেই।` : `${name} isn't in the ${cName(comp)} top 20 scorers, so the site has no goal count there.`) + note, matches: [], players: [{ ...rows[0], code: rows[0].competition_code }] };
+    return { text: (bn ? `${name}${club ? ` (${club})` : ""}, এই মৌসুমে ` : `${name}${club ? ` (${club})` : ""} this season — `) + line(x) + note, matches: [], players: [{ ...x, code: comp }] };
+  }
+  const total = rows.reduce((t, x) => t + x.goals, 0), totalA = rows.reduce((t, x) => t + (x.assists || 0), 0);
+  const head = rows.length > 1
+    ? (bn ? `${name}${club ? ` (${club})` : ""} এই মৌসুমে সাইটের প্রতিযোগিতাগুলোয় মোট ${num(total, "bn")} গোল, ${num(totalA, "bn")} অ্যাসিস্ট।\n` : `${name}${club ? ` (${club})` : ""}: ${total} goals and ${totalA} assists this season.\n`)
+    : (bn ? `${name}${club ? ` (${club})` : ""}, এই মৌসুমে ` : `${name}${club ? ` (${club})` : ""} this season — `);
+  return { text: head + rows.map(line).join("\n") + note, matches: [], players: rows.map((x) => ({ ...x, code: x.competition_code })) };
+}
+
+// উত্তর বানানো: { text, matches, players? }
 async function answer(raw, teams, lang) {
   const q = norm(raw);
   const bn = lang === "bn";
@@ -2363,6 +2525,10 @@ async function answer(raw, teams, lang) {
   const nm = (id) => teamName(byId[id], lang);
   const wantLast = has(q, W.last) && !has(q, ["পরের", "নেক্সট", "next", "upcoming", "সামনে"]);
   const comp = findComp(q);
+
+  // খেলোয়াড়ের নাম বা গোলদাতার প্রশ্ন আগে
+  const pa = await answerPlayer(q, teams, lang);
+  if (pa) return pa;
 
   // দুই দল: একে অপরের বিপক্ষে
   if (ids.length >= 2) {
@@ -2440,13 +2606,14 @@ function describe(m, id, past, lang) {
 }
 
 const EXAMPLES = {
-  bn: ["রিয়ালের পরের খেলা কবে", "বার্সার শেষ ম্যাচের ফল", "আজ কী খেলা", "লিভারপুল বনাম ম্যানইউ কবে", "চ্যাম্পিয়ন্স লিগ"],
-  en: ["Real Madrid next match", "Barça last result", "Today's matches", "Liverpool vs Man United", "Champions League"],
+  bn: ["রিয়ালের পরের খেলা কবে", "লা লিগায় এমবাপ্পে কয়টা গোল করেছে", "প্রিমিয়ার লিগের সর্বোচ্চ গোলদাতা", "বার্সার শেষ ম্যাচের ফল", "আজ কী খেলা"],
+  en: ["Real Madrid next match", "Mbappé La Liga goals", "Premier League top scorer", "Barça last result", "Today's matches"],
 };
 
 // ── জিজ্ঞেস করো: আলাদা পাতা (/ask) ──
 function AskPage({ teams, preds, onOpen, chat, setChat }) {
   const { lang } = useT();
+  const nav = useNav();
   const [q, setQ] = useState("");
   const [busy, setBusy] = useState(false);
   const endRef = useRef(null);
@@ -2492,7 +2659,18 @@ function AskPage({ teams, preds, onOpen, chat, setChat }) {
             <div key={i} className="bubble me">{m.me}</div>
           ) : (
             <div key={i} className="bubble bot">
-              <div>{m.text}</div>
+              <div style={{ whiteSpace: "pre-line" }}>{m.text}</div>
+              {m.players?.length > 0 && (
+                <div className="card" style={{ marginTop: 8 }}>
+                  {m.players.map((x) => (
+                    <button key={x.player_id + x.code} className="ask-pl" onClick={() => nav.openPlayer(x.player_id)}>
+                      <Crest team={x.team} size={26} />
+                      <span className="ask-pl-n"><b>{x.player_name}</b><small className="muted">{compLabel(x.code, lang)}</small></span>
+                      <span className="ask-pl-g">{num(x.goals, lang)}<small>{lang === "bn" ? "গোল" : "goals"}</small></span>
+                    </button>
+                  ))}
+                </div>
+              )}
               {m.matches?.length > 0 && (
                 <div className="card" style={{ marginTop: 8 }}>
                   {m.matches.slice(0, 8).map((x) => <MatchRow key={x.id} m={x} pred={preds[x.id]} onOpen={onOpen} />)}
