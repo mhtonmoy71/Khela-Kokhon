@@ -4,6 +4,7 @@
 //    ?type=h2h&match=123456  → দুই দলের আগের মুখোমুখি লড়াই (৩ দিন জমা থাকে)
 //    ?type=crest&u=<লিংক>    → দলের লোগো নিজের ঠিকানা দিয়ে (শেয়ার-কার্ডের ছবির জন্য)
 //    ?type=player&id=44      → খেলোয়াড়ের পরিচয় আর এই মৌসুমের হিসাব (২ দিন জমা থাকে)
+//    ?type=photos&team=86    → স্কোয়াডের সবার ছোট ছবি; ?type=photos&ids=1,2 → নির্দিষ্ট খেলোয়াড়দের
 //  একই জিনিস বারবার চাইলে football-data-এ আর যায় না, তাই ফ্রি সীমার মধ্যে থাকে।
 // ═══════════════════════════════════════════════════════════════
 const FD = "https://api.football-data.org/v4";
@@ -49,27 +50,85 @@ const today = () => new Date().toISOString().slice(0, 10);
 // ── খেলোয়াড়ের ছবি: Wikidata-য় নাম দিয়ে খুঁজে জন্মতারিখ মিলিয়ে Wikimedia Commons-এর ছবি ──
 const WD = "https://www.wikidata.org/w/api.php";
 const UA = { headers: { "User-Agent": "KhelaKokhon/1.0 (https://khelakokhon.com)" } };
-async function findPhoto(p) {
-  if (!p.dateOfBirth) return null;
-  const names = [...new Set([p.name, [p.firstName, p.lastName].filter(Boolean).join(" "), p.lastName].filter((x) => x && x.length > 2))];
-  for (const name of names) {
-    const sr = await fetch(`${WD}?action=wbsearchentities&search=${encodeURIComponent(name)}&language=en&type=item&limit=8&format=json`, UA).then((r) => r.json()).catch(() => null);
-    const ids = (sr?.search || []).map((x) => x.id);
-    if (!ids.length) continue;
-    const ent = await fetch(`${WD}?action=wbgetentities&ids=${ids.join("|")}&props=claims&format=json`, UA).then((r) => r.json()).catch(() => null);
-    for (const id of ids) {
-      const c = ent?.entities?.[id]?.claims || {};
-      const dob = c.P569?.[0]?.mainsnak?.datavalue?.value?.time || "";
-      const file = c.P18?.[0]?.mainsnak?.datavalue?.value;
-      if (file && dob.slice(1, 11) === p.dateOfBirth) {
-        return {
-          url: `https://commons.wikimedia.org/wiki/Special:FilePath/${encodeURIComponent(file)}?width=320`,
-          page: `https://commons.wikimedia.org/wiki/File:${encodeURIComponent(file.replace(/ /g, "_"))}`,
-        };
-      }
+const photoOf = (file) => ({
+  url: `https://commons.wikimedia.org/wiki/Special:FilePath/${encodeURIComponent(file)}?width=320`,
+  page: `https://commons.wikimedia.org/wiki/File:${encodeURIComponent(file.replace(/ /g, "_"))}`,
+});
+const wdJson = (url) => fetch(url, UA).then((r) => (r.ok ? r.json() : null)).catch(() => null);
+// একসাথে n-টা করে চালানো
+async function pool(items, n, fn) {
+  const out = []; let i = 0;
+  await Promise.all(Array.from({ length: Math.min(n, items.length) }, async () => { while (i < items.length) { const k = i++; out[k] = await fn(items[k]); } }));
+  return out;
+}
+const chunks = (a, n) => Array.from({ length: Math.ceil(a.length / n) }, (_, i) => a.slice(i * n, i * n + n));
+
+// অনেক খেলোয়াড়ের ছবি একবারে: Wikidata-য় নাম দিয়ে খুঁজে, জন্মতারিখ মিললে তবেই ছবি (P18)
+// players: [{ id, name, dateOfBirth, firstName?, lastName? }] → { id: {url, page} | null }
+async function findPhotos(players) {
+  const res = {};
+  let todo = players.filter((p) => p.dateOfBirth && p.name);
+  for (const round of [0, 1, 2]) {
+    if (!todo.length) break;
+    const query = (p) => round === 0 ? p.name : round === 1 ? [p.firstName, p.lastName].filter(Boolean).join(" ") : (p.lastName || p.name.split(" ").slice(-1)[0]);
+    const found = await pool(todo, 8, async (p) => {
+      const qq = query(p);
+      if (!qq || qq.length < 3 || (round > 0 && qq === p.name)) return [];
+      return ((await wdJson(`${WD}?action=wbsearchentities&search=${encodeURIComponent(qq)}&language=en&type=item&limit=7&format=json`))?.search || []).map((x) => x.id);
+    });
+    const ents = {};
+    await pool(chunks([...new Set(found.flat())], 50), 4, async (ids) => Object.assign(ents, (await wdJson(`${WD}?action=wbgetentities&ids=${ids.join("|")}&props=claims&format=json`))?.entities || {}));
+    const left = [];
+    todo.forEach((p, k) => {
+      const hit = found[k].map((id) => ents[id]?.claims || {})
+        .find((c) => (c.P569?.[0]?.mainsnak?.datavalue?.value?.time || "").slice(1, 11) === p.dateOfBirth && c.P18?.[0]?.mainsnak?.datavalue?.value);
+      if (hit) res[p.id] = photoOf(hit.P18[0].mainsnak.datavalue.value); else left.push(p);
+    });
+    todo = left;
+  }
+  for (const p of players) if (!(p.id in res)) res[p.id] = null;
+  return res;
+}
+const findPhoto = async (p) => (await findPhotos([p]))[p.id];
+
+// ?type=photos&team=86 (পুরো স্কোয়াড) বা ?type=photos&ids=1,2,3 → { id: ছবির লিংক }
+// পাওয়া ছবি ৬০ দিন, না-পাওয়া ১৪ দিন জমা থাকে (ph:<id>)
+async function photos(req, res) {
+  const q = req.query || {};
+  let players = [];
+  if (/^\d{1,7}$/.test(q.team || "")) {
+    const [c] = await sb(`api_cache?key=eq.team%3A${q.team}&select=data`);
+    players = (c?.data?.squad || []).map((p) => ({ id: p.id, name: p.name, dateOfBirth: p.dateOfBirth }));
+  } else if (/^\d{1,9}(,\d{1,9}){0,11}$/.test(q.ids || "")) {
+    const ids = [...new Set(q.ids.split(",").map(Number))];
+    players = (await Promise.all(ids.map(async (id) => {
+      const [sq] = await sb(`api_cache?key=like.team%3A*&data->squad=cs.${encodeURIComponent(JSON.stringify([{ id }]))}&select=data->squad&limit=1`);
+      const p = (sq?.squad || []).find((x) => x.id === id);
+      return p ? { id, name: p.name, dateOfBirth: p.dateOfBirth } : null;
+    }))).filter(Boolean);
+  } else return res.status(400).json({ ok: false, error: "bad request" });
+  if (!players.length) return res.status(200).json({ ok: true, data: {} });
+
+  const keys = players.map((p) => `"ph:${p.id}"`).join(",");
+  const cached = Object.fromEntries((await sb(`api_cache?key=in.(${encodeURIComponent(keys)})&select=key,data,updated_at`)).map((r) => [r.key.slice(3), r]));
+  const out = {}, missing = [];
+  for (const p of players) {
+    const c = cached[p.id];
+    const age = c ? Date.now() - new Date(c.updated_at).getTime() : Infinity;
+    if (c && age < (c.data?.url ? 60 : 14) * DAY) out[p.id] = c.data?.url || null;
+    else missing.push(p);
+  }
+  if (missing.length) {
+    // সময়ের মধ্যে যতটা হয় (বাকিরা পরের বার)
+    const found = await Promise.race([findPhotos(missing.slice(0, 40)), new Promise((r) => setTimeout(() => r(null), 8000))]);
+    if (found) {
+      const rows = Object.entries(found).map(([id, ph]) => ({ key: `ph:${id}`, data: ph || {}, updated_at: new Date().toISOString() }));
+      for (const [id, ph] of Object.entries(found)) out[id] = ph?.url || null;
+      if (rows.length) await sb("api_cache?on_conflict=key", { method: "POST", body: rows, prefer: "resolution=merge-duplicates,return=minimal" }).catch(() => {});
     }
   }
-  return null;
+  res.setHeader("Cache-Control", "public, s-maxage=600");
+  return res.status(200).json({ ok: true, data: out });
 }
 
 async function fetchPlayer(id, club) {
@@ -120,6 +179,7 @@ async function crest(req, res) {
 export default async function handler(req, res) {
   const q = req.query || {};
   if (q.type === "crest") return crest(req, res);
+  if (q.type === "photos") return photos(req, res).catch((e) => res.status(500).json({ ok: false, error: String(e.message || e).slice(0, 120) }));
 
   let cacheKey, fdPath, maxAge, trim, check;
   if (q.type === "team" && /^\d{1,7}$/.test(q.id || "")) {
