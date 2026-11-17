@@ -407,7 +407,11 @@ img { display: block; }
 .ask-page { margin: 0 16px; min-height: calc(100vh - 170px); min-height: calc(100dvh - 170px); display: flex; flex-direction: column; }
 .ask-page .ask-head { padding: 16px 0 12px; border-bottom: 0; font-size: 18px; gap: 10px; }
 .ask-page .ask-body { overflow: visible; flex: 1; }
-.ask-page .ask-input { position: sticky; bottom: calc(92px + env(safe-area-inset-bottom)); background: var(--bg); padding: 10px 0; border-top: 0; }
+.ask-page .ask-input { position: sticky; bottom: calc(92px + env(safe-area-inset-bottom)); background: var(--bg); padding: 10px 0; border-top: 0; transition: bottom .25s ease; }
+.nav { transition: transform .25s ease, opacity .2s ease; }
+.kb-open .nav { transform: translate(-50%, 130%); opacity: 0; pointer-events: none; }
+.kb-open .ask-page .ask-input { bottom: 0; }
+.kb-open .app { padding-bottom: 0; }
 .toast { bottom: calc(100px + env(safe-area-inset-bottom)); }
 
 /* ══════ ডেস্কটপ (১০২৪px বা তার বেশি চওড়া স্ক্রিন) ══════ */
@@ -2413,7 +2417,15 @@ function AskPage({ teams, preds, onOpen, chat, setChat }) {
   const [q, setQ] = useState("");
   const [busy, setBusy] = useState(false);
   const endRef = useRef(null);
-  useEffect(() => { if (chat.length || busy) endRef.current?.scrollIntoView({ block: "end" }); }, [chat, busy]);
+  useEffect(() => { if (chat.length || busy) endRef.current?.scrollIntoView({ block: "end", behavior: "smooth" }); }, [chat, busy]);
+  // কিবোর্ড খুললে নিচের ন্যাভ লুকায়, যাতে লেখার ঘর কিবোর্ডের ঠিক ওপরে বসে
+  const kbTimer = useRef(null);
+  const kb = (on) => {
+    clearTimeout(kbTimer.current);
+    if (on) document.documentElement.classList.add("kb-open");
+    else kbTimer.current = setTimeout(() => document.documentElement.classList.remove("kb-open"), 150);
+  };
+  useEffect(() => () => { clearTimeout(kbTimer.current); document.documentElement.classList.remove("kb-open"); }, []);
 
   async function ask(text) {
     const t = text.trim();
@@ -2459,7 +2471,7 @@ function AskPage({ teams, preds, onOpen, chat, setChat }) {
           <div ref={endRef} />
         </div>
         <form className="ask-input" onSubmit={(e) => { e.preventDefault(); ask(q); }}>
-          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={lang === "bn" ? "যেমন: রিয়ালের পরের খেলা কবে" : "e.g. Real Madrid next match"} />
+          <input value={q} onChange={(e) => setQ(e.target.value)} onFocus={() => kb(true)} onBlur={() => kb(false)} enterKeyHint="send" placeholder={lang === "bn" ? "যেমন: রিয়ালের পরের খেলা কবে" : "e.g. Real Madrid next match"} />
           <button className="btn" disabled={!q.trim() || busy}>{lang === "bn" ? "পাঠাও" : "Send"}</button>
         </form>
     </div>
