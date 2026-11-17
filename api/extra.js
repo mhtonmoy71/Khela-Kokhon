@@ -60,7 +60,7 @@ async function fetchPlayer(id, club) {
     else {
       const d = await m.json();
       const a = d.aggregations || {};
-      if (a.matchesOnPitch == null) statsNote = "no aggregations: " + Object.keys(d).join(",");
+      if (a.matchesOnPitch == null) statsNote = ("agg " + JSON.stringify(d.aggregations) + " rs " + JSON.stringify(d.resultSet) + " f " + JSON.stringify(d.filters)).slice(0, 400);
       else stats = {
         from, to, matches: a.matchesOnPitch ?? 0, starts: a.startingXI ?? 0, minutes: a.minutesPlayed ?? 0,
         goals: a.goals ?? 0, assists: a.assists ?? 0, penalties: a.penalties ?? 0,
@@ -103,7 +103,7 @@ export default async function handler(req, res) {
   if (q.type === "team" && /^\d{1,7}$/.test(q.id || "")) {
     cacheKey = `team:${q.id}`; fdPath = `/teams/${q.id}`; maxAge = 7 * DAY; trim = trimTeam; check = `teams?id=eq.${q.id}&select=id`;
   } else if (q.type === "player" && /^\d{1,9}$/.test(q.id || "")) {
-    cacheKey = `player2:${q.id}`; maxAge = 2 * DAY;
+    cacheKey = `player3:${q.id}`; maxAge = 2 * DAY;
     // সাইটে দেখা খেলোয়াড় হলেই: গোলদাতার তালিকায় আছে, বা কোনো দলের জমা স্কোয়াডে আছে
     check = [`scorers?player_id=eq.${q.id}&select=player_id&limit=1`,
       `api_cache?key=like.team%3A*&data->squad=cs.${encodeURIComponent(JSON.stringify([{ id: +q.id }]))}&select=key&limit=1`];
