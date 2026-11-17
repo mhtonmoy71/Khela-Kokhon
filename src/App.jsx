@@ -1129,7 +1129,7 @@ async function getPlayer(id) {
   if (DEMO) return {
     id, name: `Player ${id + 1}`, dateOfBirth: "1996-05-11", nationality: "Spain", position: "Centre-Forward", shirtNumber: 9,
     team: { id: 86, name: "Real Madrid CF", shortName: "Real Madrid", crest: "https://crests.football-data.org/86.png", contractUntil: "2028-06" },
-    stats: { from: "2026-07-01", to: "2026-11-18", matches: 14, starts: 12, minutes: 1104, goals: 9, assists: 4, penalties: 2, yellow: 2, red: 0 },
+    stats: { from: "2026-07-01", to: "2026-11-18", matches: 14, competitions: "PD,CL" },
   };
   return extra({ type: "player", id });
 }
@@ -2706,6 +2706,13 @@ function Player({ id, teamsById, comps }) {
   const team = p.team ? { ...(teamsById[p.team.id] || {}), ...p.team, crest: teamsById[p.team.id]?.crest || p.team.crest } : null;
   const a = age(p.dateOfBirth);
   const st = p.stats;
+  const sum = (k) => scoring.reduce((t, r) => t + (r[k] || 0), 0);
+  const tiles = [
+    st && [bn ? "ম্যাচ" : "Matches", st.matches],
+    scoring.length > 0 && [bn ? "গোল" : "Goals", sum("goals")],
+    scoring.length > 0 && [bn ? "অ্যাসিস্ট" : "Assists", sum("assists")],
+    scoring.length > 0 && [bn ? "পেনাল্টি গোল" : "Penalty goals", sum("penalties")],
+  ].filter(Boolean);
   const compOf = (code) => comps.find((c) => c.code === code);
   const born = p.dateOfBirth && (() => { const [y, m, d] = p.dateOfBirth.split("-").map(Number); return bn ? `${num(d, "bn")} ${BN_MONTHS[m - 1]} ${num(y, "bn")}` : `${d} ${EN_MONTHS[m - 1]} ${y}`; })();
   const contract = team?.contractUntil && (() => { const [y, m] = team.contractUntil.split("-").map(Number); return bn ? `${BN_MONTHS[(m || 6) - 1]} ${num(y, "bn")}` : `${EN_MONTHS[(m || 6) - 1]} ${y}`; })();
@@ -2729,16 +2736,13 @@ function Player({ id, teamsById, comps }) {
         )}
       </div>
 
-      {st && (
+      {(st || scoring.length > 0) && (
         <div className="sec">
           <div className="sec-h"><h2>{bn ? "এই মৌসুমে" : "This season"}</h2><span className="muted" style={{ fontSize: 12 }}>{bn ? "সাইটের ৬ প্রতিযোগিতায়" : "In the 6 competitions"}</span></div>
-          <div className="card stat-grid">
-            {[[bn ? "ম্যাচ" : "Matches", st.matches], [bn ? "গোল" : "Goals", st.goals], [bn ? "অ্যাসিস্ট" : "Assists", st.assists],
-              [bn ? "মিনিট" : "Minutes", st.minutes], [bn ? "শুরু থেকে" : "Starts", st.starts], [bn ? "পেনাল্টি গোল" : "Penalty goals", st.penalties],
-              [bn ? "হলুদ কার্ড" : "Yellow cards", st.yellow], [bn ? "লাল কার্ড" : "Red cards", st.red]].map(([l, v]) => (
-              <div key={l}><b>{num(v ?? 0, lang)}</b><span>{l}</span></div>
-            ))}
+          <div className="card stat-grid" style={{ gridTemplateColumns: `repeat(${tiles.length}, 1fr)` }}>
+            {tiles.map(([l, v]) => <div key={l}><b>{num(v, lang)}</b><span>{l}</span></div>)}
           </div>
+          {!scoring.length && <p className="muted" style={{ fontSize: 12, marginTop: 6 }}>{bn ? "গোল-অ্যাসিস্ট দেখা যায় শুধু প্রতিটা লিগের শীর্ষ ২০ গোলদাতার।" : "Goals and assists are shown only for each league's top 20 scorers."}</p>}
         </div>
       )}
 
