@@ -252,12 +252,18 @@ async function syncTables(key) {
   return { mode: "tables", ...out };
 }
 
-// শীর্ষ গোলদাতা (প্রতিটা লিগের ২০ জন)
+// গোলদাতা: প্রতিটা লিগে যারা অন্তত ১ গোল করেছে, সবাই (বড় limit না নিলে নিচের দিকে ছোট সংখ্যায় পিছিয়ে পড়ে)
+async function fetchScorers(c, key) {
+  for (const limit of [500, 200, 100, 20]) {
+    try { return await fdGet(`/competitions/${c}/scorers?limit=${limit}`, key); }
+    catch (e) { if (limit === 20 || / 429 /.test(e.message)) throw e; } // সীমা ছাড়ালে ছোট limit-এ আবার চেষ্টা নয়
+  }
+}
 async function syncScorers(key) {
   const out = {};
   await Promise.all(COMPETITIONS.map(async (c) => {
     try {
-      const d = await fdGet(`/competitions/${c}/scorers?limit=20`, key);
+      const d = await fetchScorers(c, key);
       const rows = (d.scorers || []).filter((r) => r.player?.id);
       if (!rows.length) { out[c] = 0; return; }
       const teams = rows.map((r) => r.team).filter((t) => t?.id);
