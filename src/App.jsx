@@ -190,6 +190,25 @@ img { display: block; }
 .foot-links { display: flex; justify-content: center; gap: 16px; flex-wrap: wrap; margin-bottom: 8px; }
 .foot-links a { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; text-decoration: none; font-family: Inter, sans-serif; font-weight: 500; }
 .foot-copy { font-size: 11px; color: var(--muted); opacity: .8; }
+
+/* ── হোমের পরিচিতি অংশ ── */
+.about { padding: 16px; }
+.about p, .dev p { font-size: 14.5px; line-height: 1.7; color: var(--text); opacity: .88; }
+.facts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 14px; }
+.facts div { background: var(--card2); border-radius: 12px; padding: 10px 6px; text-align: center; }
+.facts b { display: block; font-size: 18px; color: var(--green); }
+.facts span { font-size: 12px; color: var(--muted); }
+.step { display: flex; gap: 12px; padding: 13px 14px; border-bottom: 1px solid var(--line); }
+.step:last-of-type { border-bottom: 0; }
+.step-n { flex: none; width: 28px; height: 28px; border-radius: 50%; background: var(--greenDim); color: var(--green); display: grid; place-items: center; font-weight: 700; font-size: 14px; }
+.step b { font-size: 14.5px; }
+.step p { font-size: 13.5px; color: var(--muted); line-height: 1.5; margin-top: 2px; }
+.dev { padding: 16px; }
+.dev-top { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+.dev-links { display: flex; gap: 10px; margin-top: 14px; }
+.dev-links a { width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; background: var(--card2); border: 1px solid var(--line); color: var(--green); }
+.dev-links a.fb { color: #1877f2; }
+.dev-photo { width: 72px; height: 72px; border-radius: 50%; object-fit: cover; border: 2px solid var(--green); flex: none; }
 `;
 if (typeof document !== "undefined" && !document.getElementById("kk-css")) {
   const st = document.createElement("style");
@@ -510,6 +529,13 @@ async function getTeamMatches(teamIds, { upcoming = true, limit = 10 } = {}) {
     ? q.neq("status", "FINISHED").gte("utc_date", new Date(Date.now() - 3 * 3600000).toISOString()).order("utc_date")
     : q.eq("status", "FINISHED").lte("utc_date", now).order("utc_date", { ascending: false });
   return ok(await q.limit(limit));
+}
+
+// কোনো তারিখের পর প্রথম যেদিন ম্যাচ আছে (UTC ISO সময় ফেরত দেয়)
+async function getNextMatchTime(afterISO) {
+  if (DEMO) return demoMatches().find((m) => m.utc_date >= afterISO)?.utc_date || null;
+  const rows = ok(await sb.from("matches").select("utc_date").gte("utc_date", afterISO).order("utc_date").limit(1));
+  return rows[0]?.utc_date || null;
 }
 
 async function getMatchesByIds(ids) {
@@ -956,18 +982,113 @@ function RivalWatch({ rivals, teamsById, onOpen }) {
   );
 }
 
+// ── খেলা কখন? কী / কীভাবে কাজ করে / ডেভেলপার ──
+const DEV_PHOTO = "data:image/jpeg;base64,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";
+const ABOUT = {
+  bn: {
+    whatH: "খেলা কখন? কী",
+    what: "ইউরোপের বড় পাঁচ লিগ আর চ্যাম্পিয়ন্স লিগের সূচি, বাংলাদেশ সময়ে। রাত একটার খেলা, নাকি ভোর চারটার—আলাদা করে হিসাব কষতে হয় না। প্রিয় দল বেছে নিলে তাদের পরের খেলা হোমেই দেখা যায় কাউন্টডাউনসহ, রাইভালদের ফলও থাকে চোখের সামনে।",
+    facts: [["৬", "প্রতিযোগিতা"], ["১১১", "দল"], ["প্রতিদিন", "হালনাগাদ"]],
+    howH: "কীভাবে কাজ করে",
+    steps: [
+      ["রেজিস্ট্রেশন", "ইমেইল আর মোবাইল নম্বর দিয়ে, অথবা Google দিয়ে।"],
+      ["দল বাছাই", "সর্বোচ্চ তিনটা প্রিয় দল, পাঁচটা রাইভাল।"],
+      ["প্রেডিকশন", "কিকঅফের আগ পর্যন্ত যেকোনো ম্যাচের স্কোর অনুমান করো।"],
+      ["পয়েন্ট", "হুবহু স্কোরে ৩, শুধু ফল মিললে ১। জায়গা করে নাও লিডারবোর্ডে।"],
+    ],
+    devH: "এবাউট দ্য ডেভেলপার",
+    devName: "মাহবুব হাসান তন্ময়",
+    devRole: "প্রতিষ্ঠাতা ও ডেভেলপার",
+    dev: "ক্রীড়া সাংবাদিক। খেলা৭১-এ সাব-এডিটর হিসেবে কাজ করেছেন, বাংলা ও ইংরেজিতে লিখেছেন ১,৭০০-র বেশি ক্রীড়া প্রতিবেদন। গোপালগঞ্জ বিজ্ঞান ও প্রযুক্তি বিশ্ববিদ্যালয় থেকে বিবিএ শেষ করে এখন একটি বেসরকারি ব্যাংকে কর্মরত। আগ্রহের জায়গা খেলার ইতিহাস। প্রোগ্রামিংয়ে প্রাতিষ্ঠানিক পড়াশোনা নেই; নিজে শিখে বানিয়েছেন খেলা কখন?।",
+    cta: "শুরু করো",
+  },
+  en: {
+    whatH: "What is Khela Kokhon?",
+    what: "Fixtures for Europe's top five leagues and the Champions League, in Bangladesh time. No more working out whether a match is at 1 AM or 4 AM. Pick your teams and their next match sits on the home page with a countdown, with your rivals' results in view too.",
+    facts: [["6", "competitions"], ["111", "teams"], ["Daily", "updates"]],
+    howH: "How it works",
+    steps: [
+      ["Sign up", "With email and mobile number, or with Google."],
+      ["Pick teams", "Up to three favourites and five rivals."],
+      ["Predict", "Guess the score of any match until kickoff."],
+      ["Score points", "3 for the exact score, 1 for the right result. Climb the leaderboard."],
+    ],
+    devH: "About the Developer",
+    devName: "Mahbub Hasan Tonmoy",
+    devRole: "Founder & developer",
+    dev: "Sports journalist. Former sub-editor at Khela71, with more than 1,700 sports articles in Bangla and English. Holds a BBA from Gopalganj Science and Technology University and now works at a private bank. Has a keen interest in sports history. No formal training in programming; self-taught, he built Khela Kokhon himself.",
+    cta: "Get started",
+  },
+};
+
+function About({ goProfile, user }) {
+  const { lang } = useT();
+  const A = ABOUT[lang === "bn" ? "bn" : "en"];
+  return (
+    <>
+      <div className="sec" style={{ marginTop: 30 }}>
+        <div className="card about">
+          <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 10 }}>
+            <Logo size={40} />
+            <h2 style={{ fontSize: 18 }}>{A.whatH}</h2>
+          </div>
+          <p>{A.what}</p>
+          <div className="facts">
+            {A.facts.map(([v, l]) => (
+              <div key={l}><b>{v}</b><span>{l}</span></div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <div className="sec">
+        <div className="sec-h"><h2>{A.howH}</h2></div>
+        <div className="card">
+          {A.steps.map(([h, d], i) => (
+            <div className="step" key={h}>
+              <span className="step-n">{num(i + 1, lang)}</span>
+              <div><b>{h}</b><p>{d}</p></div>
+            </div>
+          ))}
+          {!user && (
+            <div style={{ padding: "4px 14px 14px" }}>
+              <button className="btn block" onClick={goProfile}>{A.cta}</button>
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div className="sec">
+        <div className="sec-h"><h2>{A.devH}</h2></div>
+        <div className="card dev">
+          <div className="dev-top">
+            <img className="dev-photo" src={DEV_PHOTO} alt={A.devName} width="72" height="72" />
+            <div>
+              <div style={{ fontWeight: 700, fontSize: 16.5 }}>{A.devName}</div>
+              <div className="muted" style={{ fontSize: 13 }}>{A.devRole}</div>
+            </div>
+          </div>
+          <p>{A.dev}</p>
+          <div className="dev-links">
+            <a href="mailto:khelakokhon@gmail.com" aria-label="Email" title="khelakokhon@gmail.com">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="4" width="20" height="16" rx="2" /><polyline points="22,6 12,13 2,6" /></svg>
+            </a>
+            <a href="https://www.facebook.com/mahbub.tonmoy.71/" target="_blank" rel="noopener noreferrer" aria-label="Facebook" title="Facebook" className="fb">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z" /></svg>
+            </a>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+}
+
 function Home({ user, myTeams, teamsById, preds, onOpen, goProfile, goMatches }) {
   const { t, lang } = useT();
   const [mine, setMine] = useState(null);
-  const [today, setToday] = useState(null);
+  const [day, setDay] = useState(dayKey(new Date()));
   const fav = myTeams?.fav || [];
   const rival = myTeams?.rival || [];
-
-  useEffect(() => {
-    let live = true;
-    getMatchesOnDay(dayKey(new Date())).then((r) => live && setToday(r)).catch(() => live && setToday([]));
-    return () => { live = false; };
-  }, []);
 
   useEffect(() => {
     let live = true;
@@ -1023,56 +1144,90 @@ function Home({ user, myTeams, teamsById, preds, onOpen, goProfile, goMatches })
         </div>
       )}
 
-      <div className="sec">
+      <div className="sec" style={{ marginTop: 22 }}>
         <div className="sec-h">
-          <h2>{t("todayBig")} {today?.length ? <span className="muted" style={{ fontWeight: 500 }}>({num(today.length, lang)})</span> : null}</h2>
+          <h2>{lang === "bn" ? "ম্যাচের সূচি" : "Fixtures"}</h2>
           <button className="link" onClick={goMatches}>{t("seeAll")} →</button>
         </div>
-        {today === null ? <div className="card"><div className="spin" /></div>
-          : today.length === 0 ? <div className="card empty">{t("noMatchDay")}</div>
-          : <CompGroups matches={today} preds={preds} onOpen={onOpen} />}
       </div>
+      <DateStrip day={day} setDay={setDay} />
+      <div className="sec" style={{ marginTop: 12 }}>
+        <div className="sec-h"><h2 style={{ fontSize: 14 }} className="muted">{dayLabel(day, lang)}</h2></div>
+        <DayMatches day={day} setDay={setDay} preds={preds} onOpen={onOpen} />
+      </div>
+
+      <About goProfile={goProfile} user={user} />
     </>
   );
 }
 
 // ════════════════ pages/Matches.jsx ════════════════
-function Matches({ comps, preds, onOpen }) {
-  const { t, lang } = useT();
+// ── তারিখের স্ট্রিপ ──
+function DateStrip({ day, setDay }) {
+  const { lang } = useT();
   const today = dayKey(new Date());
-  const [day, setDay] = useState(today);
-  const [comp, setComp] = useState("ALL");
-  const [list, setList] = useState(null);
-  const stripRef = useRef(null);
+  const ref = useRef(null);
   const days = Array.from({ length: 22 }, (_, i) => addDays(today, i - 7));
-
   useEffect(() => {
-    const el = stripRef.current?.querySelector(".day.on");
-    el?.scrollIntoView({ inline: "center", block: "nearest" });
+    const strip = ref.current, el = strip?.querySelector(".day.on");
+    if (strip && el) strip.scrollLeft = el.offsetLeft - strip.clientWidth / 2 + el.clientWidth / 2;
   }, [day]);
+  return (
+    <div className="strip" ref={ref}>
+      {days.map((k) => {
+        const l = stripLabel(k, lang);
+        return (
+          <button key={k} className={"day" + (k === day ? " on" : "")} onClick={() => setDay(k)}>
+            <div className="a">{l.top}</div>
+            <div className="b">{l.bottom}</div>
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+// ── একটা দিনের ম্যাচ; ফাঁকা হলে পরের ম্যাচের দিনে যাওয়ার বাটন ──
+function DayMatches({ day, setDay, comp = "ALL", preds, onOpen }) {
+  const { t, lang } = useT();
+  const [list, setList] = useState(null);
+  const [next, setNext] = useState(null);
 
   useEffect(() => {
     let live = true;
-    setList(null);
-    getMatchesOnDay(day).then((r) => live && setList(r)).catch(() => live && setList([]));
+    setList(null); setNext(null);
+    getMatchesOnDay(day).then((r) => {
+      if (!live) return;
+      setList(r);
+      if (!r.length) getNextMatchTime(dayRangeUTC(day)[1]).then((n) => live && setNext(n)).catch(() => {});
+    }).catch(() => live && setList([]));
     return () => { live = false; };
   }, [day]);
 
   const shown = (list || []).filter((m) => comp === "ALL" || m.competition_code === comp);
+  if (list === null) return <div className="card"><div className="spin" /></div>;
+  if (shown.length) return <CompGroups matches={shown} preds={preds} onOpen={onOpen} />;
+  return (
+    <div className="card empty">
+      {t("noMatchDay")}
+      {next && !list.length && (
+        <div style={{ marginTop: 12 }}>
+          <button className="btn ghost" style={{ height: 38, fontSize: 14 }} onClick={() => setDay(dayKey(next))}>
+            {lang === "bn" ? "পরের খেলা" : "Next matches"}: {dayLabel(dayKey(next), lang)} →
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
 
+function Matches({ comps, preds, onOpen }) {
+  const { t, lang } = useT();
+  const [day, setDay] = useState(dayKey(new Date()));
+  const [comp, setComp] = useState("ALL");
   return (
     <>
-      <div className="strip" ref={stripRef}>
-        {days.map((k) => {
-          const l = stripLabel(k, lang);
-          return (
-            <button key={k} className={"day" + (k === day ? " on" : "")} onClick={() => setDay(k)}>
-              <div className="a">{l.top}</div>
-              <div className="b">{l.bottom}</div>
-            </button>
-          );
-        })}
-      </div>
+      <DateStrip day={day} setDay={setDay} />
       <div className="chips">
         <button className={"chip" + (comp === "ALL" ? " on" : "")} onClick={() => setComp("ALL")}>{t("all")}</button>
         {comps.map((c) => (
@@ -1083,9 +1238,7 @@ function Matches({ comps, preds, onOpen }) {
       </div>
       <div className="sec">
         <div className="sec-h"><h2>{dayLabel(day, lang)}</h2></div>
-        {list === null ? <div className="card"><div className="spin" /></div>
-          : shown.length === 0 ? <div className="card empty">{t("noMatchDay")}</div>
-          : <CompGroups matches={shown} preds={preds} onOpen={onOpen} />}
+        <DayMatches day={day} setDay={setDay} comp={comp} preds={preds} onOpen={onOpen} />
       </div>
     </>
   );
