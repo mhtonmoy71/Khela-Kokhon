@@ -3411,7 +3411,7 @@ export default function App() {
   }, [theme]);
   useEffect(() => { document.documentElement.lang = lang; }, [lang]);
 
-  const toast = useCallback((m) => { setToastMsg(m); setTimeout(() => setToastMsg(""), 2200); }, []);
+  const toast = useCallback((m, ms = 2200) => { setToastMsg(m); setTimeout(() => setToastMsg(""), ms); }, []);
 
   // ── ট্যাব আর ফোনের ব্যাক বাটন ──
   const go = (id) => {
@@ -3477,6 +3477,15 @@ export default function App() {
   }, [user?.id]);
 
   // সাইটে কোথাও "?ask" থাকলে সরাসরি জিজ্ঞেস-বক্স খোলে
+  // লগইন (যেমন Google) ব্যর্থ হলে Supabase ঠিকানায় ?error=… দিয়ে ফেরত পাঠায়: পরিষ্কার করে জানাই
+  useEffect(() => {
+    const q = new URLSearchParams(window.location.search), h = new URLSearchParams(window.location.hash.slice(1));
+    const err = q.get("error_description") || h.get("error_description") || q.get("error") || h.get("error");
+    if (!err) return;
+    console.warn("auth error:", err);
+    window.history.replaceState({}, "", "/profile"); setTab("profile");
+    toast(lang === "bn" ? "লগইন হয়নি। একটু পরে আবার চেষ্টা করো, অথবা ইমেইল দিয়ে লগইন করো।" : "Login failed. Please try again later, or use email.", 6000);
+  }, []);
   useEffect(() => { if (new URLSearchParams(window.location.search).has("ask")) { window.history.replaceState({}, "", "/ask"); setTab("ask"); } }, []);
 
   const onboarding = user && profile && (!profile.onboarded || editing);
