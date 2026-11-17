@@ -1,5 +1,5 @@
 // খেলা কখন? v2 — পুরো অ্যাপ এক ফাইলে
-import { createContext, useContext, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Fragment, createContext, useContext, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createClient } from "@supabase/supabase-js";
 
 // ════════════════ স্টাইল ════════════════
@@ -401,6 +401,23 @@ button.scr { width: 100%; }
 .ask-pl-n small { font-size: 11.5px; }
 .ask-pl-g { font-family: Inter, sans-serif; font-weight: 800; font-size: 17px; color: var(--green); display: flex; flex-direction: column; align-items: center; line-height: 1.1; }
 .ask-pl-g small { font-size: 10px; font-weight: 500; color: var(--muted); font-family: "Hind Siliguri", sans-serif; }
+
+/* ── সার্চ ── */
+.pill-btn.round { width: 32px; padding: 0; border-radius: 50%; }
+.search-ov { position: fixed; inset: 0; z-index: 45; background: var(--bg); display: flex; flex-direction: column; animation: fade .15s; }
+.search-top { display: flex; align-items: center; gap: 10px; padding: 12px 16px; max-width: 760px; width: 100%; margin: 0 auto; }
+.search-box { flex: 1; display: flex; align-items: center; gap: 8px; height: 44px; padding: 0 12px; border-radius: 22px; background: var(--card); color: var(--muted); }
+.search-box input { flex: 1; min-width: 0; border: 0; outline: none; background: none; font-size: 15.5px; color: var(--text); }
+.search-x { font-size: 22px; line-height: 1; color: var(--muted); padding: 0 4px; }
+.search-body { flex: 1; overflow-y: auto; padding: 0 16px 40px; max-width: 760px; width: 100%; margin: 0 auto; }
+.s-row { display: flex; align-items: center; gap: 12px; width: 100%; padding: 11px 14px; text-align: left; }
+.s-row:active, .s-row:hover { background: var(--card2); }
+.s-row b { font-size: 15px; font-weight: 600; }
+.s-ic { width: 30px; height: 30px; border-radius: 50%; background: #fff; display: grid; place-items: center; flex: none; }
+.s-ic:empty::after { content: attr(data-c); font-family: Inter, sans-serif; font-weight: 800; font-size: 9.5px; color: #064e3b; }
+.s-txt { display: flex; flex-direction: column; min-width: 0; }
+.s-txt b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: Inter, "Hind Siliguri", sans-serif; }
+.s-txt small { font-size: 12px; }
 
 /* ── লিগের তালিকা ── */
 .lg-list { display: grid; gap: 10px; }
@@ -1521,6 +1538,7 @@ const BallIcon = I(<><circle cx="12" cy="12" r="9" /><path d="m12 7 4 3-1.5 4.5h
 const TargetIcon = I(<><circle cx="12" cy="12" r="9" /><circle cx="12" cy="12" r="5" /><circle cx="12" cy="12" r="1" /></>);
 const UserIcon = I(<><circle cx="12" cy="8" r="4" /><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6" /></>);
 const ShareIcon = I(<><circle cx="18" cy="5" r="3" /><circle cx="6" cy="12" r="3" /><circle cx="18" cy="19" r="3" /><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4" /></>);
+const SearchIcon = I(<><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" /></>);
 const SunIcon = I(<><circle cx="12" cy="12" r="4" /><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" /></>);
 const MoonIcon = I(<path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z" />);
 
@@ -2615,6 +2633,111 @@ const EXAMPLES = {
   en: ["Real Madrid next match", "Mbappé La Liga goals", "Premier League top scorer", "Barça last result", "Today's matches"],
 };
 
+// ── সার্চ: লিগ, দল, খেলোয়াড় (টাইপ করতে করতে) ──
+const plain = (s) => norm(s).normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+// নামের কোনো শব্দ প্রশ্ন দিয়ে শুরু হয়, বা বাংলা উচ্চারণ প্রায় মেলে → স্কোর (কম = ভালো), না মিললে null
+function nameScore(q, names) {
+  const pq = plain(q);
+  let best = null;
+  for (const n of names.filter(Boolean)) {
+    const pn = plain(n);
+    if (pn === pq) return 0;
+    if (pn.startsWith(pq)) best = Math.min(best ?? 9, 1);
+    else if (pn.split(" ").some((w) => w.startsWith(pq))) best = Math.min(best ?? 9, 2);
+    else if (!isBn(pq) && pq.length >= 3 && pn.includes(pq)) best = Math.min(best ?? 9, 3);
+    else if (isBn(pq) && !isBn(pn) && pq.length >= 3) {
+      // বাংলায় লেখা, নাম ইংরেজিতে: উচ্চারণের শুরুটা মেলাই (এমবা → mbappe, হালান্ড → haaland)
+      const qv = bnSound(pq.replace(/\s+/g, ""));
+      for (const v of new Set([qv, qv.replace(/^[aeiou]/, "")])) {
+        if (v.length < 3) continue;
+        for (const w of pn.split(" ")) {
+          const wv = sound(w);
+          if (wv.length >= 3 && lev(v, wv.slice(0, v.length)) <= (v.length >= 5 ? 1 : 0)) best = Math.min(best ?? 9, 4);
+        }
+      }
+    }
+  }
+  return best;
+}
+
+function SearchSheet({ comps, teams, onClose }) {
+  const { lang } = useT();
+  const bn = lang === "bn";
+  const nav = useNav();
+  const [q, setQ] = useState("");
+  const [scorers, setScorers] = useState([]);
+  useEffect(() => { getAllScorers().then(setScorers).catch(() => {}); }, []);
+  useEffect(() => { document.documentElement.style.overflow = "hidden"; return () => { document.documentElement.style.overflow = ""; }; }, []);
+
+  const query = q.trim();
+  const pick = (list, names, max) => {
+    const out = list.map((x) => [x, nameScore(query, names(x))]).filter(([, sc]) => sc != null).sort((a, b) => a[1] - b[1]).slice(0, max);
+    return Object.assign(out.map(([x]) => x), { top: out.length ? out[0][1] : 99 });
+  };
+  const players = [...new Map(scorers.map((r) => [r.player_id, r])).values()];
+  const res = query.length < 2 ? null : {
+    comps: pick(comps, (c) => [c.name_bn, c.name_en, c.code, ...(COMP_WORDS[c.code] || [])], 6),
+    teams: pick(teams, (t) => [t.name_bn, t.name_en, t.short_en, t.tla, ...(NICK[t.id] || [])], 8),
+    players: pick(players, (r) => [r.player_name, ...Object.entries(PLAYER_NICK).filter(([, part]) => plain(r.player_name).split(" ").includes(part)).map(([n]) => n)], 8),
+  };
+  const empty = res && !res.comps.length && !res.teams.length && !res.players.length;
+
+  return (
+    <div className="search-ov">
+      <div className="search-top">
+        <button className="back" onClick={onClose} aria-label="back">←</button>
+        <div className="search-box">
+          <SearchIcon width={18} height={18} />
+          <input autoFocus value={q} onChange={(e) => setQ(e.target.value)} placeholder={bn ? "লিগ, দল বা খেলোয়াড় খোঁজো" : "Search leagues, teams, players"} enterKeyHint="search" />
+          {q && <button className="search-x" onClick={() => setQ("")} aria-label="clear">×</button>}
+        </div>
+      </div>
+      <div className="search-body">
+        {!res && (
+          <>
+            <div className="lg-h">{bn ? "লিগ" : "Leagues"}</div>
+            <div className="card">{comps.map((c) => (
+              <button key={c.code} className="s-row" onClick={() => nav.openLeague(c.code)}><span className="s-ic" data-c={c.code}><CompIcon c={c} size={22} /></span><b>{compName(c, lang)}</b></button>
+            ))}</div>
+          </>
+        )}
+        {empty && <div className="card empty">{bn ? "কিছু পাওয়া যায়নি। অন্য বানানে বা ইংরেজিতে লিখে দেখো।" : "Nothing found. Try another spelling."}</div>}
+        {res && [["comps", res.comps.top], ["teams", res.teams.top], ["players", res.players.top]].filter(([k]) => res[k].length).sort((x, y) => x[1] - y[1]).map(([k]) => (
+          <Fragment key={k}>{k === "comps" ? (<>
+
+          <div className="lg-h">{bn ? "লিগ" : "Leagues"}</div>
+          <div className="card">{res.comps.map((c) => (
+            <button key={c.code} className="s-row" onClick={() => nav.openLeague(c.code)}><span className="s-ic" data-c={c.code}><CompIcon c={c} size={22} /></span><b>{compName(c, lang)}</b></button>
+          ))}</div>
+        
+          </>) : k === "teams" ? (<>
+
+          <div className="lg-h">{bn ? "দল" : "Teams"}</div>
+          <div className="card">{res.teams.map((t) => (
+            <button key={t.id} className="s-row" onClick={() => nav.openTeam(t.id)}>
+              <Crest team={t} size={28} />
+              <span className="s-txt"><b>{teamName(t, lang)}</b>{t.league && <small className="muted">{compLabel(t.league, lang)}</small>}</span>
+            </button>
+          ))}</div>
+        
+          </>) : (<>
+
+          <div className="lg-h">{bn ? "খেলোয়াড়" : "Players"}</div>
+          <div className="card">{res.players.map((r) => (
+            <button key={r.player_id} className="s-row" onClick={() => nav.openPlayer(r.player_id)}>
+              <Crest team={r.team} size={28} />
+              <span className="s-txt"><b>{r.player_name}</b><small className="muted">{r.team ? teamName(r.team, lang) : ""}</small></span>
+            </button>
+          ))}</div>
+          <p className="muted" style={{ fontSize: 11.5, margin: "6px 2px 0" }}>{bn ? "খেলোয়াড় খোঁজা যায় প্রতিটা লিগের শীর্ষ গোলদাতাদের মধ্যে।" : "Players: each league's top scorers."}</p>
+        
+          </>)}</Fragment>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 // ── জিজ্ঞেস করো: আলাদা পাতা (/ask) ──
 function AskPage({ teams, preds, onOpen, chat, setChat }) {
   const { lang } = useT();
@@ -3174,7 +3297,7 @@ export default function App() {
     setTab(id); setView(null); setEditing(false); window.scrollTo(0, 0);
   };
   useEffect(() => {
-    const onPop = () => { setSheet(null); setView(viewFromPath()); if (!viewFromPath()) setTab(tabFromPath()); window.scrollTo(0, 0); };
+    const onPop = () => { setSheet(null); setSearching(false); setView(viewFromPath()); if (!viewFromPath()) setTab(tabFromPath()); window.scrollTo(0, 0); };
     window.addEventListener("popstate", onPop);
     return () => window.removeEventListener("popstate", onPop);
   }, []);
@@ -3182,7 +3305,7 @@ export default function App() {
   const openView = (path, v) => {
     if (window.history.state?.sheet) window.history.replaceState({}, "", path);
     else window.history.pushState({}, "", path);
-    setSheet(null); setEditing(false); setView(v); window.scrollTo(0, 0);
+    setSheet(null); setSearching(false); setEditing(false); setView(v); window.scrollTo(0, 0);
   };
   const nav = {
     openLeague: (code) => openView(`/league/${code}`, { kind: "league", code }),
@@ -3191,6 +3314,9 @@ export default function App() {
   };
 
   const openMatch = (m) => { window.history.pushState({ sheet: 1 }, ""); setSheet(m); };
+  const [searching, setSearching] = useState(false);
+  const openSearch = () => { window.history.pushState({ sheet: 1 }, ""); setSearching(true); };
+  const closeSearch = () => { if (window.history.state?.sheet) window.history.back(); else setSearching(false); };
   const closeMatch = () => { if (window.history.state?.sheet) window.history.back(); else setSheet(null); };
 
   // ── সাধারণ ডেটা ──
@@ -3263,6 +3389,7 @@ export default function App() {
           </div>
           {!onboarding && <DeskNav tab={view ? null : tab} go={go} />}
           <div className="sp" />
+          <button className="pill-btn round" onClick={openSearch} aria-label={lang === "bn" ? "খোঁজো" : "Search"}><SearchIcon width={17} height={17} /></button>
           <button className="pill-btn" onClick={() => setLang(lang === "bn" ? "en" : "bn")}>{lang === "bn" ? "EN" : "বাং"}</button>
           <button className="pill-btn" onClick={() => setTheme(theme === "dark" ? "light" : "dark")} aria-label="theme">
             {theme === "dark" ? <SunIcon width={16} height={16} /> : <MoonIcon width={16} height={16} />}
@@ -3303,6 +3430,7 @@ export default function App() {
       </div>
 
       {!onboarding && <Nav tab={tab} go={go} />}
+      {searching && <SearchSheet comps={comps} teams={Object.values(teamsById)} onClose={closeSearch} />}
       {sheet && (
         <MatchSheet
           key={sheet.id}
