@@ -349,6 +349,57 @@ img { display: block; }
 .ask-fab { height: 40px; padding: 0 14px 0 12px; font-size: 13.5px; border-radius: 20px; }
 .foot { margin-top: 28px; }
 .league-tile img { object-fit: contain; padding: 10px; }
+
+/* ══════ ডেস্কটপ (১০২৪px বা তার বেশি চওড়া স্ক্রিন) ══════ */
+.dnav { display: none; }
+.home-grid, .home-main, .home-side { display: contents; }
+@media (min-width: 1024px) {
+  .app { max-width: 1200px; padding: 0 24px 40px; }
+  .top { padding: 14px 0; gap: 18px; }
+  .nav { display: none; }
+  .dnav { display: flex; gap: 4px; margin-left: 18px; }
+  .dnav button { display: inline-flex; align-items: center; gap: 7px; height: 38px; padding: 0 14px; border-radius: 19px; font-size: 14.5px; font-weight: 600; color: var(--muted); }
+  .dnav button svg { width: 18px; height: 18px; }
+  .dnav button:hover { color: var(--text); background: var(--card); }
+  .dnav button.on { color: var(--green); background: var(--greenDim); }
+
+  .sec { margin-left: 0; margin-right: 0; }
+  .strip, .chips { padding-left: 0; padding-right: 0; }
+  .strip { scrollbar-width: thin; padding-bottom: 8px; }
+  .strip::-webkit-scrollbar { display: block; height: 6px; }
+  .strip::-webkit-scrollbar-thumb { background: var(--line); border-radius: 3px; }
+  .day, .chip, .row, .comp-h, .league-tile, .fl-row, .tbl, .slim { transition: background .12s, border-color .12s; }
+  .day:hover, .chip:hover { border-color: color-mix(in srgb, var(--green) 50%, transparent); }
+  .row:hover, .comp-h:hover, .fl-row:hover { background: var(--card2); }
+  .league-strip { margin: 0; padding: 0; flex-wrap: wrap; }
+
+  /* হোম: বাঁয়ে সূচি, ডানে নিজের দল আর লিগ */
+  .home-grid { display: grid; grid-template-columns: minmax(0, 1fr) 360px; grid-template-areas: "main side"; gap: 32px; align-items: start; }
+  .home-main { display: block; grid-area: main; min-width: 0; }
+  .home-side { display: block; grid-area: side; position: sticky; top: 76px; }
+  .home-side .league-strip { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px 8px; }
+  .home-side .league-tile { width: auto; }
+
+  /* ম্যাচ পাতা: লিগগুলো দুই কলামে */
+  .v-matches .groups { columns: 2; column-gap: 16px; }
+  .v-matches .groups > .card { display: inline-block; width: 100%; break-inside: avoid; }
+
+  /* লিগ, দল, প্রেডিকশন, প্রোফাইল: মাঝখানে পড়ার মতো চওড়া */
+  .main.narrow { max-width: 820px; margin: 0 auto; }
+  .page-head, .team-hero { padding-left: 0; padding-right: 0; }
+
+  /* পরিচিতি তিন কলামে */
+  .about-wrap { display: grid; grid-template-columns: 1fr 1.4fr 1fr; gap: 32px; margin-top: 44px; }
+  .about-blk p.clamp { -webkit-line-clamp: 4; }
+
+  /* ম্যাচের বিস্তারিত আর জিজ্ঞেস-বক্স: নিচ থেকে নয়, মাঝখানে পপআপ */
+  .veil { align-items: center; padding: 24px; }
+  .sheet { max-width: 560px; max-height: 88vh; border-radius: 22px; padding-bottom: 20px; box-shadow: var(--shadow); animation: fade .15s; }
+  .sheet .grab { display: none; }
+  .sheet.ask { height: 78vh; }
+  .ask-fab { right: 28px; bottom: 28px; }
+  .toast { bottom: 32px; }
+}
 `;
 if (typeof document !== "undefined" && !document.getElementById("kk-css")) {
   const st = document.createElement("style");
@@ -1133,12 +1184,16 @@ function CompGroups({ matches, preds = {}, onOpen }) {
     groups[idx[k]].list.push(m);
   }
   groups.sort((a, b) => (a.c?.sort ?? 99) - (b.c?.sort ?? 99));
-  return groups.map((g) => (
-    <div className="card" style={{ marginBottom: 10 }} key={g.c?.code || "x"}>
-      <button className="comp-h" onClick={() => g.c && nav.openLeague(g.c.code)}><CompIcon c={g.c} />{compName(g.c, lang)}<span className="comp-go">›</span></button>
-      {g.list.map((m) => <MatchRow key={m.id} m={m} pred={preds[m.id]} onOpen={onOpen} />)}
+  return (
+    <div className="groups">
+      {groups.map((g) => (
+        <div className="card" style={{ marginBottom: 10 }} key={g.c?.code || "x"}>
+          <button className="comp-h" onClick={() => g.c && nav.openLeague(g.c.code)}><CompIcon c={g.c} />{compName(g.c, lang)}<span className="comp-go">›</span></button>
+          {g.list.map((m) => <MatchRow key={m.id} m={m} pred={preds[m.id]} onOpen={onOpen} />)}
+        </div>
+      ))}
     </div>
-  ));
+  );
 }
 
 // ── প্রতি মিনিটে রেন্ডার (কাউন্টডাউনের জন্য) ──
@@ -1520,6 +1575,8 @@ function Home({ user, myTeams, teamsById, comps = [], preds, onOpen, goProfile, 
   const hero = mine?.[0];
   return (
     <>
+      <div className="home-grid">
+      <div className="home-side">
       {fav.length === 0 ? (
         <div className="sec">
           <button className="slim" onClick={goProfile}>
@@ -1567,7 +1624,9 @@ function Home({ user, myTeams, teamsById, comps = [], preds, onOpen, goProfile, 
           <LeagueStrip comps={comps} />
         </div>
       )}
+      </div>
 
+      <div className="home-main">
       <div className="sec" style={{ marginTop: 22 }}>
         <div className="sec-h">
           <h2>{lang === "bn" ? "ম্যাচের সূচি" : "Fixtures"}</h2>
@@ -1578,6 +1637,8 @@ function Home({ user, myTeams, teamsById, comps = [], preds, onOpen, goProfile, 
       <div className="sec" style={{ marginTop: 12 }}>
         <div className="sec-h"><h2 style={{ fontSize: 14 }} className="muted">{dayLabel(day, lang)}</h2></div>
         <DayMatches day={day} setDay={setDay} preds={preds} onOpen={onOpen} />
+      </div>
+      </div>
       </div>
 
       <About goProfile={goProfile} user={user} />
@@ -2715,6 +2776,20 @@ const viewFromPath = () => {
 const stored = (k, d) => { try { return localStorage.getItem(k) || d; } catch { return d; } };
 const store = (k, v) => { try { localStorage.setItem(k, v); } catch { /* ignore */ } };
 
+// ডেস্কটপে হেডারের ভেতরে একই ট্যাবগুলো
+function DeskNav({ tab, go }) {
+  const { t } = useT();
+  return (
+    <nav className="dnav">
+      {TABS.map(({ id, Icon }) => (
+        <button key={id} className={tab === id ? "on" : ""} onClick={() => go(id)}>
+          <Icon />{t(id)}
+        </button>
+      ))}
+    </nav>
+  );
+}
+
 function Nav({ tab, go }) {
   const { t } = useT();
   return (
@@ -2850,6 +2925,7 @@ export default function App() {
               {showClock && <ClockText />}
             </button>
           </div>
+          {!onboarding && <DeskNav tab={view ? null : tab} go={go} />}
           <div className="sp" />
           <button className="pill-btn" onClick={() => setLang(lang === "bn" ? "en" : "bn")}>{lang === "bn" ? "EN" : "বাং"}</button>
           <button className="pill-btn" onClick={() => setTheme(theme === "dark" ? "light" : "dark")} aria-label="theme">
@@ -2858,6 +2934,7 @@ export default function App() {
         </header>
         {DEMO && <div className="demo-bar">{lang === "bn" ? "ডেমো মোড — নমুনা ডেটা দেখানো হচ্ছে" : "Demo mode — sample data"}</div>}
 
+        <main className={"main v-" + (onboarding ? "onboarding" : view?.kind || tab) + (!onboarding && !view && (tab === "home" || tab === "matches") ? " wide" : " narrow")}>
         {onboarding ? (
           <Onboarding
             key={editing ? "edit" : "first"}
@@ -2880,6 +2957,7 @@ export default function App() {
         ) : (
           <Profile user={user} profile={profile} myTeams={myTeams} teamsById={teamsById} lang={lang} setLang={setLang} theme={theme} setTheme={setTheme} onEditTeams={() => { setEditing(true); window.scrollTo(0, 0); }} />
         )}
+        </main>
 
         <Footer />
       </div>
