@@ -905,7 +905,7 @@ const DEMO_COMPETITIONS = [
   { code: "PD", name_en: "La Liga", name_bn: "লা লিগা", emblem: "https://crests.football-data.org/PD.png", sort: 3 },
   { code: "BL1", name_en: "Bundesliga", name_bn: "বুন্দেসলিগা", emblem: "https://crests.football-data.org/BL1.png", sort: 4 },
   { code: "SA", name_en: "Serie A", name_bn: "সিরি আ", emblem: "https://crests.football-data.org/SA.png", sort: 5 },
-  { code: "FL1", name_en: "Ligue 1", name_bn: "লিগ আঁ", emblem: "https://crests.football-data.org/FL1.png", sort: 6 },
+  { code: "FL1", name_en: "Ligue 1", name_bn: "লিগ ওয়ান", emblem: "https://crests.football-data.org/FL1.png", sort: 6 },
 ];
 
 const DEMO_TEAMS = [
@@ -1429,7 +1429,244 @@ const TEAM_SHORT = {
   498: ["Sporting", "স্পোর্টিং"], 1899: ["AEK", "এইকে"],
 };
 const teamShort = (team, lang) => (team && TEAM_SHORT[team.id] ? TEAM_SHORT[team.id][lang === "bn" ? 1 : 0] : teamName(team, lang));
-const compName = (c, lang) => (c ? (lang === "bn" ? c.name_bn : c.name_en) : "");
+// বাংলায় লিগ আঁ নয়, লিগ ওয়ান (ডেটাবেসের নাম যা-ই থাকুক)
+const COMP_BN_FIX = { FL1: "লিগ ওয়ান" };
+const compName = (c, lang) => (c ? (lang === "bn" ? COMP_BN_FIX[c.code] || c.name_bn : c.name_en) : "");
+
+// খেলোয়াড়ের বাংলা নাম (পত্রিকার বানান): গোলদাতা তালিকার উপরের দিক আর পরিচিত তারকারা; বাকিরা ইংরেজিতে
+const PLAYER_BN = {
+  "Achraf Hakimi": "আশরাফ হাকিমি",
+  "Ademola Lookman": "আদেমোলা লুকমান",
+  "Adil Bourabaa": "আদিল বুরাবা",
+  "Adrien Rabiot": "আদ্রিয়েঁ রাবিও",
+  "Adrien Thomasson": "আদ্রিয়েঁ তোমাসোঁ",
+  "Adrián": "আদ্রিয়ান",
+  "Alejandro Grimaldo": "আলেহান্দ্রো গ্রিমালদো",
+  "Aleksey Batrakov": "আলেক্সেই বাত্রাকভ",
+  "Alessandro Bastoni": "আলেসান্দ্রো বাস্তোনি",
+  "Alexander Isak": "আলেক্সান্ডার ইসাক",
+  "Alexander Sørloth": "আলেক্সান্ডার সরলথ",
+  "Alexis Mac Allister": "আলেক্সিস ম্যাক অ্যালিস্টার",
+  "Alisson Becker": "আলিসন বেকার",
+  "Alphadjo Cisse": "আলফাদজো সিসে",
+  "Alphonso Davies": "আলফোনসো ডেভিস",
+  "Amine Gouiri": "আমিন গুইরি",
+  "Amine Harit": "আমিন হারিত",
+  "Anastasios Douvikas": "আনাস্তাসিওস দুভিকাস",
+  "Ansu Fati": "আনসু ফাতি",
+  "Ante Budimir": "আন্তে বুদিমির",
+  "Anthony Caci": "অ্যান্থনি কাসি",
+  "Anthony Gordon": "অ্যান্থনি গর্ডন",
+  "Antoine Semenyo": "আঁতোয়ান সেমেনিও",
+  "Antonio Nusa": "আন্তোনিও নুসা",
+  "Antonio Raimondo": "আন্তোনিও রাইমোন্দো",
+  "Antonio Rüdiger": "আন্তোনিও রুডিগার",
+  "Arda Guler": "আরদা গুলের",
+  "Ayoze Pérez": "আয়োসে পেরেস",
+  "Benjamin Šeško": "বেঞ্জামিন শেসকো",
+  "Bernardo Silva": "বের্নার্দো সিলভা",
+  "Boulaye Dia": "বুলায়ে দিয়া",
+  "Bradley Barcola": "ব্র্যাডলি বারকোলা",
+  "Brugui": "ব্রুগি",
+  "Bruno Fernandes": "ব্রুনো ফার্নান্দেস",
+  "Bruno Guimarães": "ব্রুনো গিমারেস",
+  "Bryan Mbeumo": "ব্রায়ান এমবেউমো",
+  "Bukayo Saka": "বুকায়ো সাকা",
+  "Cameron Archer": "ক্যামেরন আর্চার",
+  "Casper Tengstedt": "কাসপার টেংস্টেড",
+  "Charalampos Kostoulas": "খারালাম্পোস কোস্তুলাস",
+  "Che Adams": "চে অ্যাডামস",
+  "Christian Pulisic": "ক্রিস্টিয়ান পুলিসিক",
+  "Christopher Nkunku": "ক্রিস্টোফার এনকুনকু",
+  "Cody Gakpo": "কোডি গাকপো",
+  "Cole Palmer": "কোল পামার",
+  "Dani Olmo": "দানি ওলমো",
+  "Daniel Maldini": "দানিয়েল মালদিনি",
+  "Daniel Namaso": "ড্যানিয়েল নামাসো",
+  "Davide Frattesi": "দাভিদে ফ্রাত্তেসি",
+  "Dayot Upamecano": "দায়ো উপামেকানো",
+  "Dean Huijsen": "ডিন হুইসেন",
+  "Declan Rice": "ডেকলান রাইস",
+  "Desire Doue": "দেজিরে দুয়ে",
+  "Diego Moreira": "দিয়েগো মোরেইরা",
+  "Dominic Calvert-Lewin": "ডমিনিক কালভার্ট-লুইন",
+  "Dominik Szoboszlai": "দমিনিক সোবোসলাই",
+  "Donyell Malen": "ডনিয়েল মালেন",
+  "Eberechi Eze": "এবেরেচি এজে",
+  "Ederson": "এদেরসন",
+  "Eduardo Camavinga": "এদুয়ার্দো কামাভিঙ্গা",
+  "Emiliano Martínez": "এমিলিয়ানো মার্তিনেজ",
+  "Enzo Fernández": "এনজো ফার্নান্দেজ",
+  "Enzo Le Fée": "এনজো লে ফে",
+  "Erling Haaland": "আর্লিং হালান্ড",
+  "Ermedin Demirovic": "এরমেদিন দেমিরোভিচ",
+  "Ernest Nuamah": "আর্নেস্ট নুয়ামাহ",
+  "Esteban Lepaul": "এস্তেবান লেপোল",
+  "Evanilson": "এভানিলসন",
+  "Fabián Ruiz": "ফাবিয়ান রুইজ",
+  "Federico Chiesa": "ফেদেরিকো কিয়েসা",
+  "Federico Dimarco": "ফেদেরিকো দিমার্কো",
+  "Federico Valverde": "ফেদেরিকো ভালভের্দে",
+  "Felix Kalu Nmecha": "ফেলিক্স এনমেচা",
+  "Fer Niño": "ফের নিনিও",
+  "Fermín López": "ফেরমিন লোপেজ",
+  "Ferrán Torres": "ফেরান তোরেস",
+  "Florian Thauvin": "ফ্লোরিয়াঁ তোভাঁ",
+  "Florian Wirtz": "ফ্লোরিয়ান ভির্টজ",
+  "Folarin Balogun": "ফোলারিন বালোগুন",
+  "Franco Mastantuono": "ফ্রাঙ্কো মাস্তান্তুয়োনো",
+  "Frenkie de Jong": "ফ্রেংকি ডি ইয়ং",
+  "Fábio Silva": "ফাবিও সিলভা",
+  "Gabriel Magalhães": "গাব্রিয়েল মাগালিয়েস",
+  "Gessime Yassine": "জেসিম ইয়াসিন",
+  "Giacomo Calò": "জাকোমো কালো",
+  "Gianluigi Donnarumma": "জানলুইজি দোন্নারুম্মা",
+  "Giorgi Kvernadze": "গিওর্গি কভেরনাদজে",
+  "Giuliano Simeone": "জুলিয়ানো সিমিওনে",
+  "Gustav Isaksen": "গুস্তাভ ইসাকসেন",
+  "Gustavo Varela": "গুস্তাভো ভারেলা",
+  "Hakan Çalhanoğlu": "হাকান চালহানোগলু",
+  "Harry Kane": "হ্যারি কেইন",
+  "Hugo Ekitike": "উগো একিতিকে",
+  "Ibrahim Maza": "ইব্রাহিম মাজা",
+  "Igor Matanovic": "ইগর মাতানোভিচ",
+  "Iñaki Williams": "ইনিয়াকি উইলিয়ামস",
+  "Jack Hinshelwood": "জ্যাক হিনশেলউড",
+  "Jamal Musiala": "জামাল মুসিয়ালা",
+  "Jan Oblak": "ইয়ান অবলাক",
+  "Jean-Philippe Mateta": "জঁ-ফিলিপ মাতেতা",
+  "Jeremie Frimpong": "জেরেমি ফ্রিমপং",
+  "Joan García": "জোয়ান গার্সিয়া",
+  "Jonathan Burkardt": "ইয়োনাথান বুরকার্ট",
+  "Jonathan Clauss": "জোনাথন ক্লস",
+  "Jonathan David": "জোনাথন ডেভিড",
+  "Jonathan Tah": "ইয়োনাথান টাহ",
+  "Joseph Scally": "জোসেফ স্ক্যালি",
+  "Josh Maja": "জশ মাজা",
+  "Joshua Kimmich": "ইয়োশুয়া কিমিখ",
+  "João Pedro": "জোয়াও পেদ্রো",
+  "Joško Gvardiol": "ইওশকো গাভার্দিওল",
+  "Jude Bellingham": "জুড বেলিংহাম",
+  "Julián Álvarez": "হুলিয়ান আলভারেজ",
+  "Kai Havertz": "কাই হাভার্টজ",
+  "Kamory Doumbia": "কামোরি দুম্বিয়া",
+  "Kenan Yıldız": "কেনান ইলদিজ",
+  "Kevin De Bruyne": "কেভিন ডি ব্রুইনা",
+  "Kevin Schade": "কেভিন শাডে",
+  "Khvicha Kvaratskhelia": "খভিচা কাভারাতস্কেলিয়া",
+  "Kiernan Dewsbury Hall": "কিয়ারনান ডিউসবারি-হল",
+  "Kylian Mbappé": "কিলিয়ান এমবাপ্পে",
+  "Lamine Yamal": "লামিন ইয়ামাল",
+  "Lassine Sinayoko": "লাসিন সিনায়োকো",
+  "Lautaro Martínez": "লাউতারো মার্তিনেজ",
+  "Leny Yoro": "লেনি ইয়োরো",
+  "Leroy Sané": "লেরয় সানে",
+  "Liam Delap": "লিয়াম ডেলাপ",
+  "Louis Mafouta": "লুই মাফুতা",
+  "Lucas Boyé": "লুকাস বোয়ে",
+  "Ludovic Ajorque": "লুদোভিক আজর্ক",
+  "Luis Díaz": "লুইস দিয়াজ",
+  "Luis Suárez": "লুইস সুয়ারেজ",
+  "Luka Modrić": "লুকা মদরিচ",
+  "Luka Sučić": "লুকা সুচিচ",
+  "Manuel Neuer": "মানুয়েল নয়ার",
+  "Marcus Rashford": "মার্কাস র‍্যাশফোর্ড",
+  "Marcus Tavernier": "মার্কাস টাভার্নিয়ার",
+  "Marcus Thuram-Ulien": "মার্কাস থুরাম",
+  "Mariano Díaz": "মারিয়ানো দিয়াজ",
+  "Marquinhos": "মারকিনিওস",
+  "Martin Satriano": "মার্তিন সাত্রিয়ানো",
+  "Martin Ødegaard": "মার্টিন ওডেগার্ড",
+  "Martín Zubimendi": "মার্তিন সুবিমেন্দি",
+  "Mason Greenwood": "ম্যাসন গ্রিনউড",
+  "Mateo Pellegrino": "মাতেও পেলেগ্রিনো",
+  "Matheus Cunha": "মাথেউস কুনিয়া",
+  "Mathys Tel": "মাথিস তেল",
+  "Matias Soule": "মাতিয়াস সুলে",
+  "Maurice Krattenmacher": "মরিস ক্রাটেনমাখার",
+  "Michael Gregoritsch": "মাইকেল গ্রেগরিচ",
+  "Michael Olise": "মাইকেল ওলিসে",
+  "Mika Biereth": "মিকা বিয়েরেথ",
+  "Mike Maignan": "মাইক মেনিয়াঁ",
+  "Mikel Oyarzabal": "মিকেল ওইয়ারসাবাল",
+  "Milos Kerkez": "মিলোস কেরকেজ",
+  "Milutin Osmajić": "মিলুতিন ওসমাইচ",
+  "Miro Muheim": "মিরো মুহেইম",
+  "Mohamed Belloumi": "মোহাম্মদ বেলুমি",
+  "Moise Kean": "মোইসে কিন",
+  "Moisés Caicedo": "মোইসেস কাইসেদো",
+  "Morgan Rogers": "মরগান রজার্স",
+  "Nick Woltemade": "নিক ভোল্টেমাডে",
+  "Niclas Füllkrug": "নিকলাস ফুলক্রুগ",
+  "Nico Paz": "নিকো পাজ",
+  "Nico Williams": "নিকো উইলিয়ামস",
+  "Nicolas Jackson": "নিকোলাস জ্যাকসন",
+  "Nicolo Tresoldi": "নিকোলো ত্রেসোলদি",
+  "Nicolò Barella": "নিকোলো বারেল্লা",
+  "Nikola Krstović": "নিকোলা ক্রস্তোভিচ",
+  "Noni Madueke": "নোনি মাদুয়েকে",
+  "Nuno Mendes": "নুনো মেন্দেস",
+  "Olivier Giroud": "অলিভিয়ের জিরু",
+  "Omar Marmoush": "ওমর মারমুশ",
+  "Orri Oskarsson": "অরি অস্কারসন",
+  "Ousmane Dembélé": "উসমান দেম্বেলে",
+  "Pablo Gavira": "গাভি",
+  "Paris Brunner": "প্যারিস ব্রুনার",
+  "Pascal Groß": "পাসকাল গ্রস",
+  "Patrik Schick": "পাত্রিক শিক",
+  "Paulo Dybala": "পাওলো দিবালা",
+  "Pedri": "পেদ্রি",
+  "Pedro Neto": "পেদ্রো নেতো",
+  "Phil Foden": "ফিল ফোডেন",
+  "Phillip Tietz": "ফিলিপ টিয়েৎস",
+  "Pierre-Emerick Aubameyang": "পিয়েরে-এমেরিক অবামেয়াং",
+  "Rafael Leão": "রাফায়েল লিয়াও",
+  "Raphinha": "রাফিনিয়া",
+  "Rasmus Højlund": "রাসমুস হয়লুন্ড",
+  "Rayan Cherki": "রায়ান শেরকি",
+  "Reece James": "রিস জেমস",
+  "Roberto Fernández": "রবের্তো ফার্নান্দেজ",
+  "Rodri": "রদ্রি",
+  "Rodrigo Mora": "রদ্রিগো মোরা",
+  "Rodrygo": "রদ্রিগো",
+  "Romelu Lukaku": "রোমেলু লুকাকু",
+  "Romulo Cruz": "রোমুলো ক্রুজ",
+  "Ryan Gravenberch": "রায়ান গ্রাভেনবার্খ",
+  "Rúben Dias": "রুবেন দিয়াস",
+  "Sandro Tonali": "সান্দ্রো তোনালি",
+  "Santiago Giménez": "সান্তিয়াগো হিমেনেজ",
+  "Scott McTominay": "স্কট ম্যাকটমিনে",
+  "Sebastian Szymański": "সেবাস্তিয়ান শিমানস্কি",
+  "Sehrou Guirassy": "সেরু গিরাসি",
+  "Sepe Elye Wahi": "এলি ওয়াহি",
+  "Serge Gnabry": "সার্জ জিনাব্রি",
+  "Sergio Camello": "সার্জিও কামেলো",
+  "Teun Koopmeiners": "টিউন কুপমেইনার্স",
+  "Thibaut Courtois": "থিবো কোর্তোয়া",
+  "Thierno Barry": "থিয়ের্নো বারি",
+  "Thomas Jørgensen": "টমাস ইয়র্গেনসেন",
+  "Tidiam Gomis": "তিদিয়াম গোমিস",
+  "Tijjani Noslin": "তিজানি নসলিন",
+  "Trent Alexander-Arnold": "ট্রেন্ট আলেক্সান্ডার-আরনল্ড",
+  "Victor Osimhen": "ভিক্টর ওসিমেন",
+  "Viktor Gyökeres": "ভিক্টর গিয়োকেরেস",
+  "Vinicius Junior": "ভিনিসিয়ুস জুনিয়র",
+  "Virgil van Dijk": "ভার্জিল ফন ডাইক",
+  "Vitinha": "ভিতিনিয়া",
+  "William Saliba": "উইলিয়াম সালিবা",
+  "Xavi Simons": "চাভি সিমন্স",
+  "Yann Sommer": "ইয়ান সোমার",
+  "Yasin Ayari": "ইয়াসিন আয়ারি",
+  "Yassir Zabiri": "ইয়াসির জাবিরি",
+  "Yoane Wissa": "ইয়োয়ান উইসা",
+  "Younes Ebnoutalib": "ইউনেস এবনুতালিব",
+  "Yuito Suzuki": "ইউইতো সুজুকি",
+  "Álex Baena": "আলেক্স বায়েনা",
+  "Álex Berenguer": "আলেক্স বেরেঙ্গের",
+  "Álvaro García": "আলভারো গার্সিয়া",
+  "Éder Militão": "এদের মিলিতাও"
+};
+const playerName = (name, lang) => (lang === "bn" && PLAYER_BN[name]) || name;
 
 // ── লোগো: চলমান ঘড়ি, ভেতরে "খ" আর "?" (v1-এর লোগো) — বাংলাদেশ সময়ে চলে ──
 function Logo({ size = 30, onClick }) {
@@ -2671,7 +2908,7 @@ const poss = (name, lang) => (lang !== "bn" ? `${name}'s`
   : name + "ের");
 
 // ════════ খেলোয়াড়ের প্রশ্ন ════════
-const COMP_LABEL = { CL: ["চ্যাম্পিয়ন্স লিগ", "Champions League"], PL: ["প্রিমিয়ার লিগ", "Premier League"], PD: ["লা লিগা", "La Liga"], BL1: ["বুন্দেসলিগা", "Bundesliga"], SA: ["সিরি আ", "Serie A"], FL1: ["লিগ আঁ", "Ligue 1"] };
+const COMP_LABEL = { CL: ["চ্যাম্পিয়ন্স লিগ", "Champions League"], PL: ["প্রিমিয়ার লিগ", "Premier League"], PD: ["লা লিগা", "La Liga"], BL1: ["বুন্দেসলিগা", "Bundesliga"], SA: ["সিরি আ", "Serie A"], FL1: ["লিগ ওয়ান", "Ligue 1"] };
 const compLabel = (code, lang) => (COMP_LABEL[code] || [code, code])[lang === "bn" ? 0 : 1];
 // একটা দল/খেলোয়াড় যে প্রতিযোগিতাগুলোয় আছে, নাম ধরে: "লা লিগা ও চ্যাম্পিয়ন্স লিগ" (লিগ আগে, ইউসিএল পরে)
 const compList = (codes, lang) => {
@@ -2724,6 +2961,14 @@ const ASK_STOP_EXTRA = ["লিগ", "টেবিল", "পয়েন্ট",
 const ASK_STOP = ["গোল", "গোলদাতা", "করেছে", "করছে", "কয়টা", "কয়টি", "কত", "কতটা", "কবে", "কখন", "লাস্ট", "শেষ", "পরের", "খেলা", "এই", "মৌসুমে", "সিজনে",
   "অ্যাসিস্ট", "এসিস্ট", "সর্বোচ্চ", "টপ", "স্কোরার", "কে", "কোন", "কেন", "কিনা", "দলে", "বনাম", "আজ", "কাল", "আগামীকাল", "কার", "বেশি", "সবচেয়ে", "মোট", "লিগে", "লিগায়", "পেনাল্টি", "ম্যাচ", "খেলেছে", "দিয়েছে"];
 
+// প্রশ্নে নামটা আছে কিনা, পরে শুধু বিভক্তি থাকতে পারে (কিন ≠ কিনা, এমবাপ্পে = এমবাপ্পের)
+const BN_SUFFIX = ["", "র", "ের", "এর", "য়ের", "কে", "ও", "রা", "দের", "য়"];
+const bnNameIn = (q, name) => {
+  const i = q.indexOf(name);
+  if (i < 0 || (i > 0 && q[i - 1] !== " ")) return false;
+  const rest = q.slice(i + name.length).split(" ")[0];
+  return BN_SUFFIX.includes(rest);
+};
 function findPlayer(q, scorers, teams) {
   if (!scorers.length) return null;
   const teamWords = new Set(teams.flatMap((t) => [...teamAliases(t), ...(NICK[t.id] || [])].filter(Boolean).flatMap((x) => norm(x).split(" "))));
@@ -2746,6 +2991,14 @@ function findPlayer(q, scorers, teams) {
       const r = people.find((x) => norm(x.player_name).normalize("NFD").replace(/[\u0300-\u036f]/g, "").split(" ").includes(part));
       if (r) return r;
     }
+  // ৩ক) পত্রিকার বাংলা নাম হুবহু (পুরো নাম বা নামের শেষ অংশ, বিভক্তিসহ: এমবাপ্পের, কোর্তোয়ার)
+  for (const r of people) {
+    const bnName = PLAYER_BN[r.player_name];
+    if (!bnName) continue;
+    const parts = norm(bnName).split(" ");
+    const key = parts.length > 1 ? parts.slice(1).join(" ") : parts[0];
+    if (bnNameIn(q, norm(bnName)) || (key.length >= 3 && bnNameIn(q, key))) return r;
+  }
   // ৩) বাংলা শব্দ → কঙ্কাল মিলিয়ে
   const stopSet = new Set([...ASK_STOP, ...ASK_STOP_EXTRA, ...Object.values(COMP_WORDS).flat().flatMap((x) => norm(x).split(" ")), ...Object.values(W).flat(), ...WEEKDAYS.flat()].map(norm));
   const stopWord = (w) => stopSet.has(w) || [...stopSet].some((sw) => isBn(sw) && sw.length >= 3 && w.startsWith(sw) && w.length - sw.length <= 3);
@@ -2815,7 +3068,7 @@ async function answerPlayer(q, teams, lang) {
       return { text: bn ? "এই খেলোয়াড়কে খুঁজে পাইনি। ছয় লিগের খেলোয়াড়দের নাম দিয়ে জিজ্ঞেস করো; নামটা অন্যভাবে লিখে দেখো, যেমন ইংরেজিতে।" : "Couldn't find that player. Ask about players in the six competitions, or try the name another way, e.g. in English.", matches: [] };
     return null;
   }
-  const name = r.player_name;
+  const name = playerName(r.player_name, lang);
   const rows = scorers.filter((x) => x.player_id === r.player_id).sort((a, b) => b.goals - a.goals);
   const posName = r.position ? (bn ? POS_BN[r.position] || r.position : r.position) : null;
   const club = r.team ? teamName(r.team, lang) + (!rows.length && posName ? `, ${posName}` : "") : null;
@@ -3024,7 +3277,7 @@ function SearchSheet({ comps, teams, onClose }) {
     }
     const nickFor = {};
     for (const [n, part] of Object.entries(PLAYER_NICK)) (nickFor[part] ||= []).push(n);
-    return [...map.values()].map((r) => ({ ...r, names: [r.player_name, ...plain(r.player_name).split(" ").flatMap((w) => nickFor[w] || [])] }));
+    return [...map.values()].map((r) => ({ ...r, names: [r.player_name, PLAYER_BN[r.player_name], ...plain(r.player_name).split(" ").flatMap((w) => nickFor[w] || [])].filter(Boolean) }));
   }, [scorers, squadPlayers, teams]);
   useEffect(() => { document.documentElement.style.overflow = "hidden"; return () => { document.documentElement.style.overflow = ""; }; }, []);
 
@@ -3093,7 +3346,7 @@ function SearchSheet({ comps, teams, onClose }) {
           <div className="card">{res.players.map((r) => (
             <button key={r.player_id} className="s-row" onClick={() => nav.openPlayer(r.player_id)}>
               <Avatar url={photoMemo[r.player_id]} name={r.player_name} team={r.team} size={36} />
-              <span className="s-txt"><b>{r.player_name}</b><small className="muted">{[r.team ? teamName(r.team, lang) : "", r.position ? (bn ? POS_BN[r.position] || r.position : r.position) : ""].filter(Boolean).join(" · ")}</small></span>
+              <span className="s-txt"><b>{playerName(r.player_name, lang)}</b><small className="muted">{[r.team ? teamName(r.team, lang) : "", r.position ? (bn ? POS_BN[r.position] || r.position : r.position) : ""].filter(Boolean).join(" · ")}</small></span>
             </button>
           ))}</div>
         
@@ -3159,7 +3412,7 @@ function AskPage({ teams, preds, onOpen, chat, setChat }) {
                   {m.players.map((x) => (
                     <button key={x.player_id + x.code} className="ask-pl" onClick={() => nav.openPlayer(x.player_id)}>
                       <Crest team={x.team} size={26} />
-                      <span className="ask-pl-n"><b>{x.player_name}</b><small className="muted">{x.code ? compLabel(x.code, lang) : x.team ? teamName(x.team, lang) : ""}</small></span>
+                      <span className="ask-pl-n"><b>{playerName(x.player_name, lang)}</b><small className="muted">{x.code ? compLabel(x.code, lang) : x.team ? teamName(x.team, lang) : ""}</small></span>
                       <span className="ask-pl-g">{x.goals == null ? "—" : num(x.goals, lang)}<small>{lang === "bn" ? "গোল" : "goals"}</small></span>
                     </button>
                   ))}
@@ -3295,7 +3548,7 @@ function League({ code, comps, preds, onOpen }) {
                 <div className="scr" key={s.player_id}>
                   <span className="pos">{num(i + 1, lang)}</span>
                   <span className="pl">
-                    <button className="pl-name" onClick={() => nav.openPlayer(s.player_id)}><b>{s.player_name}</b></button>
+                    <button className="pl-name" onClick={() => nav.openPlayer(s.player_id)}><b>{playerName(s.player_name, lang)}</b></button>
                     <button className="pl-team" onClick={() => s.team_id && nav.openTeam(s.team_id)}><Crest team={s.team} size={14} />{teamName(s.team, lang)}</button>
                   </span>
                   <span className="muted">{num(s.assists ?? 0, lang)}</span>
@@ -3346,7 +3599,7 @@ function Squad({ info, lang, photos = {} }) {
             {list.map((p) => (
               <button className="sq" key={p.id} onClick={() => nav.openPlayer(p.id)}>
                 <span className="sq-av"><Avatar url={photos[p.id]} name={p.name} /></span>
-                <b>{p.name}</b>
+                <b>{playerName(p.name, lang)}</b>
                 <span className="muted">{[p.position, p.nationality].filter(Boolean).join(" · ")}</span>
                 <span className="sq-age">{age(p.dateOfBirth) != null ? `${num(age(p.dateOfBirth), lang)} ${bn ? "বছর" : "y"}` : ""}<i className="sq-go">›</i></span>
               </button>
@@ -3440,7 +3693,8 @@ function Player({ id, teamsById, comps }) {
       {back}
       <div className="team-hero">
         <PlayerPhoto p={p} lang={lang} />
-        <h1>{p.name}</h1>
+        <h1>{playerName(p.name, lang)}</h1>
+        {lang === "bn" && PLAYER_BN[p.name] && <div className="muted" style={{ fontSize: 13 }}>{p.name}</div>}
         {team && (
           <button className="chip" onClick={() => nav.openTeam(team.id)}><Crest team={team} size={18} />{teamName(team, lang) || team.shortName || team.name}</button>
         )}
