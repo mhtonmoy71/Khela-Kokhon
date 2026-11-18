@@ -3355,7 +3355,7 @@ async function answerPlayer(q, teams, lang) {
   }
   const name = playerName(r.player_name, lang);
   const rows = scorers.filter((x) => x.player_id === r.player_id).sort((a, b) => b.goals - a.goals);
-  const posName = r.position ? (bn ? POS_BN[r.position] || r.position : r.position) : null;
+  const posName = posLabel(r.position, lang);
   const club = r.team ? teamName(r.team, lang) + (!rows.length && posName ? `, ${posName}` : "") : null;
   // খেলোয়াড়ের দল কোন কোন প্রতিযোগিতায় খেলে (ঘরোয়া লিগ + চ্যাম্পিয়ন্স লিগে থাকলে)
   const clubComps = async () => {
@@ -3643,7 +3643,7 @@ function SearchSheet({ comps, teams, onClose }) {
           <div className="card">{res.players.map((r) => (
             <button key={r.player_id} className="s-row" onClick={() => go({ k: "p", id: r.player_id, name: r.player_name, team: r.team_id }, () => nav.openPlayer(r.player_id))}>
               <Avatar url={photoMemo[r.player_id]} name={r.player_name} team={r.team} size={36} />
-              <span className="s-txt"><b>{playerName(r.player_name, lang)}</b><small className="muted">{[r.team ? teamName(r.team, lang) : "", r.position ? (bn ? POS_BN[r.position] || r.position : r.position) : ""].filter(Boolean).join(" · ")}</small></span>
+              <span className="s-txt"><b>{playerName(r.player_name, lang)}</b><small className="muted">{[r.team ? teamName(r.team, lang) : "", posLabel(r.position, lang) || ""].filter(Boolean).join(" · ")}</small></span>
             </button>
           ))}</div>
         
@@ -3932,6 +3932,9 @@ function PlayerPhoto({ p, lang }) {
     </div>
   );
 }
+// football-data-র Offence/Defence/Midfield পরিচিত নামে
+const POS_EN = { Offence: "Forward", Defence: "Defender", Midfield: "Midfielder" };
+const posLabel = (pos, lang) => (pos ? (lang === "bn" ? POS_BN[pos] : POS_EN[pos]) || pos : null);
 const POS_BN = {
   Goalkeeper: "গোলরক্ষক", Defence: "ডিফেন্ডার", Midfield: "মিডফিল্ডার", Offence: "ফরোয়ার্ড",
   "Centre-Back": "সেন্টার-ব্যাক", "Left-Back": "লেফট-ব্যাক", "Right-Back": "রাইট-ব্যাক",
@@ -3977,7 +3980,7 @@ function Player({ id, teamsById, comps }) {
   const born = p.dateOfBirth && (() => { const [y, m, d] = p.dateOfBirth.split("-").map(Number); return bn ? `${num(d, "bn")} ${BN_MONTHS[m - 1]} ${num(y, "bn")}` : `${d} ${EN_MONTHS[m - 1]} ${y}`; })();
   const contract = team?.contractUntil && (() => { const [y, m] = team.contractUntil.split("-").map(Number); return bn ? `${BN_MONTHS[(m || 6) - 1]} ${num(y, "bn")}` : `${EN_MONTHS[(m || 6) - 1]} ${y}`; })();
   const info = [
-    [bn ? "পজিশন" : "Position", bn ? POS_BN[p.position] || p.position : p.position],
+    [bn ? "পজিশন" : "Position", posLabel(p.position, lang)],
     [bn ? "বয়স" : "Age", a != null ? `${num(a, lang)} ${bn ? "বছর" : ""}`.trim() : null],
     [bn ? "জন্ম" : "Born", born],
     [bn ? "দেশ" : "Nationality", p.nationality],
