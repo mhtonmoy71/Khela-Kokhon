@@ -22,7 +22,7 @@ create table if not exists quiz_rooms (
   id           uuid primary key default gen_random_uuid(),
   code         text unique not null,
   host         uuid not null references auth.users on delete cascade,
-  status       text not null default 'lobby' check (status in ('lobby', 'running', 'finished')),
+  status       text not null default 'lobby' check (status in ('lobby', 'running', 'finished', 'closed')),
   question_ids int[] not null,
   q_seconds    int not null default 30,
   gap_seconds  int not null default 4,
@@ -81,6 +81,7 @@ begin
   if auth.uid() is null then raise exception 'login required'; end if;
   select * into r from quiz_rooms where code = upper(p_code);
   if not found then raise exception 'room not found'; end if;
+  if r.status = 'closed' then raise exception 'room closed'; end if;
   if exists (select 1 from quiz_players where room_id = r.id and user_id = auth.uid()) then return; end if;
   if r.status <> 'lobby' then raise exception 'already started'; end if;
   select display_name into nm from profiles where id = auth.uid();
@@ -130,6 +131,11 @@ declare r quiz_rooms; n int; per int; el double precision := 0; idx int; phase t
 begin
   select * into r from quiz_rooms where code = upper(p_code);
   if not found then raise exception 'room not found'; end if;
+  -- বন্ধ ঘর: কোনো প্রশ্ন বা ফল নয়; "আবার খেলুন" হয়ে থাকলে নতুন কোড
+  if r.status = 'closed' then
+    return jsonb_build_object('code', r.code, 'status', 'closed', 'is_host', r.host = auth.uid(), 'next_code', r.next_code,
+      'member', exists (select 1 from quiz_players p where p.room_id = r.id and p.user_id = auth.uid()), 'players', '[]'::jsonb);
+  end if;
   n := coalesce(array_length(r.question_ids, 1), 0);
   per := r.q_seconds + r.gap_seconds;
   if r.status = 'running' then
@@ -194,10 +200,19 @@ begin
   select id into nr from quiz_rooms where code = c;
   insert into quiz_players (room_id, user_id, display_name)
     select nr, user_id, display_name from quiz_players where room_id = old.id on conflict do nothing;
-  update quiz_rooms set next_code = c where id = old.id;
+  update quiz_rooms set next_code = c, status = 'closed' where id = old.id;
   return c;
 end $$;
 
+-- ── হোস্ট খেলা শেষ করলে ঘর বন্ধ, লিংকও অচল ──
+create or replace function quiz_close(p_code text)
+returns void language plpgsql security definer set search_path = public as $$
+begin
+  update quiz_rooms set status = 'closed' where code = upper(p_code) and host = auth.uid();
+  if not found then raise exception 'only host'; end if;
+end $$;
+
+grant execute on function quiz_close(text)            to authenticated;
 grant execute on function quiz_create(int)            to authenticated;
 grant execute on function quiz_join(text)             to authenticated;
 grant execute on function quiz_start(text)            to authenticated;
