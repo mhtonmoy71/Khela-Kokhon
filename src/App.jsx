@@ -470,6 +470,8 @@ button.scr { width: 100%; }
 .search-box input { flex: 1; min-width: 0; border: 0; outline: none; background: none; font-size: 15.5px; color: var(--text); }
 .search-x { font-size: 22px; line-height: 1; color: var(--muted); padding: 0 4px; }
 .search-body { flex: 1; overflow-y: auto; padding: 0 16px 40px; max-width: 760px; width: 100%; margin: 0 auto; }
+.s-recent-h { display: flex; justify-content: space-between; align-items: center; }
+.s-recent-h button { font-size: 12.5px; font-weight: 600; color: var(--green); }
 .s-row { display: flex; align-items: center; gap: 12px; width: 100%; padding: 11px 14px; text-align: left; }
 .s-row:active, .s-row:hover { background: var(--card2); }
 .s-row b { font-size: 15px; font-weight: 600; }
@@ -3540,11 +3542,20 @@ function nameScore(q, names) {
   return best;
 }
 
+// সাম্প্রতিক খোঁজ: এই ফোনেই জমা থাকে
+const loadRecent = () => { try { const a = JSON.parse(localStorage.getItem("kk_recent") || "[]"); return Array.isArray(a) ? a : []; } catch { return []; } };
+const saveRecent = (a) => { try { localStorage.setItem("kk_recent", JSON.stringify(a)); } catch { /* ignore */ } };
 function SearchSheet({ comps, teams, onClose }) {
   const { lang } = useT();
   const bn = lang === "bn";
   const nav = useNav();
   const [q, setQ] = useState("");
+  const [recent, setRecent] = useState(loadRecent);
+  // ফলে চাপলে সাম্প্রতিক তালিকার শুরুতে (একই জিনিস দুবার নয়, সর্বোচ্চ ৬টা)
+  const go = (item, open) => {
+    const next = [item, ...recent.filter((x) => !(x.k === item.k && x.id === item.id))].slice(0, 6);
+    saveRecent(next); open();
+  };
   const [scorers, setScorers] = useState([]);
   const [squadPlayers, setSquadPlayers] = useState([]);
   useEffect(() => { getAllScorers().then(setScorers).catch(() => {}); getAllPlayers().then(setSquadPlayers).catch(() => {}); }, []);
@@ -3596,12 +3607,15 @@ function SearchSheet({ comps, teams, onClose }) {
         </div>
       </div>
       <div className="search-body">
-        {!res && (
+        {!res && recent.length > 0 && (
           <>
-            <div className="lg-h">{bn ? "লিগ" : "Leagues"}</div>
-            <div className="card">{comps.map((c) => (
-              <button key={c.code} className="s-row" onClick={() => nav.openLeague(c.code)}><span className="s-ic" data-c={c.code}><CompIcon c={c} size={22} /></span><b>{compName(c, lang)}</b></button>
-            ))}</div>
+            <div className="lg-h s-recent-h">{bn ? "সাম্প্রতিক খোঁজ" : "Recent"}<button onClick={() => { setRecent([]); saveRecent([]); }}>{bn ? "মুছে ফেলো" : "Clear"}</button></div>
+            <div className="card">{recent.map((x) => {
+              if (x.k === "c") { const c = comps.find((y) => y.code === x.id); return c && <button key={"c" + x.id} className="s-row" onClick={() => go(x, () => nav.openLeague(c.code))}><span className="s-ic" data-c={c.code}><CompIcon c={c} size={22} /></span><b>{compName(c, lang)}</b></button>; }
+              if (x.k === "t") { const t = teams.find((y) => y.id === x.id); return t && <button key={"t" + x.id} className="s-row" onClick={() => go(x, () => nav.openTeam(t.id))}><Crest team={t} size={28} /><span className="s-txt"><b>{teamName(t, lang)}</b>{t.league && <small className="muted">{compLabel(t.league, lang)}</small>}</span></button>; }
+              const t = teams.find((y) => y.id === x.team);
+              return <button key={"p" + x.id} className="s-row" onClick={() => go(x, () => nav.openPlayer(x.id))}><Avatar url={photoMemo[x.id]} name={x.name} team={t} size={36} /><span className="s-txt"><b>{playerName(x.name, lang)}</b><small className="muted">{t ? teamName(t, lang) : ""}</small></span></button>;
+            })}</div>
           </>
         )}
         {empty && <div className="card empty">{bn ? "কিছু পাওয়া যায়নি। অন্য বানানে বা ইংরেজিতে লিখে দেখো।" : "Nothing found. Try another spelling."}</div>}
@@ -3610,14 +3624,14 @@ function SearchSheet({ comps, teams, onClose }) {
 
           <div className="lg-h">{bn ? "লিগ" : "Leagues"}</div>
           <div className="card">{res.comps.map((c) => (
-            <button key={c.code} className="s-row" onClick={() => nav.openLeague(c.code)}><span className="s-ic" data-c={c.code}><CompIcon c={c} size={22} /></span><b>{compName(c, lang)}</b></button>
+            <button key={c.code} className="s-row" onClick={() => go({ k: "c", id: c.code }, () => nav.openLeague(c.code))}><span className="s-ic" data-c={c.code}><CompIcon c={c} size={22} /></span><b>{compName(c, lang)}</b></button>
           ))}</div>
         
           </>) : k === "teams" ? (<>
 
           <div className="lg-h">{bn ? "দল" : "Teams"}</div>
           <div className="card">{res.teams.map((t) => (
-            <button key={t.id} className="s-row" onClick={() => nav.openTeam(t.id)}>
+            <button key={t.id} className="s-row" onClick={() => go({ k: "t", id: t.id }, () => nav.openTeam(t.id))}>
               <Crest team={t} size={28} />
               <span className="s-txt"><b>{teamName(t, lang)}</b>{t.league && <small className="muted">{compLabel(t.league, lang)}</small>}</span>
             </button>
@@ -3627,7 +3641,7 @@ function SearchSheet({ comps, teams, onClose }) {
 
           <div className="lg-h">{bn ? "খেলোয়াড়" : "Players"}</div>
           <div className="card">{res.players.map((r) => (
-            <button key={r.player_id} className="s-row" onClick={() => nav.openPlayer(r.player_id)}>
+            <button key={r.player_id} className="s-row" onClick={() => go({ k: "p", id: r.player_id, name: r.player_name, team: r.team_id }, () => nav.openPlayer(r.player_id))}>
               <Avatar url={photoMemo[r.player_id]} name={r.player_name} team={r.team} size={36} />
               <span className="s-txt"><b>{playerName(r.player_name, lang)}</b><small className="muted">{[r.team ? teamName(r.team, lang) : "", r.position ? (bn ? POS_BN[r.position] || r.position : r.position) : ""].filter(Boolean).join(" · ")}</small></span>
             </button>
