@@ -6,6 +6,7 @@ import { createHash } from "node:crypto";
 //    ?type=crest&u=<লিংক>    → দলের লোগো নিজের ঠিকানা দিয়ে (শেয়ার-কার্ডের ছবির জন্য)
 //    ?type=player&id=44      → খেলোয়াড়ের পরিচয় আর এই মৌসুমের হিসাব (২ দিন জমা থাকে)
 //    ?type=photos&team=86    → স্কোয়াডের সবার ছোট ছবি; ?type=photos&ids=1,2 → নির্দিষ্ট খেলোয়াড়দের
+//    ?type=players           → ছয় লিগের সব খেলোয়াড়ের তালিকা (সার্চের জন্য, সপ্তাহে একবার নতুন)
 //  একই জিনিস বারবার চাইলে football-data-এ আর যায় না, তাই ফ্রি সীমার মধ্যে থাকে।
 // ═══════════════════════════════════════════════════════════════
 const FD = "https://api.football-data.org/v4";
@@ -177,6 +178,37 @@ async function fetchPlayer(id, club) {
   };
 }
 
+// ── ছয় লিগের সব খেলোয়াড় (সার্চের জন্য) ──
+// football-data-র /competitions/{code}/teams একবারেই লিগের সব দল আর পুরো স্কোয়াড দেয়: মোট ৬টা অনুরোধ।
+// তালিকা সপ্তাহে একবার নতুন করে বানানো হয় (কেউ সার্চ খুললে); সঙ্গে প্রতিটা দলের স্কোয়াডও জমা হয় (team:<id>)।
+const ALL_COMPS = ["PL", "PD", "BL1", "SA", "FL1", "CL"];
+async function allPlayers(req, res) {
+  const [c] = await sb(`api_cache?key=eq.players%3Aall&select=data,updated_at`);
+  const send = (data, fresh) => {
+    res.setHeader("Cache-Control", fresh ? "public, s-maxage=21600, stale-while-revalidate=604800" : "public, s-maxage=300");
+    return res.status(200).json({ ok: true, data });
+  };
+  if (c && Date.now() - new Date(c.updated_at).getTime() < 7 * DAY) return send(c.data, true);
+
+  const h = { headers: { "X-Auth-Token": process.env.FD_KEY } };
+  const results = await Promise.all(ALL_COMPS.map((code) => fetch(`${FD}/competitions/${code}/teams`, h).then((r) => (r.ok ? r.json() : null)).catch(() => null)));
+  const teams = new Map();
+  for (const d of results) for (const t of d?.teams || []) if ((t.squad || []).length && !teams.has(t.id)) teams.set(t.id, t);
+  if (!teams.size) return c ? send(c.data, false) : res.status(503).json({ ok: false, error: "source unavailable" });
+
+  const now = new Date().toISOString();
+  const rows = [...teams.values()].map((t) => ({ key: `team:${t.id}`, data: trimTeam(t), updated_at: now }));
+  for (let i = 0; i < rows.length; i += 40)
+    await sb("api_cache?on_conflict=key", { method: "POST", body: rows.slice(i, i + 40), prefer: "resolution=merge-duplicates,return=minimal" }).catch(() => {});
+
+  // [id, নাম, দলের id, পজিশন]; কোনো লিগ আনা না গেলে আগের তালিকা থেকে সেই দলগুলোর খেলোয়াড় রাখা
+  const seen = new Set(), data = [];
+  for (const t of teams.values()) for (const p of t.squad) if (!seen.has(p.id)) { seen.add(p.id); data.push([p.id, p.name, t.id, p.position || null]); }
+  if (results.some((r) => !r) && Array.isArray(c?.data)) for (const x of c.data) if (!seen.has(x[0]) && !teams.has(x[2])) { seen.add(x[0]); data.push(x); }
+  await sb("api_cache?on_conflict=key", { method: "POST", body: { key: "players:all", data, updated_at: now }, prefer: "resolution=merge-duplicates,return=minimal" }).catch(() => {});
+  return send(data, !results.some((r) => !r));
+}
+
 async function crest(req, res) {
   let url;
   try { url = new URL(String(req.query.u || "")); } catch { return res.status(400).send("bad url"); }
@@ -193,6 +225,7 @@ async function crest(req, res) {
 export default async function handler(req, res) {
   const q = req.query || {};
   if (q.type === "crest") return crest(req, res);
+  if (q.type === "players") return allPlayers(req, res).catch((e) => res.status(500).json({ ok: false, error: String(e.message || e).slice(0, 120) }));
   if (q.type === "photos") return photos(req, res).catch((e) => res.status(500).json({ ok: false, error: String(e.message || e).slice(0, 120) }));
 
   let cacheKey, fdPath, maxAge, trim, check;

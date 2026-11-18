@@ -1080,6 +1080,21 @@ function getAllScorers() {
   return allScorersP;
 }
 
+// ছয় লিগের সব খেলোয়াড়: [id, নাম, দলের id, পজিশন] — ব্রাউজারে এক দিন জমা থাকে
+let allPlayersP = null;
+function getAllPlayers() {
+  if (DEMO) return Promise.resolve(DEMO_TEAMS.flatMap((t, k) => [[9000 + k * 2, `Squad Player ${k * 2}`, t.id, "Defence"], [9001 + k * 2, `Squad Player ${k * 2 + 1}`, t.id, "Midfield"]]));
+  if (!allPlayersP) {
+    try {
+      const j = JSON.parse(localStorage.getItem("kk_players") || "null");
+      if (j && Date.now() - j.t < 86400000 && Array.isArray(j.data)) allPlayersP = Promise.resolve(j.data);
+    } catch { /* ignore */ }
+    allPlayersP ||= extra({ type: "players" }).then((data) => { try { localStorage.setItem("kk_players", JSON.stringify({ t: Date.now(), data })); } catch { /* ignore */ } return data; })
+      .catch((e) => { allPlayersP = null; throw e; });
+  }
+  return allPlayersP;
+}
+
 async function getCompUpcoming(code, limit = 6) {
   const from = new Date(Date.now() - 3 * 3600000).toISOString();
   if (DEMO) return demoMatches().filter((m) => m.competition_code === code && m.status !== "FINISHED" && m.utc_date >= from).slice(0, limit);
@@ -2920,7 +2935,14 @@ const EXAMPLES = {
 };
 
 // ── সার্চ: লিগ, দল, খেলোয়াড় (টাইপ করতে করতে) ──
-const plain = (s) => norm(s).normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+const plainMemo = new Map();
+const plain = (s) => {
+  let v = plainMemo.get(s);
+  if (v === undefined) { v = norm(s).normalize("NFD").replace(/[\u0300-\u036f]/g, ""); if (plainMemo.size < 50000) plainMemo.set(s, v); }
+  return v;
+};
+const soundMemo = new Map();
+const soundOf = (w) => { let v = soundMemo.get(w); if (v === undefined) { v = sound(w); if (soundMemo.size < 50000) soundMemo.set(w, v); } return v; };
 // নামের কোনো শব্দ প্রশ্ন দিয়ে শুরু হয়, বা বাংলা উচ্চারণ প্রায় মেলে → স্কোর (কম = ভালো), না মিললে null
 function nameScore(q, names) {
   const pq = plain(q);
@@ -2937,7 +2959,7 @@ function nameScore(q, names) {
       for (const v of new Set([qv, qv.replace(/^[aeiou]/, "")])) {
         if (v.length < 3) continue;
         for (const w of pn.split(" ")) {
-          const wv = sound(w);
+          const wv = soundOf(w);
           if (wv.length >= 3 && lev(v, wv.slice(0, v.length)) <= (v.length >= 5 ? 1 : 0)) best = Math.min(best ?? 9, 4);
         }
       }
@@ -2952,7 +2974,22 @@ function SearchSheet({ comps, teams, onClose }) {
   const nav = useNav();
   const [q, setQ] = useState("");
   const [scorers, setScorers] = useState([]);
-  useEffect(() => { getAllScorers().then(setScorers).catch(() => {}); }, []);
+  const [squadPlayers, setSquadPlayers] = useState([]);
+  useEffect(() => { getAllScorers().then(setScorers).catch(() => {}); getAllPlayers().then(setSquadPlayers).catch(() => {}); }, []);
+  // গোলদাতা + ছয় লিগের সব স্কোয়াড, একজন একবার; প্রতিজনের খোঁজার নাম আগে থেকে বানানো
+  const people = useMemo(() => {
+    const byTeam = Object.fromEntries(teams.map((t) => [t.id, t]));
+    const map = new Map();
+    for (const r of scorers) if (!map.has(r.player_id)) map.set(r.player_id, { ...r, team: r.team || byTeam[r.team_id] });
+    for (const [id, name, teamId, pos] of squadPlayers) {
+      const old = map.get(id);
+      if (old) { old.position ||= pos; continue; }
+      map.set(id, { player_id: id, player_name: name, team_id: teamId, team: byTeam[teamId], position: pos });
+    }
+    const nickFor = {};
+    for (const [n, part] of Object.entries(PLAYER_NICK)) (nickFor[part] ||= []).push(n);
+    return [...map.values()].map((r) => ({ ...r, names: [r.player_name, ...plain(r.player_name).split(" ").flatMap((w) => nickFor[w] || [])] }));
+  }, [scorers, squadPlayers, teams]);
   useEffect(() => { document.documentElement.style.overflow = "hidden"; return () => { document.documentElement.style.overflow = ""; }; }, []);
 
   const query = q.trim();
@@ -2960,11 +2997,11 @@ function SearchSheet({ comps, teams, onClose }) {
     const out = list.map((x) => [x, nameScore(query, names(x))]).filter(([, sc]) => sc != null).sort((a, b) => a[1] - b[1]).slice(0, max);
     return Object.assign(out.map(([x]) => x), { top: out.length ? out[0][1] : 99 });
   };
-  const players = [...new Map(scorers.map((r) => [r.player_id, r])).values()];
+  const players = people;
   const res = query.length < 2 ? null : {
     comps: pick(comps, (c) => [c.name_bn, c.name_en, c.code, ...(COMP_WORDS[c.code] || [])], 6),
     teams: pick(teams, (t) => [...teamAliases(t), t.tla, ...(NICK[t.id] || [])], 8),
-    players: pick(players, (r) => [r.player_name, ...Object.entries(PLAYER_NICK).filter(([, part]) => plain(r.player_name).split(" ").includes(part)).map(([n]) => n)], 8),
+    players: pick(players, (r) => r.names, 8),
   };
   const empty = res && !res.comps.length && !res.teams.length && !res.players.length;
   // খেলোয়াড়ের ছবি: টাইপ থামলে একবারে আনা
@@ -2982,7 +3019,7 @@ function SearchSheet({ comps, teams, onClose }) {
         <button className="back" onClick={onClose} aria-label="back">←</button>
         <div className="search-box">
           <SearchIcon width={18} height={18} />
-          <input autoFocus value={q} onChange={(e) => setQ(e.target.value)} placeholder={bn ? "লিগ, দল বা খেলোয়াড় খোঁজো" : "Search leagues, teams, players"} enterKeyHint="search" />
+          <input autoFocus value={q} onChange={(e) => setQ(e.target.value)} placeholder={bn ? "লিগ, দল বা যেকোনো খেলোয়াড় খোঁজো" : "Search leagues, teams, any player"} enterKeyHint="search" />
           {q && <button className="search-x" onClick={() => setQ("")} aria-label="clear">×</button>}
         </div>
       </div>
@@ -3020,10 +3057,9 @@ function SearchSheet({ comps, teams, onClose }) {
           <div className="card">{res.players.map((r) => (
             <button key={r.player_id} className="s-row" onClick={() => nav.openPlayer(r.player_id)}>
               <Avatar url={photoMemo[r.player_id]} name={r.player_name} team={r.team} size={36} />
-              <span className="s-txt"><b>{r.player_name}</b><small className="muted">{r.team ? teamName(r.team, lang) : ""}</small></span>
+              <span className="s-txt"><b>{r.player_name}</b><small className="muted">{[r.team ? teamName(r.team, lang) : "", r.position ? (bn ? POS_BN[r.position] || r.position : r.position) : ""].filter(Boolean).join(" · ")}</small></span>
             </button>
           ))}</div>
-          <p className="muted" style={{ fontSize: 11.5, margin: "6px 2px 0" }}>{bn ? "খেলোয়াড় খোঁজা যায় এই মৌসুমে গোল করা খেলোয়াড়দের মধ্যে।" : "Players: those who have scored this season."}</p>
         
           </>)}</Fragment>
         ))}
