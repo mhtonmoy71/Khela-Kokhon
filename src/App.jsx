@@ -199,8 +199,8 @@ img { display: block; }
 .foot-cols a, .foot-cols button { display: block; text-align: left; padding: 6px 0; font-size: 14.5px; color: #c4d3cd; text-decoration: none; overflow-wrap: anywhere; }
 .foot-cols a:hover, .foot-cols button:hover { color: #00e676; }
 .foot-bottom { border-top: 1px solid rgba(255,255,255,.08); padding-top: 16px; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 6px; font-size: 12px; color: #8ea39b; font-family: Inter, "Hind Siliguri", sans-serif; }
-.foot-bottom a { color: #c4d3cd; font-weight: 600; text-decoration: none; border-bottom: 1px solid rgba(196,211,205,.35); }
-.foot-bottom a:hover { color: #00e676; border-color: #00e676; }
+.foot-bottom a { color: #c4d3cd; font-weight: 600; text-decoration: none; }
+.foot-bottom a:hover { color: #00e676; }
 /* ফুটারের আলাদা পাতা */
 .info h1 { font-size: 24px; margin: 6px 0 12px; }
 .info h2 { font-size: 16px; margin: 22px 0 8px; }
