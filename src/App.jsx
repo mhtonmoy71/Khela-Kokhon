@@ -451,7 +451,16 @@ img { display: block; }
 .ms-date { font-size: 13px; color: var(--muted); margin-top: 4px; }
 .ms-cd { text-align: center; font-size: 12.5px; color: var(--muted); padding-bottom: 4px; }
 .ms-row { width: 100%; display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; font-size: 14.5px; font-weight: 600; text-align: left; }
-.pick .pred-box { padding: 14px 8px 12px; }
+.pick .pred-box { padding: 14px 8px 4px; }
+.lb-filter { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; margin: 0 -16px 12px; padding: 2px 16px; }
+.lb-filter::-webkit-scrollbar { display: none; }
+.lb-filter .chip { flex: none; display: inline-flex; align-items: center; gap: 6px; }
+.pick-out { text-align: center; font-size: 13.5px; font-weight: 600; color: var(--green); padding: 0 12px 12px; }
+.pick-done { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 14px; background: var(--greenDim); }
+.pick-done span:last-child { display: flex; flex-direction: column; gap: 2px; }
+.pick-done small { font-size: 12.5px; }
+.pick-ok { width: 34px; height: 34px; border-radius: 50%; background: var(--green); color: #04130d; display: grid; place-items: center; font-weight: 800; font-size: 17px; flex: none; }
+.pick-undo { display: block; margin: 10px auto 0; font-size: 13px; color: var(--muted); }
 .pick-side { display: flex; flex-direction: column; align-items: center; gap: 8px; min-width: 0; }
 .pick-side small { font-size: 12px; max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .stepper { gap: 12px; }
@@ -1242,9 +1251,15 @@ async function savePrediction(user, matchId, home, away) {
   return ok(await sb.from("predictions").upsert({ user_id: user.id, match_id: matchId, home, away }, { onConflict: "user_id,match_id" }).select("match_id, home, away, points").single());
 }
 
-async function getLeaderboard() {
-  if (DEMO) return DEMO_LEADERS;
-  return ok(await sb.rpc("get_leaderboard", { lim: 50 }));
+// comp না দিলে সব লিগ মিলিয়ে; দিলে শুধু সেই লিগের ম্যাচের পয়েন্ট
+// (লিগ অনুযায়ী হিসাবের ফাংশন ডেটাবেসে না থাকলে "missing" error)
+const rpcMissing = (e) => /PGRST202|could not find the function|does not exist/i.test((e?.code || "") + " " + (e?.message || ""));
+async function getLeaderboard(comp) {
+  if (DEMO) return comp ? DEMO_LEADERS.filter((_, i) => (i + comp.length) % 3).map((r) => ({ ...r, points: Math.round(r.points / 3), exact: Math.round(r.exact / 3), played: Math.round(r.played / 3) })) : DEMO_LEADERS;
+  if (!comp) return ok(await sb.rpc("get_leaderboard", { lim: 50 }));
+  const { data, error } = await sb.rpc("get_leaderboard_comp", { lim: 50, comp });
+  if (error) throw rpcMissing(error) ? Object.assign(new Error("missing"), { missing: true }) : error;
+  return data;
 }
 
 // ═════════ বন্ধুদের লিগ ═════════
@@ -1271,9 +1286,47 @@ async function joinLeague(code) {
   return (await rpc("join_pleague", { p_code: code }))[0];
 }
 
-async function leagueBoard(id) {
-  if (DEMO) return demoLeagues().find((x) => x.id === id)?.board || [];
-  return rpc("pleague_board", { p_id: id });
+async function leagueBoard(id, comp) {
+  if (DEMO) { const b = demoLeagues().find((x) => x.id === id)?.board || []; return comp ? b.map((r) => ({ ...r, points: Math.round(r.points / 2), exact: Math.round(r.exact / 2), played: Math.round(r.played / 2) })) : b; }
+  if (!comp) return rpc("pleague_board", { p_id: id });
+  const { data, error } = await sb.rpc("pleague_board_comp", { p_id: String(id), comp });
+  if (error) throw rpcMissing(error) ? Object.assign(new Error("missing"), { missing: true }) : error;
+  return data;
+}
+
+// লিডারবোর্ডের লিগ ফিল্টার: সব + ছয় লিগ
+function CompFilter({ value, onChange }) {
+  const { lang } = useT();
+  const comps = ["PL", "PD", "CL", "SA", "BL1", "FL1"].map((code) => ({ code }));
+  return (
+    <div className="lb-filter">
+      <button className={"chip" + (!value ? " on" : "")} onClick={() => onChange(null)}>{lang === "bn" ? "সব" : "All"}</button>
+      {comps.map((c) => (
+        <button key={c.code} className={"chip" + (value === c.code ? " on" : "")} onClick={() => onChange(c.code)}><CompIcon c={c} size={16} />{compLabel(c.code, lang)}</button>
+      ))}
+    </div>
+  );
+}
+function BoardRows({ rows, isMe, lang, t }) {
+  return (
+    <div className="card">
+      {rows.map((r, i) => (
+        <div className="lb" key={i} style={isMe(r) ? { background: "var(--greenDim)" } : null}>
+          <div className={"rk" + (i < 3 ? " top" : "")}>{i < 3 ? ["🥇", "🥈", "🥉"][i] : num(i + 1, lang)}</div>
+          <div>
+            <div style={{ fontWeight: 600 }}>{r.display_name}{isMe(r) ? (lang === "bn" ? " (তুমি)" : " (you)") : ""}</div>
+            <div className="sub">{lang === "bn" ? `${num(r.played, lang)} ম্যাচ · হুবহু ${num(r.exact, lang)}` : `${r.played} played · ${r.exact} exact`}</div>
+          </div>
+          <div className="pt">{num(r.points, lang)} <span className="sub">{t("pts")}</span></div>
+        </div>
+      ))}
+    </div>
+  );
+}
+function BoardMsg({ err, comp, lang }) {
+  const bn = lang === "bn";
+  if (err === "missing") return <div className="card empty">{bn ? "লিগ অনুযায়ী লিডারবোর্ড খুব শিগগিরই চালু হচ্ছে।" : "Per-league leaderboards are coming soon."}</div>;
+  return <div className="card empty">{comp ? (bn ? `${compIn(comp, "bn")} এখনো কেউ পয়েন্ট পায়নি।` : `No points ${compIn(comp, "en")} yet.`) : (bn ? "এখনো কেউ পয়েন্ট পায়নি।" : "No points yet.")}</div>;
 }
 
 async function leaveLeague(user, id) {
@@ -2226,7 +2279,7 @@ function MatchSheet({ m, user, pred, onClose, onSave, onLogin, toast }) {
 
   async function save() {
     setBusy(true); setErr("");
-    try { await onSave(m, h, a); toast(t("saved")); onClose(); }
+    try { await onSave(m, h, a); toast(pred ? (lang === "bn" ? "প্রেডিকশন বদলানো হয়েছে ✓" : "Prediction updated ✓") : (lang === "bn" ? "প্রেডিকশন জমা হয়েছে ✓" : "Prediction submitted ✓")); onClose(); }
     catch (e) { setErr(e?.message || t("error")); }
     setBusy(false);
   }
@@ -2270,9 +2323,20 @@ function MatchSheet({ m, user, pred, onClose, onSave, onLogin, toast }) {
                 <div className="dash">–</div>
                 <div className="pick-side"><small className="muted">{teamName(m.away, lang)}</small><Stepper v={a} set={setA} /></div>
               </div>
+              <div className="pick-out">{h > a ? (lang === "bn" ? `${teamName(m.home, lang)} জিতবে` : `${teamName(m.home, lang)} win`) : h < a ? (lang === "bn" ? `${teamName(m.away, lang)} জিতবে` : `${teamName(m.away, lang)} win`) : (lang === "bn" ? "ড্র হবে" : "Draw")}</div>
               <div style={{ padding: "0 12px 12px" }}>
                 {err && <div className="err">{err}</div>}
-                <button className="btn block" disabled={busy} onClick={save}>{busy ? "…" : t("save")}</button>
+                {pred && !(pred.home !== h || pred.away !== a) ? (
+                  <div className="pick-done">
+                    <span className="pick-ok">✓</span>
+                    <span><b>{lang === "bn" ? "প্রেডিকশন দেওয়া আছে" : "Prediction locked in"}</b><small className="muted">{lang === "bn" ? "খেলা শুরুর আগ পর্যন্ত স্কোর বদলে আবার দিতে পারবে" : "Change the score any time before kickoff"}</small></span>
+                  </div>
+                ) : (
+                  <>
+                    <button className="btn block" disabled={busy} onClick={save}>{busy ? "…" : pred ? (lang === "bn" ? "নতুন প্রেডিকশন দাও" : "Update prediction") : (lang === "bn" ? "প্রেডিকশন দাও" : "Submit prediction")}</button>
+                    {pred && <button className="link pick-undo" onClick={() => { setH(pred.home); setA(pred.away); }}>{lang === "bn" ? `আগেরটাই থাক (${num(pred.home, lang)}–${num(pred.away, lang)})` : `Keep ${pred.home}–${pred.away}`}</button>}
+                  </>
+                )}
               </div>
             </div>
           ) : (
@@ -2701,9 +2765,14 @@ async function shareInvite(l, bn, toast) {
 function Board({ league, user, onBack, onLeft, toast }) {
   const { lang } = useT();
   const bn = lang === "bn";
+  const { t } = useT();
   const [rows, setRows] = useState(null);
   const [err, setErr] = useState("");
-  useEffect(() => { leagueBoard(league.id).then(setRows).catch((e) => { setErr(e.message); setRows([]); }); }, [league.id]);
+  const [comp, setComp] = useState(null);
+  useEffect(() => {
+    setRows(null); setErr("");
+    leagueBoard(league.id, comp).then(setRows).catch((e) => { setErr(e.missing ? "missing" : e.message); setRows([]); });
+  }, [league.id, comp]);
 
   async function leave() {
     if (!window.confirm(bn ? `"${league.name}" লিগ ছেড়ে দেবে?` : `Leave "${league.name}"?`)) return;
@@ -2721,21 +2790,11 @@ function Board({ league, user, onBack, onLeft, toast }) {
         </div>
       </div>
       <button className="btn block" style={{ margin: "12px 0" }} onClick={() => shareInvite(league, bn, toast)}>{bn ? "বন্ধুদের আমন্ত্রণ পাঠাও" : "Invite friends"}</button>
-      {err && <div className="err">{err}</div>}
-      {rows === null ? <div className="card"><div className="spin" /></div> : (
-        <div className="card">
-          {rows.map((r, i) => (
-            <div className="lb" key={i} style={r.is_me ? { background: "var(--greenDim)" } : null}>
-              <div className={"rk" + (i < 3 ? " top" : "")}>{i < 3 ? ["🥇", "🥈", "🥉"][i] : num(i + 1, lang)}</div>
-              <div>
-                <div style={{ fontWeight: 600 }}>{r.display_name}{r.is_me ? (bn ? " (তুমি)" : " (you)") : ""}</div>
-                <div className="sub">{bn ? `${num(r.played, lang)} ম্যাচ · হুবহু ${num(r.exact, lang)}` : `${r.played} played · ${r.exact} exact`}</div>
-              </div>
-              <div className="pt">{num(r.points, lang)} <span className="sub">{bn ? "পয়েন্ট" : "pts"}</span></div>
-            </div>
-          ))}
-        </div>
-      )}
+      <CompFilter value={comp} onChange={setComp} />
+      {err && err !== "missing" && <div className="err">{err}</div>}
+      {rows === null ? <div className="card"><div className="spin" /></div>
+        : err === "missing" || (comp && !rows.some((r) => r.played > 0)) ? <BoardMsg err={err} comp={comp} lang={lang} />
+        : <BoardRows rows={comp ? rows.filter((r) => r.played > 0 || r.is_me) : rows} isMe={(r) => r.is_me} lang={lang} t={t} />}
       <button className="link" style={{ color: "var(--red)", marginTop: 14 }} onClick={leave}>{bn ? "লিগ ছেড়ে দাও" : "Leave league"}</button>
     </>
   );
@@ -2835,24 +2894,21 @@ function Friends({ user, goProfile, toast, openId, reloadKey }) {
 function Leaderboard({ me }) {
   const { t, lang } = useT();
   const [rows, setRows] = useState(null);
-  useEffect(() => { getLeaderboard().then(setRows).catch(() => setRows([])); }, []);
-  if (rows === null) return <div className="card"><div className="spin" /></div>;
-  if (!rows.length) return <div className="card empty">{t("noLeaders")}</div>;
+  const [err, setErr] = useState("");
+  const [comp, setComp] = useState(null);
+  useEffect(() => {
+    setRows(null); setErr("");
+    getLeaderboard(comp).then(setRows).catch((e) => { setErr(e?.missing ? "missing" : "x"); setRows([]); });
+  }, [comp]);
+  const isMe = (r) => r.is_me ?? (me && r.display_name === me);
   return (
-    <div className="card">
-      {rows.map((r, i) => (
-        <div className="lb" key={i} style={me && r.display_name === me ? { background: "var(--greenDim)" } : null}>
-          <div className={"rk" + (i < 3 ? " top" : "")}>{i < 3 ? ["🥇", "🥈", "🥉"][i] : num(i + 1, lang)}</div>
-          <div>
-            <div style={{ fontWeight: 600 }}>{r.display_name}</div>
-            <div className="sub">
-              {lang === "bn" ? `${num(r.played, lang)} ম্যাচ · হুবহু ${num(r.exact, lang)}` : `${r.played} played · ${r.exact} exact`}
-            </div>
-          </div>
-          <div className="pt">{num(r.points, lang)} <span className="sub">{t("pts")}</span></div>
-        </div>
-      ))}
-    </div>
+    <>
+      <CompFilter value={comp} onChange={setComp} />
+      {rows === null ? <div className="card"><div className="spin" /></div>
+        : err === "missing" ? <BoardMsg err={err} comp={comp} lang={lang} />
+        : !rows.length ? (comp ? <BoardMsg comp={comp} lang={lang} /> : <div className="card empty">{t("noLeaders")}</div>)
+        : <BoardRows rows={rows} isMe={isMe} lang={lang} t={t} />}
+    </>
   );
 }
 
