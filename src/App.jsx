@@ -4629,7 +4629,7 @@ function Nav({ tab, go }) {
 
 export default function App() {
   const [lang, setLangS] = useState(() => stored("kk_lang", "bn"));
-  const [theme, setThemeS] = useState(() => stored("kk_theme", "dark"));
+  const [theme, setThemeS] = useState(() => stored("kk_theme", "light"));
   const [tab, setTab] = useState(tabFromPath);
   const [view, setView] = useState(viewFromPath);
   const [comps, setComps] = useState([]);
