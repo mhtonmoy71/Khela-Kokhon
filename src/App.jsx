@@ -4721,6 +4721,9 @@ export default function App() {
   const toast = useCallback((m, ms = 2200) => { setToastMsg(m); setTimeout(() => setToastMsg(""), ms); }, []);
 
   // ── ট্যাব আর ফোনের ব্যাক বাটন ──
+  // "খেলা কখন?" লেখায় চাপলে একদম শুরুর পাতা: আজকের ম্যাচ, সব ফিল্টার আগের মতো, উপরে
+  const [homeKey, setHomeKey] = useState(0);
+  const goHome = () => { setSheet(null); setSearching(false); setHomeKey((k) => k + 1); go("matches"); };
   const go = (id) => {
     const p = TABS.find((x) => x.id === id).path;
     if (window.location.pathname !== p) window.history.pushState({}, "", p);
@@ -4832,7 +4835,7 @@ export default function App() {
         <header className="top">
           <div className="brand">
             <Logo size={36} onClick={() => setShowClock((v) => !v)} />
-            <button onClick={() => go("matches")} style={{ textAlign: "left", fontWeight: 700, fontSize: 19, lineHeight: 1.1 }}>
+            <button onClick={goHome} aria-label={lang === "bn" ? "হোম" : "Home"} style={{ textAlign: "left", fontWeight: 700, fontSize: 19, lineHeight: 1.1 }}>
               <span>খেলা কখন<b>?</b></span>
               {showClock && <ClockText />}
             </button>
@@ -4866,7 +4869,7 @@ export default function App() {
         ) : view?.kind === "player" ? (
           <Player key={view.id} id={view.id} teamsById={teamsById} comps={comps} />
         ) : tab === "matches" ? (
-          <Matches user={user} myTeams={myTeams} comps={comps} preds={preds} onOpen={openMatch} goProfile={() => go("profile")} />
+          <Matches key={homeKey} user={user} myTeams={myTeams} comps={comps} preds={preds} onOpen={openMatch} goProfile={() => go("profile")} />
         ) : tab === "leagues" ? (
           <Leagues comps={comps} />
         ) : tab === "ask" ? (
