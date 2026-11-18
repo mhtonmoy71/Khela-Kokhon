@@ -2709,8 +2709,13 @@ const lev = (a, b) => {
 const PLAYER_NICK = {
   "ভিনি": "vinicius", "vini": "vinicius", "ভিনিসিয়ুস": "vinicius", "লেভা": "lewandowski", "লেওয়ানডফস্কি": "lewandowski", "lewa": "lewandowski",
   "কেইন": "kane", "কেন": "kane", "হ্যারি কেইন": "kane", "সালাহ": "salah", "সালা": "salah", "লামিন": "yamal", "ইয়ামাল": "yamal",
-  "রদ্রি": "rodri", "ডি ইয়ং": "jong", "গাভি": "gavira", "gavi": "gavira", "পেদ্রি": "pedri", "লাউতারো": "lautaro", "lautaro": "lautaro", "এমবাপে": "mbappe", "সন": "son", "ডি ব্রুইনে": "bruyne", "ব্রুনো": "bruno", "রোনালদো": "ronaldo", "মেসি": "messi", "নেইমার": "neymar",
+  "ডাইক": "dijk", "ভ্যান ডাইক": "dijk", "আলিসন": "alisson", "রদ্রি": "rodri", "ডি ইয়ং": "jong", "গাভি": "gavira", "gavi": "gavira", "পেদ্রি": "pedri", "লাউতারো": "lautaro", "lautaro": "lautaro", "এমবাপে": "mbappe", "সন": "son", "ডি ব্রুইনে": "bruyne", "ব্রুনো": "bruno", "রোনালদো": "ronaldo", "মেসি": "messi", "নেইমার": "neymar",
 };
+// প্রতিযোগিতা, দিন আর সাধারণ ফুটবল শব্দ কখনো খেলোয়াড়ের নাম হিসেবে ধরা হয় না
+const ASK_STOP_EXTRA = ["লিগ", "টেবিল", "পয়েন্ট", "সূচি", "ফল", "ফলাফল", "ড্র", "ডার্বি", "ক্লাসিকো", "সেমিফাইনাল", "ফাইনাল", "কোয়ার্টার", "প্রিমিয়ার", "চ্যাম্পিয়ন্স",
+  "ভালো", "খারাপ", "রাত", "রাতে", "দুপুর", "সকাল", "বিকাল", "সন্ধ্যা", "ভোর", "লন্ডন", "নর্থ", "সাউথ", "মৌসুম", "খেলবে", "জিতবে", "জিতেছে", "হেরেছে", "এগিয়ে", "পিছিয়ে",
+  "কোনটা", "কারা", "শুরু", "আছে", "খেল", "খেলে", "খেলেন", "খেলছে", "দল", "দলে", "করে", "করেন", "বলো", "জানাও", "দেখাও", "আজকে", "গতকাল", "প্রেডিকশন", "আমার", "তোমার", "বাংলাদেশ", "সময়", "ম্যাচগুলো", "খেলাগুলো", "কখন", "কোথায়", "দেখাবে", "চলছে",
+  "next", "last", "match", "matches", "result", "results", "table", "derby", "today", "tomorrow", "yesterday", "league", "when", "where", "who", "won", "lost", "goal", "goals"];
 const ASK_STOP = ["গোল", "গোলদাতা", "করেছে", "করছে", "কয়টা", "কয়টি", "কত", "কতটা", "কবে", "কখন", "লাস্ট", "শেষ", "পরের", "খেলা", "এই", "মৌসুমে", "সিজনে",
   "অ্যাসিস্ট", "এসিস্ট", "সর্বোচ্চ", "টপ", "স্কোরার", "কে", "কোন", "কেন", "কিনা", "দলে", "বনাম", "আজ", "কাল", "আগামীকাল", "কার", "বেশি", "সবচেয়ে", "মোট", "লিগে", "লিগায়", "পেনাল্টি", "ম্যাচ", "খেলেছে", "দিয়েছে"];
 
@@ -2725,7 +2730,7 @@ function findPlayer(q, scorers, teams) {
   // ১) ইংরেজি পুরো নাম বা শেষ নাম
   for (const r of people) {
     const full = norm(r.player_name).normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-    const parts = full.split(" ").filter((w) => w.length >= 4 && !teamWords.has(w));
+    const parts = full.split(" ").filter((w) => w.length >= (goalsOf[r.player_id] ? 4 : 5) && !teamWords.has(w) && !ASK_STOP_EXTRA.includes(w));
     if (latinQ.includes(full) || parts.some((w) => new RegExp("(^|[^a-z])" + esc(w) + "($|[^a-z])").test(latinQ))) return r;
   }
   // ২) ডাকনাম (খেলোয়াড় তালিকায় না থাকলে "নেই" বলার জন্য ডাকনামটা আর কঙ্কাল-মেলায় যায় না)
@@ -2737,26 +2742,33 @@ function findPlayer(q, scorers, teams) {
       if (r) return r;
     }
   // ৩) বাংলা শব্দ → কঙ্কাল মিলিয়ে
-  const words = q.split(" ").filter((w) => isBn(w) && !nickUsed.some((n) => w.startsWith(n))).map(stripBn).filter((w) => w.length >= 3 && !ASK_STOP.includes(w) && ![...teamWords].some((t) => isBn(t) && (t.startsWith(w) || (w.startsWith(t) && w.length - t.length <= 2))));
+  const stopSet = new Set([...ASK_STOP, ...ASK_STOP_EXTRA, ...Object.values(COMP_WORDS).flat().flatMap((x) => norm(x).split(" ")), ...Object.values(W).flat(), ...WEEKDAYS.flat()].map(norm));
+  const stopWord = (w) => stopSet.has(w) || [...stopSet].some((sw) => isBn(sw) && sw.length >= 3 && w.startsWith(sw) && w.length - sw.length <= 3);
+  const words = q.split(" ").filter((w) => isBn(w) && !nickUsed.some((n) => w.startsWith(n)) && !stopWord(w)).map(stripBn).filter((w) => w.length >= 3 && !stopWord(w) && ![...teamWords].some((t) => isBn(t) && (t.startsWith(w) || (w.startsWith(t) && w.length - t.length <= 2))));
   // শুধু শেষ নাম (বা এক-নামের খেলোয়াড়) — প্রথম নামে মেলালে ভুল হয় (ওসিমেন ≠ Ousmane)
+  // মিলের মান = উচ্চারণের দূরত্ব (কম = ভালো); গোল না করা খেলোয়াড়ের ক্ষেত্রে আরও কড়া, কারণ তালিকায় তিন হাজার নাম
   let best = null;
   for (const w of words) {
-    const ws = bnSkel(w), wv = bnSound(w).replace(/[aeiou]+$/, "");
+    const ws = bnSkel(w), wfull = bnSound(w), wv = wfull.replace(/[aeiou]+$/, "");
     if (ws.length < 2) continue;
     for (const r of people) {
       const parts = norm(r.player_name).split(" ");
       const last = parts.length > 1 ? parts.slice(1) : parts;
+      const scorer = (goalsOf[r.player_id] || 0) > 0;
       for (const part of last.filter((x) => x.length >= 3)) {
         const ps = skel(part);
         if (ps.length < 2) continue;
         const d = lev(ws, ps);
-        const pv = sound(part).replace(/[aeiou]+$/, "");
-        const ratio = lev(wv, pv) / Math.max(wv.length, pv.length, 1);
-        // ছোট কঙ্কাল (বায়েনা → bn) হলে উচ্চারণ প্রায় হুবহু মিলতে হবে
-        const okD = (Math.min(ws.length, ps.length) >= 5 ? d <= 1 : d === 0) && ratio <= (ws.length < 3 ? 0.2 : 0.3);
-        // সমান মিললে যার গোল বেশি সে (ইসাক → লিভারপুলের Isak, সেভিয়ার Isaac নয়)
-        if (okD && (!best || d < best.d || (d === best.d && (goalsOf[r.player_id] || 0) > (goalsOf[best.r.player_id] || 0)))) best = { r, d, n: 1 };
-        else if (okD && best && d === best.d && best.r.player_id !== r.player_id) best.n++;
+        const pfull = sound(part), pv = pfull.replace(/[aeiou]+$/, "");
+        // শেষের স্বর বাদ দিয়ে আর না দিয়ে, দুভাবেই মিলিয়ে যেটা কাছে (কুর্তোয়া ↔ Courtois)
+        const ratio = Math.min(lev(wv, pv) / Math.max(wv.length, pv.length, 1), lev(wfull, pfull) / Math.max(wfull.length, pfull.length, 1));
+        const minLen = Math.min(ws.length, ps.length);
+        const okD = (minLen >= 5 ? d <= 1 : minLen >= 3 ? d <= 1 : d === 0)
+          && ratio <= (!scorer ? (ws.length < 4 ? 0.15 : 0.2) : ws.length < 3 ? 0.2 : 0.3)
+          && (minLen >= 4 || ratio <= 0.2);
+        if (!okD) continue;
+        const sc = ratio + d * 0.05 - Math.min(goalsOf[r.player_id] || 0, 30) * 0.001; // সমান হলে যার গোল বেশি (ইসাক → Isak)
+        if (!best || sc < best.sc) best = { r, sc };
       }
     }
   }
@@ -2784,16 +2796,24 @@ async function answerPlayer(q, teams, lang) {
     return { text: bn ? "প্রতিটা প্রতিযোগিতার সর্বোচ্চ গোলদাতা:" : "Top scorer in each competition:", matches: [], players: tops };
   }
 
-  const r = findPlayer(q, scorers, teams);
+  // গোলদাতা + ছয় লিগের সব স্কোয়াড (গোল না করা খেলোয়াড়ও)
+  let squad = [];
+  try { squad = await getAllPlayers(); } catch { /* শুধু গোলদাতা দিয়ে চলবে */ }
+  const known = new Set(scorers.map((x) => x.player_id));
+  const byTeam = Object.fromEntries(teams.map((t) => [t.id, t]));
+  const pool = [...scorers, ...squad.filter(([id]) => !known.has(id)).map(([id, n, tid, pos]) => ({ player_id: id, player_name: n, team_id: tid, team: byTeam[tid], position: pos, goals: 0, competition_code: null }))];
+  const found = findPlayer(q, pool, teams);
+  const r = found && { ...found, team: found.team || byTeam[found.team_id], position: found.position || squad.find(([id]) => id === found.player_id)?.[3] || null };
   if (!r) {
     // গোলের প্রশ্ন, কিন্তু কোনো দল বা চেনা খেলোয়াড় নেই
     if (goalish && !findTeams(q, teams).length && !has(q, ["আজ", "কাল", "today", "tomorrow"]))
-      return { text: bn ? "এই খেলোয়াড়কে খুঁজে পাইনি। গোলের হিসাব আছে শুধু যারা এই মৌসুমে অন্তত ১ গোল করেছে তাদের। নামটা অন্যভাবে লিখে দেখো, যেমন ইংরেজিতে।" : "Couldn't find that player. Goal counts exist only for players with at least one goal this season. Try the name another way, e.g. in English.", matches: [] };
+      return { text: bn ? "এই খেলোয়াড়কে খুঁজে পাইনি। ছয় লিগের খেলোয়াড়দের নাম দিয়ে জিজ্ঞেস করো; নামটা অন্যভাবে লিখে দেখো, যেমন ইংরেজিতে।" : "Couldn't find that player. Ask about players in the six competitions, or try the name another way, e.g. in English.", matches: [] };
     return null;
   }
   const name = r.player_name;
   const rows = scorers.filter((x) => x.player_id === r.player_id).sort((a, b) => b.goals - a.goals);
-  const club = r.team ? teamName(r.team, lang) : null;
+  const posName = r.position ? (bn ? POS_BN[r.position] || r.position : r.position) : null;
+  const club = r.team ? teamName(r.team, lang) + (!rows.length && posName ? `, ${posName}` : "") : null;
   // খেলোয়াড়ের দল কোন কোন প্রতিযোগিতায় খেলে (ঘরোয়া লিগ + চ্যাম্পিয়ন্স লিগে থাকলে)
   const clubComps = async () => {
     const out = [];
@@ -2805,6 +2825,12 @@ async function answerPlayer(q, teams, lang) {
   const zeroLine = (code) => scorersComplete(scorers, code)
     ? (bn ? `${cName(code)}: ০ গোল, এই মৌসুমে এখনো গোল পাননি।` : `${cName(code)}: 0 goals so far this season.`)
     : (bn ? `${cName(code)}: গোলের পুরো হিসাব এখনো সাইটে আসেনি।` : `${cName(code)}: full scoring data isn't in yet.`);
+  // উত্তরের নিচের খেলোয়াড়-সারি: গোলদাতা হলে তার সারি, না হলে দলের প্রথম প্রতিযোগিতায় ০ (পুরো হিসাব না এলে —)
+  const pRow = async (code) => {
+    if (rows.length) return { ...(rows.find((x) => x.competition_code === code) || rows[0]), code: code && rows.some((x) => x.competition_code === code) ? code : rows[0].competition_code };
+    const c = code || (await clubComps())[0] || null;
+    return { ...r, code: c, goals: c && scorersComplete(scorers, c) ? 0 : null };
+  };
   const lastGoal = has(q, ["কবে", "লাস্ট", "শেষ গোল", "সর্বশেষ", "last goal", "when"]) && goalish;
   const note = lastGoal ? (bn ? " কোন ম্যাচে কে গোল করেছে সেই তথ্য সাইটের ফ্রি ডেটায় নেই, তাই শেষ গোল কবে বলতে পারছি না।" : " Who scored in each match isn't in the site's free data, so I can't tell when the last goal was.") : "";
   const line = (x) => {
@@ -2817,7 +2843,7 @@ async function answerPlayer(q, teams, lang) {
   // খেলোয়াড়ের দলের পরের খেলা
   if (!goalish && has(q, ["পরের", "নেক্সট", "খেলা কবে", "next", "match"]) && r.team_id) {
     const list = await getTeamMatches([r.team_id], { upcoming: true, limit: 3 });
-    if (list.length) return { text: (bn ? `${name} খেলেন ${club}-এ। ` : `${name} plays for ${club}. `) + describe(list[0], r.team_id, false, lang), matches: list, players: [{ ...rows[0], code: rows[0].competition_code }] };
+    if (list.length) return { text: (bn ? `${name} খেলেন ${r.team ? teamName(r.team, lang) : club}-এ${posName ? ` (${posName})` : ""}। ` : `${name} plays for ${r.team ? teamName(r.team, lang) : club}${posName ? ` (${posName})` : ""}. `) + describe(list[0], r.team_id, false, lang), matches: list, players: [await pRow()] };
   }
 
   if (comp) {
@@ -2827,7 +2853,7 @@ async function answerPlayer(q, teams, lang) {
       const text = plays
         ? (bn ? `${name}${club ? ` (${club})` : ""}, এই মৌসুমে ` : `${name}${club ? ` (${club})` : ""} this season — `) + zeroLine(comp)
         : (bn ? `${name}-এর দল${club ? ` ${club}` : ""} এই মৌসুমে ${cName(comp)} খেলছে না।` : `${name}'s club${club ? ` ${club}` : ""} isn't in the ${cName(comp)} this season.`);
-      return { text: text + note, matches: [], players: [{ ...rows[0], code: rows[0].competition_code }] };
+      return { text: text + note, matches: [], players: [await pRow(plays ? comp : null)] };
     }
     return { text: (bn ? `${name}${club ? ` (${club})` : ""}, এই মৌসুমে ` : `${name}${club ? ` (${club})` : ""} this season — `) + line(x) + note, matches: [], players: [{ ...x, code: comp }] };
   }
@@ -2838,7 +2864,8 @@ async function answerPlayer(q, teams, lang) {
   const head = allCodes.length > 1
     ? (bn ? `${name}${club ? ` (${club})` : ""} এই মৌসুমে ${compList(allCodes, "bn")} মিলিয়ে মোট ${num(total, "bn")} গোল, ${num(totalA, "bn")} অ্যাসিস্ট।\n` : `${name}${club ? ` (${club})` : ""}: ${total} goals and ${totalA} assists this season across ${compList(allCodes, "en")}.\n`)
     : (bn ? `${name}${club ? ` (${club})` : ""}, এই মৌসুমে ` : `${name}${club ? ` (${club})` : ""} this season — `);
-  return { text: head + [...rows.map(line), ...extra.map(zeroLine)].join("\n") + note, matches: [], players: rows.map((x) => ({ ...x, code: x.competition_code })) };
+  if (!allCodes.length) return { text: (bn ? `${name}${club ? ` (${club})` : ""}। এই মৌসুমে এখনো গোলের হিসাব নেই।` : `${name}${club ? ` (${club})` : ""}. No goals recorded this season.`) + note, matches: [], players: [await pRow()] };
+  return { text: head + [...rows.map(line), ...extra.map(zeroLine)].join("\n") + note, matches: [], players: rows.length ? rows.map((x) => ({ ...x, code: x.competition_code })) : [await pRow()] };
 }
 
 // উত্তর বানানো: { text, matches, players? }
@@ -3127,8 +3154,8 @@ function AskPage({ teams, preds, onOpen, chat, setChat }) {
                   {m.players.map((x) => (
                     <button key={x.player_id + x.code} className="ask-pl" onClick={() => nav.openPlayer(x.player_id)}>
                       <Crest team={x.team} size={26} />
-                      <span className="ask-pl-n"><b>{x.player_name}</b><small className="muted">{compLabel(x.code, lang)}</small></span>
-                      <span className="ask-pl-g">{num(x.goals, lang)}<small>{lang === "bn" ? "গোল" : "goals"}</small></span>
+                      <span className="ask-pl-n"><b>{x.player_name}</b><small className="muted">{x.code ? compLabel(x.code, lang) : x.team ? teamName(x.team, lang) : ""}</small></span>
+                      <span className="ask-pl-g">{x.goals == null ? "—" : num(x.goals, lang)}<small>{lang === "bn" ? "গোল" : "goals"}</small></span>
                     </button>
                   ))}
                 </div>
