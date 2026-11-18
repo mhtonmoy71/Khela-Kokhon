@@ -2309,13 +2309,13 @@ function InfoPage({ id, user, goProfile }) {
   if (id === "privacy") {
     const bn = lang === "bn";
     const parts = bn
-      ? [["কী তথ্য রাখা হয়", "Google বা ইমেইল দিয়ে লগইন করলে তোমার নাম, ইমেইল আর প্রোফাইল ছবি রাখা হয়। প্রোফাইলে নিজে যা দাও (যেমন ফোন নম্বর), প্রিয় দল, ম্যাচের অনুমান আর বন্ধুদের লিগের তথ্যও জমা থাকে। লগইন ছাড়া ব্যবহার করলে কোনো ব্যক্তিগত তথ্য নেওয়া হয় না।"],
-         ["কেন রাখা হয়", "শুধু তোমার দল, অনুমান, পয়েন্ট আর লিডারবোর্ড দেখানোর জন্য। লিডারবোর্ড আর বন্ধুদের লিগে অন্যরা শুধু তোমার নাম ও ছবি দেখে, ইমেইল বা ফোন নম্বর নয়।"],
+      ? [["কী তথ্য রাখা হয়", "Google বা ইমেইল দিয়ে লগইন করলে তোমার নাম, ইমেইল আর প্রোফাইল ছবি রাখা হয়। তোমার প্রিয় দল, ম্যাচের অনুমান আর বন্ধুদের লিগের তথ্যও জমা থাকে। লগইন ছাড়া ব্যবহার করলে কোনো ব্যক্তিগত তথ্য নেওয়া হয় না।"],
+         ["কেন রাখা হয়", "শুধু তোমার দল, অনুমান, পয়েন্ট আর লিডারবোর্ড দেখানোর জন্য। লিডারবোর্ড আর বন্ধুদের লিগে অন্যরা শুধু তোমার নাম ও ছবি দেখে, ইমেইল নয়।"],
          ["ফোনে কী জমা থাকে", "ভাষা, থিম, সাম্প্রতিক খোঁজ আর এমন কিছু পছন্দ তোমার ফোনের ব্রাউজারেই থাকে, আমাদের কাছে আসে না।"],
          ["কারও সাথে ভাগ করা হয় না", "তোমার তথ্য বিক্রি করা হয় না, বিজ্ঞাপনদাতা বা অন্য কাউকে দেওয়া হয় না। তথ্য নিরাপদে Supabase-এর সার্ভারে রাখা হয়।"],
          ["তথ্য মুছে ফেলা", "অ্যাকাউন্ট আর সব তথ্য মুছে ফেলতে চাইলে khelakokhon@gmail.com-এ ইমেইল করো, দ্রুত মুছে দেওয়া হবে।"]]
-      : [["What we store", "If you sign in with Google or email, we keep your name, email and profile photo, plus what you add yourself (such as a phone number), your favourite teams, match predictions and friends' leagues. Nothing personal is collected if you use the site without signing in."],
-         ["Why", "Only to show your teams, predictions, points and leaderboards. Others see just your name and photo on leaderboards, never your email or phone."],
+      : [["What we store", "If you sign in with Google or email, we keep your name, email and profile photo, plus your favourite teams, match predictions and friends' leagues. Nothing personal is collected if you use the site without signing in."],
+         ["Why", "Only to show your teams, predictions, points and leaderboards. Others see just your name and photo on leaderboards, never your email."],
          ["On your device", "Language, theme, recent searches and similar preferences stay in your browser and are never sent to us."],
          ["No sharing", "Your data is never sold or given to advertisers or anyone else. It is stored securely on Supabase servers."],
          ["Deleting your data", "To delete your account and all data, email khelakokhon@gmail.com and it will be removed promptly."]];
@@ -3008,13 +3008,12 @@ function AuthForm() {
     setErr(""); setNote("");
     if (mode === "signup") {
       if (!f.name.trim()) return setErr("নাম দাও");
-      if (f.phone.trim() && !/^(\+?88)?01[3-9]\d{8}$/.test(f.phone.replace(/[\s-]/g, ""))) return setErr("সঠিক মোবাইল নম্বর দাও (01XXXXXXXXX)");
       if (f.password.length < 6) return setErr("পাসওয়ার্ড কমপক্ষে ৬ অক্ষরের হতে হবে");
     }
     setBusy(true);
     try {
       if (mode === "signup") {
-        const r = await signUp({ ...f, name: f.name.trim(), phone: f.phone.replace(/[\s-]/g, "") || undefined });
+        const r = await signUp({ ...f, name: f.name.trim(), });
         if (r.needsConfirm) setNote(t("checkEmail"));
       } else await signIn(f);
     } catch (e2) {
@@ -3035,9 +3034,6 @@ function AuthForm() {
           <label className="field"><span>{t("name")}</span><input value={f.name} onChange={up("name")} autoComplete="name" /></label>
         )}
         <label className="field"><span>{t("email")}</span><input type="email" required value={f.email} onChange={up("email")} autoComplete="email" /></label>
-        {mode === "signup" && (
-          <label className="field"><span>{t("phone")} <small className="muted">({t("optional")})</small></span><input inputMode="tel" placeholder="01XXXXXXXXX" value={f.phone} onChange={up("phone")} autoComplete="tel" /></label>
-        )}
         <label className="field"><span>{t("password")}</span><input type="password" required value={f.password} onChange={up("password")} autoComplete={mode === "signup" ? "new-password" : "current-password"} /></label>
         {err && <div className="err">{err}</div>}
         {note && <div className="note">{note}</div>}
@@ -3090,7 +3086,6 @@ function Profile({ user, profile, myTeams, teamsById, lang, setLang, theme, setT
             <div style={{ minWidth: 0 }}>
               <div style={{ fontWeight: 700, fontSize: 17 }}>{name}</div>
               <div className="muted" style={{ fontSize: 13 }}>{user.email}</div>
-              {profile?.phone && <div className="muted" style={{ fontSize: 13 }}>{profile.phone}</div>}
             </div>
           </div>
         </div>
@@ -4396,7 +4391,7 @@ export default function App() {
             key={editing ? "edit" : "first"}
             initial={myTeams}
             comps={comps}
-            needPhone={!profile.phone && !editing}
+            needPhone={false}
             onDone={finishOnboarding}
             onCancel={editing ? () => setEditing(false) : skipOnboarding}
           />
