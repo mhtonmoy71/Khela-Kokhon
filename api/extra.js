@@ -7,6 +7,7 @@ import { createHash } from "node:crypto";
 //    ?type=player&id=44      → খেলোয়াড়ের পরিচয় আর এই মৌসুমের হিসাব (২ দিন জমা থাকে)
 //    ?type=photos&team=86    → স্কোয়াডের সবার ছোট ছবি; ?type=photos&ids=1,2 → নির্দিষ্ট খেলোয়াড়দের
 //    ?type=players           → ছয় লিগের সব খেলোয়াড়ের তালিকা (সার্চের জন্য, সপ্তাহে একবার নতুন)
+//    ?type=quizseed          → কুইজের প্রশ্ন ডেটাবেসে তোলে (আগে থাকলে কিছু বদলায় না)
 //  একই জিনিস বারবার চাইলে football-data-এ আর যায় না, তাই ফ্রি সীমার মধ্যে থাকে।
 // ═══════════════════════════════════════════════════════════════
 const FD = "https://api.football-data.org/v4";
@@ -222,10 +223,21 @@ async function crest(req, res) {
   return res.status(200).send(Buffer.from(await r.arrayBuffer()));
 }
 
+// কুইজের প্রশ্ন: শুধু রিপোজিটরির নির্দিষ্ট প্রশ্নগুলোই তোলে, একই id আবার এলে বাদ দেয়
+async function quizSeed(req, res) {
+  const { default: QS } = await import("./_quiz-questions.js");
+  for (let i = 0; i < QS.length; i += 100)
+    await sb("quiz_questions?on_conflict=id", { method: "POST", body: QS.slice(i, i + 100), prefer: "resolution=ignore-duplicates,return=minimal" });
+  const r = await fetch(process.env.SUPABASE_URL.replace(/\/$/, "") + "/rest/v1/quiz_questions?select=id", {
+    method: "HEAD", headers: { apikey: process.env.SUPABASE_SERVICE_ROLE_KEY, Authorization: `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}`, Prefer: "count=exact" } });
+  res.status(200).json({ ok: true, sent: QS.length, total: Number((r.headers.get("content-range") || "/0").split("/")[1]) });
+}
+
 export default async function handler(req, res) {
   const q = req.query || {};
   if (q.type === "crest") return crest(req, res);
   if (q.type === "players") return allPlayers(req, res).catch((e) => res.status(500).json({ ok: false, error: String(e.message || e).slice(0, 120) }));
+  if (q.type === "quizseed") return quizSeed(req, res).catch((e) => res.status(500).json({ ok: false, error: String(e.message || e).slice(0, 120) }));
   if (q.type === "photos") return photos(req, res).catch((e) => res.status(500).json({ ok: false, error: String(e.message || e).slice(0, 120) }));
 
   let cacheKey, fdPath, maxAge, trim, check;
