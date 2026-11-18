@@ -2692,8 +2692,10 @@ const BN_V = { "া": "a", "ি": "i", "ী": "i", "ু": "u", "ূ": "u", "ৃ"
   "অ": "o", "আ": "a", "ই": "i", "ঈ": "i", "উ": "u", "ঊ": "u", "ঋ": "ri", "এ": "e", "ঐ": "oi", "ও": "o", "ঔ": "ou", "য়": "y" };
 const sound = (latin) => latin.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase()
   .replace(/ph/g, "f").replace(/sch|sh|ch|zh/g, "s").replace(/th/g, "t").replace(/[vw]/g, "b").replace(/z/g, "s").replace(/x/g, "ks")
-  .replace(/q|ck|c(?=[aou]|$)/g, "k").replace(/c/g, "s").replace(/y/g, "i").replace(/[^a-z]/g, "").replace(/(.)\1+/g, "$1");
-const bnSound = (word) => sound([...bnPrep(word)].map((ch) => (ch === "Y" ? "y" : ch === "R" ? "r" : BN_V[ch] ?? BN2L[ch] ?? "")).join(""));
+  .replace(/q|ck|c(?=[aou]|$)/g, "k").replace(/c/g, "s").replace(/y/g, "i").replace(/[^a-z]/g, "")
+  // ফরাসি "ou" = উ (Courtois → কুর্তোয়া), শব্দের ভেতরের h প্রায় উচ্চারিত হয় না (Osimhen → ওসিমেন)
+  .replace(/ou/g, "u").replace(/(?<=[a-z])h/g, "").replace(/(.)\1+/g, "$1");
+const bnSound = (word) => sound([...bnPrep(word)].map((ch) => (ch === "Y" ? "y" : ch === "R" ? "r" : ch === "ং" ? "ng" : BN_V[ch] ?? BN2L[ch] ?? "")).join(""));
 // শব্দের শেষের বিভক্তি বাদ: এমবাপ্পের, হালান্ডকে, কেইনের
 const stripBn = (w) => w.replace(/(দের|এর|ের|কে|রা|ও|র|য়ের|য়)$/u, "");
 const lev = (a, b) => {
@@ -2707,7 +2709,7 @@ const lev = (a, b) => {
 const PLAYER_NICK = {
   "ভিনি": "vinicius", "vini": "vinicius", "ভিনিসিয়ুস": "vinicius", "লেভা": "lewandowski", "লেওয়ানডফস্কি": "lewandowski", "lewa": "lewandowski",
   "কেইন": "kane", "কেন": "kane", "হ্যারি কেইন": "kane", "সালাহ": "salah", "সালা": "salah", "লামিন": "yamal", "ইয়ামাল": "yamal",
-  "লাউতারো": "lautaro", "lautaro": "lautaro", "এমবাপে": "mbappe", "সন": "son", "ডি ব্রুইনে": "bruyne", "ব্রুনো": "bruno", "রোনালদো": "ronaldo", "মেসি": "messi", "নেইমার": "neymar",
+  "রদ্রি": "rodri", "ডি ইয়ং": "jong", "গাভি": "gavira", "gavi": "gavira", "পেদ্রি": "pedri", "লাউতারো": "lautaro", "lautaro": "lautaro", "এমবাপে": "mbappe", "সন": "son", "ডি ব্রুইনে": "bruyne", "ব্রুনো": "bruno", "রোনালদো": "ronaldo", "মেসি": "messi", "নেইমার": "neymar",
 };
 const ASK_STOP = ["গোল", "গোলদাতা", "করেছে", "করছে", "কয়টা", "কয়টি", "কত", "কতটা", "কবে", "কখন", "লাস্ট", "শেষ", "পরের", "খেলা", "এই", "মৌসুমে", "সিজনে",
   "অ্যাসিস্ট", "এসিস্ট", "সর্বোচ্চ", "টপ", "স্কোরার", "কে", "কোন", "কেন", "কিনা", "দলে", "বনাম", "আজ", "কাল", "আগামীকাল", "কার", "বেশি", "সবচেয়ে", "মোট", "লিগে", "লিগায়", "পেনাল্টি", "ম্যাচ", "খেলেছে", "দিয়েছে"];
@@ -2960,7 +2962,9 @@ function nameScore(q, names) {
         if (v.length < 3) continue;
         for (const w of pn.split(" ")) {
           const wv = soundOf(w);
-          if (wv.length >= 3 && lev(v, wv.slice(0, v.length)) <= (v.length >= 5 ? 1 : 0)) best = Math.min(best ?? 9, 4);
+          const d = lev(v, wv.slice(0, v.length));
+          // কাছের মিল আগে (ওসিমেন → Osimhen আগে, Semenyo পরে)
+          if (wv.length >= 3 && d <= (v.length >= 5 ? 1 : 0)) best = Math.min(best ?? 9, 4 + d * 0.3 + (v === qv ? 0 : 0.1) + Math.abs(wv.length - v.length) * 0.01);
         }
       }
     }
