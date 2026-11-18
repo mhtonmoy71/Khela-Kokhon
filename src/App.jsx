@@ -204,6 +204,16 @@ img { display: block; }
 .info h2 { font-size: 16px; margin: 22px 0 8px; }
 .info p { font-size: 15px; line-height: 1.8; color: var(--text); opacity: .9; }
 .founder { text-align: center; margin-bottom: 18px; }
+.contact-cards { display: grid; gap: 10px; margin: 18px 0 6px; }
+.contact-card { display: flex; align-items: center; gap: 14px; padding: 14px 16px; text-decoration: none; color: inherit; }
+.contact-card b { display: block; font-size: 15px; }
+.contact-card small { color: var(--muted); font-size: 13px; font-family: Inter, sans-serif; }
+.contact-ic { width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; background: var(--greenDim); color: var(--green); flex: none; }
+.contact-ic.fb { background: color-mix(in srgb, #1877f2 14%, transparent); color: #1877f2; }
+.contact-topics { display: grid; gap: 10px; }
+.contact-topics > div { background: var(--card); border-radius: 14px; padding: 12px 14px; }
+.contact-topics b { font-size: 14.5px; }
+.contact-topics p { font-size: 13.5px; color: var(--muted); line-height: 1.6; margin-top: 2px; opacity: 1; }
 .founder-photo { width: 120px; height: 120px; border-radius: 50%; object-fit: cover; border: 3px solid var(--green); margin: 0 auto 10px; }
 .foot-made { font-size: 12.5px; font-weight: 600; color: var(--muted); margin-bottom: 8px; font-family: Inter, "Hind Siliguri", sans-serif; }
 .foot-links { display: flex; justify-content: center; gap: 16px; flex-wrap: wrap; margin-bottom: 8px; }
@@ -538,7 +548,8 @@ button.scr { width: 100%; }
   .main.narrow { max-width: 820px; margin: 0 auto; }
   .page-head, .team-hero { padding-left: 0; padding-right: 0; }
 
-  .foot-cols { grid-template-columns: repeat(4, 1fr); }
+  .foot-cols { grid-template-columns: repeat(3, 1fr); }
+  .contact-cards, .contact-topics { grid-template-columns: 1fr 1fr; }
   .foot { border-radius: 22px 22px 0 0; }
   /* পরিচিতি তিন কলামে */
   .about-wrap { display: grid; grid-template-columns: 1fr 1.4fr 1fr; gap: 32px; margin-top: 44px; }
@@ -1706,10 +1717,9 @@ function Footer({ comps = [] }) {
   const bn = lang === "bn";
   const nav = useNav();
   const cols = [
-    [bn ? "খেলা কখন?" : "Khela Kokhon", [[bn ? "আমাদের কথা" : "About us", () => nav.openPage("about")], [bn ? "কীভাবে কাজ করে" : "How it works", () => nav.openPage("how")], [bn ? "প্রতিষ্ঠাতা" : "Founder", () => nav.openPage("founder")]]],
+    [bn ? "খেলা কখন?" : "Khela Kokhon", [[bn ? "আমাদের কথা" : "About us", () => nav.openPage("about")], [bn ? "কীভাবে কাজ করে" : "How it works", () => nav.openPage("how")], [bn ? "প্রতিষ্ঠাতা" : "Founder", () => nav.openPage("founder")], [bn ? "যোগাযোগ" : "Contact", () => nav.openPage("contact")]]],
     [bn ? "লিগ" : "Leagues", comps.map((c) => [compName(c, lang), () => nav.openLeague(c.code)])],
     [bn ? "ফিচার" : "Features", [[bn ? "ম্যাচের সূচি" : "Fixtures", () => nav.go("matches")], [bn ? "প্রেডিকশন ও লিডারবোর্ড" : "Predictions & leaderboard", () => nav.go("predict")], [bn ? "জিজ্ঞেস করো" : "Ask", () => nav.go("ask")], [bn ? "প্রোফাইল" : "Profile", () => nav.go("profile")]]],
-    [bn ? "যোগাযোগ" : "Contact", [["khelakokhon@gmail.com", "mailto:khelakokhon@gmail.com"], [bn ? "ফেসবুক পেজ" : "Facebook page", "https://www.facebook.com/khelakokhon"]]],
   ];
   return (
     <footer className="foot">
@@ -1761,6 +1771,42 @@ function InfoPage({ id, user, goProfile }) {
       </div>
     </>
   );
+  if (id === "contact") {
+    const bn = lang === "bn";
+    const topics = bn
+      ? [["মতামত ও পরামর্শ", "সাইটের কোনো অংশ ভালো লাগলে বা কিছু বদলানো দরকার মনে হলে জানাও।"],
+         ["ভুল বা সমস্যা", "কোনো সময়, ফল বা নাম ভুল দেখলে, অথবা কিছু কাজ না করলে লেখো। কোন পাতায় কী দেখছ, সম্ভব হলে স্ক্রিনশটসহ।"],
+         ["নতুন ফিচারের অনুরোধ", "নতুন লিগ, নতুন সুবিধা বা অন্য কোনো ভাবনা থাকলে জানাতে পারো।"],
+         ["সহযোগিতা ও বিজ্ঞাপন", "যৌথ কাজ, স্পনসরশিপ বা বিজ্ঞাপন নিয়ে কথা বলতে চাইলে ইমেইল করো।"]]
+      : [["Feedback", "Tell us what you like or what should change."],
+         ["Errors and problems", "Spotted a wrong time, score or name, or something not working? Tell us which page, with a screenshot if you can."],
+         ["Feature requests", "New leagues, new features or any other idea."],
+         ["Partnerships and ads", "For collaborations, sponsorship or advertising, please email."]];
+    return (
+      <>
+        {back}
+        <div className="sec info">
+          <h1>{bn ? "যোগাযোগ" : "Contact"}</h1>
+          <p>{bn ? "খেলা কখন? একজন মানুষের হাতে বানানো আর চালানো সাইট। তোমার মতামত, প্রশ্ন বা ভুল ধরিয়ে দেওয়া, সবই সাইটটাকে আরও ভালো করে। নিচের যেকোনো উপায়ে লিখতে পারো, প্রতিটা বার্তা পড়া হয়।" : "Khela Kokhon is built and run by one person. Your feedback, questions and bug reports all make it better. Reach out any way below; every message is read."}</p>
+          <div className="contact-cards">
+            <a className="card contact-card" href="mailto:khelakokhon@gmail.com">
+              <span className="contact-ic"><MailIcon /></span>
+              <span><b>{bn ? "ইমেইল" : "Email"}</b><small>khelakokhon@gmail.com</small></span>
+            </a>
+            <a className="card contact-card" href="https://www.facebook.com/khelakokhon" target="_blank" rel="noopener noreferrer">
+              <span className="contact-ic fb"><FbIcon /></span>
+              <span><b>{bn ? "ফেসবুক পেজ" : "Facebook page"}</b><small>facebook.com/khelakokhon</small></span>
+            </a>
+          </div>
+          <h2>{bn ? "কী নিয়ে লিখতে পারো" : "What you can write about"}</h2>
+          <div className="contact-topics">
+            {topics.map(([h, d]) => <div key={h}><b>{h}</b><p>{d}</p></div>)}
+          </div>
+          <p className="muted" style={{ fontSize: 13.5, marginTop: 14 }}>{bn ? "ভুল জানানোর সময় কোন ম্যাচ বা পাতা, আর কোন ফোন বা ব্রাউজার ব্যবহার করছ লিখলে দ্রুত ঠিক করা সহজ হয়।" : "When reporting a problem, mentioning the match or page and your phone or browser helps fix it faster."}</p>
+        </div>
+      </>
+    );
+  }
   if (id === "how") return (
     <>
       {back}
@@ -3496,8 +3542,8 @@ const TABS = [
 const tabFromPath = () => TABS.find((x) => x.path === window.location.pathname)?.id || "matches"; // পুরনো /matches লিংকও ম্যাচে যায়
 // /league/PL বা /team/86 হলে সেই পাতা
 // ফুটারের আলাদা পাতা
-const PAGE_PATHS = { about: "about", "how-it-works": "how", founder: "founder" };
-const PAGE_URL = { about: "/about", how: "/how-it-works", founder: "/founder" };
+const PAGE_PATHS = { about: "about", "how-it-works": "how", founder: "founder", contact: "contact" };
+const PAGE_URL = { about: "/about", how: "/how-it-works", founder: "/founder", contact: "/contact" };
 const viewFromPath = () => {
   const [, kind, id] = window.location.pathname.split("/");
   if (kind === "league" && id) return { kind: "league", code: id.toUpperCase() };
