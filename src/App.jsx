@@ -3131,56 +3131,75 @@ const DEMO_QUIZ_Q = [
 ];
 const demoQuiz = {};
 function demoQuizCall(fn, a) {
-  const now = Date.now(), per = 34000;
+  const now = Date.now(), Q = 30000, GAP = 3000, n = DEMO_QUIZ_Q.length;
   const room = demoQuiz[(a.p_code || "").toUpperCase()];
   const bots = [["রাফি (অনুশীলন)", 0.7], ["নুসরাত (অনুশীলন)", 0.5]];
   if (fn === "quiz_create") {
     const code = Math.random().toString(16).slice(2, 8).toUpperCase();
-    demoQuiz[code] = { code, status: "lobby", started: null, players: [{ id: "me", name: ls.get("user", {})?.user_metadata?.name || "আপনি", joined: now }, ...bots.map(([n, p], i) => ({ id: "b" + i, name: n, skill: p, joined: now + i + 1 }))], answers: {}, next: null };
+    demoQuiz[code] = { code, status: "lobby", started: null, next: null, answers: {},
+      players: [{ id: "me", name: ls.get("user", {})?.user_metadata?.name || "আপনি", joined: now }, ...bots.map(([nm, sk], i) => ({ id: "b" + i, name: nm, skill: sk, joined: now + i + 1 }))] };
     return code;
   }
   if (!room) throw new Error("room not found");
-  const t = () => (now - room.started) / 1000, n = DEMO_QUIZ_Q.length;
-  // অনুশীলনের সঙ্গীরা ২–১৮ সেকেন্ডের মধ্যে উত্তর দেয়
-  if (room.status === "running") for (const b of room.players.filter((p) => p.skill)) for (let i = 0; i < n; i++) {
-    const k = b.id + ":" + i; if (room.answers[k]) continue;
-    const at = ((i * 7 + b.id.charCodeAt(1)) % 16) + 2;
-    if (t() > i * 34 + at) room.answers[k] = { choice: Math.random() < b.skill ? DEMO_QUIZ_Q[i][2] : (DEMO_QUIZ_Q[i][2] + 1) % 4, ms: at * 1000 };
-  }
-  const elNow = t(), idxNow = Math.floor(elNow / 34);
-  // সবাই উত্তর দিলে সঙ্গে সঙ্গে উত্তর দেখানোর ধাপ (সার্ভারের মতোই)
-  if (room.status === "running" && elNow >= 0 && idxNow < n && elNow - idxNow * 34 < 30 && room.players.every((p) => room.answers[p.id + ":" + idxNow])) room.started -= (30 - (elNow - idxNow * 34)) * 1000;
+  // সার্ভারের quiz_progress-এর মতোই: সময় পেরোনো প্রশ্নে "উত্তর দেননি", অনুশীলনের সঙ্গীরা নিজের সময়ে উত্তর দেয়
+  const progress = (p) => {
+    const list = (room.answers[p.id] ||= []);
+    let qstart = list.length ? list[list.length - 1].at + GAP : room.started;
+    while (list.length < n) {
+      const i = list.length;
+      if (p.skill) {
+        const d = ((i * 7 + p.id.charCodeAt(1) * 3) % 14 + 3) * 1000;
+        if (now >= qstart + d) { list.push({ choice: Math.random() < p.skill ? DEMO_QUIZ_Q[i][2] : (DEMO_QUIZ_Q[i][2] + 1) % 4, ms: d, at: qstart + d }); qstart += d + GAP; continue; }
+      }
+      if (now >= qstart + Q) { list.push({ choice: null, ms: Q, at: qstart + Q }); qstart += Q + GAP; continue; }
+      break;
+    }
+    return { idx: list.length, qstart };
+  };
   if (fn === "quiz_join") return null;
   if (fn === "quiz_start") { room.status = "running"; room.started = now + 3000; return null; }
   if (fn === "quiz_again") { if (!room.next) { room.next = demoQuizCall("quiz_create", {}); room.status = "closed"; } return room.next; }
   if (fn === "quiz_close") { room.status = "closed"; return null; }
-  if (fn === "quiz_state" && room.status === "closed") return { code: room.code, status: "closed", is_host: true, next_code: room.next, member: true, players: [] };
+  if (room.status === "closed") return { code: room.code, status: "closed", is_host: true, next_code: room.next, member: true, players: [] };
+  const me = room.players[0];
   if (fn === "quiz_answer") {
-    const el = t(), cur = Math.floor(el / 34);
-    if (cur !== a.p_index || el - cur * 34 >= 30 || el < 0) throw new Error("time over");
-    room.answers["me:" + cur] ||= { choice: a.p_choice, ms: Math.round((el - cur * 34) * 1000) };
-    return demoQuizCall("quiz_state", a) && { ok: true };
+    if (room.status !== "running") throw new Error("not running");
+    const pr = progress(me);
+    if (pr.idx !== a.p_index || now < pr.qstart) throw new Error("time over");
+    room.answers.me.push({ choice: a.p_choice, ms: now - pr.qstart, at: now });
+    return { ok: true };
   }
   // quiz_state
-  let el = t(), phase = room.status, idx = null, done = 0;
-  if (room.status === "running" && el >= n * 34) { room.status = "finished"; phase = "finished"; }
-  if (room.status === "running") {
-    if (el < 0) { phase = "countdown"; idx = 0; } else { idx = Math.floor(el / 34); phase = el - idx * 34 < 30 ? "question" : "reveal"; }
-    done = phase === "reveal" ? idx + 1 : idx;
-  } else if (room.status === "finished") done = n;
-  const A = (pid, i) => room.answers[pid + ":" + i];
-  const players = room.players.map((p) => {
-    let score = 0, ms = 0;
-    for (let i = 0; i < done; i++) { const x = A(p.id, i); if (x && x.choice === DEMO_QUIZ_Q[i][2]) score++; ms += x ? x.ms : 30000; }
-    return { name: p.name, me: p.id === "me", host: p.id === "me", score, ms, joined: p.joined };
-  }).sort((x, y) => y.score - x.score || x.ms - y.ms || x.joined - y.joined);
-  let current = null;
-  if (phase === "question" || phase === "reveal") {
-    const [qq, opts, ans, ex] = DEMO_QUIZ_Q[idx], m = A("me", idx);
-    current = { index: idx, category: "খেলাধুলা", question: qq, options: opts, mine: m ? { choice: m.choice, correct: m.choice === ans, ms: m.ms } : null, answered: room.players.filter((p) => A(p.id, idx)).length, ...(phase === "reveal" ? { answer: ans, explanation: ex } : {}) };
+  let ndone = 0, phase = room.status, ends = null, cur = null;
+  if (room.status === "running" && now >= room.started) {
+    room.players.forEach(progress);
+    ndone = room.players.filter((p) => room.answers[p.id].length >= n).length;
+    if (ndone === room.players.length) { room.status = "finished"; phase = "finished"; }
   }
-  const review = room.status === "finished" ? DEMO_QUIZ_Q.map(([qq, opts, ans, ex], i) => ({ question: qq, options: opts, answer: ans, explanation: ex, choice: A("me", i)?.choice ?? null })) : null;
-  return { code: room.code, status: room.status, phase, index: idx, total: n, done, q_seconds: 30, gap_seconds: 4, started_at: room.started && new Date(room.started).toISOString(), now: new Date(now).toISOString(), is_host: true, next_code: room.next, current, review, players };
+  if (room.status === "running") {
+    if (now < room.started) { phase = "countdown"; ends = room.started; }
+    else {
+      const pr = progress(me);
+      if (pr.idx >= n) phase = "waiting";
+      else {
+        const reveal = now < pr.qstart, ci = reveal ? pr.idx - 1 : pr.idx;
+        const [qq, opts, ans, ex] = DEMO_QUIZ_Q[ci];
+        phase = reveal ? "reveal" : "question"; ends = reveal ? pr.qstart : pr.qstart + Q;
+        cur = { index: ci, category: "খেলাধুলা", question: qq, options: opts, started_at: reveal ? null : new Date(pr.qstart).toISOString() };
+        if (reveal) { const m = room.answers.me[ci]; cur = { ...cur, answer: ans, explanation: ex, mine: { choice: m.choice, correct: m.choice === ans, ms: m.ms } }; }
+      }
+    }
+  }
+  const fin = room.status === "finished";
+  const players = room.players.map((p) => {
+    const list = room.answers[p.id] || [], show = fin || p.id === "me";
+    return { name: p.name, me: p.id === "me", host: p.id === "me", joined: p.joined,
+      score: show ? list.filter((x, i) => x.choice === DEMO_QUIZ_Q[i][2]).length : null, ms: show ? list.reduce((t, x) => t + x.ms, 0) : null };
+  }).sort((x, y) => (y.score ?? -1) - (x.score ?? -1) || (x.ms ?? 1e9) - (y.ms ?? 1e9) || x.joined - y.joined);
+  const review = fin ? DEMO_QUIZ_Q.map(([qq, opts, ans, ex], i) => ({ question: qq, options: opts, answer: ans, explanation: ex, choice: room.answers.me?.[i]?.choice ?? null })) : null;
+  return { code: room.code, status: room.status, phase, total: n, finished_count: ndone, q_seconds: 30, gap_seconds: 3,
+    started_at: room.started && new Date(room.started).toISOString(), ends_at: ends && new Date(ends).toISOString(), now: new Date(now).toISOString(),
+    is_host: true, next_code: room.next, current: cur, review, players };
 }
 async function quizCall(fn, args = {}) {
   if (DEMO) return demoQuizCall(fn, args);
@@ -3266,12 +3285,9 @@ function QuizPage({ code, user, goProfile, toast }) {
     setSt(null); setErr(""); setPicked({}); joined.current = false;
     // পরের খোঁজ: সাধারণত ০.৯–১.৬ সেকেন্ডে, কিন্তু ধাপ বদলের (প্রশ্ন শেষ, উত্তর দেখানো শেষ) ঠিক পরেই
     const nextDelay = (s) => {
-      if (s.status !== "running" || !s.started_at) return 1600;
-      const per = s.q_seconds + s.gap_seconds;
-      const el = (Date.parse(s.now) - Date.parse(s.started_at)) / 1000;
-      const into = el < 0 ? el : el - Math.floor(el / per) * per;
-      const toEdge = el < 0 ? -el : into < s.q_seconds ? s.q_seconds - into : per - into;
-      return Math.max(120, Math.min(900, toEdge * 1000 + 80));
+      if (s.status !== "running") return 1600;
+      if (!s.ends_at) return 1200; // নিজে শেষ করে অন্যদের অপেক্ষা
+      return Math.max(120, Math.min(900, Date.parse(s.ends_at) - Date.parse(s.now) + 80));
     };
     let last = null;
     const load = async () => {
@@ -3371,10 +3387,9 @@ function QuizPage({ code, user, goProfile, toast }) {
       </div>
     </div>
   );
-  const per = st.q_seconds + st.gap_seconds;
   const el = st.started_at ? (Date.now() + offset.current - Date.parse(st.started_at)) / 1000 : 0;
   const cur = st.current;
-  const intoQ = cur ? el - cur.index * per : 0;
+  const intoQ = cur?.started_at ? (Date.now() + offset.current - Date.parse(cur.started_at)) / 1000 : 0;
   const left = Math.max(0, Math.ceil(st.q_seconds - intoQ));
 
   // ── অপেক্ষা (লবি) ──
@@ -3444,6 +3459,18 @@ function QuizPage({ code, user, goProfile, toast }) {
   if (st.phase === "countdown") return (
     <div className="sec"><div className="qz-count" key={Math.ceil(-el)}>{num(Math.max(1, Math.ceil(-el)), lang)}</div><p className="muted" style={{ textAlign: "center" }}>{bn ? "প্রস্তুত হোন…" : "Get ready…"}</p></div>
   );
+  if (st.phase === "waiting") return (
+    <div className="sec">
+      <div className="card qz-result">
+        <div className="qz-big"><span className="qz-badge big r1"><TrophyIcon width={30} height={30} /></span></div>
+        <h2>{bn ? "আপনি সব প্রশ্ন শেষ করেছেন!" : "You're done!"}</h2>
+        {me && <div className="qz-score"><CountUp to={me.score} lang={lang} /><small>/{num(st.total, lang)}</small></div>}
+        <div className="qz-wait"><span className="spin sm" />{bn ? `অন্যদের শেষ হওয়ার অপেক্ষা · ${num(st.finished_count, "bn")}/${num(st.players.length, "bn")} জন শেষ করেছেন` : `Waiting for others · ${st.finished_count}/${st.players.length} done`}</div>
+        <small className="muted">{bn ? "সবাই শেষ করলেই কে কততম, দেখা যাবে।" : "Rankings appear when everyone finishes."}</small>
+      </div>
+    </div>
+  );
+  if (st.phase === "watching") return <div className="sec"><GameSwitch on="quiz" /><div className="card empty">{bn ? "খেলা চলছে। আপনি এই কুইজে নেই।" : "A quiz is in progress. You're not in it."}</div></div>;
   if (!cur) return <div className="sec"><Loading /></div>;
   const mine = cur.mine?.choice ?? picked[cur.index];
   const reveal = st.phase === "reveal";
@@ -3470,7 +3497,7 @@ function QuizPage({ code, user, goProfile, toast }) {
           {cur.explanation && <span>{cur.explanation}</span>}
         </div>
       ) : mine != null ? (
-        <div className="qz-wait"><span className="spin sm" />{bn ? `উত্তর জমা হয়েছে · ${num(cur.answered, "bn")}/${num(st.players.length, "bn")} জন দিয়েছে` : `Answer locked · ${cur.answered}/${st.players.length} answered`}</div>
+        <div className="qz-wait"><span className="spin sm" />{bn ? "উত্তর জমা হচ্ছে…" : "Locking in…"}</div>
       ) : !me ? <div className="qz-wait">{bn ? "আপনি এই কুইজে নেই, শুধু দেখছেন।" : "You're watching."}</div> : null}
     </div>
   );
