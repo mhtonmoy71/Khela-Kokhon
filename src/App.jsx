@@ -2581,6 +2581,8 @@ function findPlayer(q, scorers, teams) {
   const teamWords = new Set(teams.flatMap((t) => [...teamAliases(t), ...(NICK[t.id] || [])].filter(Boolean).flatMap((x) => norm(x).split(" "))));
   // এক খেলোয়াড় অনেক লিগে থাকতে পারে, তাই id ধরে একবার
   const people = [...new Map(scorers.map((r) => [r.player_id, r])).values()];
+  const goalsOf = {};
+  for (const x of scorers) goalsOf[x.player_id] = (goalsOf[x.player_id] || 0) + (x.goals || 0);
   const latinQ = q.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
   // ১) ইংরেজি পুরো নাম বা শেষ নাম
   for (const r of people) {
@@ -2614,7 +2616,8 @@ function findPlayer(q, scorers, teams) {
         const ratio = lev(wv, pv) / Math.max(wv.length, pv.length, 1);
         // ছোট কঙ্কাল (বায়েনা → bn) হলে উচ্চারণ প্রায় হুবহু মিলতে হবে
         const okD = (Math.min(ws.length, ps.length) >= 5 ? d <= 1 : d === 0) && ratio <= (ws.length < 3 ? 0.2 : 0.3);
-        if (okD && (!best || d < best.d)) best = { r, d, n: 1 };
+        // সমান মিললে যার গোল বেশি সে (ইসাক → লিভারপুলের Isak, সেভিয়ার Isaac নয়)
+        if (okD && (!best || d < best.d || (d === best.d && (goalsOf[r.player_id] || 0) > (goalsOf[best.r.player_id] || 0)))) best = { r, d, n: 1 };
         else if (okD && best && d === best.d && best.r.player_id !== r.player_id) best.n++;
       }
     }
