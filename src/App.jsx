@@ -462,6 +462,8 @@ img { display: block; }
 .qz-hero-ic { font-size: 44px; }
 .qz-hero h2 { font-size: 21px; margin: 6px 0 6px; }
 .qz-hero p { font-size: 13.5px; line-height: 1.6; margin-bottom: 16px; }
+.qz-modes { display: grid; gap: 10px; }
+.qz-modes .btn { height: 50px; font-size: 16px; }
 .qz-join { margin-top: 12px; padding: 14px; }
 .qz-join form { display: flex; gap: 8px; margin-top: 10px; }
 .qz-join input { flex: 1; min-width: 0; height: 44px; border-radius: 12px; border: 1px solid var(--line); background: var(--card2); padding: 0 14px; font-size: 16px; letter-spacing: 2px; text-transform: uppercase; outline: none; color: var(--text); }
@@ -3233,15 +3235,28 @@ function QuizPage({ code, user, goProfile, toast }) {
     return () => { alive = false; clearTimeout(timer); clearInterval(t2); };
   }, [code, user?.id]);
 
-  async function create() {
+  // solo = একা খেলা: বানিয়েই সঙ্গে সঙ্গে শুরু, অপেক্ষার ঘর ছাড়াই
+  async function create(solo) {
     if (!user) { try { localStorage.setItem("kk_quiz", "new"); } catch { /* ignore */ } toast(bn ? "কুইজ খেলতে আগে লগইন করো" : "Log in to play"); goProfile(); return; }
     setBusy(true);
-    try { const c = await quizCall("quiz_create", { n: QUIZ_N }); nav.openQuiz(c, true); }
+    try {
+      const c = await quizCall("quiz_create", { n: QUIZ_N });
+      if (solo === true) await quizCall("quiz_start", { p_code: c });
+      nav.openQuiz(c, true);
+    }
     catch (e) { setErr(quizMsg(e, lang)); }
     setBusy(false);
   }
   async function start() { setBusy(true); try { await quizCall("quiz_start", { p_code: code }); } catch (e) { setErr(quizMsg(e, lang)); } setBusy(false); }
-  async function again() { setBusy(true); try { const c = await quizCall("quiz_again", { p_code: code }); nav.openQuiz(c, true); } catch (e) { setErr(quizMsg(e, lang)); } setBusy(false); }
+  async function again() {
+    setBusy(true);
+    try {
+      const c = await quizCall("quiz_again", { p_code: code });
+      if (st?.players?.length === 1) await quizCall("quiz_start", { p_code: c }); // একা খেলায় অপেক্ষার ঘর লাগে না
+      nav.openQuiz(c, true);
+    } catch (e) { setErr(quizMsg(e, lang)); }
+    setBusy(false);
+  }
   async function answer(i, choice) {
     if (picked[i] != null) return;
     setPicked((p) => ({ ...p, [i]: choice }));
@@ -3256,8 +3271,11 @@ function QuizPage({ code, user, goProfile, toast }) {
       <div className="card qz-hero">
         <div className="qz-hero-ic">🧠</div>
         <h2>{bn ? "স্পোর্টস কুইজ" : "Sports quiz"}</h2>
-        <p className="muted">{bn ? "১০টা প্রশ্ন, প্রতিটায় ৩০ সেকেন্ড। একা খেলো, বা লিংক পাঠিয়ে বন্ধুদের সাথে লাইভ। সমান স্কোর হলে যে দ্রুত উত্তর দিয়েছে, সে এগিয়ে।" : "10 questions, 30 seconds each. Play solo or send a link and play live with friends. Ties go to the faster player."}</p>
-        <button className="btn block" disabled={busy} onClick={create}>{busy ? "…" : bn ? "নতুন কুইজ শুরু করো" : "Start a new quiz"}</button>
+        <p className="muted">{bn ? "১০টা প্রশ্ন, প্রতিটায় ৩০ সেকেন্ড। একা খেলে নিজেকে যাচাই করো, বা লিংক পাঠিয়ে বন্ধুদের সাথে লাইভ। সমান স্কোর হলে যে দ্রুত উত্তর দিয়েছে, সে এগিয়ে।" : "10 questions, 30 seconds each. Test yourself solo, or send a link and play live with friends. Ties go to the faster player."}</p>
+        <div className="qz-modes">
+          <button className="btn block" disabled={busy} onClick={() => create(true)}>{busy ? "…" : <>🙋 {bn ? "একা খেলো" : "Play solo"}</>}</button>
+          <button className="btn ghost block" disabled={busy} onClick={() => create(false)}>👥 {bn ? "বন্ধুদের সাথে খেলো" : "Play with friends"}</button>
+        </div>
       </div>
       <div className="card qz-join">
         <b>{bn ? "বন্ধুর কুইজে যোগ দাও" : "Join a friend's quiz"}</b>
@@ -3316,7 +3334,8 @@ function QuizPage({ code, user, goProfile, toast }) {
       <div className="qz-actions">
         {st.is_host ? <button className="btn block" disabled={busy} onClick={again}>🔁 {bn ? "আবার খেলো (নতুন ১০টা প্রশ্ন)" : "Play again"}</button>
           : me ? <div className="qz-wait"><span className="spin sm" />{bn ? "হোস্ট আবার খেললে নিজে থেকেই যোগ হয়ে যাবে" : "You'll join automatically if the host plays again"}</div> : null}
-        <button className="btn ghost block" disabled={busy} onClick={create}>{bn ? "নিজে নতুন কুইজ বানাও" : "Start my own quiz"}</button>
+        {st.players.length > 1 ? <button className="btn ghost block" disabled={busy} onClick={() => create(true)}>🙋 {bn ? "এবার একা খেলো" : "Play solo"}</button>
+          : <button className="btn ghost block" disabled={busy} onClick={() => create(false)}>👥 {bn ? "বন্ধুদের সাথে খেলো" : "Play with friends"}</button>}
       </div>
       {st.review && (
         <details className="card qz-review">
