@@ -536,6 +536,7 @@ img { display: block; }
 .qz-score { font-family: Inter, sans-serif; font-size: 54px; font-weight: 800; color: var(--green); line-height: 1.1; }
 .qz-score small { font-size: 24px; color: var(--muted); }
 .qz-actions { display: grid; gap: 10px; margin-top: 16px; }
+.qz-note { text-align: center; font-size: 12px; }
 .qz-review { margin-top: 14px; padding: 12px 14px; }
 .qz-review summary { font-weight: 700; cursor: pointer; }
 .qz-rv { padding: 10px 0; border-top: 1px solid var(--line); display: flex; flex-direction: column; gap: 3px; font-size: 13.5px; }
@@ -3111,6 +3112,7 @@ const QUIZ_ERR = {
   "already started": ["এই কুইজ শুরু হয়ে গেছে। হোস্ট আবার খেললে যোগ দিতে পারবেন।", "This quiz has already started."],
   "login required": ["কুইজ খেলতে আগে লগইন করুন।", "Log in to play."],
   "time over": ["সময় শেষ!", "Time's up!"],
+  "room closed": ["এই কুইজ শেষ হয়ে গেছে, লিংকটি আর চালু নেই।", "This quiz has ended; the link no longer works."],
 };
 const quizMsg = (e, lang) => { const m = String(e?.message || e); const k = Object.keys(QUIZ_ERR).find((x) => m.includes(x)); return k ? QUIZ_ERR[k][lang === "bn" ? 0 : 1] : (lang === "bn" ? "কিছু একটা গোলমাল হলো, আবার চেষ্টা করুন।" : "Something went wrong."); };
 
@@ -3150,7 +3152,9 @@ function demoQuizCall(fn, a) {
   if (room.status === "running" && elNow >= 0 && idxNow < n && elNow - idxNow * 34 < 30 && room.players.every((p) => room.answers[p.id + ":" + idxNow])) room.started -= (30 - (elNow - idxNow * 34)) * 1000;
   if (fn === "quiz_join") return null;
   if (fn === "quiz_start") { room.status = "running"; room.started = now + 3000; return null; }
-  if (fn === "quiz_again") { if (!room.next) { room.next = demoQuizCall("quiz_create", {}); } return room.next; }
+  if (fn === "quiz_again") { if (!room.next) { room.next = demoQuizCall("quiz_create", {}); room.status = "closed"; } return room.next; }
+  if (fn === "quiz_close") { room.status = "closed"; return null; }
+  if (fn === "quiz_state" && room.status === "closed") return { code: room.code, status: "closed", is_host: true, next_code: room.next, member: true, players: [] };
   if (fn === "quiz_answer") {
     const el = t(), cur = Math.floor(el / 34);
     if (cur !== a.p_index || el - cur * 34 >= 30 || el < 0) throw new Error("time over");
@@ -3281,7 +3285,7 @@ function QuizPage({ code, user, goProfile, toast }) {
           joined.current = true;
           await quizCall("quiz_join", { p_code: code }).catch((e) => setErr(quizMsg(e, lang)));
         }
-        if (s.next_code && s.players.some((p) => p.me) && s.status === "finished") { nav.openQuiz(s.next_code, true); return; }
+        if (s.next_code && (s.member || s.players.some((p) => p.me))) { nav.openQuiz(s.next_code, true); return; }
       } catch (e) { if (alive) setErr(quizMsg(e, lang)); }
       if (alive) timer = setTimeout(load, last ? nextDelay(last) : 1600);
     };
@@ -3300,6 +3304,12 @@ function QuizPage({ code, user, goProfile, toast }) {
       if (solo === true) await quizCall("quiz_start", { p_code: c });
       nav.openQuiz(c, true);
     }
+    catch (e) { setErr(quizMsg(e, lang)); }
+    setBusy(false);
+  }
+  async function close() {
+    setBusy(true);
+    try { await quizCall("quiz_close", { p_code: code }); nav.openQuiz(null, true); }
     catch (e) { setErr(quizMsg(e, lang)); }
     setBusy(false);
   }
@@ -3348,6 +3358,19 @@ function QuizPage({ code, user, goProfile, toast }) {
 
   const me = st.players.find((p) => p.me);
   const myRank = st.players.indexOf(me);
+
+  // শেষ হওয়া বা বন্ধ কুইজ: লিংক আর চলে না (খেলোয়াড়রা ফল দেখতে পান, হোস্ট বন্ধ করার আগ পর্যন্ত)
+  if (st.status === "closed" || (st.status === "finished" && !me)) return (
+    <div className="sec">
+      <GameSwitch on="quiz" />
+      <div className="card qz-hero">
+        <div className="qz-hero-ic"><QuizIcon width={34} height={34} /></div>
+        <h2>{bn ? "এই কুইজ শেষ হয়ে গেছে" : "This quiz has ended"}</h2>
+        <p className="muted">{bn ? "লিংকটি আর চালু নেই। চাইলে নতুন একটা কুইজ শুরু করুন।" : "The link no longer works. Start a new quiz instead."}</p>
+        <button className="btn block" onClick={() => nav.openQuiz(null, true)}>{bn ? "নতুন কুইজ খেলুন" : "Play a new quiz"}</button>
+      </div>
+    </div>
+  );
   const per = st.q_seconds + st.gap_seconds;
   const el = st.started_at ? (Date.now() + offset.current - Date.parse(st.started_at)) / 1000 : 0;
   const cur = st.current;
@@ -3388,10 +3411,18 @@ function QuizPage({ code, user, goProfile, toast }) {
       ) : <div className="card empty">{bn ? "কুইজ শেষ। আপনি এই কুইজে ছিলেন না।" : "This quiz is over."}</div>}
       {st.players.length > 1 && <><div className="sec-h" style={{ marginTop: 14 }}><h2>{bn ? "ফলাফল" : "Results"}</h2></div><QuizBoard players={st.players} lang={lang} /></>}
       <div className="qz-actions">
-        {st.is_host ? <button className="btn block qz-ic-btn" disabled={busy} onClick={again}><ReplayIcon width={18} height={18} />{bn ? "আবার খেলুন (নতুন ১০টা প্রশ্ন)" : "Play again"}</button>
-          : me ? <div className="qz-wait"><span className="spin sm" />{bn ? "হোস্ট আবার খেললে নিজে থেকেই যোগ হয়ে যাবেন" : "You'll join automatically if the host plays again"}</div> : null}
-        {st.players.length > 1 ? <button className="btn ghost block qz-ic-btn" disabled={busy} onClick={() => create(true)}><UserIcon width={18} height={18} />{bn ? "এবার একা খেলুন" : "Play solo"}</button>
-          : <button className="btn ghost block qz-ic-btn" disabled={busy} onClick={() => create(false)}><UsersIcon width={18} height={18} />{bn ? "বন্ধুদের সাথে খেলুন" : "Play with friends"}</button>}
+        {st.is_host ? (
+          <>
+            <button className="btn block qz-ic-btn" disabled={busy} onClick={again}><ReplayIcon width={18} height={18} />{bn ? "আবার খেলুন (নতুন ১০টা প্রশ্ন)" : "Play again"}</button>
+            <button className="btn ghost block" disabled={busy} onClick={close}>{bn ? "না, খেলা শেষ করুন" : "No, end the game"}</button>
+            {st.players.length > 1 && <small className="muted qz-note">{bn ? "খেলা শেষ করলে এই লিংকটি আর কাজ করবে না।" : "Ending closes this link for everyone."}</small>}
+          </>
+        ) : (
+          <>
+            <div className="qz-wait"><span className="spin sm" />{bn ? "হোস্ট আবার খেললে নিজে থেকেই যোগ হয়ে যাবেন" : "You'll join automatically if the host plays again"}</div>
+            <button className="btn ghost block" onClick={() => nav.openQuiz(null, true)}>{bn ? "বের হোন" : "Leave"}</button>
+          </>
+        )}
       </div>
       {st.review && (
         <details className="card qz-review">
