@@ -59,6 +59,8 @@ img { display: block; }
 .row:last-child { border-bottom: 0; }
 .row:active { background: var(--card2); }
 .side { display: flex; align-items: center; gap: 8px; min-width: 0; font-size: 14px; font-weight: 500; }
+@media (max-width: 380px) { .side { font-size: 13px; gap: 6px; } .row { padding-left: 8px; padding-right: 8px; grid-template-columns: 1fr 66px 1fr; } .row.has-badge { padding-left: 46px; } }
+@media (max-width: 340px) { .side { font-size: 12.5px; gap: 4px; } .side .crest, .side .crest-fb { width: 18px !important; height: 18px !important; font-size: 6.5px !important; } .row { gap: 4px; padding-left: 6px; padding-right: 6px; grid-template-columns: 1fr 60px 1fr; } .mid .t { font-size: 12px; } }
 .side.home { justify-content: flex-end; text-align: right; }
 .side span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .side.win span { font-weight: 700; }
@@ -1370,7 +1372,18 @@ const teamName = (team, lang) =>
     : TEAM_NAMES[team.id] ? TEAM_NAMES[team.id][lang === "bn" ? 1 : 0]
     : lang === "bn" ? team.name_bn || team.short_en || team.name_en : team.short_en || team.name_en;
 // খোঁজার জন্য দলের সব নাম
-const teamAliases = (t) => [t.name_bn, t.name_en, t.short_en, ...(TEAM_NAMES[t.id] || [])];
+const teamAliases = (t) => [t.name_bn, t.name_en, t.short_en, ...(TEAM_NAMES[t.id] || []), ...(TEAM_SHORT[t.id] || [])];
+// ম্যাচের সারিতে জায়গা কম: লম্বা নামের প্রচলিত ছোট রূপ (FotMob-এর মতো)। দলের পাতা, শিট, সার্চে পুরো নাম থাকে।
+const TEAM_SHORT = {
+  65: ["Man City", "ম্যান সিটি"], 66: ["Man United", "ম্যান ইউনাইটেড"], 351: ["Nott'm Forest", "নটিংহাম"], 76: ["Wolves", "উলভস"],
+  349: ["Ipswich", "ইপসউইচ"], 341: ["Leeds", "লিডস"], 1076: ["Coventry", "কভেন্ট্রি"], 322: ["Hull", "হাল সিটি"],
+  78: ["Atlético", "আতলেতিকো"], 77: ["Athletic", "অ্যাথলেটিক"], 560: ["Deportivo", "দেপোর্তিভো"], 5335: ["Racing", "রেসিং"], 87: ["Rayo", "রায়ো"],
+  4: ["Dortmund", "ডর্টমুন্ড"], 3: ["Leverkusen", "লেভারকুসেন"], 18: ["Gladbach", "গ্লাডবাখ"], 19: ["Frankfurt", "ফ্রাঙ্কফুর্ট"],
+  12: ["Bremen", "ব্রেমেন"], 721: ["Leipzig", "লাইপজিগ"], 5: ["Bayern", "বায়ার্ন"],
+  524: ["PSG", "পিএসজি"], 674: ["PSV", "পিএসভি"], 1887: ["Shakhtar", "শাখতার"], 7509: ["Slovan", "স্লোভান"], 930: ["Slavia", "স্লাভিয়া"],
+  498: ["Sporting", "স্পোর্টিং"], 1899: ["AEK", "এইকে"],
+};
+const teamShort = (team, lang) => (team && TEAM_SHORT[team.id] ? TEAM_SHORT[team.id][lang === "bn" ? 1 : 0] : teamName(team, lang));
 const compName = (c, lang) => (c ? (lang === "bn" ? c.name_bn : c.name_en) : "");
 
 // ── লোগো: চলমান ঘড়ি, ভেতরে "খ" আর "?" (v1-এর লোগো) — বাংলাদেশ সময়ে চলে ──
@@ -1459,7 +1472,7 @@ function MatchRow({ m, pred, onOpen, badge, plain, sub }) {
     <button className={"row" + (favs.includes(m.home_id) || favs.includes(m.away_id) ? " my" : "") + (badge ? " has-badge" : "")} onClick={() => onOpen?.(m)}>
       {badge}
       <div className={"side home" + (hw ? " win" : "")}>
-        <span>{favs.includes(m.home_id) && <i className="fav-star">★</i>}{teamName(m.home, lang)}</span>
+        <span>{favs.includes(m.home_id) && <i className="fav-star">★</i>}{teamShort(m.home, lang)}</span>
         <Crest team={m.home} />
       </div>
       <div className="mid">
@@ -1478,7 +1491,7 @@ function MatchRow({ m, pred, onOpen, badge, plain, sub }) {
       </div>
       <div className={"side" + (aw ? " win" : "")}>
         <Crest team={m.away} />
-        <span>{teamName(m.away, lang)}{favs.includes(m.away_id) && <i className="fav-star r">★</i>}</span>
+        <span>{teamShort(m.away, lang)}{favs.includes(m.away_id) && <i className="fav-star r">★</i>}</span>
       </div>
     </button>
   );
