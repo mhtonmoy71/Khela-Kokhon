@@ -2261,7 +2261,7 @@ function Footer({ comps = [] }) {
     <footer className="foot">
       <div className="foot-in">
         <div className="foot-brand"><Logo size={44} /><b>খেলা কখন<span>?</span></b></div>
-        <div className="foot-tag">{bn ? "ঘড়ি বাংলাদেশের, খেলা সারা দুনিয়ার।" : "Bangladesh time, the world's football."}</div>
+        <div className="foot-tag">{bn ? "ম্যাচের ঘড়ি আপনার হাতে।" : "The match clock in your hands."}</div>
         <p className="foot-desc">{bn ? "ইউরোপের বড় পাঁচ লিগ আর চ্যাম্পিয়ন্স লিগের সূচি, ফল আর টেবিল, সব বাংলাদেশ সময়ে। প্রিয় দলের খেলা, প্রেডিকশন আর বন্ধুদের লিগ, এক জায়গায়।" : "Fixtures, results and tables for Europe's top five leagues and the Champions League, all in Bangladesh time. Your teams, predictions and friends' leagues in one place."}</p>
         <div className="foot-social">
           <a href="https://www.facebook.com/khelakokhon" target="_blank" rel="noopener noreferrer" aria-label="Facebook"><FbIcon /></a>
