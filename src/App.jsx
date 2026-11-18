@@ -2464,14 +2464,22 @@ function Footer({ comps = [] }) {
   const cols = [
     [bn ? "খেলা কখন?" : "Khela Kokhon", [[bn ? "আমাদের কথা" : "About us", () => nav.openPage("about")], [bn ? "কীভাবে কাজ করে" : "How it works", () => nav.openPage("how")], [bn ? "প্রতিষ্ঠাতা" : "Founder", () => nav.openPage("founder")], [bn ? "যোগাযোগ" : "Contact", () => nav.openPage("contact")], [bn ? "গোপনীয়তা নীতি" : "Privacy policy", () => nav.openPage("privacy")]]],
     [bn ? "লিগ" : "Leagues", comps.map((c) => [compName(c, lang), () => nav.openLeague(c.code)])],
-    [bn ? "ফিচার" : "Features", [[bn ? "ম্যাচের সূচি" : "Fixtures", () => nav.go("matches")], [bn ? "প্রেডিকশন ও লিডারবোর্ড" : "Predictions & leaderboard", () => nav.go("predict")], [bn ? "জিজ্ঞেস করুন" : "Ask", () => nav.go("ask")], [bn ? "প্রোফাইল" : "Profile", () => nav.go("profile")]]],
+    [bn ? "ফিচার" : "Features", [
+      [bn ? "ম্যাচের সূচি" : "Fixtures", () => nav.go("matches")],
+      [bn ? "প্রেডিকশন ও লিডারবোর্ড" : "Predictions & leaderboard", () => nav.go("predict")],
+      [bn ? "বন্ধুদের লিগ" : "Friends' leagues", () => nav.openFriends()],
+      [bn ? "স্পোর্টস কুইজ" : "Sports quiz", () => nav.openQuiz()],
+      [bn ? "জিজ্ঞেস করুন" : "Ask", () => nav.go("ask")],
+      [bn ? "দল ও খেলোয়াড় খুঁজুন" : "Search teams & players", () => nav.openSearch()],
+      [bn ? "প্রোফাইল" : "Profile", () => nav.go("profile")],
+    ]],
   ];
   return (
     <footer className="foot">
       <div className="foot-in">
         <div className="foot-brand"><Logo size={44} /><b>খেলা কখন<span>?</span></b></div>
         <div className="foot-tag">{bn ? "ম্যাচের ঘড়ি আপনার হাতে।" : "The match clock in your hands."}</div>
-        <p className="foot-desc">{bn ? "ইউরোপের বড় পাঁচ লিগ আর চ্যাম্পিয়ন্স লিগের সূচি, ফল আর টেবিল, সব বাংলাদেশ সময়ে। প্রিয় দলের খেলা, প্রেডিকশন আর বন্ধুদের লিগ, এক জায়গায়।" : "Fixtures, results and tables for Europe's top five leagues and the Champions League, all in Bangladesh time. Your teams, predictions and friends' leagues in one place."}</p>
+        <p className="foot-desc">{bn ? "ইউরোপের বড় পাঁচ লিগ আর চ্যাম্পিয়ন্স লিগের সূচি, ফল, টেবিল আর গোলদাতা, সব বাংলাদেশ সময়ে। প্রিয় দলের খেলা, প্রেডিকশন, বন্ধুদের লিগ, লাইভ স্পোর্টস কুইজ আর বাংলায় যেকোনো প্রশ্নের উত্তর, এক জায়গায়।" : "Fixtures, results, tables and top scorers for Europe's top five leagues and the Champions League, all in Bangladesh time. Your teams, predictions, friends' leagues, a live sports quiz and answers to any question in Bangla, in one place."}</p>
         <div className="foot-social">
           <a href="https://www.facebook.com/khelakokhon" target="_blank" rel="noopener noreferrer" aria-label="Facebook"><FbIcon /></a>
           <a href="mailto:khelakokhon@gmail.com" aria-label="Email"><MailIcon /></a>
@@ -2630,14 +2638,17 @@ const DEV_PHOTO = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBA
 const ABOUT = {
   bn: {
     whatH: "খেলা কখন? সম্পর্কে",
-    what: "ইউরোপের বড় পাঁচ লিগ আর চ্যাম্পিয়ন্স লিগের সূচি, বাংলাদেশ সময়ে। রাত একটার খেলা, নাকি ভোর চারটার—আলাদা করে হিসাব কষতে হয় না। প্রিয় দল বেছে নিলে তাদের খেলা ম্যাচ পাতার একদম উপরে দেখা যায় কাউন্টডাউনসহ।",
+    what: "ইউরোপের বড় পাঁচ লিগ আর চ্যাম্পিয়ন্স লিগের সূচি, বাংলাদেশ সময়ে। রাত একটার খেলা, নাকি ভোর চারটার—আলাদা করে হিসাব কষতে হয় না। প্রিয় দল বেছে নিলে তাদের খেলা ম্যাচ পাতার একদম উপরে দেখা যায় কাউন্টডাউনসহ। সাথে আছে লিগ টেবিল, গোলদাতা, দল আর খেলোয়াড়ের পাতা, প্রেডিকশন, বন্ধুদের লিগ, লাইভ স্পোর্টস কুইজ আর বাংলায় প্রশ্ন করলেই উত্তর।",
     facts: [["৬", "প্রতিযোগিতা"], ["১১১", "দল"], ["প্রতিদিন", "হালনাগাদ"]],
     howH: "কীভাবে কাজ করে",
     steps: [
-      ["রেজিস্ট্রেশন", "ইমেইল আর মোবাইল নম্বর দিয়ে, অথবা Google দিয়ে।"],
-      ["দল বাছাই", "সর্বোচ্চ তিনটা প্রিয় দল।"],
+      ["রেজিস্ট্রেশন", "ইমেইল দিয়ে, অথবা এক চাপে Google দিয়ে।"],
+      ["দল বাছাই", "সর্বোচ্চ তিনটা প্রিয় দল, তাদের খেলা সবার উপরে।"],
       ["প্রেডিকশন", "কিকঅফের আগ পর্যন্ত যেকোনো ম্যাচের স্কোর অনুমান করুন।"],
-      ["পয়েন্ট", "হুবহু স্কোরে ৩, শুধু ফল মিললে ১। জায়গা করে নিন লিডারবোর্ডে।"],
+      ["পয়েন্ট", "হুবহু স্কোরে ৩, শুধু ফল মিললে ১। সব লিগ মিলিয়ে বা আলাদা লিগে লিডারবোর্ডে জায়গা করে নিন।"],
+      ["বন্ধুদের লিগ", "নিজের লিগ খুলে লিংক পাঠান, বন্ধুরা যোগ দিলেই নিজেদের মধ্যে লড়াই।"],
+      ["স্পোর্টস কুইজ", "১০টা প্রশ্ন, প্রতিটায় ৩০ সেকেন্ড। একা খেলে নিজেকে যাচাই করুন, বা বন্ধুদের সাথে লাইভ।"],
+      ["জিজ্ঞেস করুন", "বাংলায় প্রশ্ন করুন: পরের খেলা, টেবিল, ফর্ম, হেড টু হেড, গোল, কোচ।"],
     ],
     devH: "ডেভেলপার পরিচিতি",
     devName: "মাহবুব হাসান তন্ময়",
@@ -2647,14 +2658,17 @@ const ABOUT = {
   },
   en: {
     whatH: "What is Khela Kokhon?",
-    what: "Fixtures for Europe's top five leagues and the Champions League, in Bangladesh time. No more working out whether a match is at 1 AM or 4 AM. Pick your teams and their matches sit at the top of the Matches page with a countdown.",
+    what: "Fixtures for Europe's top five leagues and the Champions League, in Bangladesh time. No more working out whether a match is at 1 AM or 4 AM. Pick your teams and their matches sit at the top of the Matches page with a countdown. Plus tables, top scorers, team and player pages, predictions, friends' leagues, a live sports quiz and answers to any question in Bangla.",
     facts: [["6", "competitions"], ["111", "teams"], ["Daily", "updates"]],
     howH: "How it works",
     steps: [
-      ["Sign up", "With email and mobile number, or with Google."],
-      ["Pick teams", "Up to three favourites."],
+      ["Sign up", "With email, or with Google in one tap."],
+      ["Pick teams", "Up to three favourites, shown first."],
       ["Predict", "Guess the score of any match until kickoff."],
-      ["Score points", "3 for the exact score, 1 for the right result. Climb the leaderboard."],
+      ["Score points", "3 for the exact score, 1 for the right result. Climb the overall or per-league leaderboard."],
+      ["Friends' leagues", "Start your own league and share the link."],
+      ["Sports quiz", "10 questions, 30 seconds each. Solo, or live with friends."],
+      ["Ask", "Ask in Bangla: next match, table, form, head to head, goals, coach."],
     ],
     devH: "About the Developer",
     devName: "Mahbub Hasan Tonmoy",
@@ -5241,6 +5255,8 @@ export default function App() {
     openPlayer: (id) => openView(`/player/${id}`, { kind: "player", id }),
     openPage: (id) => openView(PAGE_URL[id], { kind: "page", id }),
     // কুইজ: /quiz (শুরুর পাতা) বা /quiz/কোড; replace = ইতিহাসে নতুন ধাপ না যোগ করে
+    openFriends: () => { setPredTab((p) => ({ tab: "friends", league: null, key: p.key + 1 })); go("predict"); },
+    openSearch: () => { setSheet(null); setSearching(true); },
     openQuiz: (code, replace) => {
       setTab("predict");
       const path = code ? `/quiz/${code}` : "/quiz";
