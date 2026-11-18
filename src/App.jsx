@@ -251,6 +251,28 @@ img { display: block; }
 .ask-head { font-weight: 700; font-size: 16.5px; display: flex; align-items: center; gap: 8px; padding: 4px 2px 10px; border-bottom: 1px solid var(--line); }
 .ask-body { flex: 1; overflow-y: auto; padding: 12px 0; display: flex; flex-direction: column; gap: 10px; }
 .ask-ex { display: flex; flex-wrap: wrap; gap: 6px; }
+.ask-follow { margin-top: 10px; }
+.ask-follow .chip { font-size: 12.5px; padding: 6px 11px; }
+.ask-new { margin-left: auto; font-size: 12.5px; font-weight: 600; color: var(--green); }
+.ask-mic { width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; color: var(--muted); background: var(--card2); flex: none; }
+.ask-mic.on { color: #fff; background: var(--red); animation: dotBlink .8s ease-in-out infinite alternate; }
+.tbl.ask { grid-template-columns: 24px 1fr 30px 38px 34px; }
+.tbl.ask.hl { background: var(--greenDim); }
+.tbl.ask.hl .tm b { color: var(--green); }
+.ask-gap { text-align: center; color: var(--muted); font-size: 12px; line-height: 1; padding: 2px 0; }
+.ask-more { display: block; width: 100%; text-align: center; padding: 10px; font-size: 13px; font-weight: 600; color: var(--green); border-top: 1px solid var(--line); }
+.ask-h2h { padding: 12px; }
+.h2h-bar { display: flex; height: 26px; border-radius: 8px; overflow: hidden; font-size: 12.5px; font-weight: 700; color: #fff; }
+.h2h-bar span { display: grid; place-items: center; min-width: 0; }
+.h2h-bar .a, .h2h-legend .a { background: var(--green); color: #04130d; }
+.h2h-bar .d, .h2h-legend .d { background: var(--muted); }
+.h2h-bar .b, .h2h-legend .b { background: var(--amber); color: #1d1300; }
+.h2h-legend { display: flex; justify-content: space-between; gap: 6px; font-size: 12px; margin: 8px 0 6px; color: var(--muted); }
+.h2h-legend i { display: inline-block; width: 8px; height: 8px; border-radius: 2px; margin-right: 4px; }
+.ah-row { display: grid; grid-template-columns: 62px 1fr 42px 1fr; gap: 6px; align-items: center; padding: 7px 0; border-top: 1px solid var(--line); font-size: 13px; }
+.ah-row b { text-align: center; }
+.ah-row span:last-child { text-align: right; }
+.ah-row small { font-size: 11.5px; }
 .bubble { max-width: 92%; padding: 10px 13px; border-radius: 16px; font-size: 14.5px; line-height: 1.6; }
 .bubble.me { align-self: flex-end; background: var(--green); color: #04130d; border-bottom-right-radius: 5px; }
 .bubble.bot { align-self: flex-start; background: var(--card); border: 1px solid var(--line); border-bottom-left-radius: 5px; width: 92%; }
@@ -673,6 +695,30 @@ const useT = () => {
 // সময়, তারিখ আর সংখ্যা — সব বাংলাদেশ সময়ে (Asia/Dhaka)
 const TZ = "Asia/Dhaka";
 const BN_DIGITS = "০১২৩৪৫৬৭৮৯";
+// দেশের নাম বাংলায় (না থাকলে ইংরেজিই)
+const NAT_BN = {
+  Spain: "স্পেন", France: "ফ্রান্স", Germany: "জার্মানি", Italy: "ইতালি", England: "ইংল্যান্ড", Portugal: "পর্তুগাল", Brazil: "ব্রাজিল", Argentina: "আর্জেন্টিনা",
+  Netherlands: "নেদারল্যান্ডস", Belgium: "বেলজিয়াম", Croatia: "ক্রোয়েশিয়া", Uruguay: "উরুগুয়ে", Colombia: "কলম্বিয়া", Norway: "নরওয়ে", Denmark: "ডেনমার্ক",
+  Sweden: "সুইডেন", Switzerland: "সুইজারল্যান্ড", Austria: "অস্ট্রিয়া", Poland: "পোল্যান্ড", Serbia: "সার্বিয়া", Scotland: "স্কটল্যান্ড", Wales: "ওয়েলস",
+  Ireland: "আয়ারল্যান্ড", "Republic of Ireland": "আয়ারল্যান্ড", "Northern Ireland": "উত্তর আয়ারল্যান্ড", USA: "যুক্তরাষ্ট্র", "United States": "যুক্তরাষ্ট্র",
+  Mexico: "মেক্সিকো", Canada: "কানাডা", Japan: "জাপান", "Korea Republic": "দক্ষিণ কোরিয়া", "South Korea": "দক্ষিণ কোরিয়া", Morocco: "মরক্কো", Egypt: "মিসর",
+  Senegal: "সেনেগাল", Nigeria: "নাইজেরিয়া", Ghana: "ঘানা", Cameroon: "ক্যামেরুন", "Ivory Coast": "আইভরি কোস্ট", "Côte d'Ivoire": "আইভরি কোস্ট", Algeria: "আলজেরিয়া",
+  Tunisia: "তিউনিসিয়া", Mali: "মালি", Turkey: "তুরস্ক", Türkiye: "তুরস্ক", Greece: "গ্রিস", Ukraine: "ইউক্রেন", Russia: "রাশিয়া", Czechia: "চেক প্রজাতন্ত্র",
+  "Czech Republic": "চেক প্রজাতন্ত্র", Slovakia: "স্লোভাকিয়া", Slovenia: "স্লোভেনিয়া", Hungary: "হাঙ্গেরি", Romania: "রোমানিয়া", Georgia: "জর্জিয়া", Ecuador: "ইকুয়েডর",
+  Chile: "চিলি", Paraguay: "প্যারাগুয়ে", Peru: "পেরু", Venezuela: "ভেনেজুয়েলা", Australia: "অস্ট্রেলিয়া", Iceland: "আইসল্যান্ড", Finland: "ফিনল্যান্ড",
+  Albania: "আলবেনিয়া", Kosovo: "কসোভো", Bosnia: "বসনিয়া", "Bosnia and Herzegovina": "বসনিয়া", Armenia: "আর্মেনিয়া", Israel: "ইসরায়েল", Iran: "ইরান",
+  "Saudi Arabia": "সৌদি আরব", Jamaica: "জ্যামাইকা", "Cape Verde Islands": "কেপ ভার্দে", Guinea: "গিনি", "DR Congo": "ডিআর কঙ্গো", "Congo DR": "ডিআর কঙ্গো", Gabon: "গ্যাবন",
+};
+const natName = (n, lang) => (lang === "bn" ? NAT_BN[n] || n : n);
+// কোচদের নাম বাংলায়
+const COACH_BN = {
+  "José Mourinho": "জোসে মরিনিও", "Vincent Kompany": "ভিনসেন্ট কোম্পানি", "Mikel Arteta": "মিকেল আর্তেতা", "Pep Guardiola": "পেপ গার্দিওলা", "Josep Guardiola": "পেপ গার্দিওলা",
+  "Arne Slot": "আর্নে স্লট", "Hans-Dieter Flick": "হান্সি ফ্লিক", "Hansi Flick": "হান্সি ফ্লিক", "Diego Simeone": "দিয়েগো সিমিওনে", "Carlo Ancelotti": "কার্লো আনচেলত্তি",
+  "Xabi Alonso": "জাবি আলোনসো", "Luis Enrique": "লুইস এনরিকে", "Enzo Maresca": "এনজো মারেসকা", "Ruben Amorim": "রুবেন আমোরিম", "Rúben Amorim": "রুবেন আমোরিম",
+  "Antonio Conte": "আন্তোনিও কন্তে", "Simone Inzaghi": "সিমোনে ইনজাঘি", "Cristian Chivu": "ক্রিস্তিয়ান চিভু", "Massimiliano Allegri": "মাসিমিলিয়ানো আলেগ্রি",
+  "Thomas Frank": "টমাস ফ্রাঙ্ক", "Ange Postecoglou": "অ্যাঞ্জে পোস্তেকোগলু", "Eddie Howe": "এডি হাউ", "Unai Emery": "উনাই এমেরি", "Niko Kovač": "নিকো কোভাচ",
+  "Roberto De Zerbi": "রবার্তো দে জের্বি", "Igor Tudor": "ইগর তুদর", "Gian Piero Gasperini": "জান পিয়েরো গাসপেরিনি", "Oliver Glasner": "অলিভার গ্লাসনার",
+};
 const BN_MONTHS = ["জানুয়ারি", "ফেব্রুয়ারি", "মার্চ", "এপ্রিল", "মে", "জুন", "জুলাই", "আগস্ট", "সেপ্টেম্বর", "অক্টোবর", "নভেম্বর", "ডিসেম্বর"];
 const EN_MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 const BN_DAYS = ["রবিবার", "সোমবার", "মঙ্গলবার", "বুধবার", "বৃহস্পতিবার", "শুক্রবার", "শনিবার"];
@@ -3191,9 +3237,10 @@ function findTeams(q, teams) {
     const start = m.index + m[1].length, end = start + a.length;
     if (taken.some(([s, e]) => start < e && end > s)) continue;
     taken.push([start, end]);
-    if (!found.includes(id)) found.push(id);
+    if (!found.some(([x]) => x === id)) found.push([id, start]);
   }
-  return found;
+  // প্রশ্নে যে দল আগে, সে আগে
+  return found.sort((a, b) => a[1] - b[1]).map(([id]) => id);
 }
 
 // শব্দের শুরুতে মিললে ধরা হবে ("কাল" মিলবে, "গতকাল"-এর ভেতরের "কাল" নয়)
@@ -3439,18 +3486,278 @@ async function answerPlayer(q, teams, lang) {
 }
 
 // উত্তর বানানো: { text, matches, players? }
-async function answer(raw, teams, lang) {
+
+// ════════ জিজ্ঞেস করো: আরও ধরনের প্রশ্ন (টেবিল, ফর্ম, মুখোমুখি, দলের তথ্য, লাইভ, সপ্তাহ, আমার দল) ════════
+const AW = {
+  table: ["টেবিল", "অবস্থান", "কততম", "কত নম্বর", "কয় নম্বর", "পজিশন", "শীর্ষে", "শীর্ষ", "এক নম্বরে", "লিডার", "এগিয়ে", "পিছিয়ে", "table", "standing", "position", "rank", "top of", "leader", "leading", "ahead"],
+  points: ["পয়েন্ট", "points"],
+  bottom: ["অবনমন", "রেলিগেশন", "তলানি", "সবার নিচে", "relegation", "bottom"],
+  form: ["ফর্ম", "কেমন খেলছে", "শেষ ৫", "শেষ পাঁচ", "শেষ কয়েক", "সাম্প্রতিক", "form", "last 5", "last five", "recent"],
+  h2h: ["হেড টু হেড", "হেড-টু-হেড", "মুখোমুখি", "রেকর্ড", "ইতিহাস", "head to head", "h2h", "record", "history"],
+  coach: ["কোচ", "ম্যানেজার", "coach", "manager"],
+  venue: ["স্টেডিয়াম", "মাঠ", "ভেন্যু", "হোম গ্রাউন্ড", "stadium", "venue", "ground"],
+  founded: ["প্রতিষ্ঠা", "প্রতিষ্ঠিত", "founded", "established"],
+  squad: ["স্কোয়াড", "দলে কারা", "খেলোয়াড়দের তালিকা", "squad", "players list", "roster"],
+  info: ["দলের তথ্য", "তথ্য দাও", "সম্পর্কে", "about", "info"],
+  stats: ["পরিসংখ্যান", "কয়টা জয়", "কয়টা জিত", "কয়টা হার", "কয়টা ম্যাচ", "গোল খেয়েছে", "গোল দিয়েছে", "কত গোল", "stats", "statistics", "wins", "conceded", "goals scored"],
+  live: ["লাইভ", "এখন চলছে", "চলছে", "এখন কী", "এখন কোন", "live", "right now", "on now", "playing now"],
+  week: ["এই সপ্তাহ", "সপ্তাহে", "সামনের সপ্তাহ", "৭ দিন", "সাত দিন", "this week", "next 7", "week"],
+  weekend: ["উইকেন্ড", "সপ্তাহান্ত", "weekend"],
+  mine: ["আমার দল", "প্রিয় দল", "আমার প্রিয়", "my team", "my teams", "my favourite", "my favorite"],
+  help: ["কী কী জিজ্ঞেস", "কি কি জিজ্ঞেস", "কী জিজ্ঞেস", "কি জিজ্ঞেস", "কী পারো", "কি পারো", "কী কী পারো", "সাহায্য", "help", "what can"],
+  pron: ["তাদের", "ওদের", "ওরা", "তারা", "এদের", "দলটা", "দলটার", "ওই দল", "their", "they", "them", "that team"],
+};
+const HELP_CHIPS = {
+  bn: ["রিয়ালের পরের খেলা কবে", "লা লিগা টেবিল", "বার্সেলোনার ফর্ম কেমন", "আর্সেনাল টেবিলে কততম", "রিয়াল বনাম বার্সা হেড টু হেড", "লিভারপুলের কোচ কে", "এমবাপ্পে কয়টা গোল করেছে", "এই সপ্তাহের খেলা", "এখন কী খেলা চলছে", "আমার দলের পরের খেলা"],
+  en: ["Real Madrid next match", "La Liga table", "Barcelona form", "Arsenal table position", "Real vs Barça head to head", "Liverpool coach", "Mbappé goals", "This week's matches", "Live now", "My teams next match"],
+};
+
+async function getMatchesRange(from, to) {
+  if (DEMO) return demoMatches().filter((m) => m.utc_date >= from && m.utc_date < to);
+  return ok(await sb.from("matches").select(MATCH_SELECT).gte("utc_date", from).lt("utc_date", to).order("utc_date").limit(300));
+}
+
+// প্রতিযোগিতা অনুযায়ী গুনে: "প্রিমিয়ার লিগ ১০, লা লিগা ৮"
+const countByComp = (list, lang) => Object.entries(list.reduce((a, m) => ((a[m.competition_code] = (a[m.competition_code] || 0) + 1), a), {}))
+  .sort((x, y) => y[1] - x[1]).map(([c, n]) => `${compLabel(c, lang)} ${num(n, lang)}`).join(", ");
+
+// প্রতিটা উত্তরের পরে পরের প্রশ্নের পরামর্শ
+function followups(ids, comp, teams, lang) {
+  const bn = lang === "bn";
+  const byId = Object.fromEntries(teams.map((t) => [t.id, t]));
+  const nm = (id) => teamName(byId[id], lang);
+  if (ids.length >= 2) {
+    const [a, b] = [nm(ids[0]), nm(ids[1])];
+    return bn ? [`${a} বনাম ${b} হেড টু হেড`, `${a} বনাম ${b} পরের খেলা`, `${a} আর ${b} টেবিলে কে এগিয়ে`] : [`${a} vs ${b} head to head`, `${a} vs ${b} next match`, `${a} vs ${b} table`];
+  }
+  if (ids.length === 1) {
+    const a = nm(ids[0]);
+    return bn ? [`${poss(a, "bn")} পরের খেলা`, `${poss(a, "bn")} শেষ ম্যাচের ফল`, `${a} টেবিলে কততম`, `${poss(a, "bn")} ফর্ম কেমন`, `${poss(a, "bn")} পরিসংখ্যান`, `${poss(a, "bn")} কোচ কে`]
+      : [`${a} next match`, `${a} last result`, `${a} table position`, `${a} form`, `${a} stats`, `${a} coach`];
+  }
+  if (comp) {
+    const c = compLabel(comp, lang);
+    return bn ? [`${c} টেবিল`, `${poss(c, "bn")} সর্বোচ্চ গোলদাতা`, `${poss(c, "bn")} পরের খেলা`, `${poss(c, "bn")} অবনমন অঞ্চল`] : [`${c} table`, `${c} top scorer`, `${c} next matches`, `${c} relegation`];
+  }
+  return bn ? ["আজ কী খেলা", "আগামীকাল কী খেলা", "এই সপ্তাহের খেলা", "এখন কী খেলা চলছে"] : ["Today's matches", "Tomorrow's matches", "This week's matches", "Live now"];
+}
+
+// "লা লিগায়", "প্রিমিয়ার লিগে", "সিরি আ-তে"
+const compIn = (code, lang) => { const c = compLabel(code, lang); return lang !== "bn" ? "in " + c : /আ$/.test(c) ? c + "-তে" : /[\u09BE-\u09CC]$/.test(c) ? c + "য়" : c + "ে"; };
+// দলের লিগের সারি (প্রতিযোগিতা বলা থাকলে সেটা, না হলে ঘরোয়া লিগ)
+async function leagueRow(id, comp) {
+  const rows = await getTeamStandings(id);
+  return rows.find((r) => r.competition_code === comp) || (!comp && (rows.find((r) => r.competition_code !== "CL") || rows[0])) || null;
+}
+
+async function answer(raw, teams, lang, ctx = {}, favIds = []) {
   const q = norm(raw);
   const bn = lang === "bn";
   if (!q) return null;
-  const ids = findTeams(q, teams);
+  const byId = Object.fromEntries(teams.map((t) => [t.id, t]));
+  const nm = (id) => teamName(byId[id], lang);
+  const intent = ["help", "table", "bottom", "form", "h2h", "coach", "venue", "founded", "squad", "info", "stats", "live", "week", "weekend"].filter((k) => has(q, AW[k]));
+  const is = (k) => intent.includes(k);
+  let ids = findTeams(q, teams);
+  let comp = findComp(q);
+  let fromCtx = false;
+  const done = (r, i = ids, c = comp) => r && ({ ...r, chips: r.chips || followups(i, c, teams, lang).filter((x) => norm(x) !== q), ctx: { ids: i, comp: c } });
+
+  if (is("help") && !ids.length) return {
+    text: bn ? "আমি যা বলতে পারি:\n• যেকোনো দলের পরের খেলা আর শেষ ফল (বাংলাদেশ সময়ে)\n• লিগ টেবিল, কোন দল কততম, কত পয়েন্ট\n• দলের ফর্ম, পরিসংখ্যান, কোচ, স্টেডিয়াম, স্কোয়াড\n• দুই দলের হেড টু হেড\n• খেলোয়াড়ের গোল, সর্বোচ্চ গোলদাতা\n• আজ, কাল, এই সপ্তাহে বা উইকেন্ডে কী খেলা, এখন কী চলছে\n• তোমার প্রিয় দলের খেলা\nআগের প্রশ্নের দলটাও মনে রাখি, তাই পরে শুধু “ওদের শেষ ফল?” লিখলেও চলবে।"
+      : "I can tell you:\n• Any team's next match and last result (Bangladesh time)\n• League tables, positions and points\n• Team form, stats, coach, stadium, squad\n• Head to head between two teams\n• Player goals and top scorers\n• Matches today, tomorrow, this week, the weekend, or live now\n• Your favourite teams' matches\nI also remember the last team you asked about.",
+    matches: [], chips: HELP_CHIPS[bn ? "bn" : "en"], ctx,
+  };
+
+  // আমার দল
+  if (has(q, AW.mine)) {
+    if (!favIds.length) return { text: bn ? "তুমি এখনো কোনো প্রিয় দল বাছোনি। প্রোফাইল থেকে দল বেছে নিলে এখানে তাদের খেলা বলে দিতে পারব।" : "You haven't picked favourite teams yet. Choose them in Profile.", matches: [], chips: HELP_CHIPS[bn ? "bn" : "en"].slice(0, 4), ctx };
+    ids = favIds;
+    const past = has(q, W.last) && !has(q, ["পরের", "নেক্সট", "next", "সামনে"]);
+    const list = await getTeamMatches(favIds, { upcoming: !past, limit: 8 });
+    return done({ text: list.length ? (bn ? `তোমার প্রিয় দলগুলোর ${past ? "সাম্প্রতিক ফল" : "সামনের খেলা"}:` : `Your teams' ${past ? "recent results" : "upcoming matches"}:`) : (bn ? "তোমার দলগুলোর কোনো খেলা সূচিতে নেই।" : "No matches found for your teams."), matches: list, dated: true }, favIds.length === 1 ? favIds : [], null);
+  }
+
+  // আগের প্রশ্নের প্রসঙ্গ: "ওদের শেষ ফল?", "টেবিলে কততম?"
+  if (!ids.length && !comp) {
+    const pron = has(q, AW.pron);
+    const wantsCtx = pron || intent.some((k) => !["live", "week", "weekend", "help"].includes(k)) || has(q, ["পরের", "শেষ ম্যাচ", "শেষ খেলা", "next", "last"]);
+    if (wantsCtx && !pron) { const pa = await answerPlayer(q, teams, lang); if (pa) return pa; }
+    if (wantsCtx && (ctx.ids?.length || ctx.comp)) { ids = ctx.ids || []; comp = ctx.comp || null; fromCtx = true; }
+  }
+  const one = ids.length === 1 ? ids[0] : null;
+
+  // লাইভ
+  if (is("live") && !ids.length) {
+    const now = Date.now();
+    const list = (await getMatchesRange(new Date(now - 3 * 3600000).toISOString(), new Date(now + 600000).toISOString())).filter((m) => isLive(m) && (!comp || m.competition_code === comp));
+    if (list.length) return done({ text: bn ? `এই মুহূর্তে ${num(list.length, "bn")}টা খেলা চলছে:` : `${list.length} matches live now:`, matches: list });
+    const next = await getNextMatchTime(new Date(now).toISOString());
+    const nx = next ? (await getMatchesOnDay(dayKey(new Date(next)))).filter((m) => m.utc_date >= new Date(now).toISOString()).slice(0, 4) : [];
+    return done({ text: bn ? `এই মুহূর্তে কোনো খেলা চলছে না।${nx.length ? ` পরের খেলা শুরু ${whenText(nx[0].utc_date, "bn")}:` : ""}` : `Nothing live right now.${nx.length ? " Next up:" : ""}`, matches: nx });
+  }
+
+  // এই সপ্তাহ / উইকেন্ড
+  if ((is("week") || is("weekend")) && !ids.length) {
+    const today = dayKey(new Date());
+    let from, to, label;
+    if (is("weekend")) {
+      const [y, mo, d] = today.split("-").map(Number);
+      const wd = new Date(Date.UTC(y, mo - 1, d)).getUTCDay();
+      const sat = wd === 0 ? addDays(today, -1) : addDays(today, (6 - wd + 7) % 7);
+      from = dayRangeUTC(sat)[0]; to = new Date(new Date(dayRangeUTC(addDays(sat, 2))[0]).getTime() + 6 * 3600000).toISOString();
+      label = bn ? "এই উইকেন্ডে (শনি–রবি)" : "This weekend";
+    } else {
+      from = new Date(Date.now() - 3 * 3600000).toISOString(); to = dayRangeUTC(addDays(today, 7))[0];
+      label = bn ? "সামনের ৭ দিনে" : "In the next 7 days";
+    }
+    const list = (await getMatchesRange(from, to)).filter((m) => !isDone(m) || is("weekend")).filter((m) => !comp || m.competition_code === comp);
+    if (!list.length) return done({ text: bn ? `${label} কোনো খেলা নেই।` : `${label}: no matches.`, matches: [] });
+    return done({ text: bn ? `${label} মোট ${num(list.length, "bn")}টা খেলা (${countByComp(list, "bn")})। প্রথম কয়েকটা:` : `${label}: ${list.length} matches (${countByComp(list, "en")}). First few:`, matches: list.slice(0, 12), dated: true });
+  }
+
+  // মুখোমুখি (হেড টু হেড)
+  if (ids.length >= 2 && is("h2h")) {
+    const [a, b] = ids;
+    const fx = [...await getTeamMatches([a], { upcoming: true, limit: 60 }), ...await getTeamMatches([a], { upcoming: false, limit: 60 })];
+    const m = fx.find((x) => [x.home_id, x.away_id].includes(b));
+    if (!m) return done({ text: bn ? `সাইটের সূচিতে ${nm(a)} আর ${poss(nm(b), "bn")} কোনো ম্যাচ নেই, তাই হেড টু হেড আনতে পারছি না।` : `No ${nm(a)} vs ${nm(b)} match in the fixtures, so no head-to-head.`, matches: [] });
+    const h = await getH2H(m.id, m.home_id, m.away_id);
+    const rows = (h?.matches || []).filter((x) => x.score?.home != null).slice(0, 8);
+    const rec = (id) => { let w = 0, d = 0, l = 0; for (const x of rows) { const me = x.homeTeam?.id === id ? x.score.home : x.score.away, th = x.homeTeam?.id === id ? x.score.away : x.score.home; me > th ? w++ : me < th ? l++ : d++; } return { w, d, l }; };
+    const ra = rec(a), rb = rec(b);
+    const goals = rows.reduce((s2, x) => s2 + x.score.home + x.score.away, 0);
+    if (!rows.length) return done({ text: bn ? `${nm(a)} আর ${poss(nm(b), "bn")} আগের দেখার তথ্য এখন পাওয়া যাচ্ছে না।` : "Head-to-head data isn't available right now.", matches: [m] });
+    return done({
+      text: bn ? `শেষ ${num(rows.length, "bn")} দেখায় ${nm(a)} জিতেছে ${num(ra.w, "bn")}টা, ${nm(b)} ${num(rb.w, "bn")}টা, ড্র ${num(ra.d, "bn")}টা। মোট গোল ${num(goals, "bn")}টা।`
+        : `Last ${rows.length} meetings: ${nm(a)} won ${ra.w}, ${nm(b)} won ${rb.w}, ${ra.d} draws. ${goals} goals in total.`,
+      h2h: { a, b, ra, rb, rows }, matches: isDone(m) ? [] : [m],
+    });
+  }
+
+  // টেবিল: দুই দলের তুলনা
+  if (ids.length >= 2 && (is("table") || has(q, AW.points))) {
+    const [a, b] = ids;
+    const [ra, rb] = await Promise.all([leagueRow(a, comp), leagueRow(b, comp)]);
+    if (!ra || !rb) return done({ text: bn ? "দুই দলের টেবিলের তথ্য পাওয়া যায়নি।" : "Couldn't find both teams in a table.", matches: [] });
+    const same = ra.competition_code === rb.competition_code;
+    const line = (id, r) => `${nm(id)}: ${compLabel(r.competition_code, lang)} ${bn ? ord(r.position, "bn") : ord(r.position, "en")}, ${num(r.points, lang)} ${bn ? "পয়েন্ট" : "pts"} (${num(r.played, lang)} ${bn ? "ম্যাচ" : "played"})`;
+    let text = line(a, ra) + "\n" + line(b, rb);
+    if (same) {
+      const diff = ra.points - rb.points, lead = diff >= 0 ? a : b;
+      text += "\n" + (diff === 0 ? (bn ? "দুই দলের পয়েন্ট সমান।" : "Level on points.") : bn ? `${nm(lead)} ${num(Math.abs(diff), "bn")} পয়েন্ট এগিয়ে।` : `${nm(lead)} lead by ${Math.abs(diff)} points.`);
+      const table = await getStandings(ra.competition_code);
+      return done({ text, table: { code: ra.competition_code, rows: table.filter((r) => [a, b].includes(r.team_id) || r.position === 1), hl: [a, b] } });
+    }
+    return done({ text, matches: [] });
+  }
+
+  // টেবিল / পয়েন্ট / অবনমন: এক দল
+  if (one && (is("table") || is("bottom") || has(q, AW.points))) {
+    const r = await leagueRow(one, comp);
+    if (!r) return done({ text: bn ? `${poss(nm(one), "bn")} টেবিলের তথ্য পাওয়া যায়নি।` : `No table data for ${nm(one)}.`, matches: [] });
+    const code = r.competition_code;
+    const table = await getStandings(code);
+    const total = table.length;
+    const leader = table[0];
+    const next = table.find((x) => x.position === r.position + 1);
+    let text = bn ? `${compIn(code, "bn")} ${nm(one)} এখন ${ord(r.position, "bn")}, ${num(r.played, "bn")} ম্যাচে ${num(r.points, "bn")} পয়েন্ট।` : `${nm(one)} are ${ord(r.position, "en")} in ${compLabel(code, "en")} with ${r.points} points from ${r.played} games.`;
+    if (r.position === 1 && next) text += bn ? ` দ্বিতীয় ${teamName(next.team, "bn")} থেকে ${num(r.points - next.points, "bn")} পয়েন্ট এগিয়ে।` : ` ${r.points - next.points} points clear of ${teamName(next.team, "en")}.`;
+    else if (leader) text += bn ? ` শীর্ষে থাকা ${teamName(leader.team, "bn")} থেকে ${num(leader.points - r.points, "bn")} পয়েন্ট পিছিয়ে।` : ` ${leader.points - r.points} points behind leaders ${teamName(leader.team, "en")}.`;
+    const z = zone(code, r.position, total);
+    if (z === "z-down") text += bn ? " এখন অবনমন অঞ্চলে আছে।" : " Currently in the relegation zone.";
+    const lo = Math.max(1, Math.min(r.position - 2, total - 4)), hi = lo + 4;
+    const rows = table.filter((x) => x.position === 1 || (x.position >= lo && x.position <= hi));
+    const cl = !comp && code !== "CL" ? (await getTeamStandings(one)).find((x) => x.competition_code === "CL") : null;
+    if (cl) text += bn ? ` চ্যাম্পিয়ন্স লিগে ${ord(cl.position, "bn")}।` : ` ${ord(cl.position, "en")} in the Champions League.`;
+    return done({ text, table: { code, rows, hl: [one] } }, [one], comp);
+  }
+
+  // টেবিল: পুরো লিগ / অবনমন অঞ্চল
+  if (comp && !ids.length && (is("table") || is("bottom") || has(q, AW.points))) {
+    const table = await getStandings(comp);
+    if (!table.length) return done({ text: bn ? "এই টেবিল এখনো পাওয়া যায়নি।" : "Table not available yet.", matches: [] });
+    const total = table.length;
+    if (is("bottom")) {
+      const down = table.filter((r) => zone(comp, r.position, total) === "z-down");
+      const rows = table.slice(-Math.max(down.length + 2, 4));
+      return done({ text: bn ? `${poss(compLabel(comp, "bn"), "bn")} নিচের দিকে: ${down.map((r) => teamName(r.team, "bn")).join(", ")} এখন অবনমন অঞ্চলে।` : `${compLabel(comp, "en")} bottom: ${down.map((r) => teamName(r.team, "en")).join(", ")} in the drop zone.`, table: { code: comp, rows, hl: down.map((r) => r.team_id) } });
+    }
+    const [f, s2] = table;
+    return done({
+      text: bn ? `${poss(compLabel(comp, "bn"), "bn")} শীর্ষে ${teamName(f.team, "bn")}, ${num(f.played, "bn")} ম্যাচে ${num(f.points, "bn")} পয়েন্ট।${s2 ? ` দ্বিতীয় ${teamName(s2.team, "bn")} (${num(s2.points, "bn")})।` : ""}`
+        : `${teamName(f.team, "en")} top ${compLabel(comp, "en")} with ${f.points} points.${s2 ? ` ${teamName(s2.team, "en")} second on ${s2.points}.` : ""}`,
+      table: { code: comp, rows: table.slice(0, 8), hl: [] , more: true },
+    });
+  }
+
+  // ফর্ম
+  if (one && is("form")) {
+    const list = await getTeamMatches([one], { upcoming: false, limit: 5 });
+    if (!list.length) return done({ text: bn ? `${poss(nm(one), "bn")} কোনো ফল এখনো নেই।` : `No results yet for ${nm(one)}.`, matches: [] });
+    const res = (m) => { const me = m.home_id === one ? m.home_score : m.away_score, th = m.home_id === one ? m.away_score : m.home_score; return me > th ? "W" : me < th ? "L" : "D"; };
+    const rs = list.map(res), c = (k) => rs.filter((x) => x === k).length;
+    const gf = list.reduce((a, m) => a + (m.home_id === one ? m.home_score : m.away_score), 0), ga = list.reduce((a, m) => a + (m.home_id === one ? m.away_score : m.home_score), 0);
+    const mood = c("W") >= 4 ? (bn ? " দারুণ ছন্দে আছে!" : " Flying!") : c("L") >= 3 ? (bn ? " সময়টা ভালো যাচ্ছে না।" : " A rough patch.") : "";
+    return done({ text: bn ? `শেষ ${num(list.length, "bn")} ম্যাচে ${nm(one)}: ${num(c("W"), "bn")} জয়, ${num(c("D"), "bn")} ড্র, ${num(c("L"), "bn")} হার। গোল দিয়েছে ${num(gf, "bn")}, খেয়েছে ${num(ga, "bn")}।${mood}` : `${nm(one)} last ${list.length}: ${c("W")}W ${c("D")}D ${c("L")}L, goals ${gf}-${ga}.${mood}`, form: { id: one, list }, matches: list });
+  }
+
+  // পরিসংখ্যান
+  if (one && is("stats")) {
+    const pa = await answerPlayer(q, teams, lang); if (pa) return pa;
+    const rows = await getTeamStandings(one);
+    if (!rows.length) return done({ text: bn ? `${poss(nm(one), "bn")} পরিসংখ্যান পাওয়া যায়নি।` : `No stats for ${nm(one)}.`, matches: [] });
+    const text = rows.sort((x, y) => (x.competition_code === "CL") - (y.competition_code === "CL")).map((r) => bn
+      ? `${compLabel(r.competition_code, "bn")}: ${num(r.played, "bn")} ম্যাচে ${num(r.won, "bn")} জয়, ${num(r.draw, "bn")} ড্র, ${num(r.lost, "bn")} হার। গোল দিয়েছে ${num(r.gf, "bn")}, খেয়েছে ${num(r.ga, "bn")}। ${num(r.points, "bn")} পয়েন্ট, ${ord(r.position, "bn")}।`
+      : `${compLabel(r.competition_code, "en")}: P${r.played} W${r.won} D${r.draw} L${r.lost}, goals ${r.gf}-${r.ga}, ${r.points} pts (${ord(r.position, "en")}).`).join("\n");
+    return done({ text: (bn ? `${poss(nm(one), "bn")} এই মৌসুম:\n` : `${nm(one)} this season:\n`) + text, stats: rows });
+  }
+
+  // দলের তথ্য: কোচ, মাঠ, প্রতিষ্ঠা, স্কোয়াড
+  if (one && (is("coach") || is("venue") || is("founded") || is("squad") || is("info"))) {
+    const info = await getTeamInfo(one).catch(() => null);
+    if (!info) return done({ text: bn ? "দলের তথ্য এখন আনা যাচ্ছে না, একটু পরে চেষ্টা করো।" : "Team info isn't available right now.", matches: [] });
+    const parts = [];
+    const all = is("info");
+    if ((is("coach") || all) && info.coach?.name) parts.push(bn ? `${poss(nm(one), "bn")} কোচ ${COACH_BN[info.coach.name] || playerName(info.coach.name, "bn")}${info.coach.nationality ? ` (${natName(info.coach.nationality, "bn")})` : ""}।` : `${nm(one)}'s coach is ${info.coach.name}${info.coach.nationality ? ` (${info.coach.nationality})` : ""}.`);
+    if ((is("venue") || all) && info.venue) parts.push(bn ? `হোম মাঠ ${info.venue}।` : `Home ground: ${info.venue}.`);
+    if ((is("founded") || all) && info.founded) parts.push(bn ? `প্রতিষ্ঠা ${num(info.founded, "bn")} সালে, বয়স ${num(new Date().getFullYear() - info.founded, "bn")} বছর।` : `Founded in ${info.founded}.`);
+    if ((is("squad") || all) && info.squad?.length) {
+      const cnt = (k) => info.squad.filter((p) => posGroup(p.position) === k).length;
+      parts.push(bn ? `স্কোয়াডে ${num(info.squad.length, "bn")} জন: গোলরক্ষক ${num(cnt("G"), "bn")}, ডিফেন্ডার ${num(cnt("D"), "bn")}, মিডফিল্ডার ${num(cnt("M"), "bn")}, ফরোয়ার্ড ${num(cnt("F"), "bn")}।` : `Squad of ${info.squad.length}: ${cnt("G")} GK, ${cnt("D")} DF, ${cnt("M")} MF, ${cnt("F")} FW.`);
+    }
+    if (!parts.length) parts.push(bn ? "এই তথ্যটা এখন পাওয়া যাচ্ছে না।" : "That detail isn't available.");
+    return done({ text: parts.join(" "), teamLink: one, squadLink: is("squad") });
+  }
+
+  // বাকি সব (পরের খেলা, শেষ ফল, খেলোয়াড়, দিন): আগের নিয়মে; প্রসঙ্গ থেকে দল এলে সেটা দিয়ে
+  const base = await answerBase(raw, teams, lang, fromCtx ? ids : null);
+  if (base?.players?.length) {
+    // খেলোয়াড়ের উত্তরের পরে: তার দল আর লিগ নিয়ে পরের প্রশ্ন
+    const pl = base.players[0], tid = pl.team?.id || pl.team_id, codes = [...new Set(base.players.map((x) => x.code).filter(Boolean))];
+    const chips = [
+      ...(tid && byId[tid] ? (bn ? [`${poss(nm(tid), "bn")} পরের খেলা`, `${nm(tid)} টেবিলে কততম`] : [`${nm(tid)} next match`, `${nm(tid)} table position`]) : []),
+      ...codes.slice(0, 2).map((c) => (bn ? `${poss(compLabel(c, "bn"), "bn")} সর্বোচ্চ গোলদাতা` : `${compLabel(c, "en")} top scorer`)),
+    ].filter((x) => norm(x) !== q);
+    return { ...base, chips: chips.length ? chips : followups([], null, teams, lang), ctx: { ids: tid ? [tid] : [], comp: null } };
+  }
+  return done(base, fromCtx ? ids : findTeams(q, teams), comp);
+}
+// পজিশন → G/D/M/F
+const posGroup = (p) => (!p ? "" : /goal/i.test(p) ? "G" : /back|defen/i.test(p) ? "D" : /midfield/i.test(p) ? "M" : "F");
+
+async function answerBase(raw, teams, lang, idsOverride) {
+  const q = norm(raw);
+  const bn = lang === "bn";
+  if (!q) return null;
+  const ids = idsOverride?.length ? idsOverride : findTeams(q, teams);
   const byId = Object.fromEntries(teams.map((t) => [t.id, t]));
   const nm = (id) => teamName(byId[id], lang);
   const wantLast = has(q, W.last) && !has(q, ["পরের", "নেক্সট", "next", "upcoming", "সামনে"]);
   const comp = findComp(q);
 
   // খেলোয়াড়ের নাম বা গোলদাতার প্রশ্ন আগে
-  const pa = await answerPlayer(q, teams, lang);
+  const pa = idsOverride?.length ? null : await answerPlayer(q, teams, lang);
   if (pa) return pa;
 
   // দুই দল: একে অপরের বিপক্ষে
@@ -3489,7 +3796,13 @@ async function answer(raw, teams, lang) {
   if (day) {
     const list = (await getMatchesOnDay(day)).filter((m) => !comp || m.competition_code === comp);
     const label = dayLabel(day, lang);
-    if (!list.length) return { text: bn ? `${label} ${comp ? "এই প্রতিযোগিতার " : ""}কোনো খেলা নেই।` : `${label}: no matches.`, matches: [] };
+    if (!list.length) {
+      // সেদিন খেলা না থাকলে পরের খেলার দিন
+      const nextT = await getNextMatchTime(dayRangeUTC(day)[1]);
+      const nk = nextT && dayKey(new Date(nextT));
+      const nl = nk ? (await getMatchesOnDay(nk)).filter((m) => !comp || m.competition_code === comp) : [];
+      return { text: bn ? `${label} ${comp ? "এই প্রতিযোগিতার " : ""}কোনো খেলা নেই।${nl.length ? ` পরের খেলা ${dayLabel(nk, "bn")}, মোট ${num(nl.length, "bn")}টা:` : ""}` : `${label}: no matches.${nl.length ? ` Next matchday ${dayLabel(nk, "en")} (${nl.length}):` : ""}`, matches: nl };
+    }
     return { text: bn ? `${label} মোট ${num(list.length, "bn")}টা খেলা।` : `${label}: ${list.length} matches.`, matches: list };
   }
 
@@ -3502,9 +3815,9 @@ async function answer(raw, teams, lang) {
 
   return {
     text: bn
-      ? "প্রশ্নটা ধরতে পারিনি। দলের নাম দিয়ে জিজ্ঞেস করো, যেমন: “রিয়ালের পরের খেলা কবে”, “বার্সার শেষ ম্যাচের ফল”, “আজ কী খেলা”, “লিভারপুল বনাম ম্যানইউ কবে”।"
-      : "I couldn't follow that. Try a team name, e.g. “Real Madrid next match”, “Barça last result”, “today's matches”, “Liverpool vs Man United”.",
-    matches: [],
+      ? "প্রশ্নটা ধরতে পারিনি। দলের, লিগের বা খেলোয়াড়ের নাম দিয়ে জিজ্ঞেস করো। নিচের যেকোনোটায় চেপেও দেখতে পারো।"
+      : "I couldn't follow that. Try a team, league or player name, or tap one below.",
+    matches: [], chips: HELP_CHIPS[bn ? "bn" : "en"],
   };
 }
 
@@ -3682,11 +3995,56 @@ function SearchSheet({ comps, teams, onClose }) {
 }
 
 // ── জিজ্ঞেস করো: আলাদা পাতা (/ask) ──
+// মাইকে বলে জিজ্ঞেস (যে ব্রাউজারে আছে)
+const SpeechRec = typeof window !== "undefined" ? window.SpeechRecognition || window.webkitSpeechRecognition : null;
+
+// উত্তরের ভেতরের ছোট টেবিল
+function AskTable({ t, lang }) {
+  const nav = useNav();
+  const bn = lang === "bn";
+  let prev = 0;
+  return (
+    <div className="card ask-tbl" style={{ marginTop: 8 }}>
+      <div className="tbl tbl-h ask"><span>#</span><span>{bn ? "দল" : "Team"}</span><span>{bn ? "খে" : "P"}</span><span>+/-</span><span>{bn ? "প" : "Pts"}</span></div>
+      {t.rows.map((r) => {
+        const gapRow = prev > 0 && r.position > prev + 1; prev = r.position;
+        return (
+          <Fragment key={r.team_id}>
+            {gapRow && <div className="ask-gap">⋯</div>}
+            <button className={"tbl ask " + (t.hl.includes(r.team_id) ? "hl " : "") + zone(t.code, r.position, 99)} onClick={() => nav.openTeam(r.team_id)}>
+              <span className="pos">{num(r.position, lang)}</span>
+              <span className="tm"><Crest team={r.team} size={20} /><b>{teamName(r.team, lang)}</b></span>
+              <span>{num(r.played, lang)}</span><span>{r.gd > 0 ? "+" : ""}{num(r.gd, lang)}</span><span className="pts">{num(r.points, lang)}</span>
+            </button>
+          </Fragment>
+        );
+      })}
+      <button className="ask-more" onClick={() => nav.openLeague(t.code)}>{bn ? "পুরো টেবিল দেখো →" : "Full table →"}</button>
+    </div>
+  );
+}
+
 function AskPage({ teams, preds, onOpen, chat, setChat }) {
   const { lang } = useT();
   const nav = useNav();
+  const favIds = useContext(FavCtx);
   const [q, setQ] = useState("");
   const [busy, setBusy] = useState(false);
+  const [listening, setListening] = useState(false);
+  const recRef = useRef(null);
+  // আগের প্রশ্নের দল বা লিগ মনে রাখা
+  const ctx = [...chat].reverse().find((m) => m.ctx && (m.ctx.ids?.length || m.ctx.comp))?.ctx || {};
+  function listen() {
+    if (!SpeechRec) return;
+    if (listening) { recRef.current?.stop(); return; }
+    const r = new SpeechRec();
+    r.lang = lang === "bn" ? "bn-BD" : "en-US"; r.interimResults = false; r.maxAlternatives = 1;
+    r.onresult = (e) => { const t = e.results?.[0]?.[0]?.transcript; if (t) ask(t); };
+    r.onend = () => setListening(false);
+    r.onerror = () => setListening(false);
+    recRef.current = r; setListening(true);
+    try { r.start(); } catch { setListening(false); }
+  }
   const endRef = useRef(null);
   useEffect(() => { if (chat.length || busy) endRef.current?.scrollIntoView({ block: "end", behavior: "smooth" }); }, [chat, busy]);
   // কিবোর্ড খুললে নিচের ন্যাভ লুকায়, যাতে লেখার ঘর কিবোর্ডের ঠিক ওপরে বসে
@@ -3704,7 +4062,7 @@ function AskPage({ teams, preds, onOpen, chat, setChat }) {
     setQ(""); setBusy(true);
     setChat((c) => [...c, { me: t }]);
     try {
-      const a = await answer(t, teams, lang);
+      const a = await answer(t, teams, lang, ctx, favIds);
       setChat((c) => [...c, a || { text: "…", matches: [] }]);
     } catch {
       setChat((c) => [...c, { text: lang === "bn" ? "দুঃখিত, এখন উত্তর আনা যাচ্ছে না। একটু পরে চেষ্টা করো।" : "Sorry, couldn't fetch that right now.", matches: [] }]);
@@ -3714,15 +4072,17 @@ function AskPage({ teams, preds, onOpen, chat, setChat }) {
 
   return (
     <div className="ask-page">
-        <div className="ask-head"><span className="ask-orb sm"><SparkIcon /></span>{lang === "bn" ? "খেলা কখন? জিজ্ঞেস করো" : "Ask Khela Kokhon"}</div>
+        <div className="ask-head"><span className="ask-orb sm"><SparkIcon /></span>{lang === "bn" ? "খেলা কখন? জিজ্ঞেস করো" : "Ask Khela Kokhon"}
+          {chat.length > 0 && <button className="ask-new" onClick={() => setChat([])}>{lang === "bn" ? "নতুন করে" : "New chat"}</button>}
+        </div>
         <div className="ask-body">
           {chat.length === 0 && (
             <>
               <p className="muted" style={{ fontSize: 13.5, lineHeight: 1.6, marginBottom: 10 }}>
-                {lang === "bn" ? "দলের নাম লিখে জিজ্ঞেস করো, সূচি দেখে বাংলাদেশ সময়ে বলে দেব।" : "Ask about any team and get the answer in Bangladesh time."}
+                {lang === "bn" ? "দল, লিগ বা খেলোয়াড় নিয়ে যা খুশি জিজ্ঞেস করো: সূচি, ফল, টেবিল, ফর্ম, হেড টু হেড, গোল, কোচ, স্টেডিয়াম। সময় বলব বাংলাদেশ সময়ে।" : "Ask anything about teams, leagues or players: fixtures, results, tables, form, head to head, goals, coach, stadium."}
               </p>
               <div className="ask-ex">
-                {EXAMPLES[lang === "bn" ? "bn" : "en"].map((e) => <button key={e} className="chip" onClick={() => ask(e)}>{e}</button>)}
+                {[...HELP_CHIPS[lang === "bn" ? "bn" : "en"], lang === "bn" ? "কী কী জিজ্ঞেস করা যায়" : "What can I ask?"].map((e) => <button key={e} className="chip" onClick={() => ask(e)}>{e}</button>)}
               </div>
             </>
           )}
@@ -3742,10 +4102,35 @@ function AskPage({ teams, preds, onOpen, chat, setChat }) {
                   ))}
                 </div>
               )}
+              {m.table && <AskTable t={m.table} lang={lang} />}
+              {m.form && (
+                <div className="form-row" style={{ marginTop: 10 }}>
+                  {[...m.form.list].reverse().map((x) => { const me = x.home_id === m.form.id ? x.home_score : x.away_score, th = x.home_id === m.form.id ? x.away_score : x.home_score; const r = me > th ? "W" : me < th ? "L" : "D";
+                    return <button key={x.id} className={"badge big " + r + (lang === "bn" ? " word" : "")} onClick={() => onOpen(x)}>{RES[r][lang === "bn" ? 0 : 1]}</button>; })}
+                </div>
+              )}
+              {m.h2h && (
+                <div className="card ask-h2h" style={{ marginTop: 8 }}>
+                  <div className="h2h-bar">
+                    <span style={{ flex: m.h2h.ra.w || 0.001 }} className="a">{m.h2h.ra.w ? num(m.h2h.ra.w, lang) : ""}</span>
+                    <span style={{ flex: m.h2h.ra.d || 0.001 }} className="d">{m.h2h.ra.d ? num(m.h2h.ra.d, lang) : ""}</span>
+                    <span style={{ flex: m.h2h.rb.w || 0.001 }} className="b">{m.h2h.rb.w ? num(m.h2h.rb.w, lang) : ""}</span>
+                  </div>
+                  <div className="h2h-legend"><span><i className="a" />{teamName(teams.find((t) => t.id === m.h2h.a), lang)}</span><span><i className="d" />{lang === "bn" ? "ড্র" : "Draw"}</span><span><i className="b" />{teamName(teams.find((t) => t.id === m.h2h.b), lang)}</span></div>
+                  {m.h2h.rows.map((x) => {
+                    const hn = teams.find((t) => t.id === x.homeTeam?.id), an = teams.find((t) => t.id === x.awayTeam?.id);
+                    return <div key={x.id} className="ah-row"><small className="muted">{(() => { const [y, mo, d] = dayKey(x.utcDate).split("-").map(Number); return lang === "bn" ? `${num(d, "bn")} ${BN_MONTHS[mo - 1].slice(0, 4)} ’${num(String(y).slice(2), "bn")}` : `${d} ${EN_MONTHS[mo - 1].slice(0, 3)} ’${String(y).slice(2)}`; })()}</small><span>{hn ? teamName(hn, lang) : x.homeTeam?.shortName || x.homeTeam?.name}</span><b>{num(x.score.home, lang)}–{num(x.score.away, lang)}</b><span>{an ? teamName(an, lang) : x.awayTeam?.shortName || x.awayTeam?.name}</span></div>;
+                  })}
+                </div>
+              )}
               {m.matches?.length > 0 && (
                 <div className="card" style={{ marginTop: 8 }}>
-                  {m.matches.slice(0, 8).map((x) => <MatchRow key={x.id} m={x} pred={preds[x.id]} onOpen={onOpen} />)}
+                  {m.dated ? <DatedRows list={m.matches.slice(0, 12)} preds={preds} onOpen={onOpen} /> : m.matches.slice(0, 8).map((x) => <MatchRow key={x.id} m={x} pred={preds[x.id]} onOpen={onOpen} />)}
                 </div>
+              )}
+              {m.teamLink && <button className="chip" style={{ marginTop: 8 }} onClick={() => nav.openTeam(m.teamLink)}>{lang === "bn" ? (m.squadLink ? "পুরো স্কোয়াড দেখো →" : "দলের পাতা খোলো →") : (m.squadLink ? "Full squad →" : "Open team page →")}</button>}
+              {i === chat.length - 1 && m.chips?.length > 0 && (
+                <div className="ask-ex ask-follow">{m.chips.slice(0, 6).map((e) => <button key={e} className="chip" onClick={() => ask(e)}>{e}</button>)}</div>
               )}
             </div>
           ))}
@@ -3753,7 +4138,8 @@ function AskPage({ teams, preds, onOpen, chat, setChat }) {
           <div ref={endRef} />
         </div>
         <form className="ask-input" onSubmit={(e) => { e.preventDefault(); ask(q); }}>
-          <input value={q} onChange={(e) => setQ(e.target.value)} onFocus={() => kb(true)} onBlur={() => kb(false)} enterKeyHint="send" placeholder={lang === "bn" ? "যেমন: রিয়ালের পরের খেলা কবে" : "e.g. Real Madrid next match"} />
+          <input value={q} onChange={(e) => setQ(e.target.value)} onFocus={() => kb(true)} onBlur={() => kb(false)} enterKeyHint="send" placeholder={listening ? (lang === "bn" ? "শুনছি… বলো" : "Listening…") : lang === "bn" ? "যেমন: বার্সার ফর্ম কেমন" : "e.g. Barcelona form"} />
+          {SpeechRec && <button type="button" className={"ask-mic" + (listening ? " on" : "")} onClick={listen} aria-label="voice"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="9" y="3" width="6" height="11" rx="3" /><path d="M5 11a7 7 0 0014 0M12 18v3" /></svg></button>}
           <button className="btn" disabled={!q.trim() || busy}>{lang === "bn" ? "পাঠাও" : "Send"}</button>
         </form>
     </div>
@@ -3924,7 +4310,7 @@ function Squad({ info, lang, photos = {} }) {
               <button className="sq" key={p.id} onClick={() => nav.openPlayer(p.id)}>
                 <span className="sq-av"><Avatar url={photos[p.id]} name={p.name} /></span>
                 <b>{playerName(p.name, lang)}</b>
-                <span className="muted">{[p.position, p.nationality].filter(Boolean).join(" · ")}</span>
+                <span className="muted">{[p.position, natName(p.nationality, lang)].filter(Boolean).join(" · ")}</span>
                 <span className="sq-age">{age(p.dateOfBirth) != null ? `${num(age(p.dateOfBirth), lang)} ${bn ? "বছর" : "y"}` : ""}<i className="sq-go">›</i></span>
               </button>
             ))}
@@ -4010,7 +4396,7 @@ function Player({ id, teamsById, comps }) {
     [bn ? "পজিশন" : "Position", posLabel(p.position, lang)],
     [bn ? "বয়স" : "Age", a != null ? `${num(a, lang)} ${bn ? "বছর" : ""}`.trim() : null],
     [bn ? "জন্ম" : "Born", born],
-    [bn ? "দেশ" : "Nationality", p.nationality],
+    [bn ? "দেশ" : "Nationality", natName(p.nationality, lang)],
     [bn ? "জার্সি" : "Shirt", p.shirtNumber != null ? num(p.shirtNumber, lang) : null],
     [bn ? "চুক্তি" : "Contract until", contract],
   ].filter(([, v]) => v);
