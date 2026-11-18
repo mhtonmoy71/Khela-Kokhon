@@ -254,6 +254,24 @@ img { display: block; }
 .ask-body { flex: 1; overflow-y: auto; padding: 12px 0; display: flex; flex-direction: column; gap: 10px; }
 .ask-ex { display: flex; flex-wrap: wrap; gap: 6px; }
 .ask-follow { margin-top: 10px; }
+.guide { margin-top: 10px; }
+.guide-h { display: flex; align-items: center; gap: 10px; font-size: 15.5px; }
+.guide-ic { width: 38px; height: 38px; border-radius: 12px; display: grid; place-items: center; background: var(--greenDim); color: var(--green); flex: none; font-size: 18px; }
+.guide-facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(80px, 1fr)); gap: 8px; margin: 12px 0 4px; }
+.guide-facts div { background: var(--card2); border-radius: 12px; padding: 10px 8px; text-align: center; display: flex; flex-direction: column; gap: 2px; }
+.guide-facts b { font-size: 20px; color: var(--green); font-family: Inter, "Hind Siliguri", sans-serif; }
+.guide-facts span { font-size: 11.5px; color: var(--muted); line-height: 1.3; }
+.guide-steps { list-style: none; margin: 12px 0 0; padding: 0; position: relative; }
+.guide-steps li { display: flex; gap: 12px; position: relative; padding-bottom: 14px; animation: qzIn .35s ease both; }
+.guide-steps li:not(:last-child)::before { content: ""; position: absolute; left: 13px; top: 28px; bottom: 0; width: 2px; background: var(--line); }
+.guide-n { width: 28px; height: 28px; border-radius: 50%; background: var(--green); color: var(--onGreen); display: grid; place-items: center; font-size: 13px; font-weight: 800; flex: none; position: relative; z-index: 1; }
+.guide-steps b { font-size: 14px; display: block; line-height: 1.4; margin-top: 3px; }
+.guide-steps p { font-size: 13px; color: var(--muted); line-height: 1.55; margin-top: 2px; }
+.guide-tips { background: rgba(245,158,11,.1); border-radius: 12px; padding: 10px 12px; display: grid; gap: 6px; font-size: 12.5px; line-height: 1.55; }
+.guide-tips b { color: var(--amber); font-size: 12.5px; }
+.guide-tips p { position: relative; padding-left: 12px; }
+.guide-tips p::before { content: ""; position: absolute; left: 0; top: .65em; width: 5px; height: 5px; border-radius: 50%; background: var(--amber); }
+.guide-cta { margin-top: 12px; }
 .ask-follow .chip { font-size: 12.5px; padding: 6px 11px; }
 .ask-new { margin-left: auto; font-size: 12.5px; font-weight: 600; color: var(--green); }
 .ask-mic { width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; color: var(--muted); background: var(--card2); flex: none; }
@@ -4236,9 +4254,109 @@ const AW = {
   help: ["কী কী জিজ্ঞেস", "কি কি জিজ্ঞেস", "কী জিজ্ঞেস", "কি জিজ্ঞেস", "কী পারো", "কি পারো", "কী কী পারো", "কী পারেন", "কি পারেন", "কী কী পারেন", "সাহায্য", "help", "what can"],
   pron: ["তাদের", "ওদের", "ওরা", "তারা", "এদের", "দলটা", "দলটার", "ওই দল", "their", "they", "them", "that team"],
 };
+// ════════ সাইটের গাইড: "কুইজ কীভাবে খেলব", "প্রেডিকশনের নিয়ম" ইত্যাদির ধাপে ধাপে উত্তর ════════
+// key → { w: চেনার শব্দ, alone: শুধু নাম লিখলেই গাইড, bn/en: { title, intro, steps, facts?, tips?, cta } }
+const GUIDES = {
+  quiz: {
+    w: ["কুইজ", "quiz"], alone: true, icon: "quiz",
+    bn: { title: "স্পোর্টস কুইজ কীভাবে খেলবেন", intro: "ফুটবল, ক্রিকেট, অলিম্পিক, টেনিস আর বাংলাদেশের খেলাধুলা নিয়ে ১০টা প্রশ্নের দ্রুতগতির খেলা।",
+      steps: [["গেম → স্পোর্টস কুইজ", "নিচের মেনুতে \"গেম\", তারপর ওপরে \"স্পোর্টস কুইজ\"। খেলতে লগইন লাগবে।"],
+        ["একা নাকি বন্ধুদের সাথে", "\"একা খেলুন\" চাপলে সঙ্গে সঙ্গে শুরু। \"বন্ধুদের সাথে খেলুন\" চাপলে একটা কোড আর লিংক পাবেন, সেটা বন্ধুদের পাঠান।"],
+        ["হোস্ট শুরু করেন", "সবাই এলে যিনি কুইজ বানিয়েছেন তিনি \"শুরু করুন\" চাপবেন। ৩–২–১, তারপর সবাই একসাথে শুরু।"],
+        ["প্রতি প্রশ্নে ৩০ সেকেন্ড", "চারটা অপশনের একটা বেছে নিন। যে যার নিজের গতিতে এগোবেন, অন্যের জন্য অপেক্ষা নেই।"],
+        ["উত্তর দেখে পরের প্রশ্ন", "সঠিক উত্তর আর ছোট ব্যাখ্যা দেখাবে, তারপর \"পরের প্রশ্ন\" চাপুন। ওপরের বিন্দুতে সবুজ মানে সঠিক, লাল মানে ভুল।"],
+        ["সবার শেষে ফলাফল", "সবাই শেষ করলে দেখাবে কে কততম। হোস্ট চাইলে \"আবার খেলুন\" (নতুন ১০টা প্রশ্ন), নয়তো \"খেলা শেষ করুন\"।"]],
+      facts: [["১০", "প্রশ্ন"], ["৩০ সে.", "প্রতি প্রশ্নে"], ["১", "সঠিক = ১ পয়েন্ট"]],
+      tips: ["সমান স্কোর হলে যিনি মোট কম সময়ে উত্তর দিয়েছেন তিনি এগিয়ে। উত্তর না দিলে পুরো ৩০ সেকেন্ড ধরা হয়।", "খেলার মাঝে অন্যদের স্কোর দেখা যায় না, চমকটা শেষে।", "ওপরের স্পিকার বোতামে মিউজিক বন্ধ/চালু করা যায়।"],
+      cta: ["এখনই কুইজ খেলুন", "quiz"] },
+    en: { title: "How the sports quiz works", intro: "A fast 10-question game on football, cricket, the Olympics, tennis and Bangladesh sport.",
+      steps: [["Games → Sports quiz", "Tap Games in the menu, then Sports quiz. You need to be logged in."], ["Solo or with friends", "Play solo starts right away; Play with friends gives you a code and a link to share."], ["Host starts", "When everyone has joined, the host taps Start. 3-2-1 and everyone begins together."], ["30 seconds per question", "Pick one of four options. Everyone goes at their own pace."], ["See the answer, then Next", "The answer and a short explanation appear; tap Next. Dots at the top turn green or red."], ["Results at the end", "When everyone finishes you see the ranking. The host can play again or end the game."]],
+      facts: [["10", "questions"], ["30s", "each"], ["1", "point per correct"]], tips: ["Ties go to the faster player.", "Other players' scores stay hidden until the end."], cta: ["Play the quiz", "quiz"] },
+  },
+  predict: {
+    w: ["প্রেডিকশন", "অনুমান", "predict", "prediction"], alone: true, icon: "target",
+    bn: { title: "প্রেডিকশন কীভাবে কাজ করে", intro: "খেলা শুরুর আগে স্কোর অনুমান করুন, মিললে পয়েন্ট।",
+      steps: [["যেকোনো ম্যাচে চাপুন", "ম্যাচের পাতায় বা দলের পাতায় যেকোনো খেলায় চাপলে ম্যাচের বিস্তারিত খুলবে।"],
+        ["স্কোর বসান", "দুই দলের গোল − / + দিয়ে বসান। নিচে দেখাবে কে জিতবে বা ড্র।"],
+        ["\"প্রেডিকশন দিন\"", "চাপলেই জমা। কিকঅফের আগ পর্যন্ত যতবার খুশি বদলাতে পারবেন।"],
+        ["খেলা শেষে পয়েন্ট", "ম্যাচ শেষ হওয়ার পরের হালনাগাদে পয়েন্ট যোগ হয়, লিডারবোর্ডে দেখা যায়।"]],
+      facts: [["৩", "হুবহু স্কোর মিললে"], ["১", "শুধু ফল (জয়/ড্র/হার) মিললে"], ["০", "না মিললে"]],
+      tips: ["উদাহরণ: আপনি দিলেন ২–১, খেলা হলো ২–১ → ৩ পয়েন্ট। খেলা হলো ৩–০ → ১ পয়েন্ট (জয়ী দল মিলেছে)। খেলা হলো ১–১ → ০।", "কিকঅফের পর আর প্রেডিকশন দেওয়া বা বদলানো যায় না।"],
+      cta: ["প্রেডিকশনে যান", "predict"] },
+    en: { title: "How predictions work", intro: "Guess the score before kickoff and earn points.",
+      steps: [["Tap any match", "Open any fixture from Matches or a team page."], ["Set the score", "Use − / + for each team."], ["Submit", "Change it as often as you like until kickoff."], ["Points after full time", "Points are added at the next update after the match."]],
+      facts: [["3", "exact score"], ["1", "right result"], ["0", "wrong"]], tips: ["Predict 2-1, match ends 3-0 → 1 point."], cta: ["Go to predictions", "predict"] },
+  },
+  leaderboard: {
+    w: ["লিডারবোর্ড", "র‍্যাঙ্কিং", "leaderboard", "ranking"], alone: true, icon: "trophy",
+    bn: { title: "লিডারবোর্ড কীভাবে দেখবেন", intro: "প্রেডিকশনের পয়েন্ট দিয়ে সবার র‍্যাঙ্কিং।",
+      steps: [["গেম → লিডারবোর্ড", "নিচের মেনুতে \"গেম\", তারপর \"লিডারবোর্ড\"।"], ["লিগ বেছে নিন", "ওপরের ফিল্টারে \"সব\" অথবা প্রিমিয়ার লিগ, লা লিগা, চ্যাম্পিয়ন্স লিগ ইত্যাদি। শুধু সেই লিগের ম্যাচের পয়েন্ট দিয়ে র‍্যাঙ্কিং হবে।"], ["ক্রম কীভাবে", "বেশি পয়েন্ট আগে; সমান হলে বেশি হুবহু স্কোর আগে।"]],
+      cta: ["লিডারবোর্ড দেখুন", "predict"] },
+    en: { title: "Leaderboards", intro: "Rankings by prediction points.", steps: [["Games → Leaderboard", "Open Games, then Leaderboard."], ["Pick a league", "Filter by All or a single league."], ["Order", "Most points first; ties broken by exact scores."]], cta: ["Open leaderboard", "predict"] },
+  },
+  friends: {
+    w: ["বন্ধুদের লিগ", "প্রাইভেট লিগ", "নিজের লিগ", "লিগ খুল", "লিগে যোগ", "friends league", "private league"], alone: true, icon: "users",
+    bn: { title: "বন্ধুদের লিগ কীভাবে খুলবেন", intro: "নিজেদের মধ্যে প্রেডিকশনের লড়াই: অফিস, বন্ধু বা পরিবার।",
+      steps: [["গেম → বন্ধুদের লিগ", "নিচের মেনুতে \"গেম\", তারপর \"বন্ধুদের লিগ\"। লগইন লাগবে।"], ["লিগ খুলুন", "একটা নাম দিয়ে \"খুলুন\" চাপুন। ৬ অক্ষরের একটা কোড তৈরি হবে।"], ["আমন্ত্রণ পাঠান", "\"বন্ধুদের আমন্ত্রণ পাঠান\" চাপলে লিংক যাবে। লিংকে চেপে রেজিস্টার করলেই বন্ধু নিজে থেকে লিগে যোগ হবেন।"], ["কোড দিয়েও যোগ", "কেউ কোড দিলে \"কোড দিয়ে যোগ দিন\"-এ লিখে যোগ দিতে পারেন।"], ["লিগের টেবিল", "সদস্যদের প্রেডিকশনের পয়েন্ট দিয়ে র‍্যাঙ্কিং; লিগ ধরে ফিল্টারও করা যায়।"]],
+      cta: ["বন্ধুদের লিগে যান", "friends"] },
+    en: { title: "Friends' leagues", intro: "Your own prediction league.", steps: [["Games → Friends", "Log in first."], ["Create", "Name it; you get a 6-letter code."], ["Invite", "Share the link; friends who sign up from it join automatically."], ["Join by code", "Or enter a code."], ["Table", "Ranked by members' prediction points."]], cta: ["Open friends' leagues", "friends"] },
+  },
+  fav: {
+    w: ["প্রিয় দল", "ফেভারিট", "favourite", "favorite"], alone: false, icon: "star",
+    bn: { title: "প্রিয় দল কীভাবে যোগ করবেন", intro: "প্রিয় দলের পরের খেলা কাউন্টডাউনসহ ম্যাচ পাতার একদম ওপরে।",
+      steps: [["দলের পাতায় যান", "যেকোনো ম্যাচে দলের নামে, লিগ টেবিলে, বা সার্চে দল খুঁজে চাপুন।"], ["☆ প্রিয় দলে যোগ করুন", "দলের নামের নিচের বোতামে চাপুন, ★ হয়ে যাবে। আবার চাপলে বাদ।"], ["ম্যাচ পাতায় দেখুন", "এখন থেকে ম্যাচ পাতার ওপরে \"প্রিয় দলের খেলা\"।"]],
+      tips: ["সর্বোচ্চ ৩টা প্রিয় দল রাখা যায়।", "প্রোফাইল → আমার দল → এডিট থেকেও একসাথে বদলানো যায়।"], cta: ["দল খুঁজুন", "search"] },
+    en: { title: "Favourite teams", intro: "Their next match sits at the top of Matches.", steps: [["Open a team page", "From a match, a table or search."], ["Tap ☆", "It turns ★; tap again to remove."], ["See it on Matches", "Shown at the top with a countdown."]], tips: ["Up to 3 teams."], cta: ["Find a team", "search"] },
+  },
+  search: {
+    w: ["সার্চ", "খুঁজব", "খুঁজবো", "খোঁজ", "search"], alone: false, icon: "search",
+    bn: { title: "দল বা খেলোয়াড় কীভাবে খুঁজবেন", intro: "ছয় লিগের সব দল আর খেলোয়াড় এক জায়গায়।",
+      steps: [["ওপরের 🔍 চাপুন", "সাইটের যেকোনো পাতা থেকে।"], ["নাম লিখুন", "বাংলা বা ইংরেজি দুইভাবেই চলে, যেমন \"এমবাপ্পে\" বা \"Mbappe\"।"], ["চাপলেই পাতা", "দল, লিগ বা খেলোয়াড়ের পাতা খুলবে; আগের খোঁজ পরে আবার দেখাবে।"]],
+      cta: ["এখনই খুঁজুন", "search"] },
+    en: { title: "Search", intro: "Every team and player in six leagues.", steps: [["Tap 🔍", "From any page."], ["Type a name", "Bangla or English."], ["Open", "Recent searches are remembered."]], cta: ["Search now", "search"] },
+  },
+  login: {
+    w: ["লগইন", "রেজিস্ট্রেশন", "রেজিস্টার", "অ্যাকাউন্ট", "সাইন আপ", "login", "sign up", "register", "account"], alone: true, icon: "user",
+    bn: { title: "অ্যাকাউন্ট আর লগইন", intro: "সূচি, টেবিল আর জিজ্ঞেস করুন লগইন ছাড়াই চলে। প্রেডিকশন, বন্ধুদের লিগ, কুইজ আর প্রিয় দলের জন্য লগইন লাগে।",
+      steps: [["প্রোফাইলে যান", "নিচের মেনুতে \"প্রোফাইল\"।"], ["Google দিয়ে এক চাপে", "\"Google দিয়ে চালিয়ে যান\" চাপলেই হয়ে গেল।"], ["অথবা ইমেইল দিয়ে", "নাম, ইমেইল আর পাসওয়ার্ড দিন; ইমেইলে আসা লিংকে চেপে অ্যাকাউন্ট চালু করুন।"]],
+      tips: ["মোবাইল নম্বর লাগে না।"], cta: ["প্রোফাইলে যান", "profile"] },
+    en: { title: "Account & login", intro: "Fixtures and Ask work without login; predictions, leagues, quiz and favourites need one.", steps: [["Open Profile", ""], ["Continue with Google", "One tap."], ["Or email", "Confirm via the email link."]], cta: ["Open Profile", "profile"] },
+  },
+  app: {
+    w: ["অ্যাপ", "ইনস্টল", "হোম স্ক্রিন", "app", "install"], alone: true, icon: "phone",
+    bn: { title: "ফোনে অ্যাপের মতো রাখবেন কীভাবে", intro: "প্লে স্টোরের অ্যাপ শিগগিরই আসছে। এখনই ব্রাউজার থেকে হোম স্ক্রিনে রাখা যায়।",
+      steps: [["Chrome-এ সাইট খুলুন", "khelakokhon.com"], ["⋮ মেনু চাপুন", "ওপরে ডানদিকের তিন বিন্দু।"], ["\"Add to Home screen\" / \"Install app\"", "চাপলে হোম স্ক্রিনে খেলা কখন?-এর আইকন বসবে, খুললে অ্যাপের মতো চলবে।"]],
+      tips: ["আইফোনে Safari-তে শেয়ার বোতাম → \"Add to Home Screen\"।"], cta: null },
+    en: { title: "Install as an app", intro: "The Play Store app is coming; you can add it to your home screen now.", steps: [["Open in Chrome", ""], ["⋮ menu", ""], ["Add to Home screen", ""]], cta: null },
+  },
+  settings: {
+    w: ["ডার্ক", "লাইট মোড", "থিম", "ইংরেজি", "ভাষা", "dark mode", "theme", "language"], alone: true, icon: "moon",
+    bn: { title: "থিম আর ভাষা বদলানো", intro: "এক চাপে বদলানো যায়, ফোন মনে রাখে।",
+      steps: [["ডার্ক/লাইট", "ওপরে ডানদিকের চাঁদ/সূর্যের বোতাম, বা প্রোফাইল → সেটিংস।"], ["বাংলা/ইংরেজি", "ওপরের \"EN\"/\"বাং\" বোতাম, বা প্রোফাইল → সেটিংস → ভাষা।"]], cta: ["প্রোফাইলে যান", "profile"] },
+    en: { title: "Theme & language", intro: "One tap, remembered on your device.", steps: [["Dark/light", "Moon/sun button at the top."], ["Language", "EN/বাং button at the top."]], cta: ["Open Profile", "profile"] },
+  },
+  privacy: {
+    w: ["ডিলিট", "মুছে", "গোপনীয়তা", "আমার তথ্য", "privacy", "delete account"], alone: true, icon: "lock",
+    bn: { title: "আপনার তথ্য আর অ্যাকাউন্ট মোছা", intro: "নাম, ইমেইল, প্রিয় দল আর প্রেডিকশন ছাড়া কিছু রাখা হয় না, কারও সাথে ভাগও হয় না।",
+      steps: [["কী দেখা যায়", "লিডারবোর্ডে অন্যরা শুধু আপনার নাম আর পয়েন্ট দেখেন, ইমেইল নয়।"], ["মুছতে চাইলে", "khelakokhon@gmail.com-এ ইমেইল করুন, দ্রুত মুছে দেওয়া হবে।"]], cta: ["গোপনীয়তা নীতি", "privacy"] },
+    en: { title: "Your data", intro: "Only your name, email, favourites and predictions are stored; never shared.", steps: [["Visibility", "Others see only your name and points."], ["Deletion", "Email khelakokhon@gmail.com."]], cta: ["Privacy policy", "privacy"] },
+  },
+  contact: {
+    w: ["যোগাযোগ", "ফিডব্যাক", "মতামত", "ভুল জানাব", "contact", "feedback"], alone: true, icon: "mail",
+    bn: { title: "যোগাযোগ বা ভুল জানানো", intro: "প্রতিটা বার্তা পড়া হয়।", steps: [["ইমেইল", "khelakokhon@gmail.com"], ["ফেসবুক পেজ", "facebook.com/khelakokhon"], ["ভুল দেখলে", "কোন পাতা, কী দেখছেন, পারলে স্ক্রিনশটসহ লিখুন।"]], cta: ["যোগাযোগের পাতা", "contact"] },
+    en: { title: "Contact", intro: "Every message is read.", steps: [["Email", "khelakokhon@gmail.com"], ["Facebook", "facebook.com/khelakokhon"]], cta: ["Contact page", "contact"] },
+  },
+};
+const HOW_WORDS = ["কীভাবে", "কিভাবে", "কী করে", "কি করে", "কেমনে", "নিয়ম", "কাজ করে", "করতে হয়", "শুরু করব", "খেলব", "খেলবো", "খেলা যায়", "খেলতে", "যোগ দেব", "যোগ দিব", "যোগ করব", "যোগ করবো", "খুলব", "খুলবো", "বানাব", "বানাবো", "করব", "করবো", "পাব", "পাবো", "রাখব", "রাখবো", "বদলাব", "বদলাবো", "কী", "কি", "how", "rules", "what is", "guide"];
+function findGuide(q) {
+  const how = has(q, HOW_WORDS);
+  for (const [k, g] of Object.entries(GUIDES)) if (g.w.some((w) => q.includes(norm(w))) && (how || g.alone)) return k;
+  return null;
+}
+
 const HELP_CHIPS = {
-  bn: ["রিয়ালের পরের খেলা কবে", "লা লিগা টেবিল", "বার্সেলোনার ফর্ম কেমন", "আর্সেনাল টেবিলে কততম", "রিয়াল বনাম বার্সা হেড টু হেড", "লিভারপুলের কোচ কে", "এমবাপ্পে কয়টা গোল করেছে", "এই সপ্তাহের খেলা", "এখন কী খেলা চলছে", "আমার দলের পরের খেলা"],
-  en: ["Real Madrid next match", "La Liga table", "Barcelona form", "Arsenal table position", "Real vs Barça head to head", "Liverpool coach", "Mbappé goals", "This week's matches", "Live now", "My teams next match"],
+  bn: ["কুইজ কীভাবে খেলব", "প্রেডিকশনের নিয়ম", "রিয়ালের পরের খেলা কবে", "লা লিগা টেবিল", "বার্সেলোনার ফর্ম কেমন", "আর্সেনাল টেবিলে কততম", "রিয়াল বনাম বার্সা হেড টু হেড", "লিভারপুলের কোচ কে", "এমবাপ্পে কয়টা গোল করেছে", "এই সপ্তাহের খেলা", "এখন কী খেলা চলছে", "আমার দলের পরের খেলা"],
+  en: ["How does the quiz work", "Prediction rules", "Real Madrid next match", "La Liga table", "Barcelona form", "Arsenal table position", "Real vs Barça head to head", "Liverpool coach", "Mbappé goals", "This week's matches", "Live now", "My teams next match"],
 };
 
 async function getMatchesRange(from, to) {
@@ -4292,15 +4410,21 @@ async function answer(raw, teams, lang, ctx = {}, favIds = []) {
   let fromCtx = false;
   const done = (r, i = ids, c = comp) => r && ({ ...r, chips: r.chips || followups(i, c, teams, lang).filter((x) => norm(x) !== q), ctx: { ids: i, comp: c } });
 
+  const gk = !ids.length ? findGuide(q) : null;
+  if (gk) {
+    const g = GUIDES[gk][bn ? "bn" : "en"];
+    const more = Object.keys(GUIDES).filter((k) => k !== gk).slice(0, 4).map((k) => GUIDES[k][bn ? "bn" : "en"].title);
+    return { text: g.intro, guide: { key: gk, icon: GUIDES[gk].icon, ...g }, chips: more, ctx };
+  }
   if (is("help") && !ids.length) return {
-    text: bn ? "আমি যা বলতে পারি:\n• যেকোনো দলের পরের খেলা আর শেষ ফল (বাংলাদেশ সময়ে)\n• লিগ টেবিল, কোন দল কততম, কত পয়েন্ট\n• দলের ফর্ম, পরিসংখ্যান, কোচ, স্টেডিয়াম, স্কোয়াড\n• দুই দলের হেড টু হেড\n• খেলোয়াড়ের গোল, সর্বোচ্চ গোলদাতা\n• আজ, কাল, এই সপ্তাহে বা উইকেন্ডে কী খেলা, এখন কী চলছে\n• আপনার প্রিয় দলের খেলা\nআগের প্রশ্নের দলটাও মনে রাখি, তাই পরে শুধু “ওদের শেষ ফল?” লিখলেও চলবে।"
+    text: bn ? "আমি যা বলতে পারি:\n• যেকোনো দলের পরের খেলা আর শেষ ফল (বাংলাদেশ সময়ে)\n• লিগ টেবিল, কোন দল কততম, কত পয়েন্ট\n• দলের ফর্ম, পরিসংখ্যান, কোচ, স্টেডিয়াম, স্কোয়াড\n• দুই দলের হেড টু হেড\n• খেলোয়াড়ের গোল, সর্বোচ্চ গোলদাতা\n• আজ, কাল, এই সপ্তাহে বা উইকেন্ডে কী খেলা, এখন কী চলছে\n• আপনার প্রিয় দলের খেলা\n• সাইটের যেকোনো ফিচার কীভাবে চলে: কুইজ, প্রেডিকশন, বন্ধুদের লিগ, প্রিয় দল, লগইন\nআগের প্রশ্নের দলটাও মনে রাখি, তাই পরে শুধু “ওদের শেষ ফল?” লিখলেও চলবে।"
       : "I can tell you:\n• Any team's next match and last result (Bangladesh time)\n• League tables, positions and points\n• Team form, stats, coach, stadium, squad\n• Head to head between two teams\n• Player goals and top scorers\n• Matches today, tomorrow, this week, the weekend, or live now\n• Your favourite teams' matches\nI also remember the last team you asked about.",
     matches: [], chips: HELP_CHIPS[bn ? "bn" : "en"], ctx,
   };
 
   // আমার দল
   if (has(q, AW.mine)) {
-    if (!favIds.length) return { text: bn ? "আপনি এখনো কোনো প্রিয় দল বাছেননি। প্রোফাইল থেকে দল বেছে নিলে এখানে তাদের খেলা বলে দিতে পারব।" : "You haven't picked favourite teams yet. Choose them in Profile.", matches: [], chips: HELP_CHIPS[bn ? "bn" : "en"].slice(0, 4), ctx };
+    if (!favIds.length) return { text: bn ? "আপনি এখনো কোনো প্রিয় দল যোগ করেননি। যেকোনো দলের পাতায় ☆ চাপলে সেই দল যোগ হবে, তারপর এখানে তাদের খেলা বলে দিতে পারব।" : "No favourite teams yet. Tap ☆ on any team page to add one.", matches: [], chips: HELP_CHIPS[bn ? "bn" : "en"].slice(0, 4), ctx };
     ids = favIds;
     const past = has(q, W.last) && !has(q, ["পরের", "নেক্সট", "next", "সামনে"]);
     const list = await getTeamMatches(favIds, { upcoming: !past, limit: 8 });
@@ -4727,6 +4851,29 @@ function SearchSheet({ comps, teams, onClose }) {
 // মাইকে বলে জিজ্ঞেস (যে ব্রাউজারে আছে)
 const SpeechRec = typeof window !== "undefined" ? window.SpeechRecognition || window.webkitSpeechRecognition : null;
 
+// গাইডের ইনফোগ্রাফিক: আইকন, ধাপের সিঁড়ি, মূল সংখ্যা, টিপস আর "এখনই চেষ্টা করুন"
+const LockIcon = I(<><rect x="5" y="11" width="14" height="10" rx="2" /><path d="M8 11V7a4 4 0 0 1 8 0v4" /></>);
+const PhoneIcon = I(<><rect x="7" y="2.5" width="10" height="19" rx="2.5" /><path d="M11 18.5h2" /></>);
+const GUIDE_ICON = { quiz: QuizIcon, target: TargetIcon, trophy: TrophyIcon, users: UsersIcon, search: SearchIcon, user: UserIcon, phone: PhoneIcon, moon: MoonIcon, lock: LockIcon, mail: MailIcon };
+function GuideCard({ g, lang }) {
+  const nav = useNav();
+  const Ic = GUIDE_ICON[g.icon];
+  const act = { quiz: () => nav.openQuiz(), predict: () => nav.go("predict"), friends: () => nav.openFriends(), search: () => nav.openSearch(), profile: () => nav.go("profile"), privacy: () => nav.openPage("privacy"), contact: () => nav.openPage("contact") };
+  return (
+    <div className="guide">
+      <div className="guide-h"><span className="guide-ic">{Ic ? <Ic width={22} height={22} /> : "★"}</span><b>{g.title}</b></div>
+      {g.facts && <div className="guide-facts">{g.facts.map(([v, l]) => <div key={l}><b>{v}</b><span>{l}</span></div>)}</div>}
+      <ol className="guide-steps">
+        {g.steps.map(([h, d], i) => (
+          <li key={i} style={{ animationDelay: `${i * 70}ms` }}><span className="guide-n">{num(i + 1, lang)}</span><div><b>{h}</b>{d && <p>{d}</p>}</div></li>
+        ))}
+      </ol>
+      {g.tips?.length > 0 && <div className="guide-tips"><b>{lang === "bn" ? "মনে রাখুন" : "Good to know"}</b>{g.tips.map((t) => <p key={t}>{t}</p>)}</div>}
+      {g.cta && act[g.cta[1]] && <button className="btn block guide-cta" onClick={act[g.cta[1]]}>{g.cta[0]} →</button>}
+    </div>
+  );
+}
+
 // উত্তরের ভেতরের ছোট টেবিল
 function AskTable({ t, lang }) {
   const nav = useNav();
@@ -4831,6 +4978,7 @@ function AskPage({ teams, preds, onOpen, chat, setChat }) {
                   ))}
                 </div>
               )}
+              {m.guide && <GuideCard g={m.guide} lang={lang} />}
               {m.table && <AskTable t={m.table} lang={lang} />}
               {m.form && (
                 <div className="form-row" style={{ marginTop: 10 }}>
