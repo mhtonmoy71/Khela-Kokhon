@@ -63,11 +63,9 @@ begin
 
   if r.status = 'running' and now() >= r.started_at then
     -- সবার সময় পেরোনো প্রশ্ন পূরণ করে দেখি সবাই শেষ করেছে কি না
-    for pl in select user_id from quiz_players where room_id = r.id loop
-      perform quiz_progress(r.id, pl.user_id);
-    end loop;
-    select count(*) into ndone from quiz_players p
-      where p.room_id = r.id and (select count(*) from quiz_answers a where a.room_id = r.id and a.user_id = p.user_id) >= n;
+    -- শেষ করেছেন = সব প্রশ্নের উত্তর (বা সময় শেষ) আর শেষ উত্তর দেখানোও শেষ
+    select count(*) into ndone from quiz_players p, lateral quiz_progress(r.id, p.user_id) g
+      where p.room_id = r.id and g.idx >= n and now() >= g.qstart;
     if ndone >= (select count(*) from quiz_players where room_id = r.id) then
       update quiz_rooms set status = 'finished' where id = r.id; r.status := 'finished';
     end if;
@@ -79,9 +77,9 @@ begin
     elsif not me_in then phase := 'watching';
     else
       select * into pr from quiz_progress(r.id, auth.uid());
-      if pr.idx >= n then phase := 'waiting';
-      elsif now() < pr.qstart then
+      if pr.idx > 0 and now() < pr.qstart then
         phase := 'reveal'; ends := pr.qstart; ci := pr.idx - 1;
+      elsif pr.idx >= n then phase := 'waiting';
       else
         phase := 'question'; ends := pr.qstart + make_interval(secs => r.q_seconds); ci := pr.idx;
       end if;
