@@ -187,7 +187,24 @@ img { display: block; }
 @keyframes rot { to { transform: rotate(360deg) } }
 
 /* ── ফুটার ── */
-.foot { text-align: center; padding: 30px 16px 24px; margin-top: 24px; border-top: 1px solid var(--line); }
+.foot { margin-top: 32px; background: #0b1311; color: #e9f2ee; border-radius: 22px 22px 0 0; padding: 28px 20px 24px; }
+.foot-in { max-width: 1100px; margin: 0 auto; }
+.foot-brand { display: flex; align-items: center; gap: 12px; font-size: 24px; }
+.foot-brand b span { color: #f59e0b; }
+.foot-desc { font-size: 14px; line-height: 1.75; color: #a9bbb4; margin: 14px 0 18px; }
+.foot-social { display: flex; gap: 10px; }
+.foot-social a { width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; background: #1a2622; color: #e9f2ee; }
+.foot-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 26px 16px; margin: 26px 0 22px; }
+.foot-cols h4 { font-size: 15px; font-weight: 700; margin-bottom: 10px; color: #fff; }
+.foot-cols a, .foot-cols button { display: block; text-align: left; padding: 6px 0; font-size: 14.5px; color: #c4d3cd; text-decoration: none; overflow-wrap: anywhere; }
+.foot-cols a:hover, .foot-cols button:hover { color: #00e676; }
+.foot-bottom { border-top: 1px solid rgba(255,255,255,.08); padding-top: 16px; display: flex; flex-direction: column; gap: 6px; font-size: 12px; color: #8ea39b; font-family: Inter, "Hind Siliguri", sans-serif; }
+/* ফুটারের আলাদা পাতা */
+.info h1 { font-size: 24px; margin: 6px 0 12px; }
+.info h2 { font-size: 16px; margin: 22px 0 8px; }
+.info p { font-size: 15px; line-height: 1.8; color: var(--text); opacity: .9; }
+.founder { text-align: center; margin-bottom: 18px; }
+.founder-photo { width: 120px; height: 120px; border-radius: 50%; object-fit: cover; border: 3px solid var(--green); margin: 0 auto 10px; }
 .foot-made { font-size: 12.5px; font-weight: 600; color: var(--muted); margin-bottom: 8px; font-family: Inter, "Hind Siliguri", sans-serif; }
 .foot-links { display: flex; justify-content: center; gap: 16px; flex-wrap: wrap; margin-bottom: 8px; }
 .foot-links a { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; text-decoration: none; font-family: Inter, sans-serif; font-weight: 500; }
@@ -521,6 +538,8 @@ button.scr { width: 100%; }
   .main.narrow { max-width: 820px; margin: 0 auto; }
   .page-head, .team-hero { padding-left: 0; padding-right: 0; }
 
+  .foot-cols { grid-template-columns: repeat(4, 1fr); }
+  .foot { border-radius: 22px 22px 0 0; }
   /* পরিচিতি তিন কলামে */
   .about-wrap { display: grid; grid-template-columns: 1fr 1.4fr 1fr; gap: 32px; margin-top: 44px; }
   .about-blk p.clamp { -webkit-line-clamp: 4; }
@@ -1679,23 +1698,93 @@ function MatchSheet({ m, user, pred, onClose, onSave, onLogin, toast }) {
 }
 
 // ── ফুটার (v1-এর মতো) ──
-function Footer() {
+// ── ফুটার: লোগো, পরিচিতি, সোশ্যাল, লিংকের কলাম (সব থিমে গাঢ়) ──
+const MailIcon = (p) => <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...p}><rect x="2" y="4" width="20" height="16" rx="2" /><polyline points="22,6 12,13 2,6" /></svg>;
+const FbIcon = (p) => <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" {...p}><path d="M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z" /></svg>;
+function Footer({ comps = [] }) {
   const { lang } = useT();
+  const bn = lang === "bn";
+  const nav = useNav();
+  const cols = [
+    [bn ? "খেলা কখন?" : "Khela Kokhon", [[bn ? "আমাদের কথা" : "About us", () => nav.openPage("about")], [bn ? "কীভাবে কাজ করে" : "How it works", () => nav.openPage("how")], [bn ? "প্রতিষ্ঠাতা" : "Founder", () => nav.openPage("founder")]]],
+    [bn ? "লিগ" : "Leagues", comps.map((c) => [compName(c, lang), () => nav.openLeague(c.code)])],
+    [bn ? "ফিচার" : "Features", [[bn ? "ম্যাচের সূচি" : "Fixtures", () => nav.go("matches")], [bn ? "প্রেডিকশন ও লিডারবোর্ড" : "Predictions & leaderboard", () => nav.go("predict")], [bn ? "জিজ্ঞেস করো" : "Ask", () => nav.go("ask")], [bn ? "প্রোফাইল" : "Profile", () => nav.go("profile")]]],
+    [bn ? "যোগাযোগ" : "Contact", [["khelakokhon@gmail.com", "mailto:khelakokhon@gmail.com"], [bn ? "ফেসবুক পেজ" : "Facebook page", "https://www.facebook.com/khelakokhon"]]],
+  ];
   return (
     <footer className="foot">
-      <div className="foot-made">Crafted with <span style={{ color: "#e53935" }}>❤️</span> by Mahbub Hasan Tonmoy</div>
-      <div className="foot-links">
-        <a href="mailto:khelakokhon@gmail.com" style={{ color: "var(--green)" }}>
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="4" width="20" height="16" rx="2" /><polyline points="22,6 12,13 2,6" /></svg>
-          khelakokhon@gmail.com
-        </a>
-        <a href="https://www.facebook.com/khelakokhon" target="_blank" rel="noopener noreferrer" style={{ color: "#1877f2" }}>
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="#1877f2"><path d="M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z" /></svg>
-          khelakokhon
-        </a>
+      <div className="foot-in">
+        <div className="foot-brand"><Logo size={44} /><b>খেলা কখন<span>?</span></b></div>
+        <p className="foot-desc">{bn ? "ইউরোপের বড় পাঁচ লিগ আর চ্যাম্পিয়ন্স লিগের সূচি, ফল আর টেবিল, সব বাংলাদেশ সময়ে। প্রিয় দলের খেলা, প্রেডিকশন আর বন্ধুদের লিগ, এক জায়গায়।" : "Fixtures, results and tables for Europe's top five leagues and the Champions League, all in Bangladesh time. Your teams, predictions and friends' leagues in one place."}</p>
+        <div className="foot-social">
+          <a href="https://www.facebook.com/khelakokhon" target="_blank" rel="noopener noreferrer" aria-label="Facebook"><FbIcon /></a>
+          <a href="mailto:khelakokhon@gmail.com" aria-label="Email"><MailIcon /></a>
+        </div>
+        <div className="foot-cols">
+          {cols.map(([h, links]) => (
+            <div key={h}>
+              <h4>{h}</h4>
+              {links.map(([label, to]) => typeof to === "string"
+                ? <a key={label} href={to} target={to.startsWith("http") ? "_blank" : undefined} rel="noopener noreferrer">{label}</a>
+                : <button key={label} onClick={to}>{label}</button>)}
+            </div>
+          ))}
+        </div>
+        <div className="foot-bottom">
+          <span>{bn ? "© ২০২৬ খেলা কখন? সকল স্বত্ব সংরক্ষিত।" : "© 2026 Khela Kokhon? All rights reserved."}</span>
+          <span>Crafted with <span style={{ color: "#e53935" }}>❤️</span> by Mahbub Hasan Tonmoy</span>
+        </div>
       </div>
-      <div className="foot-copy">{lang === "bn" ? "© ২০২৬ খেলা কখন? সকল স্বত্ব সংরক্ষিত।" : "© 2026 Khela Kokhon? All rights reserved."}</div>
     </footer>
+  );
+}
+
+// ── ফুটারের আলাদা পাতা: আমাদের কথা / কীভাবে কাজ করে / প্রতিষ্ঠাতা ──
+function InfoPage({ id, user, goProfile }) {
+  const { t, lang } = useT();
+  const A = ABOUT[lang === "bn" ? "bn" : "en"];
+  const back = <div className="page-head"><button className="back" onClick={() => window.history.back()} aria-label="back">←</button></div>;
+  if (id === "founder") return (
+    <>
+      {back}
+      <div className="sec info">
+        <div className="founder">
+          <img className="founder-photo" src={DEV_PHOTO} alt={A.devName} width="120" height="120" />
+          <h1>{A.devName}</h1>
+          <div className="muted">{A.devRole}</div>
+          <div className="foot-social" style={{ justifyContent: "center", marginTop: 12 }}>
+            <a href="mailto:khelakokhon@gmail.com" aria-label="Email"><MailIcon /></a>
+            <a href="https://www.facebook.com/mahbub.tonmoy.71/" target="_blank" rel="noopener noreferrer" aria-label="Facebook"><FbIcon /></a>
+          </div>
+        </div>
+        <p>{A.dev}</p>
+      </div>
+    </>
+  );
+  if (id === "how") return (
+    <>
+      {back}
+      <div className="sec info">
+        <h1>{A.howH}</h1>
+        <div className="steps">
+          {A.steps.map(([h, d], i) => <div key={h}><span className="step-n">{num(i + 1, lang)}</span><b>{h}</b><p>{d}</p></div>)}
+        </div>
+        <h2>{lang === "bn" ? "পয়েন্টের নিয়ম" : "Scoring"}</h2>
+        <p>{t("rules")}</p>
+        {!user && <button className="btn" style={{ marginTop: 16 }} onClick={goProfile}>{A.cta} →</button>}
+      </div>
+    </>
+  );
+  return (
+    <>
+      {back}
+      <div className="sec info">
+        <h1>{A.whatH}</h1>
+        <p>{A.what}</p>
+        <div className="facts">{A.facts.map(([b, s]) => <div key={s}><b>{b}</b><span>{s}</span></div>)}</div>
+        {!user && <button className="btn" style={{ marginTop: 18 }} onClick={goProfile}>{A.cta} →</button>}
+      </div>
+    </>
   );
 }
 
@@ -1755,50 +1844,6 @@ const ABOUT = {
   },
 };
 
-function About({ goProfile, user }) {
-  const { lang } = useT();
-  const A = ABOUT[lang === "bn" ? "bn" : "en"];
-  const [more, setMore] = useState(false);
-  return (
-    <div className="sec about-wrap">
-      <div className="about-blk">
-        <h3>{A.whatH}</h3>
-        <p>{A.what}</p>
-      </div>
-
-      <div className="about-blk">
-        <h3>{A.howH}</h3>
-        <div className="steps">
-          {A.steps.map(([h, d], i) => (
-            <div key={h}><span className="step-n">{num(i + 1, lang)}</span><b>{h}</b><p>{d}</p></div>
-          ))}
-        </div>
-        {!user && <button className="link" style={{ marginTop: 10 }} onClick={goProfile}>{A.cta} →</button>}
-      </div>
-
-      <div className="about-blk">
-        <h3>{A.devH}</h3>
-        <div className="dev-mini">
-          <img className="dev-photo" src={DEV_PHOTO} alt={A.devName} width="52" height="52" />
-          <div style={{ flex: 1, minWidth: 0 }}>
-            <b>{A.devName}</b>
-            <div className="muted" style={{ fontSize: 12.5 }}>{A.devRole}</div>
-          </div>
-          <div className="dev-links">
-            <a href="mailto:khelakokhon@gmail.com" aria-label="Email" title="khelakokhon@gmail.com">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="4" width="20" height="16" rx="2" /><polyline points="22,6 12,13 2,6" /></svg>
-            </a>
-            <a href="https://www.facebook.com/mahbub.tonmoy.71/" target="_blank" rel="noopener noreferrer" aria-label="Facebook" title="Facebook" className="fb">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M18 2h-3a5 5 0 00-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 011-1h3z" /></svg>
-            </a>
-          </div>
-        </div>
-        <p className={more ? "" : "clamp"}>{A.dev}</p>
-        {!more && <button className="link" onClick={() => setMore(true)}>{lang === "bn" ? "আরও পড়ো" : "Read more"}</button>}
-      </div>
-    </div>
-  );
-}
 
 // ════════════════ pages/Matches.jsx ════════════════
 // ── তারিখের স্ট্রিপ ──
@@ -1957,7 +2002,6 @@ function Matches({ user, myTeams, comps, preds, onOpen, goProfile }) {
         <DayMatches day={day} setDay={setDay} comp={comp} preds={preds} onOpen={onOpen} />
       </div>
 
-      <About goProfile={goProfile} user={user} />
     </>
   );
 }
@@ -3451,11 +3495,15 @@ const TABS = [
 ];
 const tabFromPath = () => TABS.find((x) => x.path === window.location.pathname)?.id || "matches"; // পুরনো /matches লিংকও ম্যাচে যায়
 // /league/PL বা /team/86 হলে সেই পাতা
+// ফুটারের আলাদা পাতা
+const PAGE_PATHS = { about: "about", "how-it-works": "how", founder: "founder" };
+const PAGE_URL = { about: "/about", how: "/how-it-works", founder: "/founder" };
 const viewFromPath = () => {
   const [, kind, id] = window.location.pathname.split("/");
   if (kind === "league" && id) return { kind: "league", code: id.toUpperCase() };
   if (kind === "team" && /^\d+$/.test(id || "")) return { kind: "team", id: +id };
   if (kind === "player" && /^\d+$/.test(id || "")) return { kind: "player", id: +id };
+  if (PAGE_PATHS[kind] && !id) return { kind: "page", id: PAGE_PATHS[kind] };
   return null;
 };
 const stored = (k, d) => { try { return localStorage.getItem(k) || d; } catch { return d; } };
@@ -3543,6 +3591,8 @@ export default function App() {
     openLeague: (code) => openView(`/league/${code}`, { kind: "league", code }),
     openTeam: (id) => openView(`/team/${id}`, { kind: "team", id }),
     openPlayer: (id) => openView(`/player/${id}`, { kind: "player", id }),
+    openPage: (id) => openView(PAGE_URL[id], { kind: "page", id }),
+    go,
   };
 
   const openMatch = (m) => { window.history.pushState({ sheet: 1 }, ""); setSheet(m); };
@@ -3652,6 +3702,8 @@ export default function App() {
           <League key={view.code} code={view.code} comps={comps} preds={preds} onOpen={openMatch} />
         ) : view?.kind === "team" ? (
           <Team key={view.id} id={view.id} teamsById={teamsById} preds={preds} onOpen={openMatch} />
+        ) : view?.kind === "page" ? (
+          <InfoPage key={view.id} id={view.id} user={user} goProfile={() => go("profile")} />
         ) : view?.kind === "player" ? (
           <Player key={view.id} id={view.id} teamsById={teamsById} comps={comps} />
         ) : tab === "matches" ? (
@@ -3667,7 +3719,7 @@ export default function App() {
         )}
         </main>
 
-        {!(tab === "ask" && !view && !onboarding) && <Footer />}
+        {!(tab === "ask" && !view && !onboarding) && <Footer comps={comps} />}
       </div>
 
       {!onboarding && <Nav tab={tab} go={go} />}
