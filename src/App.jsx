@@ -595,7 +595,7 @@ button.scr { width: 100%; }
   background: color-mix(in srgb, var(--card) 92%, transparent); backdrop-filter: blur(14px); }
 .nav-in { padding: 2px 6px; }
 .nav button { border-radius: 18px; }
-/* মাঝখানের উঁচু গোল "জিজ্ঞেস করো" বাটন */
+/* মাঝখানের উঁচু গোল "জিজ্ঞেস করুন" বাটন */
 .nav button.nav-ask { position: relative; padding-top: 32px; color: var(--muted); white-space: nowrap; font-size: 11px; }
 .nav button.nav-ask.on { color: var(--green); }
 .ask-orb { display: grid; place-items: center; width: 54px; height: 54px; border-radius: 50%; color: #fff;
@@ -681,16 +681,16 @@ const S = {
   home: ["হোম", "Home"],
   matches: ["ম্যাচ", "Matches"],
   leagues: ["লিগ", "Leagues"],
-  ask: ["জিজ্ঞেস করো", "Ask"],
-  myTeamGames: ["তোমার দলের খেলা", "Your teams"],
+  ask: ["জিজ্ঞেস করুন", "Ask"],
+  myTeamGames: ["আপনার দলের খেলা", "Your teams"],
   following: ["প্রিয় দলের খেলা", "Following"],
   predict: ["গেম", "Games"],
   profile: ["প্রোফাইল", "Profile"],
   nextMatch: ["পরের খেলা", "Next match"],
-  yourTeams: ["তোমার দলের সামনের ম্যাচ", "Your teams — upcoming"],
+  yourTeams: ["আপনার দলের সামনের ম্যাচ", "Your teams — upcoming"],
   rivalWatch: ["রাইভালদের খবর", "Rival watch"],
   todayBig: ["আজকের খেলা", "Today's matches"],
-  seeAll: ["সব দেখো", "See all"],
+  seeAll: ["সব দেখুন", "See all"],
   noMatchDay: ["এই দিনে কোনো ম্যাচ নেই", "No matches on this day"],
   all: ["সব", "All"],
   live: ["লাইভ", "LIVE"],
@@ -703,19 +703,19 @@ const S = {
   startsIn: ["শুরু হতে বাকি", "Starts in"],
   share: ["শেয়ার", "Share"],
   copied: ["কপি হয়েছে", "Copied"],
-  yourPick: ["তোমার প্রেডিকশন", "Your prediction"],
-  save: ["সেভ করো", "Save"],
+  yourPick: ["আপনার প্রেডিকশন", "Your prediction"],
+  save: ["সেভ করুন", "Save"],
   saved: ["সেভ হয়েছে", "Saved"],
   locked: ["কিকঅফের পর প্রেডিকশন বন্ধ", "Predictions close at kickoff"],
-  loginToPredict: ["প্রেডিকশন দিতে লগইন করো", "Log in to predict"],
+  loginToPredict: ["প্রেডিকশন দিতে লগইন করুন", "Log in to predict"],
   myPredictions: ["আমার প্রেডিকশন", "My predictions"],
   leaderboard: ["লিডারবোর্ড", "Leaderboard"],
   rules: ["হুবহু স্কোর মিললে ৩ পয়েন্ট, শুধু ফল (জয়/ড্র/হার) মিললে ১ পয়েন্ট। ম্যাচ শেষ হওয়ার পরের হালনাগাদে পয়েন্ট যোগ হয়।", "Exact score = 3 pts, correct result = 1 pt. Points are added at the next update after the match."],
-  noPredictions: ["এখনো কোনো প্রেডিকশন দাওনি। যেকোনো ম্যাচে ট্যাপ করে শুরু করো।", "No predictions yet. Tap any match to start."],
+  noPredictions: ["এখনো কোনো প্রেডিকশন দেননি। যেকোনো ম্যাচে ট্যাপ করে শুরু করুন।", "No predictions yet. Tap any match to start."],
   noLeaders: ["এখনো কারও পয়েন্ট হয়নি", "No points yet"],
   pts: ["পয়েন্ট", "pts"],
   pending: ["অপেক্ষায়", "Pending"],
-  upcomingToPredict: ["প্রেডিকশন দাও", "Make your picks"],
+  upcomingToPredict: ["প্রেডিকশন দিন", "Make your picks"],
   login: ["লগইন", "Log in"],
   signup: ["রেজিস্ট্রেশন", "Sign up"],
   logout: ["লগআউট", "Log out"],
@@ -723,17 +723,17 @@ const S = {
   email: ["ইমেইল", "Email"],
   phone: ["মোবাইল নম্বর", "Mobile number"],
   password: ["পাসওয়ার্ড", "Password"],
-  google: ["Google দিয়ে চালিয়ে যাও", "Continue with Google"],
+  google: ["Google দিয়ে চালিয়ে যান", "Continue with Google"],
   or: ["অথবা", "or"],
-  checkEmail: ["ইমেইলে একটা লিংক পাঠানো হয়েছে। সেটায় ক্লিক করে অ্যাকাউন্ট চালু করো।", "We emailed you a link. Click it to activate your account."],
-  pickFav: ["প্রিয় দল বেছে নাও", "Pick your favourite teams"],
+  checkEmail: ["ইমেইলে একটা লিংক পাঠানো হয়েছে। সেটায় ক্লিক করে অ্যাকাউন্ট চালু করুন।", "We emailed you a link. Click it to activate your account."],
+  pickFav: ["প্রিয় দল বেছে নিন", "Pick your favourite teams"],
   pickFavSub: ["সর্বোচ্চ ৩টা — এদের খেলা ম্যাচ পাতার একদম উপরে দেখাবে", "Up to 3 — their matches show at the top of Matches"],
-  pickRival: ["রাইভাল দল বেছে নাও", "Pick your rivals"],
+  pickRival: ["রাইভাল দল বেছে নিন", "Pick your rivals"],
   pickRivalSub: ["সর্বোচ্চ ৫টা — এদের ফলও নজরে রাখবে", "Up to 5 — keep an eye on them too"],
-  phoneNeeded: ["তোমার মোবাইল নম্বর দাও", "Add your mobile number"],
+  phoneNeeded: ["আপনার মোবাইল নম্বর দিন", "Add your mobile number"],
   phoneWhy: ["না দিলেও সব ফিচার চলবে। নম্বর অন্য কেউ দেখতে পায় না।", "Everything works without it. Nobody else can see your number."],
   optional: ["ঐচ্ছিক", "optional"],
-  search: ["দল খোঁজো", "Search teams"],
+  search: ["দল খুঁজুন", "Search teams"],
   next: ["পরের ধাপ", "Next"],
   back: ["পেছনে", "Back"],
   done: ["শেষ", "Done"],
@@ -747,9 +747,9 @@ const S = {
   theme: ["থিম", "Theme"],
   dark: ["ডার্ক", "Dark"],
   light: ["লাইট", "Light"],
-  ctaTitle: ["তোমার দলের খেলা কখন?", "When does your team play?"],
-  ctaBody: ["প্রিয় দল বেছে নাও, তাদের পরের খেলা বাংলাদেশ সময়ে কাউন্টডাউনসহ ম্যাচ পাতার উপরে দেখাবে।", "Pick your teams and their next match shows at the top of Matches, in Bangladesh time."],
-  ctaBtn: ["শুরু করো", "Get started"],
+  ctaTitle: ["আপনার দলের খেলা কখন?", "When does your team play?"],
+  ctaBody: ["প্রিয় দল বেছে নিন, তাদের পরের খেলা বাংলাদেশ সময়ে কাউন্টডাউনসহ ম্যাচ পাতার উপরে দেখাবে।", "Pick your teams and their next match shows at the top of Matches, in Bangladesh time."],
+  ctaBtn: ["শুরু করুন", "Get started"],
   noUpcoming: ["সামনে কোনো ম্যাচের সূচি নেই", "No upcoming fixtures"],
   lastResult: ["শেষ ফল", "Last result"],
   next2: ["পরের ম্যাচ", "Next"],
@@ -1348,7 +1348,7 @@ async function myLeagues() {
 async function createLeague(name) {
   if (DEMO) {
     const code = Math.random().toString(36).slice(2, 8).toUpperCase();
-    const l = { id: code, name, code, board: [{ display_name: "তুমি", points: 0, exact: 0, played: 0, is_me: true }, ...DEMO_LEADERS.slice(0, 3)] };
+    const l = { id: code, name, code, board: [{ display_name: "আপনি", points: 0, exact: 0, played: 0, is_me: true }, ...DEMO_LEADERS.slice(0, 3)] };
     ls.set("pleagues", [l, ...demoLeagues()]);
     return { id: l.id, code };
   }
@@ -1388,7 +1388,7 @@ function BoardRows({ rows, isMe, lang, t }) {
         <div className="lb" key={i} style={isMe(r) ? { background: "var(--greenDim)" } : null}>
           <div className={"rk" + (i < 3 ? " top" : "")}>{i < 3 ? ["🥇", "🥈", "🥉"][i] : num(i + 1, lang)}</div>
           <div>
-            <div style={{ fontWeight: 600 }}>{r.display_name}{isMe(r) ? (lang === "bn" ? " (তুমি)" : " (you)") : ""}</div>
+            <div style={{ fontWeight: 600 }}>{r.display_name}{isMe(r) ? (lang === "bn" ? " (আপনি)" : " (you)") : ""}</div>
             <div className="sub">{lang === "bn" ? `${num(r.played, lang)} ম্যাচ · হুবহু ${num(r.exact, lang)}` : `${r.played} played · ${r.exact} exact`}</div>
           </div>
           <div className="pt">{num(r.points, lang)} <span className="sub">{t("pts")}</span></div>
@@ -2316,7 +2316,7 @@ function H2H({ m }) {
         <button className="card ms-row" onClick={load}><span>{bn ? "হেড টু হেড" : "Head to head"}</span><span className="comp-go">›</span></button>
       ) : <div className="sec-h"><h2>{bn ? "হেড টু হেড" : "Head to head"}</h2></div>}
       {state === "loading" && <div className="card"><div className="spin" /></div>}
-      {state === "error" && <div className="card empty">{bn ? "এখন তথ্যটা পাওয়া যাচ্ছে না। একটু পরে আবার চেষ্টা করো।" : "Not available right now."}</div>}
+      {state === "error" && <div className="card empty">{bn ? "এখন তথ্যটা পাওয়া যাচ্ছে না। একটু পরে আবার চেষ্টা করুন।" : "Not available right now."}</div>}
       {state === "done" && (
         <div className="card">
           {homeAg && awayAg && (
@@ -2403,11 +2403,11 @@ function MatchSheet({ m, user, pred, onClose, onSave, onLogin, toast }) {
                 {pred && !(pred.home !== h || pred.away !== a) ? (
                   <div className="pick-done">
                     <span className="pick-ok">✓</span>
-                    <span><b>{lang === "bn" ? "প্রেডিকশন দেওয়া আছে" : "Prediction locked in"}</b><small className="muted">{lang === "bn" ? "খেলা শুরুর আগ পর্যন্ত স্কোর বদলে আবার দিতে পারবে" : "Change the score any time before kickoff"}</small></span>
+                    <span><b>{lang === "bn" ? "প্রেডিকশন দেওয়া আছে" : "Prediction locked in"}</b><small className="muted">{lang === "bn" ? "খেলা শুরুর আগ পর্যন্ত স্কোর বদলে আবার দিতে পারবেন" : "Change the score any time before kickoff"}</small></span>
                   </div>
                 ) : (
                   <>
-                    <button className="btn block" disabled={busy} onClick={save}>{busy ? "…" : pred ? (lang === "bn" ? "নতুন প্রেডিকশন দাও" : "Update prediction") : (lang === "bn" ? "প্রেডিকশন দাও" : "Submit prediction")}</button>
+                    <button className="btn block" disabled={busy} onClick={save}>{busy ? "…" : pred ? (lang === "bn" ? "নতুন প্রেডিকশন দিন" : "Update prediction") : (lang === "bn" ? "প্রেডিকশন দিন" : "Submit prediction")}</button>
                     {pred && <button className="link pick-undo" onClick={() => { setH(pred.home); setA(pred.away); }}>{lang === "bn" ? `আগেরটাই থাক (${num(pred.home, lang)}–${num(pred.away, lang)})` : `Keep ${pred.home}–${pred.away}`}</button>}
                   </>
                 )}
@@ -2439,7 +2439,7 @@ function Footer({ comps = [] }) {
   const cols = [
     [bn ? "খেলা কখন?" : "Khela Kokhon", [[bn ? "আমাদের কথা" : "About us", () => nav.openPage("about")], [bn ? "কীভাবে কাজ করে" : "How it works", () => nav.openPage("how")], [bn ? "প্রতিষ্ঠাতা" : "Founder", () => nav.openPage("founder")], [bn ? "যোগাযোগ" : "Contact", () => nav.openPage("contact")], [bn ? "গোপনীয়তা নীতি" : "Privacy policy", () => nav.openPage("privacy")]]],
     [bn ? "লিগ" : "Leagues", comps.map((c) => [compName(c, lang), () => nav.openLeague(c.code)])],
-    [bn ? "ফিচার" : "Features", [[bn ? "ম্যাচের সূচি" : "Fixtures", () => nav.go("matches")], [bn ? "প্রেডিকশন ও লিডারবোর্ড" : "Predictions & leaderboard", () => nav.go("predict")], [bn ? "জিজ্ঞেস করো" : "Ask", () => nav.go("ask")], [bn ? "প্রোফাইল" : "Profile", () => nav.go("profile")]]],
+    [bn ? "ফিচার" : "Features", [[bn ? "ম্যাচের সূচি" : "Fixtures", () => nav.go("matches")], [bn ? "প্রেডিকশন ও লিডারবোর্ড" : "Predictions & leaderboard", () => nav.go("predict")], [bn ? "জিজ্ঞেস করুন" : "Ask", () => nav.go("ask")], [bn ? "প্রোফাইল" : "Profile", () => nav.go("profile")]]],
   ];
   return (
     <footer className="foot">
@@ -2495,11 +2495,11 @@ function InfoPage({ id, user, goProfile }) {
   if (id === "privacy") {
     const bn = lang === "bn";
     const parts = bn
-      ? [["কী তথ্য রাখা হয়", "Google বা ইমেইল দিয়ে লগইন করলে তোমার নাম, ইমেইল আর প্রোফাইল ছবি রাখা হয়। তোমার প্রিয় দল, ম্যাচের অনুমান আর বন্ধুদের লিগের তথ্যও জমা থাকে। লগইন ছাড়া ব্যবহার করলে কোনো ব্যক্তিগত তথ্য নেওয়া হয় না।"],
-         ["কেন রাখা হয়", "শুধু তোমার দল, অনুমান, পয়েন্ট আর লিডারবোর্ড দেখানোর জন্য। লিডারবোর্ড আর বন্ধুদের লিগে অন্যরা শুধু তোমার নাম ও ছবি দেখে, ইমেইল নয়।"],
-         ["ফোনে কী জমা থাকে", "ভাষা, থিম, সাম্প্রতিক খোঁজ আর এমন কিছু পছন্দ তোমার ফোনের ব্রাউজারেই থাকে, আমাদের কাছে আসে না।"],
-         ["কারও সাথে ভাগ করা হয় না", "তোমার তথ্য বিক্রি করা হয় না, বিজ্ঞাপনদাতা বা অন্য কাউকে দেওয়া হয় না। তথ্য নিরাপদে Supabase-এর সার্ভারে রাখা হয়।"],
-         ["তথ্য মুছে ফেলা", "অ্যাকাউন্ট আর সব তথ্য মুছে ফেলতে চাইলে khelakokhon@gmail.com-এ ইমেইল করো, দ্রুত মুছে দেওয়া হবে।"]]
+      ? [["কী তথ্য রাখা হয়", "Google বা ইমেইল দিয়ে লগইন করলে আপনার নাম, ইমেইল আর প্রোফাইল ছবি রাখা হয়। আপনার প্রিয় দল, ম্যাচের অনুমান আর বন্ধুদের লিগের তথ্যও জমা থাকে। লগইন ছাড়া ব্যবহার করলে কোনো ব্যক্তিগত তথ্য নেওয়া হয় না।"],
+         ["কেন রাখা হয়", "শুধু আপনার দল, অনুমান, পয়েন্ট আর লিডারবোর্ড দেখানোর জন্য। লিডারবোর্ড আর বন্ধুদের লিগে অন্যরা শুধু আপনার নাম ও ছবি দেখে, ইমেইল নয়।"],
+         ["ফোনে কী জমা থাকে", "ভাষা, থিম, সাম্প্রতিক খোঁজ আর এমন কিছু পছন্দ আপনার ফোনের ব্রাউজারেই থাকে, আমাদের কাছে আসে না।"],
+         ["কারও সাথে ভাগ করা হয় না", "আপনার তথ্য বিক্রি করা হয় না, বিজ্ঞাপনদাতা বা অন্য কাউকে দেওয়া হয় না। তথ্য নিরাপদে Supabase-এর সার্ভারে রাখা হয়।"],
+         ["তথ্য মুছে ফেলা", "অ্যাকাউন্ট আর সব তথ্য মুছে ফেলতে চাইলে khelakokhon@gmail.com-এ ইমেইল করুন, দ্রুত মুছে দেওয়া হবে।"]]
       : [["What we store", "If you sign in with Google or email, we keep your name, email and profile photo, plus your favourite teams, match predictions and friends' leagues. Nothing personal is collected if you use the site without signing in."],
          ["Why", "Only to show your teams, predictions, points and leaderboards. Others see just your name and photo on leaderboards, never your email."],
          ["On your device", "Language, theme, recent searches and similar preferences stay in your browser and are never sent to us."],
@@ -2510,7 +2510,7 @@ function InfoPage({ id, user, goProfile }) {
         {back}
         <div className="sec info">
           <h1>{bn ? "গোপনীয়তা নীতি" : "Privacy policy"}</h1>
-          <p className="muted">{bn ? "খেলা কখন? (khelakokhon.com) তোমার তথ্য কীভাবে ব্যবহার করে।" : "How Khela Kokhon (khelakokhon.com) uses your information."}</p>
+          <p className="muted">{bn ? "খেলা কখন? (khelakokhon.com) আপনার তথ্য কীভাবে ব্যবহার করে।" : "How Khela Kokhon (khelakokhon.com) uses your information."}</p>
           {parts.map(([h, d]) => <div key={h}><h2>{h}</h2><p>{d}</p></div>)}
         </div>
       </>
@@ -2519,10 +2519,10 @@ function InfoPage({ id, user, goProfile }) {
   if (id === "contact") {
     const bn = lang === "bn";
     const topics = bn
-      ? [["মতামত ও পরামর্শ", "সাইটের কোনো অংশ ভালো লাগলে বা কিছু বদলানো দরকার মনে হলে জানাও।"],
-         ["ভুল বা সমস্যা", "কোনো সময়, ফল বা নাম ভুল দেখলে, অথবা কিছু কাজ না করলে লেখো। কোন পাতায় কী দেখছ, সম্ভব হলে স্ক্রিনশটসহ।"],
-         ["নতুন ফিচারের অনুরোধ", "নতুন লিগ, নতুন সুবিধা বা অন্য কোনো ভাবনা থাকলে জানাতে পারো।"],
-         ["সহযোগিতা ও বিজ্ঞাপন", "যৌথ কাজ, স্পনসরশিপ বা বিজ্ঞাপন নিয়ে কথা বলতে চাইলে ইমেইল করো।"]]
+      ? [["মতামত ও পরামর্শ", "সাইটের কোনো অংশ ভালো লাগলে বা কিছু বদলানো দরকার মনে হলে জানান।"],
+         ["ভুল বা সমস্যা", "কোনো সময়, ফল বা নাম ভুল দেখলে, অথবা কিছু কাজ না করলে লিখুন। কোন পাতায় কী দেখছেন, সম্ভব হলে স্ক্রিনশটসহ।"],
+         ["নতুন ফিচারের অনুরোধ", "নতুন লিগ, নতুন সুবিধা বা অন্য কোনো ভাবনা থাকলে জানাতে পারেন।"],
+         ["সহযোগিতা ও বিজ্ঞাপন", "যৌথ কাজ, স্পনসরশিপ বা বিজ্ঞাপন নিয়ে কথা বলতে চাইলে ইমেইল করুন।"]]
       : [["Feedback", "Tell us what you like or what should change."],
          ["Errors and problems", "Spotted a wrong time, score or name, or something not working? Tell us which page, with a screenshot if you can."],
          ["Feature requests", "New leagues, new features or any other idea."],
@@ -2532,7 +2532,7 @@ function InfoPage({ id, user, goProfile }) {
         {back}
         <div className="sec info">
           <h1>{bn ? "যোগাযোগ" : "Contact"}</h1>
-          <p>{bn ? "খেলা কখন? একজন মানুষের হাতে বানানো আর চালানো সাইট। তোমার মতামত, প্রশ্ন বা ভুল ধরিয়ে দেওয়া, সবই সাইটটাকে আরও ভালো করে। নিচের যেকোনো উপায়ে লিখতে পারো, প্রতিটা বার্তা পড়া হয়।" : "Khela Kokhon is built and run by one person. Your feedback, questions and bug reports all make it better. Reach out any way below; every message is read."}</p>
+          <p>{bn ? "খেলা কখন? একজন মানুষের হাতে বানানো আর চালানো সাইট। আপনার মতামত, প্রশ্ন বা ভুল ধরিয়ে দেওয়া, সবই সাইটটাকে আরও ভালো করে। নিচের যেকোনো উপায়ে লিখতে পারেন, প্রতিটা বার্তা পড়া হয়।" : "Khela Kokhon is built and run by one person. Your feedback, questions and bug reports all make it better. Reach out any way below; every message is read."}</p>
           <div className="contact-cards">
             <a className="card contact-card" href="mailto:khelakokhon@gmail.com">
               <span className="contact-ic"><MailIcon /></span>
@@ -2543,11 +2543,11 @@ function InfoPage({ id, user, goProfile }) {
               <span><b>{bn ? "ফেসবুক পেজ" : "Facebook page"}</b><small>facebook.com/khelakokhon</small></span>
             </a>
           </div>
-          <h2>{bn ? "কী নিয়ে লিখতে পারো" : "What you can write about"}</h2>
+          <h2>{bn ? "কী নিয়ে লিখতে পারেন" : "What you can write about"}</h2>
           <div className="contact-topics">
             {topics.map(([h, d]) => <div key={h}><b>{h}</b><p>{d}</p></div>)}
           </div>
-          <p className="muted" style={{ fontSize: 13.5, marginTop: 14 }}>{bn ? "ভুল জানানোর সময় কোন ম্যাচ বা পাতা, আর কোন ফোন বা ব্রাউজার ব্যবহার করছ লিখলে দ্রুত ঠিক করা সহজ হয়।" : "When reporting a problem, mentioning the match or page and your phone or browser helps fix it faster."}</p>
+          <p className="muted" style={{ fontSize: 13.5, marginTop: 14 }}>{bn ? "ভুল জানানোর সময় কোন ম্যাচ বা পাতা, আর কোন ফোন বা ব্রাউজার ব্যবহার করছেন লিখলে দ্রুত ঠিক করা সহজ হয়।" : "When reporting a problem, mentioning the match or page and your phone or browser helps fix it faster."}</p>
         </div>
       </>
     );
@@ -2607,14 +2607,14 @@ const ABOUT = {
     steps: [
       ["রেজিস্ট্রেশন", "ইমেইল আর মোবাইল নম্বর দিয়ে, অথবা Google দিয়ে।"],
       ["দল বাছাই", "সর্বোচ্চ তিনটা প্রিয় দল।"],
-      ["প্রেডিকশন", "কিকঅফের আগ পর্যন্ত যেকোনো ম্যাচের স্কোর অনুমান করো।"],
-      ["পয়েন্ট", "হুবহু স্কোরে ৩, শুধু ফল মিললে ১। জায়গা করে নাও লিডারবোর্ডে।"],
+      ["প্রেডিকশন", "কিকঅফের আগ পর্যন্ত যেকোনো ম্যাচের স্কোর অনুমান করুন।"],
+      ["পয়েন্ট", "হুবহু স্কোরে ৩, শুধু ফল মিললে ১। জায়গা করে নিন লিডারবোর্ডে।"],
     ],
     devH: "ডেভেলপার পরিচিতি",
     devName: "মাহবুব হাসান তন্ময়",
     devRole: "প্রতিষ্ঠাতা ও ডেভেলপার",
     dev: "ক্রীড়া লেখক। খেলা৭১-এ সাব-এডিটর হিসেবে কাজ করেছেন, বাংলা ও ইংরেজিতে লিখেছেন ১,৭০০-র বেশি ক্রীড়া প্রতিবেদন। গোপালগঞ্জ বিজ্ঞান ও প্রযুক্তি বিশ্ববিদ্যালয় থেকে বিবিএ শেষ করে এখন একটি বেসরকারি ব্যাংকে কর্মরত। আগ্রহের জায়গা খেলার ইতিহাস। প্রোগ্রামিংয়ে প্রাতিষ্ঠানিক পড়াশোনা নেই; নিজে শিখে বানিয়েছেন খেলা কখন?।",
-    cta: "শুরু করো",
+    cta: "শুরু করুন",
   },
   en: {
     whatH: "What is Khela Kokhon?",
@@ -2765,7 +2765,7 @@ function Matches({ user, myTeams, comps, preds, onOpen, goProfile }) {
         <div className="sec">
           <button className="slim" onClick={goProfile}>
             <span className="slim-star">★</span>
-            <span>{lang === "bn" ? "প্রিয় দল বেছে নাও, তাদের পরের খেলা এখানে সবার উপরে দেখাবে" : "Pick your teams to see their next match here"}</span>
+            <span>{lang === "bn" ? "প্রিয় দল বেছে নিন, তাদের পরের খেলা এখানে সবার উপরে দেখাবে" : "Pick your teams to see their next match here"}</span>
             <span className="muted">›</span>
           </button>
         </div>
@@ -2788,7 +2788,7 @@ function Matches({ user, myTeams, comps, preds, onOpen, goProfile }) {
       <div className="sec" style={{ marginTop: 14 }}>
         <div className="sec-h">
           <h2>{dayLabel(day, lang)}</h2>
-          {comp !== "ALL" && <button className="link" onClick={() => nav.openLeague(comp)}>{lang === "bn" ? "টেবিল দেখো" : "Table"} →</button>}
+          {comp !== "ALL" && <button className="link" onClick={() => nav.openLeague(comp)}>{lang === "bn" ? "টেবিল দেখুন" : "Table"} →</button>}
         </div>
         <DayMatches day={day} setDay={setDay} comp={comp} preds={preds} onOpen={onOpen} />
       </div>
@@ -2826,7 +2826,7 @@ function Leagues({ comps }) {
 const inviteText = (l, bn) => {
   const link = `https://khelakokhon.com/join/${l.code}`;
   return bn
-    ? `⚽ "${l.name}" প্রেডিকশন লিগে যোগ দাও — খেলা কখন?-এ\n\nলিংক: ${link}\nকোড: ${l.code}`
+    ? `⚽ "${l.name}" প্রেডিকশন লিগে যোগ দিন — খেলা কখন?-এ\n\nলিংক: ${link}\nকোড: ${l.code}`
     : `⚽ Join my "${l.name}" prediction league on Khela Kokhon\n\n${link}\nCode: ${l.code}`;
 };
 
@@ -2849,7 +2849,7 @@ function Board({ league, user, onBack, onLeft, toast }) {
   }, [league.id, comp]);
 
   async function leave() {
-    if (!window.confirm(bn ? `"${league.name}" লিগ ছেড়ে দেবে?` : `Leave "${league.name}"?`)) return;
+    if (!window.confirm(bn ? `"${league.name}" লিগ ছেড়ে দেবেন?` : `Leave "${league.name}"?`)) return;
     await leaveLeague(user, league.id).catch(() => {});
     onLeft();
   }
@@ -2863,13 +2863,13 @@ function Board({ league, user, onBack, onLeft, toast }) {
           <div className="muted" style={{ fontSize: 12.5 }}>{bn ? "কোড" : "Code"}: <b className="code">{league.code}</b> · {num(league.members ?? rows?.length ?? 0, lang)} {bn ? "জন" : "members"}</div>
         </div>
       </div>
-      <button className="btn block" style={{ margin: "12px 0" }} onClick={() => shareInvite(league, bn, toast)}>{bn ? "বন্ধুদের আমন্ত্রণ পাঠাও" : "Invite friends"}</button>
+      <button className="btn block" style={{ margin: "12px 0" }} onClick={() => shareInvite(league, bn, toast)}>{bn ? "বন্ধুদের আমন্ত্রণ পাঠান" : "Invite friends"}</button>
       <CompFilter value={comp} onChange={setComp} />
       {err && err !== "missing" && <div className="err">{err}</div>}
       {rows === null ? <div className="card"><div className="spin" /></div>
         : err === "missing" || (comp && !rows.some((r) => r.played > 0)) ? <BoardMsg err={err} comp={comp} lang={lang} />
         : <BoardRows rows={comp ? rows.filter((r) => r.played > 0 || r.is_me) : rows} isMe={(r) => r.is_me} lang={lang} t={t} />}
-      <button className="link" style={{ color: "var(--red)", marginTop: 14 }} onClick={leave}>{bn ? "লিগ ছেড়ে দাও" : "Leave league"}</button>
+      <button className="link" style={{ color: "var(--red)", marginTop: 14 }} onClick={leave}>{bn ? "লিগ ছেড়ে দিন" : "Leave league"}</button>
     </>
   );
 }
@@ -2889,7 +2889,7 @@ function Friends({ user, goProfile, toast, openId, reloadKey }) {
 
   if (!user) return (
     <div className="card empty">
-      <div style={{ marginBottom: 12 }}>{bn ? "বন্ধুদের লিগে খেলতে আগে লগইন করো" : "Log in to play in friends' leagues"}</div>
+      <div style={{ marginBottom: 12 }}>{bn ? "বন্ধুদের লিগে খেলতে আগে লগইন করুন" : "Log in to play in friends' leagues"}</div>
       <button className="btn" onClick={goProfile}>{bn ? "লগইন" : "Log in"}</button>
     </div>
   );
@@ -2898,7 +2898,7 @@ function Friends({ user, goProfile, toast, openId, reloadKey }) {
 
   async function create(e) {
     e.preventDefault(); setErr("");
-    if (name.trim().length < 2) return setErr(bn ? "লিগের একটা নাম দাও" : "Give the league a name");
+    if (name.trim().length < 2) return setErr(bn ? "লিগের একটা নাম দিন" : "Give the league a name");
     setBusy(true);
     try {
       const r = await createLeague(name.trim());
@@ -2912,12 +2912,12 @@ function Friends({ user, goProfile, toast, openId, reloadKey }) {
 
   async function join(e) {
     e.preventDefault(); setErr("");
-    if (code.trim().length !== 6) return setErr(bn ? "৬ অক্ষরের কোড দাও" : "Enter the 6-letter code");
+    if (code.trim().length !== 6) return setErr(bn ? "৬ অক্ষরের কোড দিন" : "Enter the 6-letter code");
     setBusy(true);
     try {
       const r = await joinLeague(code.trim());
       setCode("");
-      toast(bn ? `"${r.name}" লিগে যোগ দিয়েছ` : `Joined "${r.name}"`);
+      toast(bn ? `"${r.name}" লিগে যোগ দিয়েছেন` : `Joined "${r.name}"`);
       const fresh = await myLeagues();
       setList(fresh);
       setOpen(fresh.find((x) => x.id === r.id) || null);
@@ -2928,7 +2928,7 @@ function Friends({ user, goProfile, toast, openId, reloadKey }) {
   return (
     <>
       <p className="muted" style={{ fontSize: 13, lineHeight: 1.55, marginBottom: 12 }}>
-        {bn ? "অফিস, বন্ধু বা পরিবারের জন্য নিজের লিগ খোলো। সবাই যার যার মতো প্রেডিকশন দেবে, আর লিগের আলাদা লিডারবোর্ডে দেখা যাবে কে এগিয়ে।"
+        {bn ? "অফিস, বন্ধু বা পরিবারের জন্য নিজের লিগ খুলুন। সবাই যার যার মতো প্রেডিকশন দেবে, আর লিগের আলাদা লিডারবোর্ডে দেখা যাবে কে এগিয়ে।"
             : "Start a league for your office, friends or family. Everyone predicts as usual; the league has its own leaderboard."}
       </p>
       {list === null ? <div className="card"><div className="spin" /></div> : list.length > 0 && (
@@ -2938,7 +2938,7 @@ function Friends({ user, goProfile, toast, openId, reloadKey }) {
               <div className="fl-icon">{l.name.slice(0, 1)}</div>
               <div style={{ flex: 1, minWidth: 0, textAlign: "left" }}>
                 <div style={{ fontWeight: 700 }}>{l.name}</div>
-                <div className="muted" style={{ fontSize: 12.5 }}>{num(l.members, lang)} {bn ? "জন" : "members"} · {bn ? "কোড" : "code"} {l.code}{l.is_owner ? (bn ? " · তুমি খুলেছ" : " · yours") : ""}</div>
+                <div className="muted" style={{ fontSize: 12.5 }}>{num(l.members, lang)} {bn ? "জন" : "members"} · {bn ? "কোড" : "code"} {l.code}{l.is_owner ? (bn ? " · আপনি খুলেছেন" : " · yours") : ""}</div>
               </div>
               <span className="muted">›</span>
             </button>
@@ -2947,17 +2947,17 @@ function Friends({ user, goProfile, toast, openId, reloadKey }) {
       )}
       {err && <div className="err">{err}</div>}
       <div className="card" style={{ padding: 14, marginBottom: 12 }}>
-        <div style={{ fontWeight: 700, marginBottom: 8 }}>{bn ? "নতুন লিগ খোলো" : "Start a league"}</div>
+        <div style={{ fontWeight: 700, marginBottom: 8 }}>{bn ? "নতুন লিগ খুলুন" : "Start a league"}</div>
         <form className="inline-form" onSubmit={create}>
           <input value={name} onChange={(e) => setName(e.target.value)} maxLength={40} placeholder={bn ? "যেমন: অফিস লিগ" : "e.g. Office league"} />
-          <button className="btn" disabled={busy}>{bn ? "খোলো" : "Start"}</button>
+          <button className="btn" disabled={busy}>{bn ? "খুলুন" : "Start"}</button>
         </form>
       </div>
       <div className="card" style={{ padding: 14 }}>
-        <div style={{ fontWeight: 700, marginBottom: 8 }}>{bn ? "কোড দিয়ে যোগ দাও" : "Join with a code"}</div>
+        <div style={{ fontWeight: 700, marginBottom: 8 }}>{bn ? "কোড দিয়ে যোগ দিন" : "Join with a code"}</div>
         <form className="inline-form" onSubmit={join}>
           <input value={code} onChange={(e) => setCode(e.target.value.toUpperCase())} maxLength={6} placeholder="ABC123" style={{ letterSpacing: 3, fontFamily: "Inter, sans-serif", fontWeight: 700 }} />
-          <button className="btn" disabled={busy}>{bn ? "যোগ দাও" : "Join"}</button>
+          <button className="btn" disabled={busy}>{bn ? "যোগ দিন" : "Join"}</button>
         </form>
       </div>
     </>
@@ -3079,12 +3079,12 @@ function Predict({ user, profile, preds, fav, onOpen, goProfile, toast, initialT
 // খেলার সব নিয়ম ডেটাবেসের ফাংশনে (supabase/quiz.sql); এখানে শুধু দেখানো আর প্রতি সেকেন্ডে অবস্থা জানা
 const QUIZ_N = 10;
 const QUIZ_ERR = {
-  "room not found": ["এই কোডের কোনো কুইজ নেই। কোডটা আবার দেখো।", "No quiz with this code."],
-  "already started": ["এই কুইজ শুরু হয়ে গেছে। হোস্ট আবার খেললে যোগ দিতে পারবে।", "This quiz has already started."],
-  "login required": ["কুইজ খেলতে আগে লগইন করো।", "Log in to play."],
+  "room not found": ["এই কোডের কোনো কুইজ নেই। কোডটা আবার দেখুন।", "No quiz with this code."],
+  "already started": ["এই কুইজ শুরু হয়ে গেছে। হোস্ট আবার খেললে যোগ দিতে পারবেন।", "This quiz has already started."],
+  "login required": ["কুইজ খেলতে আগে লগইন করুন।", "Log in to play."],
   "time over": ["সময় শেষ!", "Time's up!"],
 };
-const quizMsg = (e, lang) => { const m = String(e?.message || e); const k = Object.keys(QUIZ_ERR).find((x) => m.includes(x)); return k ? QUIZ_ERR[k][lang === "bn" ? 0 : 1] : (lang === "bn" ? "কিছু একটা গোলমাল হলো, আবার চেষ্টা করো।" : "Something went wrong."); };
+const quizMsg = (e, lang) => { const m = String(e?.message || e); const k = Object.keys(QUIZ_ERR).find((x) => m.includes(x)); return k ? QUIZ_ERR[k][lang === "bn" ? 0 : 1] : (lang === "bn" ? "কিছু একটা গোলমাল হলো, আবার চেষ্টা করুন।" : "Something went wrong."); };
 
 // ডেমো মোড: ব্রাউজারেই নকল কুইজ, দুজন অনুশীলনের সঙ্গীসহ (সাইটের আসল নিয়মের মতোই)
 const DEMO_QUIZ_Q = [
@@ -3106,7 +3106,7 @@ function demoQuizCall(fn, a) {
   const bots = [["রাফি (অনুশীলন)", 0.7], ["নুসরাত (অনুশীলন)", 0.5]];
   if (fn === "quiz_create") {
     const code = Math.random().toString(16).slice(2, 8).toUpperCase();
-    demoQuiz[code] = { code, status: "lobby", started: null, players: [{ id: "me", name: ls.get("user", {})?.user_metadata?.name || "তুমি", joined: now }, ...bots.map(([n, p], i) => ({ id: "b" + i, name: n, skill: p, joined: now + i + 1 }))], answers: {}, next: null };
+    demoQuiz[code] = { code, status: "lobby", started: null, players: [{ id: "me", name: ls.get("user", {})?.user_metadata?.name || "আপনি", joined: now }, ...bots.map(([n, p], i) => ({ id: "b" + i, name: n, skill: p, joined: now + i + 1 }))], answers: {}, next: null };
     return code;
   }
   if (!room) throw new Error("room not found");
@@ -3160,7 +3160,7 @@ const quizLink = (code) => `${window.location.origin}/quiz/${code}`;
 async function shareQuiz(code, bn, toast) {
   const text = bn ? `⚽ খেলা কখন?-এ স্পোর্টস কুইজে চ্যালেঞ্জ! ১০টা প্রশ্ন, প্রতিটায় ৩০ সেকেন্ড। কে জেতে দেখি 😎\n\n${quizLink(code)}\nকোড: ${code}` : `⚽ Sports quiz challenge on Khela Kokhon! 10 questions, 30 seconds each.\n\n${quizLink(code)}\nCode: ${code}`;
   try { if (navigator.share) { await navigator.share({ text }); return; } } catch (e) { if (e?.name === "AbortError") return; }
-  try { await navigator.clipboard.writeText(text); toast(bn ? "লিংক কপি হয়েছে, বন্ধুদের পাঠাও" : "Link copied"); } catch { /* ignore */ }
+  try { await navigator.clipboard.writeText(text); toast(bn ? "লিংক কপি হয়েছে, বন্ধুদের পাঠান" : "Link copied"); } catch { /* ignore */ }
 }
 const RANK_MEDAL = ["🥇", "🥈", "🥉"];
 const LETTERS = ["ক", "খ", "গ", "ঘ"];
@@ -3188,7 +3188,7 @@ function QuizBoard({ players, lang, limit, lobby }) {
         return (
           <div key={p.name + rank} className={"qz-pl" + (p.me ? " me" : "")}>
             <span className="qz-rk">{lobby ? "👤" : rank < 3 ? RANK_MEDAL[rank] : num(rank + 1, lang)}</span>
-            <span className="qz-nm">{p.name}{p.me ? (lang === "bn" ? " (তুমি)" : " (you)") : ""}{p.host ? <small> · {lang === "bn" ? "হোস্ট" : "host"}</small> : null}</span>
+            <span className="qz-nm">{p.name}{p.me ? (lang === "bn" ? " (আপনি)" : " (you)") : ""}{p.host ? <small> · {lang === "bn" ? "হোস্ট" : "host"}</small> : null}</span>
             {!lobby && <span className="qz-sc"><b>{num(p.score, lang)}</b><small>{secTxt(p.ms, lang)}</small></span>}
           </div>
         );
@@ -3237,7 +3237,7 @@ function QuizPage({ code, user, goProfile, toast }) {
 
   // solo = একা খেলা: বানিয়েই সঙ্গে সঙ্গে শুরু, অপেক্ষার ঘর ছাড়াই
   async function create(solo) {
-    if (!user) { try { localStorage.setItem("kk_quiz", "new"); } catch { /* ignore */ } toast(bn ? "কুইজ খেলতে আগে লগইন করো" : "Log in to play"); goProfile(); return; }
+    if (!user) { try { localStorage.setItem("kk_quiz", "new"); } catch { /* ignore */ } toast(bn ? "কুইজ খেলতে আগে লগইন করুন" : "Log in to play"); goProfile(); return; }
     setBusy(true);
     try {
       const c = await quizCall("quiz_create", { n: QUIZ_N });
@@ -3271,24 +3271,24 @@ function QuizPage({ code, user, goProfile, toast }) {
       <div className="card qz-hero">
         <div className="qz-hero-ic">🧠</div>
         <h2>{bn ? "স্পোর্টস কুইজ" : "Sports quiz"}</h2>
-        <p className="muted">{bn ? "১০টা প্রশ্ন, প্রতিটায় ৩০ সেকেন্ড। একা খেলে নিজেকে যাচাই করো, বা লিংক পাঠিয়ে বন্ধুদের সাথে লাইভ। সমান স্কোর হলে যে দ্রুত উত্তর দিয়েছে, সে এগিয়ে।" : "10 questions, 30 seconds each. Test yourself solo, or send a link and play live with friends. Ties go to the faster player."}</p>
+        <p className="muted">{bn ? "১০টা প্রশ্ন, প্রতিটায় ৩০ সেকেন্ড। একা খেলে নিজেকে যাচাই করুন, বা লিংক পাঠিয়ে বন্ধুদের সাথে লাইভ। সমান স্কোর হলে যে দ্রুত উত্তর দিয়েছে, সে এগিয়ে।" : "10 questions, 30 seconds each. Test yourself solo, or send a link and play live with friends. Ties go to the faster player."}</p>
         <div className="qz-modes">
-          <button className="btn block" disabled={busy} onClick={() => create(true)}>{busy ? "…" : <>🙋 {bn ? "একা খেলো" : "Play solo"}</>}</button>
-          <button className="btn ghost block" disabled={busy} onClick={() => create(false)}>👥 {bn ? "বন্ধুদের সাথে খেলো" : "Play with friends"}</button>
+          <button className="btn block" disabled={busy} onClick={() => create(true)}>{busy ? "…" : <>🙋 {bn ? "একা খেলুন" : "Play solo"}</>}</button>
+          <button className="btn ghost block" disabled={busy} onClick={() => create(false)}>👥 {bn ? "বন্ধুদের সাথে খেলুন" : "Play with friends"}</button>
         </div>
       </div>
       <div className="card qz-join">
-        <b>{bn ? "বন্ধুর কুইজে যোগ দাও" : "Join a friend's quiz"}</b>
+        <b>{bn ? "বন্ধুর কুইজে যোগ দিন" : "Join a friend's quiz"}</b>
         <form onSubmit={(e) => { e.preventDefault(); const c = joinCode.trim().toUpperCase(); if (c.length >= 4) nav.openQuiz(c); }}>
-          <input value={joinCode} onChange={(e) => setJoinCode(e.target.value)} placeholder={bn ? "কোড লেখো, যেমন 9A0FFC" : "Enter code"} maxLength={8} autoCapitalize="characters" />
-          <button className="btn" disabled={joinCode.trim().length < 4}>{bn ? "যোগ দাও" : "Join"}</button>
+          <input value={joinCode} onChange={(e) => setJoinCode(e.target.value)} placeholder={bn ? "কোড লিখুন, যেমন 9A0FFC" : "Enter code"} maxLength={8} autoCapitalize="characters" />
+          <button className="btn" disabled={joinCode.trim().length < 4}>{bn ? "যোগ দিন" : "Join"}</button>
         </form>
       </div>
       {err && <div className="err">{err}</div>}
     </div>
   );
 
-  if (!st) return <div className="sec"><GameSwitch on="quiz" />{err ? <div className="card empty">{err}<div style={{ marginTop: 12 }}><button className="btn ghost" onClick={() => nav.openQuiz()}>{bn ? "কুইজের পাতায় ফেরো" : "Back"}</button></div></div> : <Loading />}</div>;
+  if (!st) return <div className="sec"><GameSwitch on="quiz" />{err ? <div className="card empty">{err}<div style={{ marginTop: 12 }}><button className="btn ghost" onClick={() => nav.openQuiz()}>{bn ? "কুইজের পাতায় ফিরুন" : "Back"}</button></div></div> : <Loading />}</div>;
 
   const me = st.players.find((p) => p.me);
   const myRank = st.players.indexOf(me);
@@ -3305,14 +3305,14 @@ function QuizPage({ code, user, goProfile, toast }) {
       <div className="card qz-lobby">
         <small className="muted">{bn ? "কুইজের কোড" : "Quiz code"}</small>
         <div className="qz-code">{st.code}</div>
-        <button className="btn ghost block" onClick={() => shareQuiz(st.code, bn, toast)}>📨 {bn ? "বন্ধুদের লিংক পাঠাও" : "Send link to friends"}</button>
+        <button className="btn ghost block" onClick={() => shareQuiz(st.code, bn, toast)}>📨 {bn ? "বন্ধুদের লিংক পাঠান" : "Send link to friends"}</button>
       </div>
       <div className="sec-h" style={{ marginTop: 14 }}><h2>{bn ? `খেলোয়াড় · ${num(st.players.length, "bn")} জন` : `Players · ${st.players.length}`}</h2></div>
       <QuizBoard players={st.players} lang={lang} lobby />
       {!user ? (
-        <div className="card empty">{bn ? "এই কুইজে খেলতে আগে লগইন করো।" : "Log in to play this quiz."}<div style={{ marginTop: 10 }}><button className="btn" onClick={() => { try { localStorage.setItem("kk_quiz", st.code); } catch { /* ignore */ } goProfile(); }}>{bn ? "লগইন করো" : "Log in"}</button></div></div>
+        <div className="card empty">{bn ? "এই কুইজে খেলতে আগে লগইন করুন।" : "Log in to play this quiz."}<div style={{ marginTop: 10 }}><button className="btn" onClick={() => { try { localStorage.setItem("kk_quiz", st.code); } catch { /* ignore */ } goProfile(); }}>{bn ? "লগইন করুন" : "Log in"}</button></div></div>
       ) : st.is_host ? (
-        <button className="btn block qz-go" disabled={busy} onClick={start}>{busy ? "…" : bn ? (st.players.length > 1 ? "সবাই এসেছে? শুরু করো ▶" : "একা শুরু করো ▶") : "Start ▶"}</button>
+        <button className="btn block qz-go" disabled={busy} onClick={start}>{busy ? "…" : bn ? (st.players.length > 1 ? "সবাই এসেছে? শুরু করুন ▶" : "একা শুরু করুন ▶") : "Start ▶"}</button>
       ) : <div className="qz-wait"><span className="spin sm" />{bn ? "হোস্ট শুরু করলেই খেলা শুরু হবে…" : "Waiting for the host to start…"}</div>}
       {err && <div className="err">{err}</div>}
     </div>
@@ -3325,25 +3325,25 @@ function QuizPage({ code, user, goProfile, toast }) {
       {me ? (
         <div className="card qz-result">
           <div className="qz-big">{myRank < 3 ? RANK_MEDAL[myRank] : "🏁"}</div>
-          <h2>{st.players.length > 1 ? (bn ? `তুমি ${num(st.players.length, "bn")} জনের মধ্যে ${ord(myRank + 1, "bn")}` : `You finished ${ord(myRank + 1, "en")} of ${st.players.length}`) : (bn ? "কুইজ শেষ!" : "Quiz over!")}</h2>
+          <h2>{st.players.length > 1 ? (bn ? `আপনি ${num(st.players.length, "bn")} জনের মধ্যে ${ord(myRank + 1, "bn")}` : `You finished ${ord(myRank + 1, "en")} of ${st.players.length}`) : (bn ? "কুইজ শেষ!" : "Quiz over!")}</h2>
           <div className="qz-score">{num(me.score, lang)}<small>/{num(st.total, lang)}</small></div>
           <div className="muted">{bn ? `সঠিক উত্তর · মোট সময় ${secTxt(me.ms, "bn")}` : `correct · total time ${secTxt(me.ms, "en")}`}</div>
         </div>
-      ) : <div className="card empty">{bn ? "কুইজ শেষ। তুমি এই কুইজে ছিলে না।" : "This quiz is over."}</div>}
+      ) : <div className="card empty">{bn ? "কুইজ শেষ। আপনি এই কুইজে ছিলেন না।" : "This quiz is over."}</div>}
       {st.players.length > 1 && <><div className="sec-h" style={{ marginTop: 14 }}><h2>{bn ? "ফলাফল" : "Results"}</h2></div><QuizBoard players={st.players} lang={lang} /></>}
       <div className="qz-actions">
-        {st.is_host ? <button className="btn block" disabled={busy} onClick={again}>🔁 {bn ? "আবার খেলো (নতুন ১০টা প্রশ্ন)" : "Play again"}</button>
-          : me ? <div className="qz-wait"><span className="spin sm" />{bn ? "হোস্ট আবার খেললে নিজে থেকেই যোগ হয়ে যাবে" : "You'll join automatically if the host plays again"}</div> : null}
-        {st.players.length > 1 ? <button className="btn ghost block" disabled={busy} onClick={() => create(true)}>🙋 {bn ? "এবার একা খেলো" : "Play solo"}</button>
-          : <button className="btn ghost block" disabled={busy} onClick={() => create(false)}>👥 {bn ? "বন্ধুদের সাথে খেলো" : "Play with friends"}</button>}
+        {st.is_host ? <button className="btn block" disabled={busy} onClick={again}>🔁 {bn ? "আবার খেলুন (নতুন ১০টা প্রশ্ন)" : "Play again"}</button>
+          : me ? <div className="qz-wait"><span className="spin sm" />{bn ? "হোস্ট আবার খেললে নিজে থেকেই যোগ হয়ে যাবেন" : "You'll join automatically if the host plays again"}</div> : null}
+        {st.players.length > 1 ? <button className="btn ghost block" disabled={busy} onClick={() => create(true)}>🙋 {bn ? "এবার একা খেলুন" : "Play solo"}</button>
+          : <button className="btn ghost block" disabled={busy} onClick={() => create(false)}>👥 {bn ? "বন্ধুদের সাথে খেলুন" : "Play with friends"}</button>}
       </div>
       {st.review && (
         <details className="card qz-review">
-          <summary>{bn ? "সব প্রশ্ন আর সঠিক উত্তর দেখো" : "Review answers"}</summary>
+          <summary>{bn ? "সব প্রশ্ন আর সঠিক উত্তর দেখুন" : "Review answers"}</summary>
           {st.review.map((r, i) => (
             <div key={i} className="qz-rv">
               <b>{num(i + 1, lang)}. {r.question}</b>
-              <div className={r.choice === r.answer ? "ok" : "bad"}>{r.choice === r.answer ? "✓ " : "✗ "}{bn ? "সঠিক উত্তর" : "Answer"}: {r.options[r.answer]}{r.choice != null && r.choice !== r.answer ? ` · ${bn ? "তোমার" : "you"}: ${r.options[r.choice]}` : r.choice == null ? ` · ${bn ? "উত্তর দাওনি" : "no answer"}` : ""}</div>
+              <div className={r.choice === r.answer ? "ok" : "bad"}>{r.choice === r.answer ? "✓ " : "✗ "}{bn ? "সঠিক উত্তর" : "Answer"}: {r.options[r.answer]}{r.choice != null && r.choice !== r.answer ? ` · ${bn ? "আপনার" : "you"}: ${r.options[r.choice]}` : r.choice == null ? ` · ${bn ? "উত্তর দেননি" : "no answer"}` : ""}</div>
               {r.explanation && <small className="muted">{r.explanation}</small>}
             </div>
           ))}
@@ -3355,7 +3355,7 @@ function QuizPage({ code, user, goProfile, toast }) {
 
   // ── চলছে ──
   if (st.phase === "countdown") return (
-    <div className="sec"><div className="qz-count">{num(Math.max(1, Math.ceil(-el)), lang)}</div><p className="muted" style={{ textAlign: "center" }}>{bn ? "প্রস্তুত হও…" : "Get ready…"}</p></div>
+    <div className="sec"><div className="qz-count">{num(Math.max(1, Math.ceil(-el)), lang)}</div><p className="muted" style={{ textAlign: "center" }}>{bn ? "প্রস্তুত হোন…" : "Get ready…"}</p></div>
   );
   if (!cur) return <div className="sec"><Loading /></div>;
   const mine = cur.mine?.choice ?? picked[cur.index];
@@ -3382,7 +3382,7 @@ function QuizPage({ code, user, goProfile, toast }) {
         </div>
       ) : mine != null ? (
         <div className="qz-wait"><span className="spin sm" />{bn ? `উত্তর জমা হয়েছে · ${num(cur.answered, "bn")}/${num(st.players.length, "bn")} জন দিয়েছে` : `Answer locked · ${cur.answered}/${st.players.length} answered`}</div>
-      ) : !me ? <div className="qz-wait">{bn ? "তুমি এই কুইজে নেই, শুধু দেখছ।" : "You're watching."}</div> : null}
+      ) : !me ? <div className="qz-wait">{bn ? "আপনি এই কুইজে নেই, শুধু দেখছেন।" : "You're watching."}</div> : null}
       {st.players.length > 1 && reveal && <QuizBoard players={st.players} lang={lang} limit={3} />}
     </div>
   );
@@ -3499,7 +3499,7 @@ function AuthForm() {
     e.preventDefault();
     setErr(""); setNote("");
     if (mode === "signup") {
-      if (!f.name.trim()) return setErr("নাম দাও");
+      if (!f.name.trim()) return setErr("নাম দিন");
       if (f.password.length < 6) return setErr("পাসওয়ার্ড কমপক্ষে ৬ অক্ষরের হতে হবে");
     }
     setBusy(true);
@@ -3510,7 +3510,7 @@ function AuthForm() {
       } else await signIn(f);
     } catch (e2) {
       const m = e2?.message || "";
-      setErr(/invalid login/i.test(m) ? "ইমেইল বা পাসওয়ার্ড ভুল" : /registered/i.test(m) ? "এই ইমেইলে আগেই অ্যাকাউন্ট আছে — লগইন করো" : /confirm/i.test(m) ? "আগে ইমেইলের লিংকে ক্লিক করে অ্যাকাউন্ট চালু করো" : m || t("error"));
+      setErr(/invalid login/i.test(m) ? "ইমেইল বা পাসওয়ার্ড ভুল" : /registered/i.test(m) ? "এই ইমেইলে আগেই অ্যাকাউন্ট আছে — লগইন করুন" : /confirm/i.test(m) ? "আগে ইমেইলের লিংকে ক্লিক করে অ্যাকাউন্ট চালু করুন" : m || t("error"));
     }
     setBusy(false);
   }
@@ -3755,7 +3755,7 @@ const PLAYER_NICK = {
 // প্রতিযোগিতা, দিন আর সাধারণ ফুটবল শব্দ কখনো খেলোয়াড়ের নাম হিসেবে ধরা হয় না
 const ASK_STOP_EXTRA = ["লিগ", "টেবিল", "পয়েন্ট", "সূচি", "ফল", "ফলাফল", "ড্র", "ডার্বি", "ক্লাসিকো", "সেমিফাইনাল", "ফাইনাল", "কোয়ার্টার", "প্রিমিয়ার", "চ্যাম্পিয়ন্স",
   "ভালো", "খারাপ", "রাত", "রাতে", "দুপুর", "সকাল", "বিকাল", "সন্ধ্যা", "ভোর", "লন্ডন", "নর্থ", "সাউথ", "মৌসুম", "খেলবে", "জিতবে", "জিতেছে", "হেরেছে", "এগিয়ে", "পিছিয়ে",
-  "কোনটা", "কারা", "শুরু", "আছে", "খেল", "খেলে", "খেলেন", "খেলছে", "দল", "দলে", "করে", "করেন", "বলো", "জানাও", "দেখাও", "আজকে", "গতকাল", "প্রেডিকশন", "আমার", "তোমার", "বাংলাদেশ", "সময়", "ম্যাচগুলো", "খেলাগুলো", "কখন", "কোথায়", "দেখাবে", "চলছে",
+  "কোনটা", "কারা", "শুরু", "আছে", "খেল", "খেলে", "খেলেন", "খেলছে", "দল", "দলে", "করে", "করেন", "বলো", "জানাও", "দেখাও", "বলুন", "জানান", "দেখান", "আপনার", "আপনি", "আজকে", "গতকাল", "প্রেডিকশন", "আমার", "তোমার", "বাংলাদেশ", "সময়", "ম্যাচগুলো", "খেলাগুলো", "কখন", "কোথায়", "দেখাবে", "চলছে",
   "next", "last", "match", "matches", "result", "results", "table", "derby", "today", "tomorrow", "yesterday", "league", "when", "where", "who", "won", "lost", "goal", "goals"];
 const ASK_STOP = ["গোল", "গোলদাতা", "করেছে", "করছে", "কয়টা", "কয়টি", "কত", "কতটা", "কবে", "কখন", "লাস্ট", "শেষ", "পরের", "খেলা", "এই", "মৌসুমে", "সিজনে",
   "অ্যাসিস্ট", "এসিস্ট", "সর্বোচ্চ", "টপ", "স্কোরার", "কে", "কোন", "কেন", "কিনা", "দলে", "বনাম", "আজ", "কাল", "আগামীকাল", "কার", "বেশি", "সবচেয়ে", "মোট", "লিগে", "লিগায়", "পেনাল্টি", "ম্যাচ", "খেলেছে", "দিয়েছে"];
@@ -3868,7 +3868,7 @@ async function answerPlayer(q, teams, lang) {
   if (!r) {
     // গোলের প্রশ্ন, কিন্তু কোনো দল বা চেনা খেলোয়াড় নেই
     if (goalish && !findTeams(q, teams).length && !has(q, ["আজ", "কাল", "today", "tomorrow"]))
-      return { text: bn ? "এই খেলোয়াড়কে খুঁজে পাইনি। ছয় লিগের খেলোয়াড়দের নাম দিয়ে জিজ্ঞেস করো; নামটা অন্যভাবে লিখে দেখো, যেমন ইংরেজিতে।" : "Couldn't find that player. Ask about players in the six competitions, or try the name another way, e.g. in English.", matches: [] };
+      return { text: bn ? "এই খেলোয়াড়কে খুঁজে পাইনি। ছয় লিগের খেলোয়াড়দের নাম দিয়ে জিজ্ঞেস করুন; নামটা অন্যভাবে লিখে দেখুন, যেমন ইংরেজিতে।" : "Couldn't find that player. Ask about players in the six competitions, or try the name another way, e.g. in English.", matches: [] };
     return null;
   }
   const name = playerName(r.player_name, lang);
@@ -3948,7 +3948,7 @@ const AW = {
   week: ["এই সপ্তাহ", "সপ্তাহে", "সামনের সপ্তাহ", "৭ দিন", "সাত দিন", "this week", "next 7", "week"],
   weekend: ["উইকেন্ড", "সপ্তাহান্ত", "weekend"],
   mine: ["আমার দল", "প্রিয় দল", "আমার প্রিয়", "my team", "my teams", "my favourite", "my favorite"],
-  help: ["কী কী জিজ্ঞেস", "কি কি জিজ্ঞেস", "কী জিজ্ঞেস", "কি জিজ্ঞেস", "কী পারো", "কি পারো", "কী কী পারো", "সাহায্য", "help", "what can"],
+  help: ["কী কী জিজ্ঞেস", "কি কি জিজ্ঞেস", "কী জিজ্ঞেস", "কি জিজ্ঞেস", "কী পারো", "কি পারো", "কী কী পারো", "কী পারেন", "কি পারেন", "কী কী পারেন", "সাহায্য", "help", "what can"],
   pron: ["তাদের", "ওদের", "ওরা", "তারা", "এদের", "দলটা", "দলটার", "ওই দল", "their", "they", "them", "that team"],
 };
 const HELP_CHIPS = {
@@ -4008,18 +4008,18 @@ async function answer(raw, teams, lang, ctx = {}, favIds = []) {
   const done = (r, i = ids, c = comp) => r && ({ ...r, chips: r.chips || followups(i, c, teams, lang).filter((x) => norm(x) !== q), ctx: { ids: i, comp: c } });
 
   if (is("help") && !ids.length) return {
-    text: bn ? "আমি যা বলতে পারি:\n• যেকোনো দলের পরের খেলা আর শেষ ফল (বাংলাদেশ সময়ে)\n• লিগ টেবিল, কোন দল কততম, কত পয়েন্ট\n• দলের ফর্ম, পরিসংখ্যান, কোচ, স্টেডিয়াম, স্কোয়াড\n• দুই দলের হেড টু হেড\n• খেলোয়াড়ের গোল, সর্বোচ্চ গোলদাতা\n• আজ, কাল, এই সপ্তাহে বা উইকেন্ডে কী খেলা, এখন কী চলছে\n• তোমার প্রিয় দলের খেলা\nআগের প্রশ্নের দলটাও মনে রাখি, তাই পরে শুধু “ওদের শেষ ফল?” লিখলেও চলবে।"
+    text: bn ? "আমি যা বলতে পারি:\n• যেকোনো দলের পরের খেলা আর শেষ ফল (বাংলাদেশ সময়ে)\n• লিগ টেবিল, কোন দল কততম, কত পয়েন্ট\n• দলের ফর্ম, পরিসংখ্যান, কোচ, স্টেডিয়াম, স্কোয়াড\n• দুই দলের হেড টু হেড\n• খেলোয়াড়ের গোল, সর্বোচ্চ গোলদাতা\n• আজ, কাল, এই সপ্তাহে বা উইকেন্ডে কী খেলা, এখন কী চলছে\n• আপনার প্রিয় দলের খেলা\nআগের প্রশ্নের দলটাও মনে রাখি, তাই পরে শুধু “ওদের শেষ ফল?” লিখলেও চলবে।"
       : "I can tell you:\n• Any team's next match and last result (Bangladesh time)\n• League tables, positions and points\n• Team form, stats, coach, stadium, squad\n• Head to head between two teams\n• Player goals and top scorers\n• Matches today, tomorrow, this week, the weekend, or live now\n• Your favourite teams' matches\nI also remember the last team you asked about.",
     matches: [], chips: HELP_CHIPS[bn ? "bn" : "en"], ctx,
   };
 
   // আমার দল
   if (has(q, AW.mine)) {
-    if (!favIds.length) return { text: bn ? "তুমি এখনো কোনো প্রিয় দল বাছোনি। প্রোফাইল থেকে দল বেছে নিলে এখানে তাদের খেলা বলে দিতে পারব।" : "You haven't picked favourite teams yet. Choose them in Profile.", matches: [], chips: HELP_CHIPS[bn ? "bn" : "en"].slice(0, 4), ctx };
+    if (!favIds.length) return { text: bn ? "আপনি এখনো কোনো প্রিয় দল বাছেননি। প্রোফাইল থেকে দল বেছে নিলে এখানে তাদের খেলা বলে দিতে পারব।" : "You haven't picked favourite teams yet. Choose them in Profile.", matches: [], chips: HELP_CHIPS[bn ? "bn" : "en"].slice(0, 4), ctx };
     ids = favIds;
     const past = has(q, W.last) && !has(q, ["পরের", "নেক্সট", "next", "সামনে"]);
     const list = await getTeamMatches(favIds, { upcoming: !past, limit: 8 });
-    return done({ text: list.length ? (bn ? `তোমার প্রিয় দলগুলোর ${past ? "সাম্প্রতিক ফল" : "সামনের খেলা"}:` : `Your teams' ${past ? "recent results" : "upcoming matches"}:`) : (bn ? "তোমার দলগুলোর কোনো খেলা সূচিতে নেই।" : "No matches found for your teams."), matches: list, dated: true }, favIds.length === 1 ? favIds : [], null);
+    return done({ text: list.length ? (bn ? `আপনার প্রিয় দলগুলোর ${past ? "সাম্প্রতিক ফল" : "সামনের খেলা"}:` : `Your teams' ${past ? "recent results" : "upcoming matches"}:`) : (bn ? "আপনার দলগুলোর কোনো খেলা সূচিতে নেই।" : "No matches found for your teams."), matches: list, dated: true }, favIds.length === 1 ? favIds : [], null);
   }
 
   // আগের প্রশ্নের প্রসঙ্গ: "ওদের শেষ ফল?", "টেবিলে কততম?"
@@ -4160,7 +4160,7 @@ async function answer(raw, teams, lang, ctx = {}, favIds = []) {
   // দলের তথ্য: কোচ, মাঠ, প্রতিষ্ঠা, স্কোয়াড
   if (one && (is("coach") || is("venue") || is("founded") || is("squad") || is("info"))) {
     const info = await getTeamInfo(one).catch(() => null);
-    if (!info) return done({ text: bn ? "দলের তথ্য এখন আনা যাচ্ছে না, একটু পরে চেষ্টা করো।" : "Team info isn't available right now.", matches: [] });
+    if (!info) return done({ text: bn ? "দলের তথ্য এখন আনা যাচ্ছে না, একটু পরে চেষ্টা করুন।" : "Team info isn't available right now.", matches: [] });
     const parts = [];
     const all = is("info");
     if ((is("coach") || all) && info.coach?.name) parts.push(bn ? `${poss(nm(one), "bn")} কোচ ${COACH_BN[info.coach.name] || playerName(info.coach.name, "bn")}${info.coach.nationality ? ` (${natName(info.coach.nationality, "bn")})` : ""}।` : `${nm(one)}'s coach is ${info.coach.name}${info.coach.nationality ? ` (${info.coach.nationality})` : ""}.`);
@@ -4259,7 +4259,7 @@ async function answerBase(raw, teams, lang, idsOverride) {
 
   return {
     text: bn
-      ? "প্রশ্নটা ধরতে পারিনি। দলের, লিগের বা খেলোয়াড়ের নাম দিয়ে জিজ্ঞেস করো। নিচের যেকোনোটায় চেপেও দেখতে পারো।"
+      ? "প্রশ্নটা ধরতে পারিনি। দলের, লিগের বা খেলোয়াড়ের নাম দিয়ে জিজ্ঞেস করুন। নিচের যেকোনোটায় চেপেও দেখতে পারেন।"
       : "I couldn't follow that. Try a team, league or player name, or tap one below.",
     matches: [], chips: HELP_CHIPS[bn ? "bn" : "en"],
   };
@@ -4386,14 +4386,14 @@ function SearchSheet({ comps, teams, onClose }) {
         <button className="back" onClick={onClose} aria-label="back">←</button>
         <div className="search-box">
           <SearchIcon width={18} height={18} />
-          <input autoFocus value={q} onChange={(e) => setQ(e.target.value)} placeholder={bn ? "লিগ, দল বা যেকোনো খেলোয়াড় খোঁজো" : "Search leagues, teams, any player"} enterKeyHint="search" />
+          <input autoFocus value={q} onChange={(e) => setQ(e.target.value)} placeholder={bn ? "লিগ, দল বা যেকোনো খেলোয়াড় খুঁজুন" : "Search leagues, teams, any player"} enterKeyHint="search" />
           {q && <button className="search-x" onClick={() => setQ("")} aria-label="clear">×</button>}
         </div>
       </div>
       <div className="search-body">
         {!res && recent.length > 0 && (
           <>
-            <div className="lg-h s-recent-h">{bn ? "সাম্প্রতিক খোঁজ" : "Recent"}<button onClick={() => { setRecent([]); saveRecent([]); }}>{bn ? "মুছে ফেলো" : "Clear"}</button></div>
+            <div className="lg-h s-recent-h">{bn ? "সাম্প্রতিক খোঁজ" : "Recent"}<button onClick={() => { setRecent([]); saveRecent([]); }}>{bn ? "মুছে ফেলুন" : "Clear"}</button></div>
             <div className="card">{recent.map((x) => {
               if (x.k === "c") { const c = comps.find((y) => y.code === x.id); return c && <button key={"c" + x.id} className="s-row" onClick={() => go(x, () => nav.openLeague(c.code))}><span className="s-ic" data-c={c.code}><CompIcon c={c} size={22} /></span><b>{compName(c, lang)}</b></button>; }
               if (x.k === "t") { const t = teams.find((y) => y.id === x.id); return t && <button key={"t" + x.id} className="s-row" onClick={() => go(x, () => nav.openTeam(t.id))}><Crest team={t} size={28} /><span className="s-txt"><b>{teamName(t, lang)}</b>{t.league && <small className="muted">{compLabel(t.league, lang)}</small>}</span></button>; }
@@ -4402,7 +4402,7 @@ function SearchSheet({ comps, teams, onClose }) {
             })}</div>
           </>
         )}
-        {empty && <div className="card empty">{bn ? "কিছু পাওয়া যায়নি। অন্য বানানে বা ইংরেজিতে লিখে দেখো।" : "Nothing found. Try another spelling."}</div>}
+        {empty && <div className="card empty">{bn ? "কিছু পাওয়া যায়নি। অন্য বানানে বা ইংরেজিতে লিখে দেখুন।" : "Nothing found. Try another spelling."}</div>}
         {res && [["comps", res.comps.top], ["teams", res.teams.top], ["players", res.players.top]].filter(([k]) => res[k].length).sort((x, y) => x[1] - y[1]).map(([k]) => (
           <Fragment key={k}>{k === "comps" ? (<>
 
@@ -4463,7 +4463,7 @@ function AskTable({ t, lang }) {
           </Fragment>
         );
       })}
-      <button className="ask-more" onClick={() => nav.openLeague(t.code)}>{bn ? "পুরো টেবিল দেখো →" : "Full table →"}</button>
+      <button className="ask-more" onClick={() => nav.openLeague(t.code)}>{bn ? "পুরো টেবিল দেখুন →" : "Full table →"}</button>
     </div>
   );
 }
@@ -4509,21 +4509,21 @@ function AskPage({ teams, preds, onOpen, chat, setChat }) {
       const a = await answer(t, teams, lang, ctx, favIds);
       setChat((c) => [...c, a || { text: "…", matches: [] }]);
     } catch {
-      setChat((c) => [...c, { text: lang === "bn" ? "দুঃখিত, এখন উত্তর আনা যাচ্ছে না। একটু পরে চেষ্টা করো।" : "Sorry, couldn't fetch that right now.", matches: [] }]);
+      setChat((c) => [...c, { text: lang === "bn" ? "দুঃখিত, এখন উত্তর আনা যাচ্ছে না। একটু পরে চেষ্টা করুন।" : "Sorry, couldn't fetch that right now.", matches: [] }]);
     }
     setBusy(false);
   }
 
   return (
     <div className="ask-page">
-        <div className="ask-head"><span className="ask-orb sm"><SparkIcon /></span>{lang === "bn" ? "খেলা কখন? জিজ্ঞেস করো" : "Ask Khela Kokhon"}
+        <div className="ask-head"><span className="ask-orb sm"><SparkIcon /></span>{lang === "bn" ? "খেলা কখন? জিজ্ঞেস করুন" : "Ask Khela Kokhon"}
           {chat.length > 0 && <button className="ask-new" onClick={() => setChat([])}>{lang === "bn" ? "নতুন করে" : "New chat"}</button>}
         </div>
         <div className="ask-body">
           {chat.length === 0 && (
             <>
               <p className="muted" style={{ fontSize: 13.5, lineHeight: 1.6, marginBottom: 10 }}>
-                {lang === "bn" ? "দল, লিগ বা খেলোয়াড় নিয়ে যা খুশি জিজ্ঞেস করো: সূচি, ফল, টেবিল, ফর্ম, হেড টু হেড, গোল, কোচ, স্টেডিয়াম। সময় বলব বাংলাদেশ সময়ে।" : "Ask anything about teams, leagues or players: fixtures, results, tables, form, head to head, goals, coach, stadium."}
+                {lang === "bn" ? "দল, লিগ বা খেলোয়াড় নিয়ে যা খুশি জিজ্ঞেস করুন: সূচি, ফল, টেবিল, ফর্ম, হেড টু হেড, গোল, কোচ, স্টেডিয়াম। সময় বলব বাংলাদেশ সময়ে।" : "Ask anything about teams, leagues or players: fixtures, results, tables, form, head to head, goals, coach, stadium."}
               </p>
               <div className="ask-ex">
                 {[...HELP_CHIPS[lang === "bn" ? "bn" : "en"], lang === "bn" ? "কী কী জিজ্ঞেস করা যায়" : "What can I ask?"].map((e) => <button key={e} className="chip" onClick={() => ask(e)}>{e}</button>)}
@@ -4572,7 +4572,7 @@ function AskPage({ teams, preds, onOpen, chat, setChat }) {
                   {m.dated ? <DatedRows list={m.matches.slice(0, 12)} preds={preds} onOpen={onOpen} /> : m.matches.slice(0, 8).map((x) => <MatchRow key={x.id} m={x} pred={preds[x.id]} onOpen={onOpen} />)}
                 </div>
               )}
-              {m.teamLink && <button className="chip" style={{ marginTop: 8 }} onClick={() => nav.openTeam(m.teamLink)}>{lang === "bn" ? (m.squadLink ? "পুরো স্কোয়াড দেখো →" : "দলের পাতা খোলো →") : (m.squadLink ? "Full squad →" : "Open team page →")}</button>}
+              {m.teamLink && <button className="chip" style={{ marginTop: 8 }} onClick={() => nav.openTeam(m.teamLink)}>{lang === "bn" ? (m.squadLink ? "পুরো স্কোয়াড দেখুন →" : "দলের পাতা খুলুন →") : (m.squadLink ? "Full squad →" : "Open team page →")}</button>}
               {i === chat.length - 1 && m.chips?.length > 0 && (
                 <div className="ask-ex ask-follow">{m.chips.slice(0, 6).map((e) => <button key={e} className="chip" onClick={() => ask(e)}>{e}</button>)}</div>
               )}
@@ -4582,9 +4582,9 @@ function AskPage({ teams, preds, onOpen, chat, setChat }) {
           <div ref={endRef} />
         </div>
         <form className="ask-input" onSubmit={(e) => { e.preventDefault(); ask(q); }}>
-          <input value={q} onChange={(e) => setQ(e.target.value)} onFocus={() => kb(true)} onBlur={() => kb(false)} enterKeyHint="send" placeholder={listening ? (lang === "bn" ? "শুনছি… বলো" : "Listening…") : lang === "bn" ? "যেমন: বার্সার ফর্ম কেমন" : "e.g. Barcelona form"} />
+          <input value={q} onChange={(e) => setQ(e.target.value)} onFocus={() => kb(true)} onBlur={() => kb(false)} enterKeyHint="send" placeholder={listening ? (lang === "bn" ? "শুনছি… বলুন" : "Listening…") : lang === "bn" ? "যেমন: বার্সার ফর্ম কেমন" : "e.g. Barcelona form"} />
           {SpeechRec && <button type="button" className={"ask-mic" + (listening ? " on" : "")} onClick={listen} aria-label="voice"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="9" y="3" width="6" height="11" rx="3" /><path d="M5 11a7 7 0 0014 0M12 18v3" /></svg></button>}
-          <button className="btn" disabled={!q.trim() || busy}>{lang === "bn" ? "পাঠাও" : "Send"}</button>
+          <button className="btn" disabled={!q.trim() || busy}>{lang === "bn" ? "পাঠান" : "Send"}</button>
         </form>
     </div>
   );
@@ -4737,7 +4737,7 @@ function Squad({ info, lang, photos = {} }) {
   const bn = lang === "bn";
   const nav = useNav();
   if (info === null) return <div className="card"><div className="spin" /></div>;
-  if (info === false || !info.squad?.length) return <div className="card empty">{bn ? "খেলোয়াড় তালিকা এখন পাওয়া যাচ্ছে না। কিছুক্ষণ পরে আবার চেষ্টা করো।" : "Squad isn't available right now. Try again later."}</div>;
+  if (info === false || !info.squad?.length) return <div className="card empty">{bn ? "খেলোয়াড় তালিকা এখন পাওয়া যাচ্ছে না। কিছুক্ষণ পরে আবার চেষ্টা করুন।" : "Squad isn't available right now. Try again later."}</div>;
   const groups = [...POS.map(([k, , b, e]) => [k, bn ? b : e]), ["OTH", bn ? "অন্যান্য" : "Others"]]
     .map(([k, label]) => [label, info.squad.filter((p) => posOf(p.position) === k)])
     .filter(([, list]) => list.length);
@@ -4816,7 +4816,7 @@ function Player({ id, teamsById, comps }) {
 
   const back = <div className="page-head"><button className="back" onClick={() => window.history.back()} aria-label="back">←</button></div>;
   if (p === null) return <>{back}<div className="sec"><Loading /></div></>;
-  if (p === false) return <>{back}<div className="sec"><div className="card empty">{bn ? "খেলোয়াড়ের তথ্য এখন পাওয়া যাচ্ছে না। কিছুক্ষণ পরে আবার চেষ্টা করো।" : "Player info isn't available right now. Try again later."}</div></div></>;
+  if (p === false) return <>{back}<div className="sec"><div className="card empty">{bn ? "খেলোয়াড়ের তথ্য এখন পাওয়া যাচ্ছে না। কিছুক্ষণ পরে আবার চেষ্টা করুন।" : "Player info isn't available right now. Try again later."}</div></div></>;
 
   const team = p.team ? { ...(teamsById[p.team.id] || {}), ...p.team, crest: teamsById[p.team.id]?.crest || p.team.crest } : null;
   const a = age(p.dateOfBirth);
@@ -5177,12 +5177,12 @@ export default function App() {
     const metaCode = user?.user_metadata?.join;
     const code = pendingJoin() || metaCode;
     if (!code) return;
-    if (!user) { setTab("profile"); window.history.replaceState({}, "", "/profile"); toast(lang === "bn" ? "আমন্ত্রণ পেয়েছ! রেজিস্টার বা লগইন করলেই লিগে যোগ হয়ে যাবে" : "You're invited! Sign up or log in and you'll join the league automatically", 5000); return; }
+    if (!user) { setTab("profile"); window.history.replaceState({}, "", "/profile"); toast(lang === "bn" ? "আমন্ত্রণ পেয়েছেন! রেজিস্টার বা লগইন করলেই লিগে যোগ হয়ে যাবেন" : "You're invited! Sign up or log in and you'll join the league automatically", 5000); return; }
     try { localStorage.removeItem("kk_join"); } catch { /* ignore */ }
     if (metaCode && !DEMO) sb.auth.updateUser({ data: { join: null } }).catch(() => {});
     joinLeague(code)
       .then((r) => {
-        toast(lang === "bn" ? `"${r.name}" লিগে যোগ দিয়েছ 🎉` : `Joined "${r.name}" 🎉`);
+        toast(lang === "bn" ? `"${r.name}" লিগে যোগ দিয়েছেন 🎉` : `Joined "${r.name}" 🎉`);
         setJoinedLeague(r.id);
         setPredTab((p) => ({ tab: "friends", league: r.id, key: p.key + 1 })); go("predict");
       })
@@ -5197,7 +5197,7 @@ export default function App() {
     if (!err) return;
     console.warn("auth error:", err);
     window.history.replaceState({}, "", "/profile"); setTab("profile");
-    toast(lang === "bn" ? "লগইন হয়নি। একটু পরে আবার চেষ্টা করো, অথবা ইমেইল দিয়ে লগইন করো।" : "Login failed. Please try again later, or use email.", 6000);
+    toast(lang === "bn" ? "লগইন হয়নি। একটু পরে আবার চেষ্টা করুন, অথবা ইমেইল দিয়ে লগইন করুন।" : "Login failed. Please try again later, or use email.", 6000);
   }, []);
   useEffect(() => { if (new URLSearchParams(window.location.search).has("ask")) { window.history.replaceState({}, "", "/ask"); setTab("ask"); } }, []);
 
@@ -5237,7 +5237,7 @@ export default function App() {
           </div>
           {!onboarding && <DeskNav tab={view ? null : tab} go={go} />}
           <div className="sp" />
-          <button className="pill-btn round" onClick={openSearch} aria-label={lang === "bn" ? "খোঁজো" : "Search"}><SearchIcon width={17} height={17} /></button>
+          <button className="pill-btn round" onClick={openSearch} aria-label={lang === "bn" ? "খুঁজুন" : "Search"}><SearchIcon width={17} height={17} /></button>
           <button className="pill-btn" onClick={() => setLang(lang === "bn" ? "en" : "bn")}>{lang === "bn" ? "EN" : "বাং"}</button>
           <button className="pill-btn" onClick={() => setTheme(theme === "dark" ? "light" : "dark")} aria-label="theme">
             {theme === "dark" ? <SunIcon width={16} height={16} /> : <MoonIcon width={16} height={16} />}
