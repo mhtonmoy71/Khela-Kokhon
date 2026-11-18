@@ -2663,7 +2663,12 @@ function findComp(q) {
   return null;
 }
 
-const poss = (name, lang) => (lang !== "bn" ? `${name}'s` : /[\u09BE-\u09CC\u0981]$/.test(name) ? name + "র" : name + "ের");
+// বাংলা ষষ্ঠী: স্বরচিহ্ন বা ঁ-তে শেষ → র (রোমার, লিগ আঁর); ই/এ-তে শেষ → য়ের (গালাতাসারাইয়ের); অন্য স্বরবর্ণে → র; ব্যঞ্জনে → ের
+const poss = (name, lang) => (lang !== "bn" ? `${name}'s`
+  : /[\u09BE-\u09CC\u0981]$/.test(name) ? name + "র"
+  : /[\u0987\u0988\u098F]$/.test(name) ? name + "য়ের"
+  : /[\u0985-\u0994]$/.test(name) ? name + "র"
+  : name + "ের");
 
 // ════════ খেলোয়াড়ের প্রশ্ন ════════
 const COMP_LABEL = { CL: ["চ্যাম্পিয়ন্স লিগ", "Champions League"], PL: ["প্রিমিয়ার লিগ", "Premier League"], PD: ["লা লিগা", "La Liga"], BL1: ["বুন্দেসলিগা", "Bundesliga"], SA: ["সিরি আ", "Serie A"], FL1: ["লিগ আঁ", "Ligue 1"] };
