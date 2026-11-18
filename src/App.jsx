@@ -641,7 +641,7 @@ const S = {
   myTeams: ["আমার দল", "My teams"],
   favs: ["প্রিয়", "Favourites"],
   rivals: ["রাইভাল", "Rivals"],
-  edit: ["বদলাও", "Edit"],
+  edit: ["এডিট", "Edit"],
   settings: ["সেটিংস", "Settings"],
   language: ["ভাষা", "Language"],
   theme: ["থিম", "Theme"],
