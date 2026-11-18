@@ -540,7 +540,20 @@ img { display: block; }
 .qz-score small { font-size: 24px; color: var(--muted); }
 .qz-actions { display: grid; gap: 10px; margin-top: 16px; }
 .qz-note { text-align: center; font-size: 12px; }
-.qz-next { margin-top: 4px; height: 50px; font-size: 16px; animation: qzIn .3s ease both; }
+.qz-next { margin: 4px 0 12px; height: 52px; font-size: 16px; animation: qzIn .3s ease both; scroll-margin-bottom: 16px; }
+@media (max-width: 380px), (max-height: 700px) {
+  .qz-q { font-size: 17px; margin: 6px 0 12px; }
+  .qz-opt { padding: 11px 12px; font-size: 15px; }
+  .qz-opts { gap: 8px; }
+  .qz-l { width: 26px; height: 26px; }
+  .qz-verdict { margin: 10px 0; padding: 10px 12px; }
+}
+/* খেলা চলাকালীন: নিচের মেনু সরে যায়, পুরো জায়গা কুইজের */
+.quiz-focus .nav { transform: translate(-50%, 130%); opacity: 0; pointer-events: none; }
+.quiz-focus .app { padding-bottom: 24px; }
+.qz-top { align-items: center; gap: 10px; }
+.qz-prog { flex: 1; }
+.qz-x { width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; background: var(--card2); color: var(--muted); font-size: 14px; font-weight: 700; flex: none; }
 .qz-review { margin-top: 14px; padding: 12px 14px; }
 .qz-review summary { font-weight: 700; cursor: pointer; }
 .qz-rv { padding: 10px 0; border-top: 1px solid var(--line); display: flex; flex-direction: column; gap: 3px; font-size: 13.5px; }
@@ -3287,6 +3300,14 @@ function QuizPage({ code, user, goProfile, toast }) {
   const joined = useRef(false);
   const status = useRef(null);
   const reload = useRef(() => {});
+  const playing = st?.status === "running";
+  useEffect(() => {
+    document.documentElement.classList.toggle("quiz-focus", playing);
+    return () => document.documentElement.classList.remove("quiz-focus");
+  }, [playing]);
+  const quit = () => {
+    if (window.confirm(bn ? "কুইজ ছেড়ে যাবেন? বাকি প্রশ্নগুলো উত্তর না দেওয়া হিসেবে ধরা হবে।" : "Leave the quiz? Remaining questions count as unanswered.")) nav.openQuiz(null, true);
+  };
 
   // অবস্থা জানা: খেলা চলাকালীন প্রতি সেকেন্ডে, অপেক্ষার সময় একটু ধীরে
   useEffect(() => {
@@ -3488,7 +3509,8 @@ function QuizPage({ code, user, goProfile, toast }) {
   return (
     <div className="sec qz-play">
       <div className="qz-top">
-        <span>{bn ? `প্রশ্ন ${num(cur.index + 1, "bn")}/${num(st.total, "bn")}` : `Q ${cur.index + 1}/${st.total}`} · {cur.category}</span>
+        <button className="qz-x" onClick={quit} aria-label={bn ? "কুইজ ছেড়ে যান" : "Leave quiz"}>✕</button>
+        <span className="qz-prog">{bn ? `প্রশ্ন ${num(cur.index + 1, "bn")}/${num(st.total, "bn")}` : `Q ${cur.index + 1}/${st.total}`} · {cur.category}</span>
         {me && <span className="qz-myscore">{bn ? "স্কোর" : "Score"} {num(me.score, lang)}</span>}
       </div>
       <div className="qz-timer"><i style={{ width: reveal ? 0 : `${Math.max(0, (st.q_seconds - intoQ) / st.q_seconds) * 100}%` }} className={left <= 5 && !reveal ? "low" : ""} /></div>
@@ -3509,7 +3531,7 @@ function QuizPage({ code, user, goProfile, toast }) {
         </div>
       ) : null}
       {reveal ? (
-        <button className="btn block qz-next qz-ic-btn" onClick={next}>{cur.index + 1 >= st.total ? (bn ? "শেষ করুন" : "Finish") : (bn ? "পরের প্রশ্ন" : "Next question")}<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M13 6l6 6-6 6" /></svg></button>
+        <button className="btn block qz-next qz-ic-btn" onClick={next} ref={(el) => el && !el.dataset.seen && (el.dataset.seen = "1", setTimeout(() => el.scrollIntoView({ behavior: "smooth", block: "nearest" }), 60))}>{cur.index + 1 >= st.total ? (bn ? "শেষ করুন" : "Finish") : (bn ? "পরের প্রশ্ন" : "Next question")}<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M13 6l6 6-6 6" /></svg></button>
       ) : mine != null ? (
         <div className="qz-wait"><span className="spin sm" />{bn ? "উত্তর জমা হচ্ছে…" : "Locking in…"}</div>
       ) : !me ? <div className="qz-wait">{bn ? "আপনি এই কুইজে নেই, শুধু দেখছেন।" : "You're watching."}</div> : null}
@@ -5425,7 +5447,8 @@ export default function App() {
         )}
         </main>
 
-        {!(tab === "ask" && !view && !onboarding) && <Footer comps={comps} />}
+        {/* ফুটার তথ্যের পাতাগুলোয়; গেম, কুইজ আর জিজ্ঞেস করুন-এ নয় (অ্যাপের মতো পরিষ্কার) */}
+        {!onboarding && view?.kind !== "quiz" && !(!view && (tab === "ask" || tab === "predict")) && <Footer comps={comps} />}
       </div>
 
       {!onboarding && <Nav tab={tab} go={go} />}
