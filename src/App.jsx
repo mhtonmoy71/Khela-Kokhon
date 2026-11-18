@@ -17,7 +17,7 @@ const CSS = `
   --onGreen: #ffffff;
 }
 * { margin: 0; padding: 0; box-sizing: border-box; }
-html, body { background: var(--bg); color: var(--text); }
+html, body { background: var(--bg); color: var(--text); overflow-x: clip; }
 body { font-family: "Hind Siliguri", system-ui, sans-serif; -webkit-tap-highlight-color: transparent; }
 button, input { font: inherit; color: inherit; }
 button { cursor: pointer; border: 0; background: none; }
