@@ -1189,14 +1189,23 @@ async function getPlayerScoring(id) {
 }
 
 // খেলোয়াড়দের ছোট ছবি: দলের পুরো স্কোয়াড বা কয়েকজন (id) — একবার আনা ছবি মনে রাখে
-const photoMemo = {};
+// ব্রাউজারে এক দিন জমা থাকে, তাই আবার খুললে সঙ্গে সঙ্গে ছবি
+const photoMemo = (() => { try { const j = JSON.parse(localStorage.getItem("kk_photos") || "{}"); return Date.now() - (j.t || 0) < 86400000 ? j.map || {} : {}; } catch { return {}; } })();
+const savePhotos = () => { try { localStorage.setItem("kk_photos", JSON.stringify({ t: Date.now(), map: photoMemo })); } catch { /* ignore */ } };
+const photoReq = {};
 async function getPhotos(params) {
   if (DEMO) return {};
-  const d = await extra({ type: "photos", ...params });
-  Object.assign(photoMemo, d);
-  return d;
+  const k = JSON.stringify(params);
+  photoReq[k] ||= extra({ type: "photos", ...params }).then((d) => { Object.assign(photoMemo, d); savePhotos(); return d; }).finally(() => setTimeout(() => delete photoReq[k], 60000));
+  return photoReq[k];
 }
-const smallPhoto = (url) => url && url.replace(/width=\d+/, "width=96");
+// ছোট মাপ (১২০px); পুরনো Special:FilePath লিংকও চলে
+const smallPhoto = (url) => url && (url.includes("upload.wikimedia.org") ? url.replace(/\/\d+px-/, "/120px-") : url.replace(/width=\d+/, "width=120"));
+// সরাসরি লিংকে না এলে (ছবি ছোট হলে মাপের ছবি থাকে না) Special:FilePath দিয়ে আরেকবার
+const photoFallback = (url) => {
+  const m = url && url.match(/\/thumb\/[0-9a-f]\/[0-9a-f]{2}\/([^/]+)\//);
+  return m ? `https://commons.wikimedia.org/wiki/Special:FilePath/${m[1]}?width=${(url.match(/\/(\d+)px-/) || [])[1] || 120}` : null;
+};
 
 async function getH2H(matchId, homeId, awayId) {
   if (DEMO) return {
@@ -3167,8 +3176,9 @@ function Squad({ info, lang, photos = {} }) {
 
 // ছোট গোল ছবি; ছবি না থাকলে বা না এলে নামের আদ্যক্ষর (বা দলের লোগো)
 function Avatar({ url, name, team, size = 34 }) {
-  const [bad, setBad] = useState(false);
-  if (url && !bad) return <img className="av" src={smallPhoto(url)} alt="" width={size} height={size} loading="lazy" onError={() => setBad(true)} style={{ width: size, height: size }} />;
+  const [tries, setTries] = useState(0);
+  const src = tries === 0 ? smallPhoto(url) : tries === 1 ? photoFallback(smallPhoto(url)) : null;
+  if (url && src) return <img className="av" src={src} alt="" width={size} height={size} loading="lazy" decoding="async" onError={() => setTries((t) => t + 1)} style={{ width: size, height: size }} />;
   if (team) return <span className="av av-fb" style={{ width: size, height: size }}><Crest team={team} size={Math.round(size * 0.62)} /></span>;
   const ini = (name || "?").split(" ").filter(Boolean).map((w) => w[0]).slice(0, 2).join("").toUpperCase();
   return <span className="av av-fb" style={{ width: size, height: size, fontSize: size * 0.36 }}>{ini}</span>;
@@ -3177,12 +3187,13 @@ function Avatar({ url, name, team, size = 34 }) {
 // ════════════════ pages/Player.jsx ════════════════
 // ছবি না পেলে বা না এলে জার্সি নম্বর
 function PlayerPhoto({ p, lang }) {
-  const [bad, setBad] = useState(false);
+  const [tries, setTries] = useState(0);
+  const src = tries === 0 ? p.photo?.url : tries === 1 ? photoFallback(p.photo?.url) : null;
   const shirt = p.shirtNumber != null ? num(p.shirtNumber, lang) : (p.name || "?").slice(0, 1);
-  if (!p.photo?.url || bad) return <div className="pl-avatar">{shirt}</div>;
+  if (!src) return <div className="pl-avatar">{shirt}</div>;
   return (
     <div className="pl-photo-wrap">
-      <img className="pl-photo" src={p.photo.url} alt={p.name} width="112" height="112" onError={() => setBad(true)} />
+      <img className="pl-photo" src={src} alt={p.name} width="112" height="112" decoding="async" onError={() => setTries((t) => t + 1)} />
       {p.shirtNumber != null && <span className="pl-shirt">{shirt}</span>}
     </div>
   );
@@ -3309,11 +3320,12 @@ function Team({ id, teamsById, preds, onOpen }) {
   const [photos, setPhotos] = useState({});
   // স্কোয়াড ট্যাব খুললে ছবি আনা (প্রথমবার একটু সময় লাগে, পরে জমা থেকে)
   useEffect(() => {
-    if (tab !== "squad" || !info) return;
+    if (!info) return; // দলের পাতা খুললেই পেছনে ছবি আনা শুরু, স্কোয়াড ট্যাবে যাওয়ার আগেই
     let live = true;
+    setPhotos({ ...photoMemo });
     getPhotos({ team: id }).then((d) => live && setPhotos(d)).catch(() => {});
     return () => { live = false; };
-  }, [tab, !!info, id]);
+  }, [!!info, id]);
   const team = teamsById[id] || up?.map((m) => (m.home_id === id ? m.home : m.away))[0] || past?.map((m) => (m.home_id === id ? m.home : m.away))[0];
 
   useEffect(() => {

@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 // ═══════════════════════════════════════════════════════════════
 //  /api/extra — দরকার পড়লে football-data.org থেকে আনে, তারপর Supabase-এ জমিয়ে রাখে
 //    ?type=team&id=86        → দলের খেলোয়াড় তালিকা, কোচ, মাঠ (৭ দিন জমা থাকে)
@@ -50,8 +51,20 @@ const today = () => new Date().toISOString().slice(0, 10);
 // ── খেলোয়াড়ের ছবি: Wikidata-য় নাম দিয়ে খুঁজে জন্মতারিখ মিলিয়ে Wikimedia Commons-এর ছবি ──
 const WD = "https://www.wikidata.org/w/api.php";
 const UA = { headers: { "User-Agent": "KhelaKokhon/1.0 (https://khelakokhon.com)" } };
+// সরাসরি Wikimedia-র ছবির সার্ভারের লিংক (মাঝের রিডাইরেক্ট ছাড়া), প্রচলিত মাপে (১২০/৩৩০) — আগে থেকে বানানো থাকে, তাই দ্রুত
+function thumbUrl(file, w) {
+  let name = file.replace(/ /g, "_");
+  name = name.charAt(0).toUpperCase() + name.slice(1);
+  const h = createHash("md5").update(name).digest("hex");
+  const enc = encodeURIComponent(name);
+  return `https://upload.wikimedia.org/wikipedia/commons/thumb/${h[0]}/${h.slice(0, 2)}/${enc}/${w}px-${enc}${/\.svg$/i.test(name) ? ".png" : ""}`;
+}
+// আগে জমা হওয়া Special:FilePath লিংক থেকে ফাইলের নাম
+const fileOf = (ph) => ph?.file || (ph?.url && /Special:FilePath\/([^?]+)/.test(ph.url) ? decodeURIComponent(ph.url.match(/Special:FilePath\/([^?]+)/)[1]) : null);
 const photoOf = (file) => ({
-  url: `https://commons.wikimedia.org/wiki/Special:FilePath/${encodeURIComponent(file)}?width=320`,
+  file,
+  url: thumbUrl(file, 330),
+  small: thumbUrl(file, 120),
   page: `https://commons.wikimedia.org/wiki/File:${encodeURIComponent(file.replace(/ /g, "_"))}`,
 });
 const wdJson = (url) => fetch(url, UA).then((r) => (r.ok ? r.json() : null)).catch(() => null);
@@ -115,7 +128,7 @@ async function photos(req, res) {
   for (const p of players) {
     const c = cached[p.id];
     const age = c ? Date.now() - new Date(c.updated_at).getTime() : Infinity;
-    if (c && age < (c.data?.url ? 60 : 14) * DAY) out[p.id] = c.data?.url || null;
+    if (c && age < (c.data?.url ? 60 : 14) * DAY) out[p.id] = fileOf(c.data) ? thumbUrl(fileOf(c.data), 120) : null;
     else missing.push(p);
   }
   if (missing.length) {
@@ -123,11 +136,12 @@ async function photos(req, res) {
     const found = await Promise.race([findPhotos(missing.slice(0, 40)), new Promise((r) => setTimeout(() => r(null), 8000))]);
     if (found) {
       const rows = Object.entries(found).map(([id, ph]) => ({ key: `ph:${id}`, data: ph || {}, updated_at: new Date().toISOString() }));
-      for (const [id, ph] of Object.entries(found)) out[id] = ph?.url || null;
+      for (const [id, ph] of Object.entries(found)) out[id] = ph?.small || null;
       if (rows.length) await sb("api_cache?on_conflict=key", { method: "POST", body: rows, prefer: "resolution=merge-duplicates,return=minimal" }).catch(() => {});
     }
   }
-  res.setHeader("Cache-Control", "public, s-maxage=600");
+  // সব ছবি পাওয়া গেলে এক দিন CDN-এ জমা; কিছু বাকি থাকলে অল্প সময়
+  res.setHeader("Cache-Control", missing.length ? "public, s-maxage=60" : "public, s-maxage=86400, stale-while-revalidate=604800");
   return res.status(200).json({ ok: true, data: out });
 }
 
@@ -185,7 +199,7 @@ export default async function handler(req, res) {
   if (q.type === "team" && /^\d{1,7}$/.test(q.id || "")) {
     cacheKey = `team:${q.id}`; fdPath = `/teams/${q.id}`; maxAge = 7 * DAY; trim = trimTeam; check = `teams?id=eq.${q.id}&select=id`;
   } else if (q.type === "player" && /^\d{1,9}$/.test(q.id || "")) {
-    cacheKey = `player6:${q.id}`; maxAge = 2 * DAY;
+    cacheKey = `player7:${q.id}`; maxAge = 2 * DAY;
     // সাইটে দেখা খেলোয়াড় হলেই: গোলদাতার তালিকায় আছে, বা কোনো দলের জমা স্কোয়াডে আছে
     check = [`scorers?player_id=eq.${q.id}&select=player_id&limit=1`,
       `api_cache?key=like.team%3A*&data->squad=cs.${encodeURIComponent(JSON.stringify([{ id: +q.id }]))}&select=key&limit=1`];
