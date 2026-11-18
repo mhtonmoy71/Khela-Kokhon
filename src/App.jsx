@@ -380,6 +380,30 @@ img { display: block; }
 .rbadge { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); width: 32px; padding: 3px 0; border-radius: 8px; background: var(--card2);
   color: var(--muted); font-size: 10.5px; font-weight: 700; text-align: center; line-height: 1.2; white-space: nowrap; overflow: hidden; }
 
+/* ── ম্যাচের শিট: সাদামাটা, ভারী রঙ ছাড়া ── */
+.ms-top { display: flex; align-items: center; gap: 10px; padding: 2px 0 6px; }
+.ms-comp { flex: 1; min-width: 0; display: flex; align-items: center; gap: 8px; font-size: 13.5px; font-weight: 600; color: var(--muted); text-align: left; }
+.ms-comp span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ms-comp img { background: #fff; border-radius: 5px; padding: 2px; }
+.ms-share { width: 38px; height: 38px; border-radius: 50%; background: var(--card); display: grid; place-items: center; color: var(--text); flex: none; }
+.ms-share svg { width: 18px; height: 18px; }
+.spin.sm { width: 16px; height: 16px; margin: 0; border-width: 2px; }
+.ms-teams { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 8px; padding: 14px 0 6px; }
+.ms-team { display: flex; flex-direction: column; align-items: center; gap: 8px; font-size: 15px; font-weight: 700; text-align: center; line-height: 1.25; }
+.ms-mid { text-align: center; min-width: 96px; }
+.ms-time { font-size: 26px; font-weight: 700; line-height: 1.1; }
+.ms-score { font-family: Inter, sans-serif; font-size: 32px; font-weight: 800; letter-spacing: 1px; }
+.ms-date { font-size: 13px; color: var(--muted); margin-top: 4px; }
+.ms-cd { text-align: center; font-size: 12.5px; color: var(--muted); padding-bottom: 4px; }
+.ms-row { width: 100%; display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; font-size: 14.5px; font-weight: 600; text-align: left; }
+.pick .pred-box { padding: 14px 8px 12px; }
+.pick-side { display: flex; flex-direction: column; align-items: center; gap: 8px; min-width: 0; }
+.pick-side small { font-size: 12px; max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.stepper { gap: 12px; }
+.stepper button { width: 34px; height: 34px; border-radius: 50%; border: 0; background: var(--card2); font-size: 18px; font-weight: 600; color: var(--text); }
+.stepper button:disabled { opacity: .35; }
+.stepper .v { font-size: 28px; min-width: 30px; }
+
 /* ── খেলোয়াড় ── */
 button.sq { width: 100%; text-align: left; }
 .sq-go { font-style: normal; margin-left: 8px; color: var(--muted); }
@@ -1499,19 +1523,13 @@ function shareText(m, lang) {
   return `⚽ ${teamName(m.home, "en")} vs ${teamName(m.away, "en")}\n🏆 ${compName(m.competition, "en")}\n🗓 ${day}\n⏰ ${timeLabel(m.utc_date, "en")} (Bangladesh time)\n\nkhelakokhon.com`;
 }
 
-async function shareMatch(m, lang, toast) {
-  const text = shareText(m, lang);
-  try {
-    if (navigator.share) { await navigator.share({ text }); return; }
-  } catch (e) { if (e?.name === "AbortError") return; }
-  try { await navigator.clipboard.writeText(text); toast?.(lang === "bn" ? "কপি হয়েছে — যেখানে খুশি পেস্ট করো" : "Copied"); } catch { /* ignore */ }
-}
 
 function Stepper({ v, set }) {
+  const { lang } = useT();
   return (
     <div className="stepper">
-      <button onClick={() => set(Math.max(0, v - 1))} aria-label="-">−</button>
-      <div className="v">{v}</div>
+      <button onClick={() => set(Math.max(0, v - 1))} aria-label="-" disabled={v <= 0}>−</button>
+      <div className="v">{num(v, lang)}</div>
       <button onClick={() => set(Math.min(20, v + 1))} aria-label="+">+</button>
     </div>
   );
@@ -1542,8 +1560,9 @@ function H2H({ m }) {
   const past = all.slice(0, 5);
   return (
     <div className="sec" style={{ margin: "16px 0 0" }}>
-      <div className="sec-h"><h2>{bn ? "মুখোমুখি" : "Head to head"}</h2></div>
-      {state === "idle" && <button className="btn ghost block" onClick={load}>{bn ? "আগের লড়াইগুলো দেখো" : "Show previous meetings"}</button>}
+      {state === "idle" ? (
+        <button className="card ms-row" onClick={load}><span>{bn ? "আগের মুখোমুখি লড়াই" : "Previous meetings"}</span><span className="comp-go">›</span></button>
+      ) : <div className="sec-h"><h2>{bn ? "আগের মুখোমুখি লড়াই" : "Previous meetings"}</h2></div>}
       {state === "loading" && <div className="card"><div className="spin" /></div>}
       {state === "error" && <div className="card empty">{bn ? "এখন তথ্যটা পাওয়া যাচ্ছে না। একটু পরে আবার চেষ্টা করো।" : "Not available right now."}</div>}
       {state === "done" && (
@@ -1591,25 +1610,28 @@ function MatchSheet({ m, user, pred, onClose, onSave, onLogin, toast }) {
     <div className="veil" onClick={onClose}>
       <div className="sheet" onClick={(e) => e.stopPropagation()}>
         <div className="grab" />
-        <div className="hero" style={{ boxShadow: "none" }}>
-          <button className="hero-top" onClick={() => m.competition && nav.openLeague(m.competition.code)}><CompIcon c={m.competition} size={16} />{compName(m.competition, lang)}
-            {m.matchday ? <> · {t("matchday")} {num(m.matchday, lang)}</> : null} ›</button>
-          <div className="hero-teams">
-            <button className="hero-team" onClick={() => m.home_id && nav.openTeam(m.home_id)}><Crest team={m.home} size={56} />{teamName(m.home, lang)}</button>
-            <div className="hero-vs">
-              {showScore ? <div style={{ fontFamily: "Inter", fontSize: 30, fontWeight: 800, opacity: 1 }}>{num(m.home_score, lang)} - {num(m.away_score, lang)}</div> : t("vs")}
-              <div style={{ fontSize: 12, marginTop: 4 }}><StatusText m={m} /></div>
-            </div>
-            <button className="hero-team" onClick={() => m.away_id && nav.openTeam(m.away_id)}><Crest team={m.away} size={56} />{teamName(m.away, lang)}</button>
-          </div>
-          <div className="hero-time">
-            <div className="big">{timeLabel(m.utc_date, lang)}</div>
-            <div className="when">{dayLabel(dayKey(m.utc_date), lang)} · {t("bdTime")}</div>
-          </div>
-          {open && (
-            <div className="cd"><span>{t("startsIn")} <b>{countdown(new Date(m.utc_date) - now, lang)}</b></span></div>
-          )}
+        <div className="ms-top">
+          <button className="ms-comp" onClick={() => m.competition && nav.openLeague(m.competition.code)}>
+            <CompIcon c={m.competition} size={18} /><span>{compName(m.competition, lang)}{m.matchday ? ` · ${t("matchday")} ${num(m.matchday, lang)}` : ""}</span>
+          </button>
+          <button className="ms-share" disabled={making} aria-label={lang === "bn" ? "শেয়ার" : "Share"} onClick={async () => {
+            setMaking(true);
+            try { await shareCard(m, { lang, teamName: (tm) => teamName(tm, lang), compName: compName(m.competition, lang) }, toast); }
+            catch { toast(lang === "bn" ? "ছবি বানানো গেল না" : "Couldn't make the image"); }
+            setMaking(false);
+          }}>{making ? <span className="spin sm" /> : <ShareIcon />}</button>
         </div>
+        <div className="ms-teams">
+          <button className="ms-team" onClick={() => m.home_id && nav.openTeam(m.home_id)}><Crest team={m.home} size={60} /><span>{teamName(m.home, lang)}</span></button>
+          <div className="ms-mid">
+            {showScore
+              ? <div className="ms-score">{num(m.home_score, lang)} - {num(m.away_score, lang)}</div>
+              : <div className="ms-time">{timeLabel(m.utc_date, lang)}</div>}
+            <div className="ms-date">{showScore ? <StatusText m={m} /> : dayLabel(dayKey(m.utc_date), lang, { short: true })}</div>
+          </div>
+          <button className="ms-team" onClick={() => m.away_id && nav.openTeam(m.away_id)}><Crest team={m.away} size={60} /><span>{teamName(m.away, lang)}</span></button>
+        </div>
+        {open && <div className="ms-cd">{t("startsIn")} {countdown(new Date(m.utc_date) - now, lang)} · {t("bdTime")}</div>}
 
         <div className="sec" style={{ margin: "16px 0 0" }}>
           <div className="sec-h"><h2>{t("yourPick")}</h2>
@@ -1617,11 +1639,11 @@ function MatchSheet({ m, user, pred, onClose, onSave, onLogin, toast }) {
           {!user ? (
             <button className="btn ghost block" onClick={onLogin}>{t("loginToPredict")}</button>
           ) : open ? (
-            <div className="card">
+            <div className="card pick">
               <div className="pred-box">
-                <Stepper v={h} set={setH} />
+                <div className="pick-side"><small className="muted">{teamName(m.home, lang)}</small><Stepper v={h} set={setH} /></div>
                 <div className="dash">–</div>
-                <Stepper v={a} set={setA} />
+                <div className="pick-side"><small className="muted">{teamName(m.away, lang)}</small><Stepper v={a} set={setA} /></div>
               </div>
               <div style={{ padding: "0 12px 12px" }}>
                 {err && <div className="err">{err}</div>}
@@ -1638,19 +1660,6 @@ function MatchSheet({ m, user, pred, onClose, onSave, onLogin, toast }) {
 
         <H2H m={m} />
 
-        <div style={{ display: "flex", gap: 8, marginTop: 12 }}>
-          <button className="btn block" style={{ flex: 1 }} disabled={making} onClick={async () => {
-            setMaking(true);
-            try { await shareCard(m, { lang, teamName: (tm) => teamName(tm, lang), compName: compName(m.competition, lang) }, toast); }
-            catch { toast(lang === "bn" ? "ছবি বানানো গেল না" : "Couldn't make the image"); }
-            setMaking(false);
-          }}>
-            🖼️ {making ? "…" : lang === "bn" ? "ছবি শেয়ার" : "Share image"}
-          </button>
-          <button className="btn ghost" style={{ flex: 1 }} onClick={() => shareMatch(m, lang, toast)}>
-            <ShareIcon /> {lang === "bn" ? "লেখা শেয়ার" : "Share text"}
-          </button>
-        </div>
       </div>
     </div>
   );
