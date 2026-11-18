@@ -457,13 +457,38 @@ img { display: block; }
 .game-sw { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 14px; }
 .game-sw button { display: flex; align-items: center; justify-content: center; gap: 7px; height: 46px; border-radius: 14px; background: var(--card); border: 1.5px solid var(--line); font-weight: 700; font-size: 14.5px; color: var(--muted); }
 .game-sw button.on { border-color: var(--green); background: var(--greenDim); color: var(--green); }
-.game-sw span { font-size: 18px; }
+.game-sw button svg { flex: none; }
+@keyframes qzIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+@keyframes qzPop { 0% { opacity: 0; transform: scale(.6); } 60% { opacity: 1; transform: scale(1.08); } 100% { transform: scale(1); } }
+@keyframes qzShake { 0%, 100% { transform: none; } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
+@keyframes qzRight { 0% { transform: scale(1); } 40% { transform: scale(1.03); } 100% { transform: scale(1); } }
+.qz-stage .qz-q { animation: qzIn .35s ease both; }
+.qz-stage .qz-opt { animation: qzIn .35s ease both; }
+.qz-opt { transition: background .3s, border-color .3s, opacity .3s, transform .1s; }
+.qz-opt.right { animation: qzRight .45s ease; }
+.qz-opt.wrong { animation: qzShake .35s ease; }
+.qz-verdict { animation: qzIn .3s ease both; }
+.qz-count { animation: qzPop .5s ease both; }
+.qz-result { animation: qzPop .45s ease both; }
+.qz-board .qz-pl { animation: qzIn .3s ease both; }
+.qz-lobby, .qz-hero, .qz-join { animation: qzIn .3s ease both; }
+.qz-hero-ic { width: 64px; height: 64px; margin: 0 auto; border-radius: 20px; display: grid; place-items: center; background: var(--greenDim); color: var(--green); }
+.qz-mode { display: flex; align-items: center; justify-content: flex-start; gap: 14px; text-align: left; padding: 0 18px; }
+.qz-mode span { display: flex; flex-direction: column; line-height: 1.25; }
+.qz-mode small { font-weight: 500; font-size: 12px; opacity: .8; }
+.qz-ic-btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+.qz-badge { width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; flex: none; font-weight: 800; font-size: 13px; background: var(--card2); color: var(--muted); }
+.qz-badge.r1 { background: linear-gradient(145deg, #ffd65a, #e0a200); color: #4a3300; }
+.qz-badge.r2 { background: linear-gradient(145deg, #e6ebf0, #a9b4bf); color: #2f3a44; }
+.qz-badge.r3 { background: linear-gradient(145deg, #f0b27a, #c06d2c); color: #3d1f06; }
+.qz-badge.big { width: 72px; height: 72px; margin: 0 auto; font-size: 30px; box-shadow: 0 8px 24px rgba(0,0,0,.12); }
+.qz-ini { width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; flex: none; font-weight: 700; font-size: 13px; background: var(--brand); color: #fff; }
 .qz-hero { padding: 22px 18px; text-align: center; }
 .qz-hero-ic { font-size: 44px; }
 .qz-hero h2 { font-size: 21px; margin: 6px 0 6px; }
 .qz-hero p { font-size: 13.5px; line-height: 1.6; margin-bottom: 16px; }
 .qz-modes { display: grid; gap: 10px; }
-.qz-modes .btn { height: 50px; font-size: 16px; }
+.qz-modes .btn { height: 58px; font-size: 16px; }
 .qz-join { margin-top: 12px; padding: 14px; }
 .qz-join form { display: flex; gap: 8px; margin-top: 10px; }
 .qz-join input { flex: 1; min-width: 0; height: 44px; border-radius: 12px; border: 1px solid var(--line); background: var(--card2); padding: 0 14px; font-size: 16px; letter-spacing: 2px; text-transform: uppercase; outline: none; color: var(--text); }
@@ -473,7 +498,6 @@ img { display: block; }
 .qz-pl { display: flex; align-items: center; gap: 10px; padding: 11px 14px; border-top: 1px solid var(--line); }
 .qz-pl:first-child { border-top: 0; }
 .qz-pl.me { background: var(--greenDim); }
-.qz-rk { width: 26px; text-align: center; font-weight: 700; }
 .qz-nm { flex: 1; min-width: 0; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .qz-nm small { color: var(--muted); font-weight: 500; }
 .qz-sc { display: flex; flex-direction: column; align-items: flex-end; line-height: 1.2; }
@@ -2223,7 +2247,7 @@ function MatchRow({ m, pred, onOpen, badge, plain, sub }) {
         <div className="st">{sub || <StatusText m={m} />}</div>
         {pred && (
           <span className="pred-tag">
-            🎯 {num(pred.home, lang)}-{num(pred.away, lang)}
+            <TargetIcon width={11} height={11} style={{ verticalAlign: -1 }} /> {num(pred.home, lang)}-{num(pred.away, lang)}
             {pred.points != null && ` · +${num(pred.points, lang)}`}
           </span>
         )}
@@ -2591,6 +2615,10 @@ const BallIcon = I(<><circle cx="12" cy="12" r="9" /><path d="m12 7 4 3-1.5 4.5h
 const TargetIcon = I(<><circle cx="12" cy="12" r="9" /><circle cx="12" cy="12" r="5" /><circle cx="12" cy="12" r="1" /></>);
 const UserIcon = I(<><circle cx="12" cy="8" r="4" /><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6" /></>);
 const ShareIcon = I(<><circle cx="18" cy="5" r="3" /><circle cx="6" cy="12" r="3" /><circle cx="18" cy="19" r="3" /><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4" /></>);
+const UsersIcon = I(<><circle cx="9" cy="8" r="3.5" /><path d="M2.5 20c1-3.6 3.6-5.5 6.5-5.5s5.5 1.9 6.5 5.5" /><circle cx="17" cy="9" r="2.8" /><path d="M16.5 14.6c2.4.2 4.2 1.9 5 4.9" /></>);
+const QuizIcon = I(<><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3h11A2.5 2.5 0 0 1 20 5.5v8a2.5 2.5 0 0 1-2.5 2.5H11l-4.5 4v-4h0A2.5 2.5 0 0 1 4 13.5z" /><path d="M9.8 7.6a2.3 2.3 0 0 1 4.4.9c0 1.5-2.2 1.9-2.2 3.1" /><path d="M12 14.2v.1" /></>);
+const ReplayIcon = I(<><path d="M3.5 12a8.5 8.5 0 1 0 2.6-6.1" /><path d="M3 4v4.5h4.5" /></>);
+const PlayIcon = I(<path d="M8 5.5v13l10-6.5z" />);
 const SearchIcon = I(<><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" /></>);
 const SunIcon = I(<><circle cx="12" cy="12" r="4" /><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" /></>);
 const MoonIcon = I(<path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z" />);
@@ -3162,7 +3190,11 @@ async function shareQuiz(code, bn, toast) {
   try { if (navigator.share) { await navigator.share({ text }); return; } } catch (e) { if (e?.name === "AbortError") return; }
   try { await navigator.clipboard.writeText(text); toast(bn ? "লিংক কপি হয়েছে, বন্ধুদের পাঠান" : "Link copied"); } catch { /* ignore */ }
 }
-const RANK_MEDAL = ["🥇", "🥈", "🥉"];
+// র‍্যাঙ্ক: ১–৩ সোনা/রুপা/ব্রোঞ্জ রঙের গোল চিহ্ন, বাকিরা সাধারণ
+function RankBadge({ rank, lang, big }) {
+  return <span className={"qz-badge r" + Math.min(rank, 4) + (big ? " big" : "")}>{num(rank, lang)}</span>;
+}
+const Initial = ({ name }) => <span className="qz-ini">{[...(name || "?").trim()][0]}</span>;
 const LETTERS = ["ক", "খ", "গ", "ঘ"];
 const secTxt = (ms, lang) => (lang === "bn" ? `${num((ms / 1000).toFixed(1), "bn")} সে.` : `${(ms / 1000).toFixed(1)}s`);
 
@@ -3173,10 +3205,21 @@ function GameSwitch({ on }) {
   const bn = lang === "bn";
   return (
     <div className="game-sw">
-      <button className={on === "predict" ? "on" : ""} onClick={() => on !== "predict" && nav.go("predict")}><span>🎯</span>{bn ? "প্রেডিকশন" : "Predict"}</button>
-      <button className={on === "quiz" ? "on" : ""} onClick={() => on !== "quiz" && nav.openQuiz()}><span>🧠</span>{bn ? "স্পোর্টস কুইজ" : "Sports quiz"}</button>
+      <button className={on === "predict" ? "on" : ""} onClick={() => on !== "predict" && nav.go("predict")}><TargetIcon width={18} height={18} />{bn ? "প্রেডিকশন" : "Predict"}</button>
+      <button className={on === "quiz" ? "on" : ""} onClick={() => on !== "quiz" && nav.openQuiz()}><QuizIcon width={18} height={18} />{bn ? "স্পোর্টস কুইজ" : "Sports quiz"}</button>
     </div>
   );
+}
+
+function CountUp({ to, lang }) {
+  const [v, setV] = useState(0);
+  useEffect(() => {
+    let raf, t0;
+    const step = (t) => { t0 ??= t; const k = Math.min(1, (t - t0) / 700); setV(Math.round(to * (1 - Math.pow(1 - k, 3)))); if (k < 1) raf = requestAnimationFrame(step); };
+    raf = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(raf);
+  }, [to]);
+  return <>{num(v, lang)}</>;
 }
 
 function QuizBoard({ players, lang, limit, lobby }) {
@@ -3187,7 +3230,7 @@ function QuizBoard({ players, lang, limit, lobby }) {
         const rank = players.indexOf(p);
         return (
           <div key={p.name + rank} className={"qz-pl" + (p.me ? " me" : "")}>
-            <span className="qz-rk">{lobby ? "👤" : rank < 3 ? RANK_MEDAL[rank] : num(rank + 1, lang)}</span>
+            {lobby ? <Initial name={p.name} /> : <RankBadge rank={rank + 1} lang={lang} />}
             <span className="qz-nm">{p.name}{p.me ? (lang === "bn" ? " (আপনি)" : " (you)") : ""}{p.host ? <small> · {lang === "bn" ? "হোস্ট" : "host"}</small> : null}</span>
             {!lobby && <span className="qz-sc"><b>{num(p.score, lang)}</b><small>{secTxt(p.ms, lang)}</small></span>}
           </div>
@@ -3210,26 +3253,39 @@ function QuizPage({ code, user, goProfile, toast }) {
   const offset = useRef(0);
   const joined = useRef(false);
   const status = useRef(null);
+  const reload = useRef(() => {});
 
   // অবস্থা জানা: খেলা চলাকালীন প্রতি সেকেন্ডে, অপেক্ষার সময় একটু ধীরে
   useEffect(() => {
     if (!code) { setSt(null); return; }
     let alive = true, timer;
     setSt(null); setErr(""); setPicked({}); joined.current = false;
+    // পরের খোঁজ: সাধারণত ০.৯–১.৬ সেকেন্ডে, কিন্তু ধাপ বদলের (প্রশ্ন শেষ, উত্তর দেখানো শেষ) ঠিক পরেই
+    const nextDelay = (s) => {
+      if (s.status !== "running" || !s.started_at) return 1600;
+      const per = s.q_seconds + s.gap_seconds;
+      const el = (Date.parse(s.now) - Date.parse(s.started_at)) / 1000;
+      const into = el < 0 ? el : el - Math.floor(el / per) * per;
+      const toEdge = el < 0 ? -el : into < s.q_seconds ? s.q_seconds - into : per - into;
+      return Math.max(120, Math.min(900, toEdge * 1000 + 80));
+    };
+    let last = null;
     const load = async () => {
+      clearTimeout(timer);
       try {
         const s = await quizCall("quiz_state", { p_code: code });
         if (!alive) return;
         offset.current = Date.parse(s.now) - Date.now();
-        setSt(s); setErr(""); status.current = s.status;
+        setSt(s); setErr(""); status.current = s.status; last = s;
         if (user && !joined.current && s.status === "lobby" && !s.players.some((p) => p.me)) {
           joined.current = true;
           await quizCall("quiz_join", { p_code: code }).catch((e) => setErr(quizMsg(e, lang)));
         }
         if (s.next_code && s.players.some((p) => p.me) && s.status === "finished") { nav.openQuiz(s.next_code, true); return; }
       } catch (e) { if (alive) setErr(quizMsg(e, lang)); }
-      if (alive) timer = setTimeout(load, status.current === "running" ? 900 : 1600);
+      if (alive) timer = setTimeout(load, last ? nextDelay(last) : 1600);
     };
+    reload.current = () => alive && load();
     load();
     const t2 = setInterval(() => tick((x) => x + 1), 250);
     return () => { alive = false; clearTimeout(timer); clearInterval(t2); };
@@ -3247,7 +3303,7 @@ function QuizPage({ code, user, goProfile, toast }) {
     catch (e) { setErr(quizMsg(e, lang)); }
     setBusy(false);
   }
-  async function start() { setBusy(true); try { await quizCall("quiz_start", { p_code: code }); } catch (e) { setErr(quizMsg(e, lang)); } setBusy(false); }
+  async function start() { setBusy(true); try { await quizCall("quiz_start", { p_code: code }); reload.current(); } catch (e) { setErr(quizMsg(e, lang)); } setBusy(false); }
   async function again() {
     setBusy(true);
     try {
@@ -3260,7 +3316,7 @@ function QuizPage({ code, user, goProfile, toast }) {
   async function answer(i, choice) {
     if (picked[i] != null) return;
     setPicked((p) => ({ ...p, [i]: choice }));
-    try { await quizCall("quiz_answer", { p_code: code, p_index: i, p_choice: choice }); }
+    try { await quizCall("quiz_answer", { p_code: code, p_index: i, p_choice: choice }); reload.current(); }
     catch (e) { toast(quizMsg(e, lang)); }
   }
 
@@ -3269,12 +3325,12 @@ function QuizPage({ code, user, goProfile, toast }) {
     <div className="sec">
       <GameSwitch on="quiz" />
       <div className="card qz-hero">
-        <div className="qz-hero-ic">🧠</div>
+        <div className="qz-hero-ic"><QuizIcon width={34} height={34} /></div>
         <h2>{bn ? "স্পোর্টস কুইজ" : "Sports quiz"}</h2>
         <p className="muted">{bn ? "১০টা প্রশ্ন, প্রতিটায় ৩০ সেকেন্ড। একা খেলে নিজেকে যাচাই করুন, বা লিংক পাঠিয়ে বন্ধুদের সাথে লাইভ। সমান স্কোর হলে যে দ্রুত উত্তর দিয়েছে, সে এগিয়ে।" : "10 questions, 30 seconds each. Test yourself solo, or send a link and play live with friends. Ties go to the faster player."}</p>
         <div className="qz-modes">
-          <button className="btn block" disabled={busy} onClick={() => create(true)}>{busy ? "…" : <>🙋 {bn ? "একা খেলুন" : "Play solo"}</>}</button>
-          <button className="btn ghost block" disabled={busy} onClick={() => create(false)}>👥 {bn ? "বন্ধুদের সাথে খেলুন" : "Play with friends"}</button>
+          <button className="btn block qz-mode" disabled={busy} onClick={() => create(true)}><UserIcon width={20} height={20} /><span><b>{bn ? "একা খেলুন" : "Play solo"}</b><small>{bn ? "নিজেকে যাচাই করুন" : "Test yourself"}</small></span></button>
+          <button className="btn ghost block qz-mode" disabled={busy} onClick={() => create(false)}><UsersIcon width={20} height={20} /><span><b>{bn ? "বন্ধুদের সাথে খেলুন" : "Play with friends"}</b><small>{bn ? "লিংক পাঠিয়ে লাইভ" : "Live, by link"}</small></span></button>
         </div>
       </div>
       <div className="card qz-join">
@@ -3305,14 +3361,14 @@ function QuizPage({ code, user, goProfile, toast }) {
       <div className="card qz-lobby">
         <small className="muted">{bn ? "কুইজের কোড" : "Quiz code"}</small>
         <div className="qz-code">{st.code}</div>
-        <button className="btn ghost block" onClick={() => shareQuiz(st.code, bn, toast)}>📨 {bn ? "বন্ধুদের লিংক পাঠান" : "Send link to friends"}</button>
+        <button className="btn ghost block qz-ic-btn" onClick={() => shareQuiz(st.code, bn, toast)}><ShareIcon width={18} height={18} />{bn ? "বন্ধুদের লিংক পাঠান" : "Send link to friends"}</button>
       </div>
       <div className="sec-h" style={{ marginTop: 14 }}><h2>{bn ? `খেলোয়াড় · ${num(st.players.length, "bn")} জন` : `Players · ${st.players.length}`}</h2></div>
       <QuizBoard players={st.players} lang={lang} lobby />
       {!user ? (
         <div className="card empty">{bn ? "এই কুইজে খেলতে আগে লগইন করুন।" : "Log in to play this quiz."}<div style={{ marginTop: 10 }}><button className="btn" onClick={() => { try { localStorage.setItem("kk_quiz", st.code); } catch { /* ignore */ } goProfile(); }}>{bn ? "লগইন করুন" : "Log in"}</button></div></div>
       ) : st.is_host ? (
-        <button className="btn block qz-go" disabled={busy} onClick={start}>{busy ? "…" : bn ? (st.players.length > 1 ? "সবাই এসেছে? শুরু করুন ▶" : "একা শুরু করুন ▶") : "Start ▶"}</button>
+        <button className="btn block qz-go qz-ic-btn" disabled={busy} onClick={start}>{busy ? "…" : <><PlayIcon width={18} height={18} />{bn ? (st.players.length > 1 ? "সবাই এসেছে? শুরু করুন" : "একা শুরু করুন") : "Start"}</>}</button>
       ) : <div className="qz-wait"><span className="spin sm" />{bn ? "হোস্ট শুরু করলেই খেলা শুরু হবে…" : "Waiting for the host to start…"}</div>}
       {err && <div className="err">{err}</div>}
     </div>
@@ -3324,18 +3380,18 @@ function QuizPage({ code, user, goProfile, toast }) {
       <GameSwitch on="quiz" />
       {me ? (
         <div className="card qz-result">
-          <div className="qz-big">{myRank < 3 ? RANK_MEDAL[myRank] : "🏁"}</div>
+          <div className="qz-big">{st.players.length > 1 ? <RankBadge rank={myRank + 1} lang={lang} big /> : <span className="qz-badge big r1"><TrophyIcon width={30} height={30} /></span>}</div>
           <h2>{st.players.length > 1 ? (bn ? `আপনি ${num(st.players.length, "bn")} জনের মধ্যে ${ord(myRank + 1, "bn")}` : `You finished ${ord(myRank + 1, "en")} of ${st.players.length}`) : (bn ? "কুইজ শেষ!" : "Quiz over!")}</h2>
-          <div className="qz-score">{num(me.score, lang)}<small>/{num(st.total, lang)}</small></div>
+          <div className="qz-score"><CountUp to={me.score} lang={lang} /><small>/{num(st.total, lang)}</small></div>
           <div className="muted">{bn ? `সঠিক উত্তর · মোট সময় ${secTxt(me.ms, "bn")}` : `correct · total time ${secTxt(me.ms, "en")}`}</div>
         </div>
       ) : <div className="card empty">{bn ? "কুইজ শেষ। আপনি এই কুইজে ছিলেন না।" : "This quiz is over."}</div>}
       {st.players.length > 1 && <><div className="sec-h" style={{ marginTop: 14 }}><h2>{bn ? "ফলাফল" : "Results"}</h2></div><QuizBoard players={st.players} lang={lang} /></>}
       <div className="qz-actions">
-        {st.is_host ? <button className="btn block" disabled={busy} onClick={again}>🔁 {bn ? "আবার খেলুন (নতুন ১০টা প্রশ্ন)" : "Play again"}</button>
+        {st.is_host ? <button className="btn block qz-ic-btn" disabled={busy} onClick={again}><ReplayIcon width={18} height={18} />{bn ? "আবার খেলুন (নতুন ১০টা প্রশ্ন)" : "Play again"}</button>
           : me ? <div className="qz-wait"><span className="spin sm" />{bn ? "হোস্ট আবার খেললে নিজে থেকেই যোগ হয়ে যাবেন" : "You'll join automatically if the host plays again"}</div> : null}
-        {st.players.length > 1 ? <button className="btn ghost block" disabled={busy} onClick={() => create(true)}>🙋 {bn ? "এবার একা খেলুন" : "Play solo"}</button>
-          : <button className="btn ghost block" disabled={busy} onClick={() => create(false)}>👥 {bn ? "বন্ধুদের সাথে খেলুন" : "Play with friends"}</button>}
+        {st.players.length > 1 ? <button className="btn ghost block qz-ic-btn" disabled={busy} onClick={() => create(true)}><UserIcon width={18} height={18} />{bn ? "এবার একা খেলুন" : "Play solo"}</button>
+          : <button className="btn ghost block qz-ic-btn" disabled={busy} onClick={() => create(false)}><UsersIcon width={18} height={18} />{bn ? "বন্ধুদের সাথে খেলুন" : "Play with friends"}</button>}
       </div>
       {st.review && (
         <details className="card qz-review">
@@ -3355,7 +3411,7 @@ function QuizPage({ code, user, goProfile, toast }) {
 
   // ── চলছে ──
   if (st.phase === "countdown") return (
-    <div className="sec"><div className="qz-count">{num(Math.max(1, Math.ceil(-el)), lang)}</div><p className="muted" style={{ textAlign: "center" }}>{bn ? "প্রস্তুত হোন…" : "Get ready…"}</p></div>
+    <div className="sec"><div className="qz-count" key={Math.ceil(-el)}>{num(Math.max(1, Math.ceil(-el)), lang)}</div><p className="muted" style={{ textAlign: "center" }}>{bn ? "প্রস্তুত হোন…" : "Get ready…"}</p></div>
   );
   if (!cur) return <div className="sec"><Loading /></div>;
   const mine = cur.mine?.choice ?? picked[cur.index];
@@ -3368,16 +3424,18 @@ function QuizPage({ code, user, goProfile, toast }) {
       </div>
       <div className="qz-timer"><i style={{ width: reveal ? 0 : `${Math.max(0, (st.q_seconds - intoQ) / st.q_seconds) * 100}%` }} className={left <= 5 && !reveal ? "low" : ""} /></div>
       {!reveal && <div className={"qz-left" + (left <= 5 ? " low" : "")}>{num(left, lang)}</div>}
+      <div className="qz-stage" key={cur.index}>
       <h2 className="qz-q">{cur.question}</h2>
       <div className="qz-opts">
         {cur.options.map((o, i) => {
           const cls = reveal ? (i === cur.answer ? " right" : i === mine ? " wrong" : " dim") : mine === i ? " picked" : mine != null ? " dim" : "";
-          return <button key={i} className={"qz-opt" + cls} disabled={!me || reveal || mine != null} onClick={() => answer(cur.index, i)}><span className="qz-l">{bn ? LETTERS[i] : "ABCD"[i]}</span>{o}</button>;
+          return <button key={i} style={{ animationDelay: `${120 + i * 70}ms` }} className={"qz-opt" + cls} disabled={!me || reveal || mine != null} onClick={() => answer(cur.index, i)}><span className="qz-l">{bn ? LETTERS[i] : "ABCD"[i]}</span>{o}</button>;
         })}
+      </div>
       </div>
       {reveal ? (
         <div className={"qz-verdict " + (mine === cur.answer ? "ok" : "bad")}>
-          <b>{mine === cur.answer ? (bn ? "✓ সঠিক!" : "✓ Correct!") : mine == null ? (bn ? "⏱ সময় শেষ" : "⏱ Time's up") : (bn ? "✗ ভুল" : "✗ Wrong")}</b>
+          <b>{mine === cur.answer ? (bn ? "✓ সঠিক!" : "✓ Correct!") : mine == null ? (bn ? "সময় শেষ" : "Time's up") : (bn ? "✗ ভুল" : "✗ Wrong")}</b>
           {cur.explanation && <span>{cur.explanation}</span>}
         </div>
       ) : mine != null ? (
