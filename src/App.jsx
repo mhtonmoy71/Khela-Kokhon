@@ -1195,9 +1195,16 @@ function onAuth(cb) {
 
 const demoLogin = (user) => { ls.set("user", user); demoListeners.forEach((f) => f(user)); return { user }; };
 
+// আমন্ত্রণের কোড (লিংক থেকে এসে থাকলে) — লগইন/রেজিস্ট্রেশনের পরেও যেন হারিয়ে না যায়
+const pendingJoin = () => { try { return localStorage.getItem("kk_join"); } catch { return null; } };
+// লগইনের পর ফেরার ঠিকানা: আমন্ত্রণ থাকলে /join/কোড (অন্য ব্রাউজারে ইমেইল খুললেও কোড সাথে যায়)
+const backTo = () => window.location.origin + (pendingJoin() ? `/join/${pendingJoin()}` : "");
+
 async function signUp({ name, email, phone, password }) {
-  if (DEMO) return demoLogin({ id: "demo", email, user_metadata: { name, phone } });
-  const data = ok(await sb.auth.signUp({ email, password, options: { data: { name, phone }, emailRedirectTo: window.location.origin } }));
+  const join = pendingJoin() || undefined;
+  if (DEMO) return demoLogin({ id: "demo", email, user_metadata: { name, phone, join } });
+  // কোডটা অ্যাকাউন্টেও রাখি: ইমেইলের লিংক অন্য ফোনে/অ্যাপে খুললেও লিগে যোগ হবে
+  const data = ok(await sb.auth.signUp({ email, password, options: { data: { name, phone, join }, emailRedirectTo: backTo() } }));
   return { user: data.session ? data.user : null, needsConfirm: !data.session };
 }
 
@@ -1208,7 +1215,7 @@ async function signIn({ email, password }) {
 
 async function signInGoogle() {
   if (DEMO) return demoLogin({ id: "demo", email: "demo@gmail.com", user_metadata: { name: "ডেমো ইউজার" } });
-  ok(await sb.auth.signInWithOAuth({ provider: "google", options: { redirectTo: window.location.origin } }));
+  ok(await sb.auth.signInWithOAuth({ provider: "google", options: { redirectTo: backTo() } }));
 }
 
 async function signOut() {
@@ -4765,16 +4772,23 @@ export default function App() {
   // আমন্ত্রণ লিংক: /join/ABC123 → লগইন থাকলে যোগ দেয়, না থাকলে লগইনের পর
   useEffect(() => {
     const m = window.location.pathname.match(/^\/join\/([A-Za-z0-9]{6})$/);
-    if (m) { store("kk_join", m[1].toUpperCase()); window.history.replaceState({}, "", "/predict"); setTab("predict"); }
+    // ?/# অংশ রেখে দিই: ইমেইল বা Google থেকে ফেরার লগইনের তথ্য ওখানেই থাকে
+    if (m) { store("kk_join", m[1].toUpperCase()); window.history.replaceState({}, "", "/predict" + window.location.search + window.location.hash); setTab("predict"); }
   }, []);
+  const [joinedLeague, setJoinedLeague] = useState(null);
   useEffect(() => {
-    let code = null;
-    try { code = localStorage.getItem("kk_join"); } catch { /* ignore */ }
+    const metaCode = user?.user_metadata?.join;
+    const code = pendingJoin() || metaCode;
     if (!code) return;
-    if (!user) { setTab("profile"); window.history.replaceState({}, "", "/profile"); toast(lang === "bn" ? "লিগে যোগ দিতে আগে লগইন করো" : "Log in to join the league"); return; }
+    if (!user) { setTab("profile"); window.history.replaceState({}, "", "/profile"); toast(lang === "bn" ? "আমন্ত্রণ পেয়েছ! রেজিস্টার বা লগইন করলেই লিগে যোগ হয়ে যাবে" : "You're invited! Sign up or log in and you'll join the league automatically", 5000); return; }
     try { localStorage.removeItem("kk_join"); } catch { /* ignore */ }
+    if (metaCode && !DEMO) sb.auth.updateUser({ data: { join: null } }).catch(() => {});
     joinLeague(code)
-      .then((r) => { toast(lang === "bn" ? `"${r.name}" লিগে যোগ দিয়েছ` : `Joined "${r.name}"`); setPredTab((p) => ({ tab: "friends", league: r.id, key: p.key + 1 })); go("predict"); })
+      .then((r) => {
+        toast(lang === "bn" ? `"${r.name}" লিগে যোগ দিয়েছ 🎉` : `Joined "${r.name}" 🎉`);
+        setJoinedLeague(r.id);
+        setPredTab((p) => ({ tab: "friends", league: r.id, key: p.key + 1 })); go("predict");
+      })
       .catch((e) => toast(e.message || "…"));
   }, [user?.id]);
 
@@ -4796,7 +4810,9 @@ export default function App() {
     await saveMyTeams(user, { fav, rival });
     const p = await updateProfile(user, { onboarded: true, ...(phone ? { phone } : {}) });
     setProfile(p); setMyTeams({ fav, rival }); setEditing(false);
-    go("matches");
+    // আমন্ত্রণে এসে থাকলে দল বাছার পর সরাসরি সেই লিগে
+    if (joinedLeague) { setPredTab((x) => ({ tab: "friends", league: joinedLeague, key: x.key + 1 })); setJoinedLeague(null); go("predict"); }
+    else go("matches");
   }
   async function skipOnboarding() {
     const p = await updateProfile(user, { onboarded: true }).catch(() => profile);
