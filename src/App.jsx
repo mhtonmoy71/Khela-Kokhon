@@ -3441,7 +3441,6 @@ function QuizPage({ code, user, goProfile, toast }) {
       ) : mine != null ? (
         <div className="qz-wait"><span className="spin sm" />{bn ? `উত্তর জমা হয়েছে · ${num(cur.answered, "bn")}/${num(st.players.length, "bn")} জন দিয়েছে` : `Answer locked · ${cur.answered}/${st.players.length} answered`}</div>
       ) : !me ? <div className="qz-wait">{bn ? "আপনি এই কুইজে নেই, শুধু দেখছেন।" : "You're watching."}</div> : null}
-      {st.players.length > 1 && reveal && <QuizBoard players={st.players} lang={lang} limit={3} />}
     </div>
   );
 }
