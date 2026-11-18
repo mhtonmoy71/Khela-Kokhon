@@ -1856,8 +1856,8 @@ function H2H({ m }) {
   return (
     <div className="sec" style={{ margin: "16px 0 0" }}>
       {state === "idle" ? (
-        <button className="card ms-row" onClick={load}><span>{bn ? "আগের মুখোমুখি লড়াই" : "Previous meetings"}</span><span className="comp-go">›</span></button>
-      ) : <div className="sec-h"><h2>{bn ? "আগের মুখোমুখি লড়াই" : "Previous meetings"}</h2></div>}
+        <button className="card ms-row" onClick={load}><span>{bn ? "হেড টু হেড" : "Head to head"}</span><span className="comp-go">›</span></button>
+      ) : <div className="sec-h"><h2>{bn ? "হেড টু হেড" : "Head to head"}</h2></div>}
       {state === "loading" && <div className="card"><div className="spin" /></div>}
       {state === "error" && <div className="card empty">{bn ? "এখন তথ্যটা পাওয়া যাচ্ছে না। একটু পরে আবার চেষ্টা করো।" : "Not available right now."}</div>}
       {state === "done" && (
@@ -1865,7 +1865,7 @@ function H2H({ m }) {
           {homeAg && awayAg && (
             <div className="h2h-agg">
               <div><b>{num(homeAg.wins, lang)}</b><span>{teamName(m.home, lang)}</span></div>
-              <div><b>{num(homeAg.draws, lang)}</b><span>{bn ? `ড্র (শেষ ${num(all.length, lang)} লড়াই)` : `Draws (last ${all.length})`}</span></div>
+              <div><b>{num(homeAg.draws, lang)}</b><span>{bn ? `ড্র (শেষ ${num(all.length, lang)} ম্যাচ)` : `Draws (last ${all.length})`}</span></div>
               <div><b>{num(awayAg.wins, lang)}</b><span>{teamName(m.away, lang)}</span></div>
             </div>
           )}
@@ -1874,7 +1874,7 @@ function H2H({ m }) {
               <span className="muted">{dayLabel(dayKey(x.utcDate), lang, { short: true, abs: true })} {new Date(x.utcDate).getUTCFullYear() !== new Date().getUTCFullYear() ? num(new Date(x.utcDate).getUTCFullYear(), lang) : ""}</span>
               <span className="h2h-score">{name(x.homeTeam)} <b>{num(x.score.home, lang)}-{num(x.score.away, lang)}</b> {name(x.awayTeam)}</span>
             </div>
-          )) : <div className="empty">{bn ? "আগে কোনো লড়াইয়ের তথ্য নেই" : "No previous meetings"}</div>}
+          )) : <div className="empty">{bn ? "আগে দুই দলের দেখা হওয়ার তথ্য নেই" : "No previous meetings"}</div>}
         </div>
       )}
     </div>
