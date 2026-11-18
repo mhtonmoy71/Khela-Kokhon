@@ -2167,8 +2167,8 @@ function MatchSheet({ m, user, pred, onClose, onSave, onLogin, toast }) {
   const { t, lang } = useT();
   const nav = useNav();
   const now = useNow(1000 * 20);
-  const [h, setH] = useState(pred?.home ?? 1);
-  const [a, setA] = useState(pred?.away ?? 1);
+  const [h, setH] = useState(pred?.home ?? 0);
+  const [a, setA] = useState(pred?.away ?? 0);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
   const [making, setMaking] = useState(false);
