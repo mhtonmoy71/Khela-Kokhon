@@ -2250,7 +2250,7 @@ function Footer({ comps = [] }) {
   const bn = lang === "bn";
   const nav = useNav();
   const cols = [
-    [bn ? "খেলা কখন?" : "Khela Kokhon", [[bn ? "আমাদের কথা" : "About us", () => nav.openPage("about")], [bn ? "কীভাবে কাজ করে" : "How it works", () => nav.openPage("how")], [bn ? "প্রতিষ্ঠাতা" : "Founder", () => nav.openPage("founder")], [bn ? "যোগাযোগ" : "Contact", () => nav.openPage("contact")]]],
+    [bn ? "খেলা কখন?" : "Khela Kokhon", [[bn ? "আমাদের কথা" : "About us", () => nav.openPage("about")], [bn ? "কীভাবে কাজ করে" : "How it works", () => nav.openPage("how")], [bn ? "প্রতিষ্ঠাতা" : "Founder", () => nav.openPage("founder")], [bn ? "যোগাযোগ" : "Contact", () => nav.openPage("contact")], [bn ? "গোপনীয়তা নীতি" : "Privacy policy", () => nav.openPage("privacy")]]],
     [bn ? "লিগ" : "Leagues", comps.map((c) => [compName(c, lang), () => nav.openLeague(c.code)])],
     [bn ? "ফিচার" : "Features", [[bn ? "ম্যাচের সূচি" : "Fixtures", () => nav.go("matches")], [bn ? "প্রেডিকশন ও লিডারবোর্ড" : "Predictions & leaderboard", () => nav.go("predict")], [bn ? "জিজ্ঞেস করো" : "Ask", () => nav.go("ask")], [bn ? "প্রোফাইল" : "Profile", () => nav.go("profile")]]],
   ];
@@ -2304,6 +2304,30 @@ function InfoPage({ id, user, goProfile }) {
       </div>
     </>
   );
+  if (id === "privacy") {
+    const bn = lang === "bn";
+    const parts = bn
+      ? [["কী তথ্য রাখা হয়", "Google বা ইমেইল দিয়ে লগইন করলে তোমার নাম, ইমেইল আর প্রোফাইল ছবি রাখা হয়। প্রোফাইলে নিজে যা দাও (যেমন ফোন নম্বর), প্রিয় দল, ম্যাচের অনুমান আর বন্ধুদের লিগের তথ্যও জমা থাকে। লগইন ছাড়া ব্যবহার করলে কোনো ব্যক্তিগত তথ্য নেওয়া হয় না।"],
+         ["কেন রাখা হয়", "শুধু তোমার দল, অনুমান, পয়েন্ট আর লিডারবোর্ড দেখানোর জন্য। লিডারবোর্ড আর বন্ধুদের লিগে অন্যরা শুধু তোমার নাম ও ছবি দেখে, ইমেইল বা ফোন নম্বর নয়।"],
+         ["ফোনে কী জমা থাকে", "ভাষা, থিম, সাম্প্রতিক খোঁজ আর এমন কিছু পছন্দ তোমার ফোনের ব্রাউজারেই থাকে, আমাদের কাছে আসে না।"],
+         ["কারও সাথে ভাগ করা হয় না", "তোমার তথ্য বিক্রি করা হয় না, বিজ্ঞাপনদাতা বা অন্য কাউকে দেওয়া হয় না। তথ্য নিরাপদে Supabase-এর সার্ভারে রাখা হয়।"],
+         ["তথ্য মুছে ফেলা", "অ্যাকাউন্ট আর সব তথ্য মুছে ফেলতে চাইলে khelakokhon@gmail.com-এ ইমেইল করো, দ্রুত মুছে দেওয়া হবে।"]]
+      : [["What we store", "If you sign in with Google or email, we keep your name, email and profile photo, plus what you add yourself (such as a phone number), your favourite teams, match predictions and friends' leagues. Nothing personal is collected if you use the site without signing in."],
+         ["Why", "Only to show your teams, predictions, points and leaderboards. Others see just your name and photo on leaderboards, never your email or phone."],
+         ["On your device", "Language, theme, recent searches and similar preferences stay in your browser and are never sent to us."],
+         ["No sharing", "Your data is never sold or given to advertisers or anyone else. It is stored securely on Supabase servers."],
+         ["Deleting your data", "To delete your account and all data, email khelakokhon@gmail.com and it will be removed promptly."]];
+    return (
+      <>
+        {back}
+        <div className="sec info">
+          <h1>{bn ? "গোপনীয়তা নীতি" : "Privacy policy"}</h1>
+          <p className="muted">{bn ? "খেলা কখন? (khelakokhon.com) তোমার তথ্য কীভাবে ব্যবহার করে।" : "How Khela Kokhon (khelakokhon.com) uses your information."}</p>
+          {parts.map(([h, d]) => <div key={h}><h2>{h}</h2><p>{d}</p></div>)}
+        </div>
+      </>
+    );
+  }
   if (id === "contact") {
     const bn = lang === "bn";
     const topics = bn
@@ -4168,8 +4192,8 @@ const TABS = [
 const tabFromPath = () => TABS.find((x) => x.path === window.location.pathname)?.id || "matches"; // পুরনো /matches লিংকও ম্যাচে যায়
 // /league/PL বা /team/86 হলে সেই পাতা
 // ফুটারের আলাদা পাতা
-const PAGE_PATHS = { about: "about", "how-it-works": "how", founder: "founder", contact: "contact" };
-const PAGE_URL = { about: "/about", how: "/how-it-works", founder: "/founder", contact: "/contact" };
+const PAGE_PATHS = { about: "about", "how-it-works": "how", founder: "founder", contact: "contact", privacy: "privacy" };
+const PAGE_URL = { about: "/about", how: "/how-it-works", founder: "/founder", contact: "/contact", privacy: "/privacy" };
 const viewFromPath = () => {
   const [, kind, id] = window.location.pathname.split("/");
   if (kind === "league" && id) return { kind: "league", code: id.toUpperCase() };
