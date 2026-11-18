@@ -633,6 +633,8 @@ const S = {
   pickRival: ["রাইভাল দল বেছে নাও", "Pick your rivals"],
   pickRivalSub: ["সর্বোচ্চ ৫টা — এদের ফলও নজরে রাখবে", "Up to 5 — keep an eye on them too"],
   phoneNeeded: ["তোমার মোবাইল নম্বর দাও", "Add your mobile number"],
+  phoneWhy: ["না দিলেও সব ফিচার চলবে। নম্বর অন্য কেউ দেখতে পায় না।", "Everything works without it. Nobody else can see your number."],
+  optional: ["ঐচ্ছিক", "optional"],
   search: ["দল খোঁজো", "Search teams"],
   next: ["পরের ধাপ", "Next"],
   back: ["পেছনে", "Back"],
@@ -2940,10 +2942,14 @@ function Onboarding({ initial, comps, needPhone, onDone, onCancel }) {
     const valid = /^(\+?88)?01[3-9]\d{8}$/.test(phone.replace(/[\s-]/g, ""));
     return (
       <div className="sec">
-        <h2 style={{ fontSize: 20, marginBottom: 14 }}>{t("phoneNeeded")}</h2>
-        <label className="field"><span>{t("phone")}</span>
+        <h2 style={{ fontSize: 20, marginBottom: 4 }}>{t("phoneNeeded")}</h2>
+        <p className="muted" style={{ fontSize: 13.5, margin: "0 0 14px" }}>{t("phoneWhy")}</p>
+        <label className="field"><span>{t("phone")} <small className="muted">({t("optional")})</small></span>
           <input inputMode="tel" placeholder="01XXXXXXXXX" value={phone} onChange={(e) => setPhone(e.target.value)} /></label>
-        <button className="btn block" disabled={!valid} onClick={() => setStep("fav")}>{t("next")}</button>
+        <div style={{ display: "flex", gap: 8 }}>
+          <button className="btn ghost" style={{ flex: 1 }} onClick={() => { setPhone(""); setStep("fav"); }}>{t("skip")}</button>
+          <button className="btn" style={{ flex: 1 }} disabled={!valid} onClick={() => setStep("fav")}>{t("next")}</button>
+        </div>
       </div>
     );
   }
@@ -3002,13 +3008,13 @@ function AuthForm() {
     setErr(""); setNote("");
     if (mode === "signup") {
       if (!f.name.trim()) return setErr("নাম দাও");
-      if (!/^(\+?88)?01[3-9]\d{8}$/.test(f.phone.replace(/[\s-]/g, ""))) return setErr("সঠিক মোবাইল নম্বর দাও (01XXXXXXXXX)");
+      if (f.phone.trim() && !/^(\+?88)?01[3-9]\d{8}$/.test(f.phone.replace(/[\s-]/g, ""))) return setErr("সঠিক মোবাইল নম্বর দাও (01XXXXXXXXX)");
       if (f.password.length < 6) return setErr("পাসওয়ার্ড কমপক্ষে ৬ অক্ষরের হতে হবে");
     }
     setBusy(true);
     try {
       if (mode === "signup") {
-        const r = await signUp({ ...f, name: f.name.trim(), phone: f.phone.replace(/[\s-]/g, "") });
+        const r = await signUp({ ...f, name: f.name.trim(), phone: f.phone.replace(/[\s-]/g, "") || undefined });
         if (r.needsConfirm) setNote(t("checkEmail"));
       } else await signIn(f);
     } catch (e2) {
@@ -3030,7 +3036,7 @@ function AuthForm() {
         )}
         <label className="field"><span>{t("email")}</span><input type="email" required value={f.email} onChange={up("email")} autoComplete="email" /></label>
         {mode === "signup" && (
-          <label className="field"><span>{t("phone")}</span><input inputMode="tel" placeholder="01XXXXXXXXX" value={f.phone} onChange={up("phone")} autoComplete="tel" /></label>
+          <label className="field"><span>{t("phone")} <small className="muted">({t("optional")})</small></span><input inputMode="tel" placeholder="01XXXXXXXXX" value={f.phone} onChange={up("phone")} autoComplete="tel" /></label>
         )}
         <label className="field"><span>{t("password")}</span><input type="password" required value={f.password} onChange={up("password")} autoComplete={mode === "signup" ? "new-password" : "current-password"} /></label>
         {err && <div className="err">{err}</div>}
@@ -4390,7 +4396,7 @@ export default function App() {
             key={editing ? "edit" : "first"}
             initial={myTeams}
             comps={comps}
-            needPhone={!profile.phone}
+            needPhone={!profile.phone && !editing}
             onDone={finishOnboarding}
             onCancel={editing ? () => setEditing(false) : skipOnboarding}
           />
