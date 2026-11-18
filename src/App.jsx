@@ -552,7 +552,14 @@ img { display: block; }
 .quiz-focus .nav { transform: translate(-50%, 130%); opacity: 0; pointer-events: none; }
 .quiz-focus .app { padding-bottom: 24px; }
 .qz-top { align-items: center; gap: 10px; }
-.qz-prog { flex: 1; }
+.qz-dots { flex: 1; display: flex; gap: 5px; justify-content: center; }
+.qz-dots i { width: 9px; height: 9px; border-radius: 50%; background: var(--card2); border: 1.5px solid var(--line); transition: background .3s, transform .3s; }
+.qz-dots i.cur { border-color: var(--green); transform: scale(1.25); }
+.qz-dots i.ok { background: var(--green); border-color: var(--green); }
+.qz-dots i.bad { background: var(--red); border-color: var(--red); }
+.qz-dots i.miss { background: var(--muted); border-color: var(--muted); }
+.qz-sub { display: flex; justify-content: space-between; font-size: 12.5px; color: var(--muted); font-weight: 600; margin-top: 8px; }
+.confetti { position: fixed; inset: 0; width: 100vw; height: 100vh; pointer-events: none; z-index: 80; }
 .qz-x { width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; background: var(--card2); color: var(--muted); font-size: 14px; font-weight: 700; flex: none; }
 .qz-review { margin-top: 14px; padding: 12px 14px; }
 .qz-review summary { font-weight: 700; cursor: pointer; }
@@ -3195,17 +3202,16 @@ function demoQuizCall(fn, a) {
   // quiz_state
   let ndone = 0, phase = room.status, ends = null, cur = null;
   if (room.status === "running" && now >= room.started) {
-    room.players.forEach(progress);
-    ndone = room.players.filter((p) => room.answers[p.id].length >= n).length;
+    ndone = room.players.filter((p) => { const g = progress(p); return g.idx >= n && now >= g.qstart; }).length;
     if (ndone === room.players.length) { room.status = "finished"; phase = "finished"; }
   }
   if (room.status === "running") {
     if (now < room.started) { phase = "countdown"; ends = room.started; }
     else {
       const pr = progress(me);
-      if (pr.idx >= n) phase = "waiting";
+      if (pr.idx >= n && !(now < pr.qstart)) phase = "waiting";
       else {
-        const reveal = now < pr.qstart, ci = reveal ? pr.idx - 1 : pr.idx;
+        const reveal = pr.idx > 0 && now < pr.qstart, ci = reveal ? pr.idx - 1 : pr.idx;
         const [qq, opts, ans, ex] = DEMO_QUIZ_Q[ci];
         phase = reveal ? "reveal" : "question"; ends = reveal ? pr.qstart : pr.qstart + Q;
         cur = { index: ci, category: "খেলাধুলা", question: qq, options: opts, started_at: reveal ? null : new Date(pr.qstart).toISOString() };
@@ -3244,6 +3250,105 @@ const Initial = ({ name }) => <span className="qz-ini">{[...(name || "?").trim()
 const LETTERS = ["ক", "খ", "গ", "ঘ"];
 const secTxt = (ms, lang) => (lang === "bn" ? `${num((ms / 1000).toFixed(1), "bn")} সে.` : `${(ms / 1000).toFixed(1)}s`);
 
+// কুইজের শব্দ: ব্রাউজারেই তৈরি হালকা মিউজিক (ফাইল ছাড়া, ফাঁক ছাড়া লুপ) আর সঠিক/ভুলের শব্দ
+const quizAudio = (() => {
+  let ctx = null, master = null, music = null, timer = null, step = 0, nextT = 0;
+  let on = true;
+  try { on = localStorage.getItem("kk_quiz_sound") !== "0"; } catch { /* ignore */ }
+  const CH = [[57, 60, 64], [53, 57, 60], [48, 52, 55], [55, 59, 62]], RT = [45, 41, 48, 43];
+  const hz = (m) => 440 * 2 ** ((m - 69) / 12);
+  const ensure = () => {
+    if (!ctx) {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return null;
+      ctx = new AC(); master = ctx.createGain(); master.gain.value = on ? 1 : 0; master.connect(ctx.destination);
+    }
+    if (ctx.state === "suspended") ctx.resume().catch(() => {});
+    return ctx;
+  };
+  const tone = (f, t, dur, type, vol, dest, attack = 0.005) => {
+    const o = ctx.createOscillator(), g = ctx.createGain();
+    o.type = type; o.frequency.value = f;
+    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(vol, t + attack); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    o.connect(g); g.connect(dest || master); o.start(t); o.stop(t + dur + 0.05);
+  };
+  const kick = (t) => {
+    const o = ctx.createOscillator(), g = ctx.createGain();
+    o.frequency.setValueAtTime(110, t); o.frequency.exponentialRampToValueAtTime(45, t + 0.12);
+    g.gain.setValueAtTime(0.35, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.25);
+    o.connect(g); g.connect(music); o.start(t); o.stop(t + 0.3);
+  };
+  // ১২০ BPM, প্রতি ধাপ ১৬ভাগ নোট; Am–F–C–G ঘুরে ঘুরে
+  const schedule = () => {
+    while (nextT < ctx.currentTime + 0.3) {
+      const bar = Math.floor(step / 16) % 4, k = step % 16, c = CH[bar], t = nextT;
+      if (k % 2 === 0) tone(hz([c[0] + 12, c[2] + 12, c[1] + 24, c[2] + 12][(k / 2) % 4]), t, 0.3, "triangle", k % 4 === 0 ? 0.07 : 0.045, music);
+      if (k === 0) c.forEach((m) => tone(hz(m + 12), t, 2.1, "sine", 0.028, music, 0.4));
+      if (k === 4 || k === 12) tone(hz(RT[bar]), t, 0.35, "sine", 0.14, music, 0.01);
+      if (k === 0 || k === 8) kick(t);
+      step++; nextT += 0.125;
+    }
+  };
+  return {
+    get on() { return on; },
+    setOn(v) {
+      on = v; try { localStorage.setItem("kk_quiz_sound", v ? "1" : "0"); } catch { /* ignore */ }
+      if (master) master.gain.setTargetAtTime(v ? 1 : 0, ctx.currentTime, 0.05);
+    },
+    unlock() { ensure(); },
+    start() {
+      if (timer || !ensure()) return;
+      music = ctx.createGain(); music.gain.setValueAtTime(0, ctx.currentTime); music.gain.linearRampToValueAtTime(0.9, ctx.currentTime + 1.5);
+      const f = ctx.createBiquadFilter(); f.type = "lowpass"; f.frequency.value = 2600; music.connect(f); f.connect(master);
+      step = 0; nextT = ctx.currentTime + 0.05; schedule(); timer = setInterval(schedule, 100);
+    },
+    stop() {
+      if (!timer) return;
+      clearInterval(timer); timer = null;
+      const m = music; m.gain.setTargetAtTime(0, ctx.currentTime, 0.25); setTimeout(() => m.disconnect(), 1500);
+    },
+    sfx(kind) {
+      if (!ensure() || !on) return;
+      const t = ctx.currentTime;
+      if (kind === "ok") { tone(hz(84), t, 0.25, "sine", 0.22); tone(hz(88), t + 0.08, 0.3, "sine", 0.22); tone(hz(91), t + 0.16, 0.45, "sine", 0.2); }
+      else if (kind === "bad") { tone(180, t, 0.25, "triangle", 0.18); tone(120, t + 0.12, 0.35, "triangle", 0.18); }
+      else if (kind === "win") [72, 76, 79, 84].forEach((m, i) => tone(hz(m), t + i * 0.11, 0.6, "triangle", 0.18));
+    },
+  };
+})();
+
+const SoundIcon = ({ off, ...p }) => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...p}>
+    <path d="M4 9v6h4l5 4V5L8 9z" />{off ? <path d="m16 9 5 6M21 9l-5 6" /> : <><path d="M16 9.5a3.5 3.5 0 0 1 0 5" /><path d="M18.5 7a7 7 0 0 1 0 10" /></>}
+  </svg>
+);
+
+// রঙিন কাগজের ঝরনা (ফলাফলের পাতায়, ৩.৫ সেকেন্ড)
+function Confetti() {
+  const ref = useRef(null);
+  useEffect(() => {
+    const cv = ref.current, cx = cv.getContext("2d"), dpr = window.devicePixelRatio || 1;
+    const W = (cv.width = window.innerWidth * dpr), H = (cv.height = window.innerHeight * dpr);
+    const colors = ["#00e676", "#f59e0b", "#ffffff", "#ff4d5e", "#38bdf8", "#facc15"];
+    const ps = Array.from({ length: 140 }, () => ({
+      x: W / 2 + (Math.random() - 0.5) * W * 0.3, y: H * 0.35, vx: (Math.random() - 0.5) * 16 * dpr, vy: (-Math.random() * 15 - 6) * dpr,
+      w: (6 + Math.random() * 6) * dpr, h: (8 + Math.random() * 8) * dpr, r: Math.random() * 6, vr: (Math.random() - 0.5) * 0.3, c: colors[(Math.random() * colors.length) | 0],
+    }));
+    let raf, t0 = performance.now();
+    const draw = (t) => {
+      const k = (t - t0) / 3500; cx.clearRect(0, 0, W, H);
+      for (const p of ps) {
+        p.vy += 0.45 * dpr; p.vx *= 0.99; p.x += p.vx; p.y += p.vy; p.r += p.vr;
+        cx.save(); cx.globalAlpha = Math.max(0, 1 - k); cx.translate(p.x, p.y); cx.rotate(p.r); cx.fillStyle = p.c; cx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h * Math.abs(Math.cos(p.r * 2))); cx.restore();
+      }
+      if (k < 1) raf = requestAnimationFrame(draw);
+    };
+    raf = requestAnimationFrame(draw);
+    return () => cancelAnimationFrame(raf);
+  }, []);
+  return <canvas ref={ref} className="confetti" aria-hidden="true" />;
+}
+
 // প্রেডিকশন আর কুইজের মধ্যে বদলানোর বোতাম
 function GameSwitch({ on }) {
   const { lang } = useT();
@@ -3255,6 +3360,13 @@ function GameSwitch({ on }) {
       <button className={on === "quiz" ? "on" : ""} onClick={() => on !== "quiz" && nav.openQuiz()}><QuizIcon width={18} height={18} />{bn ? "স্পোর্টস কুইজ" : "Sports quiz"}</button>
     </div>
   );
+}
+
+// একই কুইজে একবারই উদযাপন (আবার লোড করলে নয়)
+function Celebrate({ code }) {
+  const [show] = useState(() => { try { if (sessionStorage.getItem("kk_qz_win_" + code)) return false; sessionStorage.setItem("kk_qz_win_" + code, "1"); } catch { /* ignore */ } return true; });
+  useEffect(() => { if (show) quizAudio.sfx("win"); }, [show]);
+  return show ? <Confetti /> : null;
 }
 
 function CountUp({ to, lang }) {
@@ -3305,6 +3417,22 @@ function QuizPage({ code, user, goProfile, toast }) {
     document.documentElement.classList.toggle("quiz-focus", playing);
     return () => document.documentElement.classList.remove("quiz-focus");
   }, [playing]);
+  // মিউজিক: খেলা চলাকালীন বাজে, শেষ হলে বা পাতা ছাড়লে থামে
+  const [soundOn, setSoundOn] = useState(quizAudio.on);
+  useEffect(() => { if (playing && st?.phase !== "waiting") quizAudio.start(); else quizAudio.stop(); }, [playing, st?.phase]);
+  useEffect(() => () => quizAudio.stop(), []);
+  const toggleSound = () => { quizAudio.unlock(); quizAudio.setOn(!soundOn); setSoundOn(!soundOn); };
+  // অগ্রগতির বিন্দু: কোন প্রশ্নে সঠিক/ভুল (এই কুইজের জন্য ফোনে মনে রাখে)
+  const [marks, setMarks] = useState({});
+  useEffect(() => { try { setMarks(JSON.parse(sessionStorage.getItem("kk_qz_" + code) || "{}")); } catch { setMarks({}); } }, [code]);
+  useEffect(() => {
+    const c = st?.current;
+    if (st?.phase !== "reveal" || !c || marks[c.index]) return;
+    const res = c.mine?.choice == null ? "miss" : c.mine.correct ? "ok" : "bad";
+    const next = { ...marks, [c.index]: res };
+    setMarks(next); try { sessionStorage.setItem("kk_qz_" + code, JSON.stringify(next)); } catch { /* ignore */ }
+    quizAudio.sfx(res === "ok" ? "ok" : "bad");
+  }, [st?.phase, st?.current?.index]);
   const quit = () => {
     if (window.confirm(bn ? "কুইজ ছেড়ে যাবেন? বাকি প্রশ্নগুলো উত্তর না দেওয়া হিসেবে ধরা হবে।" : "Leave the quiz? Remaining questions count as unanswered.")) nav.openQuiz(null, true);
   };
@@ -3347,6 +3475,7 @@ function QuizPage({ code, user, goProfile, toast }) {
     if (!user) { try { localStorage.setItem("kk_quiz", "new"); } catch { /* ignore */ } toast(bn ? "কুইজ খেলতে আগে লগইন করুন" : "Log in to play"); goProfile(); return; }
     setBusy(true);
     try {
+      if (solo === true) quizAudio.unlock();
       const c = await quizCall("quiz_create", { n: QUIZ_N });
       if (solo === true) await quizCall("quiz_start", { p_code: c });
       nav.openQuiz(c, true);
@@ -3361,7 +3490,7 @@ function QuizPage({ code, user, goProfile, toast }) {
     setBusy(false);
   }
   async function next() { try { await quizCall("quiz_next", { p_code: code }); } catch { /* ৩ সেকেন্ড পরে এমনিতেই আসবে */ } reload.current(); }
-  async function start() { setBusy(true); try { await quizCall("quiz_start", { p_code: code }); reload.current(); } catch (e) { setErr(quizMsg(e, lang)); } setBusy(false); }
+  async function start() { quizAudio.unlock(); setBusy(true); try { await quizCall("quiz_start", { p_code: code }); reload.current(); } catch (e) { setErr(quizMsg(e, lang)); } setBusy(false); }
   async function again() {
     setBusy(true);
     try {
@@ -3372,6 +3501,7 @@ function QuizPage({ code, user, goProfile, toast }) {
     setBusy(false);
   }
   async function answer(i, choice) {
+    quizAudio.unlock();
     if (picked[i] != null) return;
     setPicked((p) => ({ ...p, [i]: choice }));
     try { await quizCall("quiz_answer", { p_code: code, p_index: i, p_choice: choice }); reload.current(); }
@@ -3448,6 +3578,7 @@ function QuizPage({ code, user, goProfile, toast }) {
   if (st.status === "finished") return (
     <div className="sec">
       <GameSwitch on="quiz" />
+      {me && (me.score >= 8 || (st.players.length > 1 && myRank === 0 && me.score > 0)) && <Celebrate code={st.code} />}
       {me ? (
         <div className="card qz-result">
           <div className="qz-big">{st.players.length > 1 ? <RankBadge rank={myRank + 1} lang={lang} big /> : <span className="qz-badge big r1"><TrophyIcon width={30} height={30} /></span>}</div>
@@ -3510,9 +3641,12 @@ function QuizPage({ code, user, goProfile, toast }) {
     <div className="sec qz-play">
       <div className="qz-top">
         <button className="qz-x" onClick={quit} aria-label={bn ? "কুইজ ছেড়ে যান" : "Leave quiz"}>✕</button>
-        <span className="qz-prog">{bn ? `প্রশ্ন ${num(cur.index + 1, "bn")}/${num(st.total, "bn")}` : `Q ${cur.index + 1}/${st.total}`} · {cur.category}</span>
-        {me && <span className="qz-myscore">{bn ? "স্কোর" : "Score"} {num(me.score, lang)}</span>}
+        <span className="qz-dots" aria-label={bn ? `প্রশ্ন ${num(cur.index + 1, "bn")}/${num(st.total, "bn")}` : `Question ${cur.index + 1} of ${st.total}`}>
+          {Array.from({ length: st.total }, (_, i) => <i key={i} className={marks[i] || (i === cur.index ? "cur" : "")} />)}
+        </span>
+        <button className="qz-x" onClick={toggleSound} aria-label={soundOn ? (bn ? "শব্দ বন্ধ" : "Mute") : (bn ? "শব্দ চালু" : "Unmute")}><SoundIcon off={!soundOn} width={16} height={16} /></button>
       </div>
+      <div className="qz-sub"><span>{bn ? `প্রশ্ন ${num(cur.index + 1, "bn")}/${num(st.total, "bn")}` : `Q ${cur.index + 1}/${st.total}`} · {cur.category}</span>{me && <span className="qz-myscore">{bn ? "স্কোর" : "Score"} {num(me.score, lang)}</span>}</div>
       <div className="qz-timer"><i style={{ width: reveal ? 0 : `${Math.max(0, (st.q_seconds - intoQ) / st.q_seconds) * 100}%` }} className={left <= 5 && !reveal ? "low" : ""} /></div>
       {!reveal && <div className={"qz-left" + (left <= 5 ? " low" : "")}>{num(left, lang)}</div>}
       <div className="qz-stage" key={cur.index}>
