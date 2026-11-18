@@ -2000,10 +2000,13 @@ function Crest({ team, size = 22 }) {
   return <img className="crest" src={team.crest} alt="" width={size} height={size} loading="lazy" onError={() => setBad(true)} />;
 }
 
+// ডেটা সোর্সের পুরনো লোগোর বদলে নতুন লোগো (সাইটের নিজের ফাইল, public/leagues)
+const EMBLEM_FIX = { PD: "/leagues/PD.png", SA: "/leagues/SA.png", FL1: "/leagues/FL1.png" };
 function CompIcon({ c, size = 18 }) {
   const [bad, setBad] = useState(false);
-  if (!c?.emblem || bad) return null;
-  return <img src={c.emblem} alt="" width={size} height={size} onError={() => setBad(true)} />;
+  const src = (c && EMBLEM_FIX[c.code]) || c?.emblem;
+  if (!src || bad) return null;
+  return <img src={src} alt="" width={size} height={size} style={{ objectFit: "contain" }} onError={() => setBad(true)} />;
 }
 
 // ── স্ট্যাটাস লেখা ──
