@@ -125,3 +125,17 @@ begin
       ) s)
   );
 end $$;
+
+-- ── "পরের প্রশ্ন" বোতাম: উত্তর দেখানোর ৩ সেকেন্ড না গুনে নিজের পরের প্রশ্ন সঙ্গে সঙ্গে ──
+create or replace function quiz_next(p_code text)
+returns void language plpgsql security definer set search_path = public as $$
+declare r quiz_rooms;
+begin
+  select * into r from quiz_rooms where code = upper(p_code);
+  if not found or r.status <> 'running' then return; end if;
+  update quiz_answers a set answered_at = now() - make_interval(secs => r.gap_seconds)
+  where a.room_id = r.id and a.user_id = auth.uid()
+    and a.q_index = (select max(q_index) from quiz_answers where room_id = r.id and user_id = auth.uid())
+    and now() < a.answered_at + make_interval(secs => r.gap_seconds);
+end $$;
+grant execute on function quiz_next(text) to authenticated;

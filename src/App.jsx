@@ -316,6 +316,9 @@ img { display: block; }
 .scr .pos { color: var(--muted); font-weight: 600; }
 .team-hero { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 8px 16px 4px; text-align: center; }
 .team-hero h1 { font-size: 23px; margin-top: 6px; }
+.fav-btn { display: inline-flex; align-items: center; gap: 7px; margin-top: 10px; height: 36px; padding: 0 16px; border-radius: 18px; border: 1.5px solid var(--line); background: var(--card); font-weight: 700; font-size: 13.5px; color: var(--text); }
+.fav-btn span { color: var(--amber); font-size: 17px; }
+.fav-btn.on { border-color: var(--amber); background: rgba(245,158,11,.12); }
 .team-pos { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; margin-top: 8px; }
 .stat-row { display: grid; grid-template-columns: repeat(6, 1fr); padding: 12px 6px; text-align: center; }
 .stat-row b { display: block; font-size: 16px; }
@@ -537,6 +540,7 @@ img { display: block; }
 .qz-score small { font-size: 24px; color: var(--muted); }
 .qz-actions { display: grid; gap: 10px; margin-top: 16px; }
 .qz-note { text-align: center; font-size: 12px; }
+.qz-next { margin-top: 4px; height: 50px; font-size: 16px; animation: qzIn .3s ease both; }
 .qz-review { margin-top: 14px; padding: 12px 14px; }
 .qz-review summary { font-weight: 700; cursor: pointer; }
 .qz-rv { padding: 10px 0; border-top: 1px solid var(--line); display: flex; flex-direction: column; gap: 3px; font-size: 13.5px; }
@@ -2804,15 +2808,6 @@ function Matches({ user, myTeams, comps, preds, onOpen, goProfile }) {
 
   return (
     <>
-      {fav.length === 0 && (
-        <div className="sec">
-          <button className="slim" onClick={goProfile}>
-            <span className="slim-star">★</span>
-            <span>{lang === "bn" ? "প্রিয় দল বেছে নিন, তাদের পরের খেলা এখানে সবার উপরে দেখাবে" : "Pick your teams to see their next match here"}</span>
-            <span className="muted">›</span>
-          </button>
-        </div>
-      )}
       {fav.length > 0 && mine?.length > 0 && (
         <div className="sec">
           <Following list={mine} preds={preds} onOpen={onOpen} />
@@ -3174,6 +3169,7 @@ function demoQuizCall(fn, a) {
   if (fn === "quiz_start") { room.status = "running"; room.started = now + 3000; return null; }
   if (fn === "quiz_again") { if (!room.next) { room.next = demoQuizCall("quiz_create", {}); room.status = "closed"; } return room.next; }
   if (fn === "quiz_close") { room.status = "closed"; return null; }
+  if (fn === "quiz_next") { const l = room.answers.me || [], last = l[l.length - 1]; if (last && now < last.at + GAP) last.at = now - GAP; return null; }
   if (room.status === "closed") return { code: room.code, status: "closed", is_host: true, next_code: room.next, member: true, players: [] };
   const me = room.players[0];
   if (fn === "quiz_answer") {
@@ -3343,6 +3339,7 @@ function QuizPage({ code, user, goProfile, toast }) {
     catch (e) { setErr(quizMsg(e, lang)); }
     setBusy(false);
   }
+  async function next() { try { await quizCall("quiz_next", { p_code: code }); } catch { /* ৩ সেকেন্ড পরে এমনিতেই আসবে */ } reload.current(); }
   async function start() { setBusy(true); try { await quizCall("quiz_start", { p_code: code }); reload.current(); } catch (e) { setErr(quizMsg(e, lang)); } setBusy(false); }
   async function again() {
     setBusy(true);
@@ -3510,6 +3507,9 @@ function QuizPage({ code, user, goProfile, toast }) {
           <b>{mine === cur.answer ? (bn ? "✓ সঠিক!" : "✓ Correct!") : mine == null ? (bn ? "সময় শেষ" : "Time's up") : (bn ? "✗ ভুল" : "✗ Wrong")}</b>
           {cur.explanation && <span>{cur.explanation}</span>}
         </div>
+      ) : null}
+      {reveal ? (
+        <button className="btn block qz-next qz-ic-btn" onClick={next}>{cur.index + 1 >= st.total ? (bn ? "শেষ করুন" : "Finish") : (bn ? "পরের প্রশ্ন" : "Next question")}<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M13 6l6 6-6 6" /></svg></button>
       ) : mine != null ? (
         <div className="qz-wait"><span className="spin sm" />{bn ? "উত্তর জমা হচ্ছে…" : "Locking in…"}</div>
       ) : !me ? <div className="qz-wait">{bn ? "আপনি এই কুইজে নেই, শুধু দেখছেন।" : "You're watching."}</div> : null}
@@ -3715,7 +3715,7 @@ function Profile({ user, profile, myTeams, teamsById, lang, setLang, theme, setT
         <div className="sec-h"><h2>{t("myTeams")}</h2><button className="link" onClick={onEditTeams}>{t("edit")}</button></div>
         <div className="card" style={{ paddingTop: 12 }}>
           <div className="muted" style={{ fontSize: 12.5, padding: "0 16px 6px" }}>★ {t("favs")}</div>
-          <div className="team-chips">{myTeams.fav.length ? chips(myTeams.fav) : <span className="muted" style={{ fontSize: 13 }}>—</span>}</div>
+          <div className="team-chips">{myTeams.fav.length ? chips(myTeams.fav) : <span className="muted" style={{ fontSize: 13 }}>{lang === "bn" ? "এখনো কোনো প্রিয় দল নেই। যেকোনো দলের পাতায় ☆ চাপুন, বা ওপরে এডিট করুন।" : "No favourites yet. Tap ☆ on any team page, or Edit above."}</span>}</div>
         </div>
       </div>
       {settings}
@@ -5032,7 +5032,7 @@ function Player({ id, teamsById, comps }) {
   );
 }
 
-function Team({ id, teamsById, preds, onOpen }) {
+function Team({ id, teamsById, preds, onOpen, isFav, onToggleFav }) {
   const { lang } = useT();
   const nav = useNav();
   const bn = lang === "bn";
@@ -5077,6 +5077,11 @@ function Team({ id, teamsById, preds, onOpen }) {
         <Crest team={team} size={84} />
         <h1>{teamName(team, lang)}</h1>
         {team && bn && <div className="muted" style={{ fontSize: 13 }}>{teamName(team, "en")}</div>}
+        {team && onToggleFav && (
+          <button className={"fav-btn" + (isFav ? " on" : "")} onClick={() => onToggleFav(id)}>
+            <span>{isFav ? "★" : "☆"}</span>{isFav ? (bn ? "প্রিয় দল" : "Favourite") : (bn ? "প্রিয় দলে যোগ করুন" : "Add to favourites")}
+          </button>
+        )}
         {pos?.length > 0 && (
           <div className="team-pos">
             {pos.map((p) => (
@@ -5333,8 +5338,19 @@ export default function App() {
   useEffect(() => { if (new URLSearchParams(window.location.search).has("ask")) { window.history.replaceState({}, "", "/ask"); setTab("ask"); } }, []);
 
   // কুইজের লিংকে এলে দল বাছাই পরে, যাতে লাইভ কুইজের শুরু মিস না হয়
-  const onboarding = user && profile && (editing || (!profile.onboarded && view?.kind !== "quiz"));
+  // দল বাছাইয়ের পাতা শুধু প্রোফাইলের "এডিট" চাপলে; নতুনদের সরাসরি সাইটে
+  const onboarding = user && profile && editing;
 
+  // দলের পাতা থেকে প্রিয় দল যোগ/বাদ (সর্বোচ্চ ৩টা)
+  async function toggleFav(id) {
+    if (!user) { toast(lang === "bn" ? "প্রিয় দল যোগ করতে আগে লগইন করুন" : "Log in to add favourites"); go("profile"); return; }
+    const has = myTeams.fav.includes(id);
+    if (!has && myTeams.fav.length >= MAX.fav) { toast(lang === "bn" ? `সর্বোচ্চ ${num(MAX.fav, "bn")}টা প্রিয় দল রাখা যায়। প্রোফাইল থেকে বদলাতে পারবেন।` : `Up to ${MAX.fav} favourites. Change them in Profile.`); return; }
+    const next = { fav: has ? myTeams.fav.filter((x) => x !== id) : [...myTeams.fav, id], rival: (myTeams.rival || []).filter((x) => x !== id) };
+    setMyTeams(next);
+    try { await saveMyTeams(user, next); toast(has ? (lang === "bn" ? "প্রিয় দল থেকে বাদ দেওয়া হয়েছে" : "Removed from favourites") : (lang === "bn" ? "প্রিয় দলে যোগ হয়েছে ★" : "Added to favourites ★")); }
+    catch { setMyTeams(myTeams); toast(lang === "bn" ? "সেভ করা গেল না, আবার চেষ্টা করুন" : "Couldn't save"); }
+  }
   async function finishOnboarding({ fav, rival, phone }) {
     await saveMyTeams(user, { fav, rival });
     const p = await updateProfile(user, { onboarded: true, ...(phone ? { phone } : {}) });
@@ -5389,7 +5405,7 @@ export default function App() {
         ) : view?.kind === "league" ? (
           <League key={view.code} code={view.code} comps={comps} preds={preds} onOpen={openMatch} />
         ) : view?.kind === "team" ? (
-          <Team key={view.id} id={view.id} teamsById={teamsById} preds={preds} onOpen={openMatch} />
+          <Team key={view.id} id={view.id} teamsById={teamsById} preds={preds} onOpen={openMatch} isFav={myTeams.fav.includes(view.id)} onToggleFav={toggleFav} />
         ) : view?.kind === "page" ? (
           <InfoPage key={view.id} id={view.id} user={user} goProfile={() => go("profile")} />
         ) : view?.kind === "quiz" ? (
