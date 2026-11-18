@@ -295,6 +295,7 @@ img { display: block; }
 .stat-row span { font-size: 11px; color: var(--muted); }
 .form-row { display: flex; gap: 8px; }
 .badge.big { width: 38px; height: 38px; border-radius: 10px; font-size: 15px; }
+.badge.big.word { width: 44px; font-family: "Hind Siliguri", sans-serif; font-size: 13.5px; font-weight: 700; }
 .league-strip { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; margin: 0 -16px; padding: 0 16px; }
 .league-strip::-webkit-scrollbar { display: none; }
 .league-tile { flex: none; width: 92px; padding: 12px 6px 10px; border-radius: 14px; background: var(--card); border: 1px solid var(--line); display: flex; flex-direction: column; align-items: center; gap: 7px; font-size: 12px; font-weight: 600; text-align: center; line-height: 1.2; }
@@ -3841,7 +3842,7 @@ function League({ code, comps, preds, onOpen }) {
 }
 
 // ═════════ দলের পাতা ═════════
-const RES = { W: ["জ", "W"], D: ["ড", "D"], L: ["হ", "L"] };
+const RES = { W: ["জয়", "W"], D: ["ড্র", "D"], L: ["হার", "L"] };
 
 const POS = [
   ["GK", /goal/i, "গোলরক্ষক", "Goalkeepers"],
@@ -4106,7 +4107,7 @@ function Team({ id, teamsById, preds, onOpen }) {
         <div className="sec">
           <div className="sec-h"><h2>{bn ? "শেষ পাঁচ ম্যাচের ফর্ম" : "Form (last 5)"}</h2><span className="muted" style={{ fontSize: 12 }}>{compList(form.map((m) => m.competition_code), lang)}</span></div>
           <div className="form-row">
-            {form.map((m) => { const r = res(m); return <button key={m.id} className={"badge big " + r} onClick={() => onOpen(m)}>{RES[r][bn ? 0 : 1]}</button>; })}
+            {form.map((m) => { const r = res(m); return <button key={m.id} className={"badge big " + r + (bn ? " word" : "")} onClick={() => onOpen(m)}>{RES[r][bn ? 0 : 1]}</button>; })}
           </div>
         </div>
       )}
