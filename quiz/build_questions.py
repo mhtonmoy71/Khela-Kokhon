@@ -482,4 +482,7 @@ with open(os.path.join(here, "questions.csv"), "w", newline="", encoding="utf-8-
     w = csv.writer(f)
     w.writerow(["id","বিষয়","কঠিনতা","প্রশ্ন","ক","খ","গ","ঘ","সঠিক উত্তর","ব্যাখ্যা"])
     for q in Q: w.writerow([q["id"], q["category"], q["difficulty"], q["question"], *q["options"], "কখগঘ"[q["answer"]] + ") " + q["options"][q["answer"]], q["explanation"]])
+# সার্ভারের জন্য: /api/extra?type=quizseed এই ফাইল থেকে ডেটাবেসে তোলে
+rows = [{"id": q["id"], **{k: q[k] for k in ("category","difficulty","question","options","answer","explanation")}} for q in Q]
+open(os.path.join(here, "..", "api", "_quiz-questions.js"), "w").write("// quiz/build_questions.py থেকে তৈরি — হাতে বদলাবেন না\nexport default " + json.dumps(rows, ensure_ascii=False) + ";\n")
 print("final", len(Q), Counter(q["category"] for q in Q), Counter(q["difficulty"] for q in Q))

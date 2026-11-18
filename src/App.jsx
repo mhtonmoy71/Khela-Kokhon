@@ -454,6 +454,68 @@ img { display: block; }
 .ms-cd { text-align: center; font-size: 12.5px; color: var(--muted); padding-bottom: 4px; }
 .ms-row { width: 100%; display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; font-size: 14.5px; font-weight: 600; text-align: left; }
 .pick .pred-box { padding: 14px 8px 4px; }
+.game-sw { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 14px; }
+.game-sw button { display: flex; align-items: center; justify-content: center; gap: 7px; height: 46px; border-radius: 14px; background: var(--card); border: 1.5px solid var(--line); font-weight: 700; font-size: 14.5px; color: var(--muted); }
+.game-sw button.on { border-color: var(--green); background: var(--greenDim); color: var(--green); }
+.game-sw span { font-size: 18px; }
+.qz-hero { padding: 22px 18px; text-align: center; }
+.qz-hero-ic { font-size: 44px; }
+.qz-hero h2 { font-size: 21px; margin: 6px 0 6px; }
+.qz-hero p { font-size: 13.5px; line-height: 1.6; margin-bottom: 16px; }
+.qz-join { margin-top: 12px; padding: 14px; }
+.qz-join form { display: flex; gap: 8px; margin-top: 10px; }
+.qz-join input { flex: 1; min-width: 0; height: 44px; border-radius: 12px; border: 1px solid var(--line); background: var(--card2); padding: 0 14px; font-size: 16px; letter-spacing: 2px; text-transform: uppercase; outline: none; color: var(--text); }
+.qz-lobby { padding: 18px; text-align: center; }
+.qz-code { font-family: Inter, sans-serif; font-weight: 800; font-size: 38px; letter-spacing: 6px; color: var(--green); margin: 4px 0 14px; }
+.qz-board { margin-top: 4px; }
+.qz-pl { display: flex; align-items: center; gap: 10px; padding: 11px 14px; border-top: 1px solid var(--line); }
+.qz-pl:first-child { border-top: 0; }
+.qz-pl.me { background: var(--greenDim); }
+.qz-rk { width: 26px; text-align: center; font-weight: 700; }
+.qz-nm { flex: 1; min-width: 0; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.qz-nm small { color: var(--muted); font-weight: 500; }
+.qz-sc { display: flex; flex-direction: column; align-items: flex-end; line-height: 1.2; }
+.qz-sc b { font-size: 17px; }
+.qz-sc small { font-size: 11.5px; color: var(--muted); }
+.qz-go { margin-top: 14px; height: 52px; font-size: 16.5px; }
+.qz-wait { display: flex; align-items: center; justify-content: center; gap: 8px; color: var(--muted); font-size: 13.5px; margin: 14px 0; text-align: center; }
+.qz-count { font-family: Inter, sans-serif; font-size: 96px; font-weight: 800; text-align: center; color: var(--green); margin-top: 60px; }
+.qz-top { display: flex; justify-content: space-between; font-size: 13px; color: var(--muted); font-weight: 600; }
+.qz-myscore { color: var(--green); }
+.qz-timer { height: 8px; border-radius: 4px; background: var(--card2); overflow: hidden; margin: 10px 0 4px; }
+.qz-timer i { display: block; height: 100%; background: var(--green); transition: width .25s linear; }
+.qz-timer i.low { background: var(--red); }
+.qz-left { text-align: center; font-family: Inter, sans-serif; font-weight: 800; font-size: 26px; color: var(--green); }
+.qz-left.low { color: var(--red); }
+.qz-q { font-size: 19px; line-height: 1.5; margin: 10px 0 16px; text-align: center; }
+.qz-opts { display: grid; gap: 10px; }
+.qz-opt { display: flex; align-items: center; gap: 12px; width: 100%; text-align: left; padding: 14px; border-radius: 14px; background: var(--card); border: 1.5px solid var(--line); font-size: 15.5px; font-weight: 600; color: var(--text); transition: transform .1s; }
+.qz-opt:active:not(:disabled) { transform: scale(.98); }
+.qz-l { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; background: var(--card2); font-size: 13.5px; flex: none; }
+.qz-opt.picked { border-color: var(--green); background: var(--greenDim); }
+.qz-opt.picked .qz-l, .qz-opt.right .qz-l { background: var(--green); color: var(--onGreen); }
+.qz-opt.right { border-color: var(--green); background: var(--greenDim); }
+.qz-opt.wrong { border-color: var(--red); background: rgba(255,77,94,.12); }
+.qz-opt.wrong .qz-l { background: var(--red); color: #fff; }
+.qz-opt.dim { opacity: .55; }
+.qz-opt:disabled { cursor: default; }
+.qz-verdict { margin: 14px 0; padding: 12px 14px; border-radius: 14px; display: flex; flex-direction: column; gap: 4px; font-size: 13.5px; }
+.qz-verdict b { font-size: 16px; }
+.qz-verdict.ok { background: var(--greenDim); color: var(--green); }
+.qz-verdict.bad { background: rgba(255,77,94,.12); color: var(--red); }
+.qz-verdict span { color: var(--text); }
+.qz-result { padding: 22px 18px; text-align: center; }
+.qz-big { font-size: 52px; }
+.qz-result h2 { font-size: 19px; margin: 6px 0; }
+.qz-score { font-family: Inter, sans-serif; font-size: 54px; font-weight: 800; color: var(--green); line-height: 1.1; }
+.qz-score small { font-size: 24px; color: var(--muted); }
+.qz-actions { display: grid; gap: 10px; margin-top: 16px; }
+.qz-review { margin-top: 14px; padding: 12px 14px; }
+.qz-review summary { font-weight: 700; cursor: pointer; }
+.qz-rv { padding: 10px 0; border-top: 1px solid var(--line); display: flex; flex-direction: column; gap: 3px; font-size: 13.5px; }
+.qz-rv:first-of-type { margin-top: 10px; }
+.qz-rv .ok { color: var(--green); }
+.qz-rv .bad { color: var(--red); }
 .lb-filter { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; margin: 0 -16px 12px; padding: 2px 16px; }
 .lb-filter::-webkit-scrollbar { display: none; }
 .lb-filter .chip { flex: none; display: inline-flex; align-items: center; gap: 6px; }
@@ -620,7 +682,7 @@ const S = {
   ask: ["জিজ্ঞেস করো", "Ask"],
   myTeamGames: ["তোমার দলের খেলা", "Your teams"],
   following: ["প্রিয় দলের খেলা", "Following"],
-  predict: ["প্রেডিকশন", "Predict"],
+  predict: ["গেম", "Games"],
   profile: ["প্রোফাইল", "Profile"],
   nextMatch: ["পরের খেলা", "Next match"],
   yourTeams: ["তোমার দলের সামনের ম্যাচ", "Your teams — upcoming"],
@@ -1198,7 +1260,8 @@ const demoLogin = (user) => { ls.set("user", user); demoListeners.forEach((f) =>
 // আমন্ত্রণের কোড (লিংক থেকে এসে থাকলে) — লগইন/রেজিস্ট্রেশনের পরেও যেন হারিয়ে না যায়
 const pendingJoin = () => { try { return localStorage.getItem("kk_join"); } catch { return null; } };
 // লগইনের পর ফেরার ঠিকানা: আমন্ত্রণ থাকলে /join/কোড (অন্য ব্রাউজারে ইমেইল খুললেও কোড সাথে যায়)
-const backTo = () => window.location.origin + (pendingJoin() ? `/join/${pendingJoin()}` : "");
+const pendingQuiz = () => { try { return localStorage.getItem("kk_quiz"); } catch { return null; } };
+const backTo = () => window.location.origin + (pendingJoin() ? `/join/${pendingJoin()}` : pendingQuiz() ? `/quiz${pendingQuiz() === "new" ? "" : "/" + pendingQuiz()}` : "");
 
 async function signUp({ name, email, phone, password }) {
   const join = pendingJoin() || undefined;
@@ -2995,6 +3058,7 @@ function Predict({ user, profile, preds, fav, onOpen, goProfile, toast, initialT
   useEffect(() => { setTab(initialTab); }, [initialTab, reloadKey]);
   return (
     <div className="sec">
+      <GameSwitch on="predict" />
       <div className="seg seg3" style={{ marginBottom: 12 }}>
         <button className={tab === "mine" ? "on" : ""} onClick={() => setTab("mine")}>{lang === "bn" ? "আমার" : "Mine"}</button>
         <button className={tab === "lb" ? "on" : ""} onClick={() => setTab("lb")}>{t("leaderboard")}</button>
@@ -3005,6 +3069,302 @@ function Predict({ user, profile, preds, fav, onOpen, goProfile, toast, initialT
         ? <Mine user={user} preds={preds} fav={fav} onOpen={onOpen} goProfile={goProfile} />
         : tab === "lb" ? <Leaderboard me={profile?.display_name} />
         : <Friends user={user} goProfile={goProfile} toast={toast} openId={openLeagueId} reloadKey={reloadKey} />}
+    </div>
+  );
+}
+
+// ════════════════ স্পোর্টস কুইজ (লাইভ) ════════════════
+// খেলার সব নিয়ম ডেটাবেসের ফাংশনে (supabase/quiz.sql); এখানে শুধু দেখানো আর প্রতি সেকেন্ডে অবস্থা জানা
+const QUIZ_N = 10;
+const QUIZ_ERR = {
+  "room not found": ["এই কোডের কোনো কুইজ নেই। কোডটা আবার দেখো।", "No quiz with this code."],
+  "already started": ["এই কুইজ শুরু হয়ে গেছে। হোস্ট আবার খেললে যোগ দিতে পারবে।", "This quiz has already started."],
+  "login required": ["কুইজ খেলতে আগে লগইন করো।", "Log in to play."],
+  "time over": ["সময় শেষ!", "Time's up!"],
+};
+const quizMsg = (e, lang) => { const m = String(e?.message || e); const k = Object.keys(QUIZ_ERR).find((x) => m.includes(x)); return k ? QUIZ_ERR[k][lang === "bn" ? 0 : 1] : (lang === "bn" ? "কিছু একটা গোলমাল হলো, আবার চেষ্টা করো।" : "Something went wrong."); };
+
+// ডেমো মোড: ব্রাউজারেই নকল কুইজ, দুজন অনুশীলনের সঙ্গীসহ (সাইটের আসল নিয়মের মতোই)
+const DEMO_QUIZ_Q = [
+  ["১৯৩০ সালের ফিফা বিশ্বকাপ জেতে কোন দেশ?", ["ব্রাজিল", "উরুগুয়ে", "ইতালি", "আর্জেন্টিনা"], 1, "প্রথম বিশ্বকাপের আয়োজক ও চ্যাম্পিয়ন উরুগুয়ে।"],
+  ["ক্রিকেট পিচের দৈর্ঘ্য কত গজ?", ["২০ গজ", "২২ গজ", "২৪ গজ", "১৮ গজ"], 1, ""],
+  ["অলিম্পিকের প্রতীকে কয়টি রিং থাকে?", ["৪টি", "৬টি", "৫টি", "৭টি"], 2, "পাঁচ মহাদেশের প্রতীক।"],
+  ["'এল ক্লাসিকো' কোন দুই ক্লাবের ম্যাচ?", ["রিয়াল মাদ্রিদ ও বার্সেলোনা", "মিলান ও ইন্টার", "লিভারপুল ও এভারটন", "বোকা ও রিভার"], 0, ""],
+  ["বাংলাদেশের জাতীয় খেলা কোনটি?", ["ক্রিকেট", "ফুটবল", "কাবাডি (হা-ডু-ডু)", "হকি"], 2, ""],
+  ["উইম্বলডন কোন কোর্টে খেলা হয়?", ["ক্লে", "ঘাস", "হার্ড", "কার্পেট"], 1, ""],
+  ["২০২২ বিশ্বকাপ জেতে কোন দেশ?", ["ফ্রান্স", "ক্রোয়েশিয়া", "মরক্কো", "আর্জেন্টিনা"], 3, "ফাইনালে টাইব্রেকারে ফ্রান্সকে হারায়।"],
+  ["দাবার বোর্ডে মোট কয়টি ঘর?", ["৬৪টি", "৪৮টি", "৮১টি", "১০০টি"], 0, ""],
+  ["ক্রিকেটে এক ওভারে কয়টি বৈধ বল?", ["৫টি", "৮টি", "৪টি", "৬টি"], 3, ""],
+  ["উসাইন বোল্ট কোন দেশের?", ["যুক্তরাষ্ট্র", "জ্যামাইকা", "কানাডা", "কেনিয়া"], 1, ""],
+];
+const demoQuiz = {};
+function demoQuizCall(fn, a) {
+  const now = Date.now(), per = 34000;
+  const room = demoQuiz[(a.p_code || "").toUpperCase()];
+  const bots = [["রাফি (অনুশীলন)", 0.7], ["নুসরাত (অনুশীলন)", 0.5]];
+  if (fn === "quiz_create") {
+    const code = Math.random().toString(16).slice(2, 8).toUpperCase();
+    demoQuiz[code] = { code, status: "lobby", started: null, players: [{ id: "me", name: ls.get("user", {})?.user_metadata?.name || "তুমি", joined: now }, ...bots.map(([n, p], i) => ({ id: "b" + i, name: n, skill: p, joined: now + i + 1 }))], answers: {}, next: null };
+    return code;
+  }
+  if (!room) throw new Error("room not found");
+  const t = () => (now - room.started) / 1000, n = DEMO_QUIZ_Q.length;
+  // অনুশীলনের সঙ্গীরা ২–১৮ সেকেন্ডের মধ্যে উত্তর দেয়
+  if (room.status === "running") for (const b of room.players.filter((p) => p.skill)) for (let i = 0; i < n; i++) {
+    const k = b.id + ":" + i; if (room.answers[k]) continue;
+    const at = ((i * 7 + b.id.charCodeAt(1)) % 16) + 2;
+    if (t() > i * 34 + at) room.answers[k] = { choice: Math.random() < b.skill ? DEMO_QUIZ_Q[i][2] : (DEMO_QUIZ_Q[i][2] + 1) % 4, ms: at * 1000 };
+  }
+  const elNow = t(), idxNow = Math.floor(elNow / 34);
+  // সবাই উত্তর দিলে সঙ্গে সঙ্গে উত্তর দেখানোর ধাপ (সার্ভারের মতোই)
+  if (room.status === "running" && elNow >= 0 && idxNow < n && elNow - idxNow * 34 < 30 && room.players.every((p) => room.answers[p.id + ":" + idxNow])) room.started -= (30 - (elNow - idxNow * 34)) * 1000;
+  if (fn === "quiz_join") return null;
+  if (fn === "quiz_start") { room.status = "running"; room.started = now + 3000; return null; }
+  if (fn === "quiz_again") { if (!room.next) { room.next = demoQuizCall("quiz_create", {}); } return room.next; }
+  if (fn === "quiz_answer") {
+    const el = t(), cur = Math.floor(el / 34);
+    if (cur !== a.p_index || el - cur * 34 >= 30 || el < 0) throw new Error("time over");
+    room.answers["me:" + cur] ||= { choice: a.p_choice, ms: Math.round((el - cur * 34) * 1000) };
+    return demoQuizCall("quiz_state", a) && { ok: true };
+  }
+  // quiz_state
+  let el = t(), phase = room.status, idx = null, done = 0;
+  if (room.status === "running" && el >= n * 34) { room.status = "finished"; phase = "finished"; }
+  if (room.status === "running") {
+    if (el < 0) { phase = "countdown"; idx = 0; } else { idx = Math.floor(el / 34); phase = el - idx * 34 < 30 ? "question" : "reveal"; }
+    done = phase === "reveal" ? idx + 1 : idx;
+  } else if (room.status === "finished") done = n;
+  const A = (pid, i) => room.answers[pid + ":" + i];
+  const players = room.players.map((p) => {
+    let score = 0, ms = 0;
+    for (let i = 0; i < done; i++) { const x = A(p.id, i); if (x && x.choice === DEMO_QUIZ_Q[i][2]) score++; ms += x ? x.ms : 30000; }
+    return { name: p.name, me: p.id === "me", host: p.id === "me", score, ms, joined: p.joined };
+  }).sort((x, y) => y.score - x.score || x.ms - y.ms || x.joined - y.joined);
+  let current = null;
+  if (phase === "question" || phase === "reveal") {
+    const [qq, opts, ans, ex] = DEMO_QUIZ_Q[idx], m = A("me", idx);
+    current = { index: idx, category: "খেলাধুলা", question: qq, options: opts, mine: m ? { choice: m.choice, correct: m.choice === ans, ms: m.ms } : null, answered: room.players.filter((p) => A(p.id, idx)).length, ...(phase === "reveal" ? { answer: ans, explanation: ex } : {}) };
+  }
+  const review = room.status === "finished" ? DEMO_QUIZ_Q.map(([qq, opts, ans, ex], i) => ({ question: qq, options: opts, answer: ans, explanation: ex, choice: A("me", i)?.choice ?? null })) : null;
+  return { code: room.code, status: room.status, phase, index: idx, total: n, done, q_seconds: 30, gap_seconds: 4, started_at: room.started && new Date(room.started).toISOString(), now: new Date(now).toISOString(), is_host: true, next_code: room.next, current, review, players };
+}
+async function quizCall(fn, args = {}) {
+  if (DEMO) return demoQuizCall(fn, args);
+  const { data, error } = await sb.rpc(fn, args);
+  if (error) throw new Error(error.message || "error");
+  return data;
+}
+const quizLink = (code) => `${window.location.origin}/quiz/${code}`;
+async function shareQuiz(code, bn, toast) {
+  const text = bn ? `⚽ খেলা কখন?-এ স্পোর্টস কুইজে চ্যালেঞ্জ! ১০টা প্রশ্ন, প্রতিটায় ৩০ সেকেন্ড। কে জেতে দেখি 😎\n\n${quizLink(code)}\nকোড: ${code}` : `⚽ Sports quiz challenge on Khela Kokhon! 10 questions, 30 seconds each.\n\n${quizLink(code)}\nCode: ${code}`;
+  try { if (navigator.share) { await navigator.share({ text }); return; } } catch (e) { if (e?.name === "AbortError") return; }
+  try { await navigator.clipboard.writeText(text); toast(bn ? "লিংক কপি হয়েছে, বন্ধুদের পাঠাও" : "Link copied"); } catch { /* ignore */ }
+}
+const RANK_MEDAL = ["🥇", "🥈", "🥉"];
+const LETTERS = ["ক", "খ", "গ", "ঘ"];
+const secTxt = (ms, lang) => (lang === "bn" ? `${num((ms / 1000).toFixed(1), "bn")} সে.` : `${(ms / 1000).toFixed(1)}s`);
+
+// প্রেডিকশন আর কুইজের মধ্যে বদলানোর বোতাম
+function GameSwitch({ on }) {
+  const { lang } = useT();
+  const nav = useNav();
+  const bn = lang === "bn";
+  return (
+    <div className="game-sw">
+      <button className={on === "predict" ? "on" : ""} onClick={() => on !== "predict" && nav.go("predict")}><span>🎯</span>{bn ? "প্রেডিকশন" : "Predict"}</button>
+      <button className={on === "quiz" ? "on" : ""} onClick={() => on !== "quiz" && nav.openQuiz()}><span>🧠</span>{bn ? "স্পোর্টস কুইজ" : "Sports quiz"}</button>
+    </div>
+  );
+}
+
+function QuizBoard({ players, lang, limit, lobby }) {
+  const list = limit ? players.filter((p, i) => i < limit || p.me) : players;
+  return (
+    <div className="card qz-board">
+      {list.map((p) => {
+        const rank = players.indexOf(p);
+        return (
+          <div key={p.name + rank} className={"qz-pl" + (p.me ? " me" : "")}>
+            <span className="qz-rk">{lobby ? "👤" : rank < 3 ? RANK_MEDAL[rank] : num(rank + 1, lang)}</span>
+            <span className="qz-nm">{p.name}{p.me ? (lang === "bn" ? " (তুমি)" : " (you)") : ""}{p.host ? <small> · {lang === "bn" ? "হোস্ট" : "host"}</small> : null}</span>
+            {!lobby && <span className="qz-sc"><b>{num(p.score, lang)}</b><small>{secTxt(p.ms, lang)}</small></span>}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function QuizPage({ code, user, goProfile, toast }) {
+  const { lang } = useT();
+  const bn = lang === "bn";
+  const nav = useNav();
+  const [st, setSt] = useState(null);
+  const [err, setErr] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [joinCode, setJoinCode] = useState("");
+  const [picked, setPicked] = useState({});
+  const [, tick] = useState(0);
+  const offset = useRef(0);
+  const joined = useRef(false);
+  const status = useRef(null);
+
+  // অবস্থা জানা: খেলা চলাকালীন প্রতি সেকেন্ডে, অপেক্ষার সময় একটু ধীরে
+  useEffect(() => {
+    if (!code) { setSt(null); return; }
+    let alive = true, timer;
+    setSt(null); setErr(""); setPicked({}); joined.current = false;
+    const load = async () => {
+      try {
+        const s = await quizCall("quiz_state", { p_code: code });
+        if (!alive) return;
+        offset.current = Date.parse(s.now) - Date.now();
+        setSt(s); setErr(""); status.current = s.status;
+        if (user && !joined.current && s.status === "lobby" && !s.players.some((p) => p.me)) {
+          joined.current = true;
+          await quizCall("quiz_join", { p_code: code }).catch((e) => setErr(quizMsg(e, lang)));
+        }
+        if (s.next_code && s.players.some((p) => p.me) && s.status === "finished") { nav.openQuiz(s.next_code, true); return; }
+      } catch (e) { if (alive) setErr(quizMsg(e, lang)); }
+      if (alive) timer = setTimeout(load, status.current === "running" ? 900 : 1600);
+    };
+    load();
+    const t2 = setInterval(() => tick((x) => x + 1), 250);
+    return () => { alive = false; clearTimeout(timer); clearInterval(t2); };
+  }, [code, user?.id]);
+
+  async function create() {
+    if (!user) { try { localStorage.setItem("kk_quiz", "new"); } catch { /* ignore */ } toast(bn ? "কুইজ খেলতে আগে লগইন করো" : "Log in to play"); goProfile(); return; }
+    setBusy(true);
+    try { const c = await quizCall("quiz_create", { n: QUIZ_N }); nav.openQuiz(c, true); }
+    catch (e) { setErr(quizMsg(e, lang)); }
+    setBusy(false);
+  }
+  async function start() { setBusy(true); try { await quizCall("quiz_start", { p_code: code }); } catch (e) { setErr(quizMsg(e, lang)); } setBusy(false); }
+  async function again() { setBusy(true); try { const c = await quizCall("quiz_again", { p_code: code }); nav.openQuiz(c, true); } catch (e) { setErr(quizMsg(e, lang)); } setBusy(false); }
+  async function answer(i, choice) {
+    if (picked[i] != null) return;
+    setPicked((p) => ({ ...p, [i]: choice }));
+    try { await quizCall("quiz_answer", { p_code: code, p_index: i, p_choice: choice }); }
+    catch (e) { toast(quizMsg(e, lang)); }
+  }
+
+  // ── শুরুর পাতা ──
+  if (!code) return (
+    <div className="sec">
+      <GameSwitch on="quiz" />
+      <div className="card qz-hero">
+        <div className="qz-hero-ic">🧠</div>
+        <h2>{bn ? "স্পোর্টস কুইজ" : "Sports quiz"}</h2>
+        <p className="muted">{bn ? "১০টা প্রশ্ন, প্রতিটায় ৩০ সেকেন্ড। একা খেলো, বা লিংক পাঠিয়ে বন্ধুদের সাথে লাইভ। সমান স্কোর হলে যে দ্রুত উত্তর দিয়েছে, সে এগিয়ে।" : "10 questions, 30 seconds each. Play solo or send a link and play live with friends. Ties go to the faster player."}</p>
+        <button className="btn block" disabled={busy} onClick={create}>{busy ? "…" : bn ? "নতুন কুইজ শুরু করো" : "Start a new quiz"}</button>
+      </div>
+      <div className="card qz-join">
+        <b>{bn ? "বন্ধুর কুইজে যোগ দাও" : "Join a friend's quiz"}</b>
+        <form onSubmit={(e) => { e.preventDefault(); const c = joinCode.trim().toUpperCase(); if (c.length >= 4) nav.openQuiz(c); }}>
+          <input value={joinCode} onChange={(e) => setJoinCode(e.target.value)} placeholder={bn ? "কোড লেখো, যেমন 9A0FFC" : "Enter code"} maxLength={8} autoCapitalize="characters" />
+          <button className="btn" disabled={joinCode.trim().length < 4}>{bn ? "যোগ দাও" : "Join"}</button>
+        </form>
+      </div>
+      {err && <div className="err">{err}</div>}
+    </div>
+  );
+
+  if (!st) return <div className="sec"><GameSwitch on="quiz" />{err ? <div className="card empty">{err}<div style={{ marginTop: 12 }}><button className="btn ghost" onClick={() => nav.openQuiz()}>{bn ? "কুইজের পাতায় ফেরো" : "Back"}</button></div></div> : <Loading />}</div>;
+
+  const me = st.players.find((p) => p.me);
+  const myRank = st.players.indexOf(me);
+  const per = st.q_seconds + st.gap_seconds;
+  const el = st.started_at ? (Date.now() + offset.current - Date.parse(st.started_at)) / 1000 : 0;
+  const cur = st.current;
+  const intoQ = cur ? el - cur.index * per : 0;
+  const left = Math.max(0, Math.ceil(st.q_seconds - intoQ));
+
+  // ── অপেক্ষা (লবি) ──
+  if (st.status === "lobby") return (
+    <div className="sec">
+      <GameSwitch on="quiz" />
+      <div className="card qz-lobby">
+        <small className="muted">{bn ? "কুইজের কোড" : "Quiz code"}</small>
+        <div className="qz-code">{st.code}</div>
+        <button className="btn ghost block" onClick={() => shareQuiz(st.code, bn, toast)}>📨 {bn ? "বন্ধুদের লিংক পাঠাও" : "Send link to friends"}</button>
+      </div>
+      <div className="sec-h" style={{ marginTop: 14 }}><h2>{bn ? `খেলোয়াড় · ${num(st.players.length, "bn")} জন` : `Players · ${st.players.length}`}</h2></div>
+      <QuizBoard players={st.players} lang={lang} lobby />
+      {!user ? (
+        <div className="card empty">{bn ? "এই কুইজে খেলতে আগে লগইন করো।" : "Log in to play this quiz."}<div style={{ marginTop: 10 }}><button className="btn" onClick={() => { try { localStorage.setItem("kk_quiz", st.code); } catch { /* ignore */ } goProfile(); }}>{bn ? "লগইন করো" : "Log in"}</button></div></div>
+      ) : st.is_host ? (
+        <button className="btn block qz-go" disabled={busy} onClick={start}>{busy ? "…" : bn ? (st.players.length > 1 ? "সবাই এসেছে? শুরু করো ▶" : "একা শুরু করো ▶") : "Start ▶"}</button>
+      ) : <div className="qz-wait"><span className="spin sm" />{bn ? "হোস্ট শুরু করলেই খেলা শুরু হবে…" : "Waiting for the host to start…"}</div>}
+      {err && <div className="err">{err}</div>}
+    </div>
+  );
+
+  // ── শেষ ──
+  if (st.status === "finished") return (
+    <div className="sec">
+      <GameSwitch on="quiz" />
+      {me ? (
+        <div className="card qz-result">
+          <div className="qz-big">{myRank < 3 ? RANK_MEDAL[myRank] : "🏁"}</div>
+          <h2>{st.players.length > 1 ? (bn ? `তুমি ${num(st.players.length, "bn")} জনের মধ্যে ${ord(myRank + 1, "bn")}` : `You finished ${ord(myRank + 1, "en")} of ${st.players.length}`) : (bn ? "কুইজ শেষ!" : "Quiz over!")}</h2>
+          <div className="qz-score">{num(me.score, lang)}<small>/{num(st.total, lang)}</small></div>
+          <div className="muted">{bn ? `সঠিক উত্তর · মোট সময় ${secTxt(me.ms, "bn")}` : `correct · total time ${secTxt(me.ms, "en")}`}</div>
+        </div>
+      ) : <div className="card empty">{bn ? "কুইজ শেষ। তুমি এই কুইজে ছিলে না।" : "This quiz is over."}</div>}
+      {st.players.length > 1 && <><div className="sec-h" style={{ marginTop: 14 }}><h2>{bn ? "ফলাফল" : "Results"}</h2></div><QuizBoard players={st.players} lang={lang} /></>}
+      <div className="qz-actions">
+        {st.is_host ? <button className="btn block" disabled={busy} onClick={again}>🔁 {bn ? "আবার খেলো (নতুন ১০টা প্রশ্ন)" : "Play again"}</button>
+          : me ? <div className="qz-wait"><span className="spin sm" />{bn ? "হোস্ট আবার খেললে নিজে থেকেই যোগ হয়ে যাবে" : "You'll join automatically if the host plays again"}</div> : null}
+        <button className="btn ghost block" disabled={busy} onClick={create}>{bn ? "নিজে নতুন কুইজ বানাও" : "Start my own quiz"}</button>
+      </div>
+      {st.review && (
+        <details className="card qz-review">
+          <summary>{bn ? "সব প্রশ্ন আর সঠিক উত্তর দেখো" : "Review answers"}</summary>
+          {st.review.map((r, i) => (
+            <div key={i} className="qz-rv">
+              <b>{num(i + 1, lang)}. {r.question}</b>
+              <div className={r.choice === r.answer ? "ok" : "bad"}>{r.choice === r.answer ? "✓ " : "✗ "}{bn ? "সঠিক উত্তর" : "Answer"}: {r.options[r.answer]}{r.choice != null && r.choice !== r.answer ? ` · ${bn ? "তোমার" : "you"}: ${r.options[r.choice]}` : r.choice == null ? ` · ${bn ? "উত্তর দাওনি" : "no answer"}` : ""}</div>
+              {r.explanation && <small className="muted">{r.explanation}</small>}
+            </div>
+          ))}
+        </details>
+      )}
+      {err && <div className="err">{err}</div>}
+    </div>
+  );
+
+  // ── চলছে ──
+  if (st.phase === "countdown") return (
+    <div className="sec"><div className="qz-count">{num(Math.max(1, Math.ceil(-el)), lang)}</div><p className="muted" style={{ textAlign: "center" }}>{bn ? "প্রস্তুত হও…" : "Get ready…"}</p></div>
+  );
+  if (!cur) return <div className="sec"><Loading /></div>;
+  const mine = cur.mine?.choice ?? picked[cur.index];
+  const reveal = st.phase === "reveal";
+  return (
+    <div className="sec qz-play">
+      <div className="qz-top">
+        <span>{bn ? `প্রশ্ন ${num(cur.index + 1, "bn")}/${num(st.total, "bn")}` : `Q ${cur.index + 1}/${st.total}`} · {cur.category}</span>
+        {me && <span className="qz-myscore">{bn ? "স্কোর" : "Score"} {num(me.score, lang)}</span>}
+      </div>
+      <div className="qz-timer"><i style={{ width: reveal ? 0 : `${Math.max(0, (st.q_seconds - intoQ) / st.q_seconds) * 100}%` }} className={left <= 5 && !reveal ? "low" : ""} /></div>
+      {!reveal && <div className={"qz-left" + (left <= 5 ? " low" : "")}>{num(left, lang)}</div>}
+      <h2 className="qz-q">{cur.question}</h2>
+      <div className="qz-opts">
+        {cur.options.map((o, i) => {
+          const cls = reveal ? (i === cur.answer ? " right" : i === mine ? " wrong" : " dim") : mine === i ? " picked" : mine != null ? " dim" : "";
+          return <button key={i} className={"qz-opt" + cls} disabled={!me || reveal || mine != null} onClick={() => answer(cur.index, i)}><span className="qz-l">{bn ? LETTERS[i] : "ABCD"[i]}</span>{o}</button>;
+        })}
+      </div>
+      {reveal ? (
+        <div className={"qz-verdict " + (mine === cur.answer ? "ok" : "bad")}>
+          <b>{mine === cur.answer ? (bn ? "✓ সঠিক!" : "✓ Correct!") : mine == null ? (bn ? "⏱ সময় শেষ" : "⏱ Time's up") : (bn ? "✗ ভুল" : "✗ Wrong")}</b>
+          {cur.explanation && <span>{cur.explanation}</span>}
+        </div>
+      ) : mine != null ? (
+        <div className="qz-wait"><span className="spin sm" />{bn ? `উত্তর জমা হয়েছে · ${num(cur.answered, "bn")}/${num(st.players.length, "bn")} জন দিয়েছে` : `Answer locked · ${cur.answered}/${st.players.length} answered`}</div>
+      ) : !me ? <div className="qz-wait">{bn ? "তুমি এই কুইজে নেই, শুধু দেখছ।" : "You're watching."}</div> : null}
+      {st.players.length > 1 && reveal && <QuizBoard players={st.players} lang={lang} limit={3} />}
     </div>
   );
 }
@@ -4653,6 +5013,7 @@ const viewFromPath = () => {
   if (kind === "league" && id) return { kind: "league", code: id.toUpperCase() };
   if (kind === "team" && /^\d+$/.test(id || "")) return { kind: "team", id: +id };
   if (kind === "player" && /^\d+$/.test(id || "")) return { kind: "player", id: +id };
+  if (kind === "quiz") return { kind: "quiz", code: id && /^[A-Za-z0-9]{4,8}$/.test(id) ? id.toUpperCase() : null };
   if (PAGE_PATHS[kind] && !id) return { kind: "page", id: PAGE_PATHS[kind] };
   return null;
 };
@@ -4695,7 +5056,7 @@ function Nav({ tab, go }) {
 export default function App() {
   const [lang, setLangS] = useState(() => stored("kk_lang", "bn"));
   const [theme, setThemeS] = useState(() => stored("kk_theme", "light"));
-  const [tab, setTab] = useState(tabFromPath);
+  const [tab, setTab] = useState(() => (window.location.pathname.startsWith("/quiz") ? "predict" : tabFromPath()));
   const [view, setView] = useState(viewFromPath);
   const [comps, setComps] = useState([]);
   const [teamsById, setTeamsById] = useState({});
@@ -4745,6 +5106,13 @@ export default function App() {
     openTeam: (id) => openView(`/team/${id}`, { kind: "team", id }),
     openPlayer: (id) => openView(`/player/${id}`, { kind: "player", id }),
     openPage: (id) => openView(PAGE_URL[id], { kind: "page", id }),
+    // কুইজ: /quiz (শুরুর পাতা) বা /quiz/কোড; replace = ইতিহাসে নতুন ধাপ না যোগ করে
+    openQuiz: (code, replace) => {
+      setTab("predict");
+      const path = code ? `/quiz/${code}` : "/quiz";
+      if (replace) { window.history.replaceState({}, "", path); setSheet(null); setView({ kind: "quiz", code: code || null }); window.scrollTo(0, 0); }
+      else openView(path, { kind: "quiz", code: code || null });
+    },
     go,
   };
 
@@ -4778,6 +5146,13 @@ export default function App() {
     // ?/# অংশ রেখে দিই: ইমেইল বা Google থেকে ফেরার লগইনের তথ্য ওখানেই থাকে
     if (m) { store("kk_join", m[1].toUpperCase()); window.history.replaceState({}, "", "/predict" + window.location.search + window.location.hash); setTab("predict"); }
   }, []);
+  // কুইজ খেলতে গিয়ে লগইন করলে, লগইনের পর সেই কুইজে ফেরা
+  useEffect(() => {
+    const c = user && pendingQuiz();
+    if (!c) return;
+    try { localStorage.removeItem("kk_quiz"); } catch { /* ignore */ }
+    nav.openQuiz(c === "new" ? null : c);
+  }, [user?.id]);
   const [joinedLeague, setJoinedLeague] = useState(null);
   useEffect(() => {
     const metaCode = user?.user_metadata?.join;
@@ -4807,7 +5182,8 @@ export default function App() {
   }, []);
   useEffect(() => { if (new URLSearchParams(window.location.search).has("ask")) { window.history.replaceState({}, "", "/ask"); setTab("ask"); } }, []);
 
-  const onboarding = user && profile && (!profile.onboarded || editing);
+  // কুইজের লিংকে এলে দল বাছাই পরে, যাতে লাইভ কুইজের শুরু মিস না হয়
+  const onboarding = user && profile && (editing || (!profile.onboarded && view?.kind !== "quiz"));
 
   async function finishOnboarding({ fav, rival, phone }) {
     await saveMyTeams(user, { fav, rival });
@@ -4866,6 +5242,8 @@ export default function App() {
           <Team key={view.id} id={view.id} teamsById={teamsById} preds={preds} onOpen={openMatch} />
         ) : view?.kind === "page" ? (
           <InfoPage key={view.id} id={view.id} user={user} goProfile={() => go("profile")} />
+        ) : view?.kind === "quiz" ? (
+          <QuizPage code={view.code} user={user} goProfile={() => go("profile")} toast={toast} />
         ) : view?.kind === "player" ? (
           <Player key={view.id} id={view.id} teamsById={teamsById} comps={comps} />
         ) : tab === "matches" ? (
