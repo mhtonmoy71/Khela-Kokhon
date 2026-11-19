@@ -180,7 +180,17 @@ img { display: block; }
 .ptbadge.p1 { background: var(--greenDim); color: var(--green); }
 
 .prof-head { display: flex; align-items: center; gap: 14px; padding: 16px; }
-.avatar { width: 52px; height: 52px; border-radius: 50%; background: var(--brand); color: #fff; display: grid; place-items: center; font-size: 22px; font-weight: 700; }
+.avatar { width: 52px; height: 52px; border-radius: 50%; background: var(--brand); color: #fff; display: grid; place-items: center; font-size: 22px; font-weight: 700; overflow: hidden; flex: none; }
+.avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.av-wrap { position: relative; flex: none; width: 64px; height: 64px; border: 0; padding: 0; background: none; cursor: pointer; border-radius: 50%; }
+.av-wrap .avatar { width: 64px; height: 64px; font-size: 26px; }
+.av-cam { position: absolute; right: -2px; bottom: -2px; width: 24px; height: 24px; border-radius: 50%; background: var(--card); border: 1px solid var(--line); color: var(--text); display: grid; place-items: center; box-shadow: 0 1px 4px rgba(0,0,0,.25); }
+.av-wrap.busy .avatar { opacity: .5; }
+.prof-name { display: flex; align-items: center; flex-wrap: wrap; gap: 4px 8px; font-weight: 700; font-size: 17px; }
+.prof-bdg { display: inline-flex; gap: 2px; background: none; border: 0; padding: 0; cursor: pointer; }
+.prof-bdg svg { display: block; }
+#my-badges { scroll-margin-top: 90px; }
+.av-rm { background: none; border: 0; padding: 0; margin-top: 4px; font-size: 12.5px; color: var(--muted); text-decoration: underline; cursor: pointer; }
 .kv { display: flex; justify-content: space-between; align-items: center; padding: 13px 16px; border-top: 1px solid var(--line); font-size: 14px; }
 .team-chips { display: flex; flex-wrap: wrap; gap: 6px; padding: 0 16px 14px; }
 .tchip { display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px 5px 6px; border-radius: 999px; background: var(--card2); font-size: 12.5px; font-weight: 600; }
@@ -4738,14 +4748,13 @@ function AuthForm() {
   );
 }
 
-function ProfileBadges({ user }) {
+function ProfileBadges({ st }) {
   const { lang } = useT();
   const bn = lang === "bn";
   const nav = useNav();
-  const [st] = useDaily(user);
   if (!st || st.error) return null;
   return (
-    <div className="sec">
+    <div className="sec" id="my-badges">
       <div className="sec-h"><h2>{bn ? "দৈনিক চ্যালেঞ্জের ব্যাজ" : "Daily challenge badges"}</h2><button className="link" onClick={() => nav.openDaily()}>{bn ? "খেলুন" : "Play"} →</button></div>
       <div className="card">
         <div className="pb-stats">
@@ -4759,8 +4768,56 @@ function ProfileBadges({ user }) {
   );
 }
 
-function Profile({ user, profile, myTeams, teamsById, lang, setLang, theme, setTheme, onEditTeams }) {
+// ছবি ছোট করে (১৬০px JPEG, ~১০ KB) প্রোফাইলেই রাখা — আলাদা স্টোরেজ লাগে না
+function shrinkPhoto(file) {
+  return new Promise((res, rej) => {
+    const url = URL.createObjectURL(file); const img = new Image();
+    img.onload = () => {
+      const S = 160, c = document.createElement("canvas"); c.width = c.height = S;
+      const m = Math.min(img.width, img.height), x = c.getContext("2d");
+      x.drawImage(img, (img.width - m) / 2, (img.height - m) / 2, m, m, 0, 0, S, S);
+      URL.revokeObjectURL(url); res(c.toDataURL("image/jpeg", 0.85));
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); rej(new Error("img")); };
+    img.src = url;
+  });
+}
+const googlePhoto = (user) => user?.user_metadata?.avatar_url || user?.user_metadata?.picture || null;
+
+function UserAvatar({ src, name, size }) {
+  const [bad, setBad] = useState(false);
+  useEffect(() => setBad(false), [src]);
+  return (
+    <div className="avatar" style={size ? { width: size, height: size } : undefined}>
+      {src && !bad ? <img src={src} alt="" referrerPolicy="no-referrer" onError={() => setBad(true)} /> : (name || "?").slice(0, 1).toUpperCase()}
+    </div>
+  );
+}
+
+const CamIcon = (p) => <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" {...p}><path d="M4 8h3l2-3h6l2 3h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z" /><circle cx="12" cy="13.5" r="3.5" /></svg>;
+
+function Profile({ user, profile, setProfile, toast, myTeams, teamsById, lang, setLang, theme, setTheme, onEditTeams }) {
   const { t } = useT();
+  const bn = lang === "bn";
+  const nav = useNav();
+  const [st] = useDaily(user);
+  const fileRef = useRef(null);
+  const [busy, setBusy] = useState(false);
+  async function pickPhoto(e) {
+    const f = e.target.files?.[0]; e.target.value = "";
+    if (!f) return;
+    if (!f.type.startsWith("image/")) { toast(bn ? "শুধু ছবির ফাইল দিন" : "Please choose an image"); return; }
+    setBusy(true);
+    try { const d = await shrinkPhoto(f); setProfile(await updateProfile(user, { avatar_url: d })); toast(bn ? "ছবি বদলানো হয়েছে" : "Photo updated"); }
+    catch { toast(bn ? "ছবি সেভ করা গেল না, আবার চেষ্টা করুন" : "Couldn't save the photo"); }
+    setBusy(false);
+  }
+  async function removePhoto() {
+    setBusy(true);
+    try { setProfile(await updateProfile(user, { avatar_url: null })); toast(bn ? "ছবি সরানো হয়েছে" : "Photo removed"); }
+    catch { toast(bn ? "সরানো গেল না, আবার চেষ্টা করুন" : "Couldn't remove"); }
+    setBusy(false);
+  }
   const settings = (
     <div className="sec">
       <div className="sec-h"><h2>{t("settings")}</h2></div>
@@ -4784,7 +4841,10 @@ function Profile({ user, profile, myTeams, teamsById, lang, setLang, theme, setT
   if (!user) return <>{<AuthForm />}{settings}</>;
 
   const name = profile?.display_name || user.email;
-  const nav = useNav();
+  const own = profile?.avatar_url || null;
+  const photo = own || googlePhoto(user);
+  // অর্জিত ব্যাজ, বড়টা আগে (তালিকার শেষের দিকেরগুলো কঠিন)
+  const earned = st && !st.error ? BADGES.map((b) => b[0]).filter((id) => (st.badges || []).some((x) => x.id === id)).reverse() : [];
   const chips = (ids) => ids.map((id) => teamsById[id]).filter(Boolean).map((tm) => (
     <button className="tchip" key={tm.id} onClick={() => nav.openTeam(tm.id)}><Crest team={tm} size={18} />{teamName(tm, lang)}</button>
   ));
@@ -4793,10 +4853,22 @@ function Profile({ user, profile, myTeams, teamsById, lang, setLang, theme, setT
       <div className="sec">
         <div className="card">
           <div className="prof-head">
-            <div className="avatar">{name.slice(0, 1).toUpperCase()}</div>
+            <button className={"av-wrap" + (busy ? " busy" : "")} onClick={() => fileRef.current?.click()} disabled={busy} aria-label={bn ? "প্রোফাইলের ছবি বদলান" : "Change profile photo"}>
+              <UserAvatar src={photo} name={name} />
+              <span className="av-cam"><CamIcon /></span>
+            </button>
+            <input ref={fileRef} type="file" accept="image/*" hidden onChange={pickPhoto} />
             <div style={{ minWidth: 0 }}>
-              <div style={{ fontWeight: 700, fontSize: 17 }}>{name}</div>
-              <div className="muted" style={{ fontSize: 13 }}>{user.email}</div>
+              <div className="prof-name">
+                <span style={{ minWidth: 0, overflowWrap: "anywhere" }}>{name}</span>
+                {earned.length > 0 && (
+                  <button className="prof-bdg" onClick={() => document.getElementById("my-badges")?.scrollIntoView({ behavior: "smooth", block: "start" })} aria-label={bn ? `${num(earned.length, "bn")}টা ব্যাজ` : `${earned.length} badges`}>
+                    {earned.slice(0, 5).map((id) => <BadgeIcon key={id} id={id} size={22} />)}
+                  </button>
+                )}
+              </div>
+              <div className="muted" style={{ fontSize: 13, overflowWrap: "anywhere" }}>{user.email}</div>
+              {own && <button className="av-rm" onClick={removePhoto} disabled={busy}>{bn ? (googlePhoto(user) ? "Google-এর ছবিতে ফিরুন" : "ছবি সরান") : (googlePhoto(user) ? "Use Google photo" : "Remove photo")}</button>}
             </div>
           </div>
         </div>
@@ -4808,7 +4880,7 @@ function Profile({ user, profile, myTeams, teamsById, lang, setLang, theme, setT
           <div className="team-chips">{myTeams.fav.length ? chips(myTeams.fav) : <span className="muted" style={{ fontSize: 13 }}>{lang === "bn" ? "এখনো কোনো প্রিয় দল নেই। যেকোনো দলের পাতায় ☆ চাপুন, বা ওপরে এডিট করুন।" : "No favourites yet. Tap ☆ on any team page, or Edit above."}</span>}</div>
         </div>
       </div>
-      <ProfileBadges user={user} />
+      <ProfileBadges st={st} />
       {settings}
       <div className="sec">
         <button className="btn ghost block" onClick={signOut}>{t("logout")}</button>
@@ -6716,7 +6788,7 @@ export default function App() {
         ) : tab === "predict" ? (
           <Predict user={user} profile={profile} preds={preds} fav={myTeams.fav} onOpen={openMatch} goProfile={() => go("profile")} toast={toast} initialTab={predTab.tab} openLeagueId={predTab.league} reloadKey={predTab.key} />
         ) : (
-          <Profile user={user} profile={profile} myTeams={myTeams} teamsById={teamsById} lang={lang} setLang={setLang} theme={theme} setTheme={setTheme} onEditTeams={() => { setEditing(true); window.scrollTo(0, 0); }} />
+          <Profile user={user} profile={profile} setProfile={setProfile} toast={toast} myTeams={myTeams} teamsById={teamsById} lang={lang} setLang={setLang} theme={theme} setTheme={setTheme} onEditTeams={() => { setEditing(true); window.scrollTo(0, 0); }} />
         )}
         </main>
 
