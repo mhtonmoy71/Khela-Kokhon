@@ -1177,7 +1177,7 @@ function crestOrBadge(ctx, img, team, cx, cy, size) {
 }
 
 async function makeCard(m, { lang = "bn", teamName, compName }) {
-  try { await Promise.all([document.fonts.load(`700 60px ${CARD_FONT}`, "খেলা১"), document.fonts.load(`500 40px ${CARD_FONT}`, "খেলা১")]); } catch { /* ignore */ }
+  try { await Promise.all([document.fonts.load(`700 60px ${CARD_FONT}`, "খেলা০১২৩৪৫৬৭৮৯"), document.fonts.load(`500 40px ${CARD_FONT}`, "খেলা০১২৩৪৫৬৭৮৯")]); } catch { /* ignore */ }
   const [hImg, aImg] = await Promise.all([loadImg(proxied(m.home?.crest)), loadImg(proxied(m.away?.crest))]);
   const c = document.createElement("canvas");
   c.width = CARD_W; c.height = CARD_W;
@@ -3930,7 +3930,7 @@ const markBadgesSeen = (ids) => ls.set("badges_seen", [...new Set([...seenBadges
 
 // ── দৈনিক চ্যালেঞ্জের শেয়ার কার্ড (১০৮০×১০৮০) ──
 async function makeDailyCard(st, lang) {
-  try { await Promise.all([document.fonts.load(`700 60px ${CARD_FONT}`, "খেলা১"), document.fonts.load(`500 40px ${CARD_FONT}`, "খেলা১")]); } catch { /* ignore */ }
+  try { await Promise.all([document.fonts.load(`700 60px ${CARD_FONT}`, "খেলা০১২৩৪৫৬৭৮৯"), document.fonts.load(`500 40px ${CARD_FONT}`, "খেলা০১২৩৪৫৬৭৮৯")]); } catch { /* ignore */ }
   const W = CARD_W, c = document.createElement("canvas"); c.width = W; c.height = W;
   const ctx = c.getContext("2d"), bn = lang === "bn", pl = st.play;
   const g = ctx.createLinearGradient(0, 0, W, W); g.addColorStop(0, "#0a3d2f"); g.addColorStop(0.55, "#064e3b"); g.addColorStop(1, "#06201a");
