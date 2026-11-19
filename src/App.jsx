@@ -773,10 +773,11 @@ button.scr { width: 100%; }
 .fv-verdict.ok { background: var(--greenDim); color: var(--green); }
 
 /* দৈনিক চ্যালেঞ্জ */
-.game-sw.three { grid-template-columns: 1fr 1.15fr 1fr; }
-.game-sw.three button { font-size: 13px; gap: 6px; padding: 0 6px; }
-.game-sw.three button span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-@media (max-width: 380px) { .game-sw.three button svg { display: none; } }
+.qz-sub-tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; padding: 4px; margin: -4px 0 14px; border-radius: 14px; background: var(--card2); }
+.qz-sub-tabs button { display: flex; align-items: center; justify-content: center; gap: 6px; height: 38px; border-radius: 11px; font-size: 13.5px; font-weight: 700; color: var(--muted); white-space: nowrap; }
+.qz-sub-tabs button.on { background: var(--card); color: var(--text); box-shadow: 0 1px 3px rgba(0,0,0,.08); }
+.qz-sub-tabs button.on svg { color: var(--green); }
+@media (max-width: 360px) { .qz-sub-tabs button svg { display: none; } }
 .dl-hero { padding: 18px 16px 16px; background: radial-gradient(130% 100% at 0% 0%, color-mix(in srgb, var(--green) 16%, transparent), transparent 60%), radial-gradient(120% 90% at 100% 0%, color-mix(in srgb, var(--amber) 12%, transparent), transparent 60%), var(--card); }
 .dl-hero h2 { font-size: 21px; margin: 0; }
 .dl-hero-top { display: flex; align-items: center; gap: 12px; }
@@ -3803,10 +3804,22 @@ function GameSwitch({ on }) {
   const nav = useNav();
   const bn = lang === "bn";
   return (
-    <div className="game-sw three">
-      <button className={on === "predict" ? "on" : ""} onClick={() => on !== "predict" && nav.go("predict")}><TargetIcon width={18} height={18} /><span>{bn ? "প্রেডিকশন" : "Predict"}</span></button>
-      <button className={on === "daily" ? "on" : ""} onClick={() => on !== "daily" && nav.openDaily()}><CalIcon width={18} height={18} /><span>{bn ? "দৈনিক চ্যালেঞ্জ" : "Daily"}</span></button>
-      <button className={on === "quiz" ? "on" : ""} onClick={() => on !== "quiz" && nav.openQuiz()}><QuizIcon width={18} height={18} /><span>{bn ? "স্পোর্টস কুইজ" : "Sports quiz"}</span></button>
+    <div className="game-sw">
+      <button className={on === "predict" ? "on" : ""} onClick={() => on !== "predict" && nav.go("predict")}><TargetIcon width={18} height={18} />{bn ? "প্রেডিকশন" : "Predict"}</button>
+      <button className={on === "quiz" ? "on" : ""} onClick={() => on !== "quiz" && nav.openDaily()}><QuizIcon width={18} height={18} />{bn ? "স্পোর্টস কুইজ" : "Sports quiz"}</button>
+    </div>
+  );
+}
+
+// স্পোর্টস কুইজের ভেতরের দুই ভাগ: দৈনিক চ্যালেঞ্জ আর একা/বন্ধুদের সাথে
+function QuizSub({ on }) {
+  const { lang } = useT();
+  const nav = useNav();
+  const bn = lang === "bn";
+  return (
+    <div className="qz-sub-tabs" role="tablist">
+      <button role="tab" aria-selected={on === "daily"} className={on === "daily" ? "on" : ""} onClick={() => on !== "daily" && nav.openDaily()}><CalIcon width={17} height={17} />{bn ? "দৈনিক চ্যালেঞ্জ" : "Daily challenge"}</button>
+      <button role="tab" aria-selected={on === "live"} className={on === "live" ? "on" : ""} onClick={() => on !== "live" && nav.openQuiz()}><UsersIcon width={17} height={17} />{bn ? "একা বা বন্ধুদের সাথে" : "Solo or with friends"}</button>
     </div>
   );
 }
@@ -4098,7 +4111,7 @@ function DailyPage({ user, goProfile, toast }) {
     setRev(null); setPicked(null); setBusy(false);
   }
 
-  const switcher = <GameSwitch on="daily" />;
+  const switcher = <><GameSwitch on="quiz" /><QuizSub on="daily" /></>;
   if (!st) return <div className="sec">{switcher}<Loading /></div>;
   if (st.error) return <div className="sec">{switcher}<div className="card empty">{st.error === "missing" ? (bn ? "দৈনিক চ্যালেঞ্জ খুব শিগগিরই চালু হচ্ছে।" : "The daily challenge is coming soon.") : (bn ? "লোড করা গেল না। একটু পরে আবার চেষ্টা করুন।" : "Couldn't load. Try again shortly.")}</div></div>;
 
@@ -4234,8 +4247,7 @@ function DailyPage({ user, goProfile, toast }) {
       {pop && <NewBadgePop ids={pop} onClose={() => setPop(null)} />}
       {wide ? (
         <>
-          <div className="sec pd-top">{switcher}<span /></div>
-          <div className="pg-grid"><div className="pg-main"><div className="sec">{main}</div></div><aside className="pg-side">{side}</aside></div>
+          <div className="pg-grid"><div className="pg-main"><div className="sec">{switcher}{main}</div></div><aside className="pg-side">{side}</aside></div>
         </>
       ) : (
         <div className="sec">{switcher}{main}{side}</div>
@@ -4420,6 +4432,7 @@ function QuizPage({ code, user, goProfile, toast }) {
   if (!code) return (
     <div className="sec">
       <GameSwitch on="quiz" />
+      <QuizSub on="live" />
       <div className="card qz-hero">
         <div className="qz-hero-ic"><QuizIcon width={34} height={34} /></div>
         <h2>{bn ? "স্পোর্টস কুইজ" : "Sports quiz"}</h2>
