@@ -3809,7 +3809,7 @@ function GameSwitch({ on }) {
   return (
     <div className="game-sw">
       <button className={on === "predict" ? "on" : ""} onClick={() => on !== "predict" && nav.go("predict")}><TargetIcon width={18} height={18} />{bn ? "প্রেডিকশন" : "Predict"}</button>
-      <button className={on === "quiz" ? "on" : ""} onClick={() => on !== "quiz" && nav.openDaily()}><QuizIcon width={18} height={18} />{bn ? "স্পোর্টস কুইজ" : "Sports quiz"}</button>
+      <button className={on === "quiz" ? "on" : ""} onClick={() => on !== "quiz" && nav.openQuizArea()}><QuizIcon width={18} height={18} />{bn ? "স্পোর্টস কুইজ" : "Sports quiz"}</button>
     </div>
   );
 }
@@ -6463,7 +6463,7 @@ function DeskNav({ tab, go }) {
   return (
     <nav className="dnav">
       {TABS.map(({ id, Icon }) => (
-        <button key={id} className={tab === id ? "on" : ""} onClick={() => (id === "predict" ? nav.openDaily() : go(id))}>
+        <button key={id} className={tab === id ? "on" : ""} onClick={() => (id === "predict" ? nav.openGames() : go(id))}>
           <Icon />{t(id)}
         </button>
       ))}
@@ -6482,7 +6482,7 @@ function Nav({ tab, go }) {
             <span className="ask-orb"><Icon /></span>{t(id)}
           </button>
         ) : (
-          <button key={id} className={tab === id ? "on" : ""} onClick={() => (id === "predict" ? nav.openDaily() : go(id))}>
+          <button key={id} className={tab === id ? "on" : ""} onClick={() => (id === "predict" ? nav.openGames() : go(id))}>
             <Icon />{t(id)}
           </button>
         ))}
@@ -6548,6 +6548,10 @@ export default function App() {
     openFriends: () => { setPredTab((p) => ({ tab: "friends", league: null, key: p.key + 1 })); go("predict"); },
     openSearch: () => { setSheet(null); setSearching(true); },
     openDaily: () => { setTab("predict"); openView("/daily", { kind: "daily" }); },
+    // গেম ট্যাব: শেষবার যেখানে ছিলেন সেখানে (প্রথমবার প্রেডিকশন)
+    openGames: () => { const g = ls.get("game_last", "predict"); if (g === "daily") nav.openDaily(); else if (g === "quiz") nav.openQuiz(); else go("predict"); },
+    // স্পোর্টস কুইজ বোতাম: কুইজের ভেতরের শেষ ভাগে (প্রথমবার দৈনিক চ্যালেঞ্জ)
+    openQuizArea: () => (ls.get("quiz_last", "daily") === "quiz" ? nav.openQuiz() : nav.openDaily()),
     openQuiz: (code, replace) => {
       setTab("predict");
       const path = code ? `/quiz/${code}` : "/quiz";
@@ -6557,6 +6561,11 @@ export default function App() {
     go,
   };
 
+  useEffect(() => {
+    const g = view?.kind === "daily" ? "daily" : view?.kind === "quiz" ? "quiz" : !view && tab === "predict" ? "predict" : null;
+    if (g) ls.set("game_last", g);
+    if (g === "daily" || g === "quiz") ls.set("quiz_last", g);
+  }, [view?.kind, tab]);
   const openMatch = (m) => { window.history.pushState({ sheet: 1 }, ""); setSheet(m); };
   const [searching, setSearching] = useState(false);
   const openSearch = () => { window.history.pushState({ sheet: 1 }, ""); setSearching(true); };
