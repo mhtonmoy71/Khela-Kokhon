@@ -735,6 +735,43 @@ button.scr { width: 100%; }
   .ask-page .ask-input { bottom: 0; padding-bottom: 24px; }
   .toast { bottom: 32px; }
 }
+/* ভক্তদের রায় */
+.fv { margin-top: 14px; padding: 14px 14px 12px; border-radius: 18px; border: 1px solid var(--line);
+  background: radial-gradient(120% 90% at 0% 0%, color-mix(in srgb, var(--green) 12%, transparent), transparent 60%),
+              radial-gradient(120% 90% at 100% 0%, color-mix(in srgb, var(--amber) 12%, transparent), transparent 60%), var(--card); }
+.fv-h { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; margin-bottom: 12px; }
+.fv-h h3 { font-size: 16px; font-weight: 800; margin: 0 0 2px; }
+.fv-h small { font-size: 12.5px; }
+.fv-state { display: inline-flex; align-items: center; gap: 6px; font-size: 11.5px; font-weight: 700; padding: 4px 10px; border-radius: 999px; background: var(--card2); color: var(--muted); white-space: nowrap; }
+.fv-state.on { background: var(--greenDim); color: var(--green); }
+.fv-state i { width: 7px; height: 7px; border-radius: 50%; background: currentColor; animation: fvpulse 1.6s infinite; }
+@keyframes fvpulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: .35; transform: scale(.7); } }
+.fv-opts { display: grid; grid-template-columns: 1fr .72fr 1fr; gap: 8px; }
+.fv-opt { position: relative; display: flex; flex-direction: column; align-items: center; gap: 5px; padding: 12px 6px 10px; border-radius: 14px;
+  border: 1.5px solid var(--line); background: var(--bg); color: var(--text); transition: transform .15s, border-color .2s, background .2s, box-shadow .2s; min-width: 0; }
+.fv-opt:not(:disabled):hover { transform: translateY(-2px); border-color: color-mix(in srgb, var(--fvc) 55%, transparent); }
+.fv-opt:not(:disabled):active { transform: scale(.97); }
+.fv-opt:disabled { cursor: default; }
+.fv-opt.k0 { --fvc: var(--green); } .fv-opt.k1 { --fvc: #8b97a6; } .fv-opt.k2 { --fvc: var(--amber); }
+.fv-opt.lead { background: color-mix(in srgb, var(--fvc) 9%, var(--bg)); }
+.fv-opt.mine { border-color: var(--fvc); box-shadow: 0 0 0 3px color-mix(in srgb, var(--fvc) 22%, transparent); }
+.fv-opt.won::after { content: "✓"; position: absolute; top: 6px; right: 8px; width: 18px; height: 18px; border-radius: 50%; display: grid; place-items: center; font-size: 11px; font-weight: 900; background: var(--fvc); color: #fff; }
+.fv-ic { height: 34px; display: grid; place-items: center; }
+.fv-x { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; background: var(--card2); color: var(--muted); font-weight: 800; font-size: 17px; }
+.fv-nm { font-size: 12.5px; font-weight: 600; max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.fv-pc { font-size: 21px; font-weight: 800; color: var(--fvc); font-family: Inter, "Hind Siliguri", sans-serif; line-height: 1.1; }
+.fv-me { font-size: 10.5px; font-weight: 700; color: var(--fvc); }
+.fv-bar { display: flex; height: 10px; border-radius: 999px; overflow: hidden; margin-top: 12px; background: var(--card2); gap: 2px; }
+.fv-bar span { height: 100%; transition: width .8s cubic-bezier(.2, .8, .2, 1); }
+.fv-bar span:first-child { border-radius: 999px 0 0 999px; } .fv-bar span:last-child { border-radius: 0 999px 999px 0; }
+.fv-bar .k0 { background: linear-gradient(90deg, var(--green), color-mix(in srgb, var(--green) 75%, #fff)); }
+.fv-bar .k1 { background: #8b97a6; }
+.fv-bar .k2 { background: linear-gradient(90deg, color-mix(in srgb, var(--amber) 75%, #fff), var(--amber)); }
+.fv-bar.empty span { opacity: .18; }
+.fv-hint { font-size: 12px; text-align: center; margin-top: 10px; }
+.fv-verdict { margin-top: 10px; font-size: 13px; font-weight: 600; text-align: center; padding: 8px 10px; border-radius: 10px; background: color-mix(in srgb, var(--amber) 14%, transparent); }
+.fv-verdict.ok { background: var(--greenDim); color: var(--green); }
+
 /* হোম: বড় স্ক্রিনে ম্যাচ বাঁ পাশে, কাজের তথ্য ডান পাশে */
 @media (min-width: 1100px) {
   .home-grid { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 28px; align-items: start; }
@@ -2462,6 +2499,109 @@ function H2H({ m }) {
 }
 
 // ── ম্যাচের বিস্তারিত (নিচ থেকে ওঠা শিট) ──
+// ── ভক্তদের রায়: "কে জিতবে?" ভোট (লগইন ছাড়াই, খেলা শুরুর আগ পর্যন্ত) ──
+const voterId = () => {
+  let v = ls.get("voter", null);
+  if (!v) {
+    v = (crypto.randomUUID?.() || "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => { const r = (Math.random() * 16) | 0; return (c === "x" ? r : (r & 3) | 8).toString(16); }));
+    ls.set("voter", v);
+  }
+  return v;
+};
+// ডেমো: ম্যাচের id থেকে স্থির নমুনা ভোট, সাথে নিজের ভোট
+const demoVotes = (id) => {
+  const s = Math.abs(Number(id) || 7) % 97, base = [40 + (s * 7) % 60, 12 + (s * 3) % 25, 25 + (s * 11) % 55];
+  const mine = ls.get("votes", {})[id];
+  if (mine != null) base[mine] += 1;
+  return base;
+};
+async function getVotes(id) {
+  if (DEMO) return demoVotes(id);
+  const { data, error } = await sb.rpc("match_votes_get", { p_ids: [id] });
+  if (error) throw rpcMissing(error) ? Object.assign(new Error("missing"), { missing: true }) : error;
+  return data?.[String(id)] || [0, 0, 0];
+}
+async function castVote(id, pick) {
+  if (DEMO) { const v = ls.get("votes", {}); v[id] = pick; ls.set("votes", v); return demoVotes(id); }
+  const { data, error } = await sb.rpc("match_vote", { p_match: id, p_voter: voterId(), p_pick: pick });
+  if (error) throw error;
+  return data?.[String(id)] || [0, 0, 0];
+}
+
+function FanVote({ m }) {
+  const { lang } = useT();
+  const bn = lang === "bn";
+  const [counts, setCounts] = useState(null);
+  const [mine, setMine] = useState(() => ls.get("votes", {})[m.id] ?? null);
+  const [busy, setBusy] = useState(false);
+  const [hidden, setHidden] = useState(false);
+  const [grow, setGrow] = useState(false);
+  useEffect(() => {
+    let live = true;
+    getVotes(m.id).then((c) => { if (live) { setCounts(c); requestAnimationFrame(() => setGrow(true)); } })
+      .catch(() => live && setHidden(true));
+    return () => { live = false; };
+  }, [m.id]);
+  if (hidden) return null;
+
+  const open = canPredict(m);
+  const c = counts || [0, 0, 0];
+  const total = c[0] + c[1] + c[2];
+  const pct = c.map((x) => (total ? Math.round((x * 100) / total) : 0));
+  if (total) { const d = 100 - pct[0] - pct[1] - pct[2]; pct[pct.indexOf(Math.max(...pct))] += d; }
+  if (!open && counts !== null && !total) return null; // শুরু হয়ে যাওয়া ম্যাচে কেউ ভোট না দিলে কার্ডই নয়
+  const lead = total ? pct.indexOf(Math.max(...pct)) : -1;
+  const names = [teamName(m.home, lang), bn ? "ড্র" : "Draw", teamName(m.away, lang)];
+  const result = isDone(m) && m.home_score != null ? (m.home_score > m.away_score ? 0 : m.home_score < m.away_score ? 2 : 1) : null;
+
+  async function vote(k) {
+    if (!open || busy || k === mine) return;
+    setBusy(true);
+    const prev = mine;
+    setMine(k);
+    const v = ls.get("votes", {}); v[m.id] = k; ls.set("votes", v);
+    // সাথে সাথে বারে দেখাই, সার্ভারের উত্তর এলে ঠিক সংখ্যা
+    setCounts((old) => { const n = [...(old || [0, 0, 0])]; if (prev != null) n[prev] = Math.max(0, n[prev] - 1); n[k] += 1; return n; });
+    try { setCounts(await castVote(m.id, k)); }
+    catch { setMine(prev); const v2 = ls.get("votes", {}); if (prev == null) delete v2[m.id]; else v2[m.id] = prev; ls.set("votes", v2); getVotes(m.id).then(setCounts).catch(() => {}); }
+    setBusy(false);
+  }
+
+  return (
+    <div className="fv">
+      <div className="fv-h">
+        <div>
+          <h3>{bn ? "ভক্তদের রায়" : "Fans' verdict"}</h3>
+          <small className="muted">{counts === null ? "…" : total ? (bn ? `${num(total, "bn")} জন ভক্ত ভোট দিয়েছেন` : `${total.toLocaleString()} fan${total === 1 ? "" : "s"} voted`) : open ? (bn ? "প্রথম ভোটটা আপনার হোক" : "Be the first to vote") : (bn ? "কেউ ভোট দেননি" : "No votes")}</small>
+        </div>
+        <span className={"fv-state" + (open ? " on" : "")}>{open ? <><i />{bn ? "ভোট চলছে" : "Open"}</> : (bn ? "ভোট বন্ধ" : "Closed")}</span>
+      </div>
+      <div className="fv-opts">
+        {[0, 1, 2].map((k) => (
+          <button key={k} className={"fv-opt k" + k + (mine === k ? " mine" : "") + (lead === k ? " lead" : "") + (result === k ? " won" : "")} disabled={!open || busy} onClick={() => vote(k)} aria-pressed={mine === k}>
+            <span className="fv-ic">{k === 1 ? <span className="fv-x">=</span> : <Crest team={k === 0 ? m.home : m.away} size={30} />}</span>
+            <span className="fv-nm">{names[k]}</span>
+            <b className="fv-pc">{total ? `${num(pct[k], lang)}%` : "–"}</b>
+            {mine === k && <span className="fv-me">{bn ? "আপনার ভোট" : "Your vote"}</span>}
+          </button>
+        ))}
+      </div>
+      <div className={"fv-bar" + (total ? "" : " empty")}>
+        {[0, 1, 2].map((k) => <span key={k} className={"k" + k} style={{ width: grow && total ? `${pct[k]}%` : total ? "0%" : "33.33%" }} />)}
+      </div>
+      {result != null && total > 0 ? (
+        <div className={"fv-verdict" + (result === lead ? " ok" : "")}>
+          {result === lead
+            ? (bn ? `ভক্তদের ধারণাই মিলে গেছে! বেশিরভাগ (${num(pct[lead], lang)}%) বলেছিলেন ${lead === 1 ? "ড্র হবে" : names[lead] + " জিতবে"}।` : `The fans called it: ${pct[lead]}% picked ${lead === 1 ? "a draw" : names[lead]}.`)
+            : (bn ? `চমক! বেশিরভাগ ভক্ত (${num(pct[lead], lang)}%) বলেছিলেন ${lead === 1 ? "ড্র হবে" : names[lead] + " জিতবে"}।` : `Upset! Most fans (${pct[lead]}%) picked ${lead === 1 ? "a draw" : names[lead]}.`)}
+        </div>
+      ) : open && mine == null ? (
+        <div className="fv-hint muted">{bn ? "এক ট্যাপে ভোট দিন, লগইন লাগবে না। খেলা শুরুর আগ পর্যন্ত বদলাতে পারবেন।" : "Tap to vote, no login needed. You can change it until kickoff."}</div>
+      ) : null}
+    </div>
+  );
+}
+
 function MatchSheet({ m, user, pred, onClose, onSave, onLogin, toast }) {
   const { t, lang } = useT();
   const nav = useNav();
@@ -2507,6 +2647,8 @@ function MatchSheet({ m, user, pred, onClose, onSave, onLogin, toast }) {
           <button className="ms-team" onClick={() => m.away_id && nav.openTeam(m.away_id)}><Crest team={m.away} size={60} /><span>{teamName(m.away, lang)}</span></button>
         </div>
         {open && <div className="ms-cd">{t("startsIn")} {countdown(new Date(m.utc_date) - now, lang)} · {t("bdTime")}</div>}
+
+        <FanVote m={m} />
 
         <div className="sec" style={{ margin: "16px 0 0" }}>
           <div className="sec-h"><h2>{t("yourPick")}</h2>
