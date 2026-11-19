@@ -3694,7 +3694,6 @@ async function shareQuiz(code, bn, toast) {
 function RankBadge({ rank, lang, big }) {
   return <span className={"qz-badge r" + Math.min(rank, 4) + (big ? " big" : "")}>{num(rank, lang)}</span>;
 }
-const Initial = ({ name }) => <span className="qz-ini">{[...(name || "?").trim()][0]}</span>;
 const LETTERS = ["ক", "খ", "গ", "ঘ"];
 const secTxt = (ms, lang) => (lang === "bn" ? `${num((ms / 1000).toFixed(1), "bn")} সে.` : `${(ms / 1000).toFixed(1)}s`);
 
@@ -4306,7 +4305,26 @@ function CountUp({ to, lang }) {
   return <>{num(v, lang)}</>;
 }
 
-function QuizBoard({ players, lang, limit, lobby }) {
+// খেলোয়াড়দের ছবি: খেলোয়াড়ের তালিকা বদলালে একবার আনা (একই নামের দুজন হলে ছবি নয়, আদ্যক্ষর)
+function useQuizAvatars(code, players) {
+  const [av, setAv] = useState({});
+  const key = (players || []).map((p) => p.name).sort().join("|");
+  useEffect(() => {
+    if (!code || DEMO || !key) return;
+    let alive = true;
+    quizCall("quiz_avatars", { p_code: code }).then((rows) => {
+      if (!alive) return;
+      const m = {};
+      for (const r of rows || []) m[r.name] = r.name in m ? null : r.avatar;
+      setAv(m);
+    }).catch(() => {});
+    return () => { alive = false; };
+  }, [code, key]);
+  return av;
+}
+
+function QuizBoard({ players, lang, limit, lobby, code }) {
+  const av = useQuizAvatars(code, players);
   const list = limit ? players.filter((p, i) => i < limit || p.me) : players;
   return (
     <div className="card qz-board">
@@ -4314,7 +4332,8 @@ function QuizBoard({ players, lang, limit, lobby }) {
         const rank = players.indexOf(p);
         return (
           <div key={p.name + rank} className={"qz-pl" + (p.me ? " me" : "")}>
-            {lobby ? <Initial name={p.name} /> : <RankBadge rank={rank + 1} lang={lang} />}
+            {!lobby && <RankBadge rank={rank + 1} lang={lang} />}
+            {av[p.name] || lobby ? <UserAvatar src={av[p.name]} name={p.name} size={lobby ? 36 : 30} /> : null}
             <span className="qz-nm">{p.name}{p.me ? (lang === "bn" ? " (আপনি)" : " (you)") : ""}{p.host ? <small> · {lang === "bn" ? "হোস্ট" : "host"}</small> : null}</span>
             {!lobby && <span className="qz-sc"><b>{num(p.score, lang)}</b><small>{secTxt(p.ms, lang)}</small></span>}
           </div>
@@ -4491,7 +4510,7 @@ function QuizPage({ code, user, goProfile, toast }) {
         <button className="btn ghost block qz-ic-btn" onClick={() => shareQuiz(st.code, bn, toast)}><ShareIcon width={18} height={18} />{bn ? "বন্ধুদের লিংক পাঠান" : "Send link to friends"}</button>
       </div>
       <div className="sec-h" style={{ marginTop: 14 }}><h2>{bn ? `খেলোয়াড় · ${num(st.players.length, "bn")} জন` : `Players · ${st.players.length}`}</h2></div>
-      <QuizBoard players={st.players} lang={lang} lobby />
+      <QuizBoard players={st.players} lang={lang} lobby code={code} />
       {!user ? (
         <div className="card empty">{bn ? "এই কুইজে খেলতে আগে লগইন করুন।" : "Log in to play this quiz."}<div style={{ marginTop: 10 }}><button className="btn" onClick={() => { try { localStorage.setItem("kk_quiz", st.code); } catch { /* ignore */ } goProfile(); }}>{bn ? "লগইন করুন" : "Log in"}</button></div></div>
       ) : st.is_host ? (
@@ -4514,7 +4533,7 @@ function QuizPage({ code, user, goProfile, toast }) {
           <div className="muted">{bn ? `সঠিক উত্তর · মোট সময় ${secTxt(me.ms, "bn")}` : `correct · total time ${secTxt(me.ms, "en")}`}</div>
         </div>
       ) : <div className="card empty">{bn ? "কুইজ শেষ। আপনি এই কুইজে ছিলেন না।" : "This quiz is over."}</div>}
-      {st.players.length > 1 && <><div className="sec-h" style={{ marginTop: 14 }}><h2>{bn ? "ফলাফল" : "Results"}</h2></div><QuizBoard players={st.players} lang={lang} /></>}
+      {st.players.length > 1 && <><div className="sec-h" style={{ marginTop: 14 }}><h2>{bn ? "ফলাফল" : "Results"}</h2></div><QuizBoard players={st.players} lang={lang} code={code} /></>}
       <div className="qz-actions">
         {st.is_host ? (
           <>
