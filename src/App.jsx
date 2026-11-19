@@ -772,6 +772,83 @@ button.scr { width: 100%; }
 .fv-verdict { margin-top: 10px; font-size: 13px; font-weight: 600; text-align: center; padding: 8px 10px; border-radius: 10px; background: color-mix(in srgb, var(--amber) 14%, transparent); }
 .fv-verdict.ok { background: var(--greenDim); color: var(--green); }
 
+/* দৈনিক চ্যালেঞ্জ */
+.game-sw.three { grid-template-columns: 1fr 1.15fr 1fr; }
+.game-sw.three button { font-size: 13px; gap: 6px; padding: 0 6px; }
+.game-sw.three button span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+@media (max-width: 380px) { .game-sw.three button svg { display: none; } }
+.dl-hero { padding: 18px 16px 16px; background: radial-gradient(130% 100% at 0% 0%, color-mix(in srgb, var(--green) 16%, transparent), transparent 60%), radial-gradient(120% 90% at 100% 0%, color-mix(in srgb, var(--amber) 12%, transparent), transparent 60%), var(--card); }
+.dl-hero h2 { font-size: 21px; margin: 0; }
+.dl-hero-top { display: flex; align-items: center; gap: 12px; }
+.dl-hero-ic { width: 54px; height: 54px; border-radius: 16px; display: grid; place-items: center; background: linear-gradient(145deg, var(--green), color-mix(in srgb, var(--green) 60%, #000)); color: #fff; flex: none; box-shadow: 0 8px 22px color-mix(in srgb, var(--green) 35%, transparent); }
+.card.dl-hero > .dl-hero-ic { margin: 0 auto 10px; }
+.card.dl-hero > h2, .card.dl-hero > p { text-align: center; }
+.dl-chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 14px 0 12px; }
+.dl-chips span { font-size: 12.5px; font-weight: 600; padding: 5px 11px; border-radius: 999px; background: var(--card2); color: var(--text); }
+.dl-streak { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 14px; background: color-mix(in srgb, #f97316 12%, transparent); color: #ea580c; margin-bottom: 12px; }
+.dl-streak span { display: flex; flex-direction: column; line-height: 1.35; }
+.dl-streak b { font-size: 15px; } .dl-streak small { font-size: 12.5px; color: var(--muted); }
+.dl-go { height: 52px; font-size: 16.5px; }
+.dl-meta { font-size: 12.5px; text-align: center; margin-top: 10px; }
+.dl-rules { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-top: 14px; padding-top: 12px; border-top: 1px dashed var(--line); }
+.dl-rules div { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 2px; }
+.dl-rules b { font-size: 16px; color: var(--green); font-family: Inter, "Hind Siliguri", sans-serif; }
+.dl-rules span { font-size: 11px; color: var(--muted); line-height: 1.35; }
+.dl-tag { display: inline-flex; align-items: center; gap: 5px; font-size: 12.5px; font-weight: 700; color: var(--green); }
+.dl-play .qz-top { gap: 10px; }
+.dl-done { padding: 18px 16px; text-align: center; background: radial-gradient(120% 80% at 50% 0%, color-mix(in srgb, var(--green) 16%, transparent), transparent 65%), var(--card); }
+.dl-done-h { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 700; color: var(--green); }
+.dl-score { font-size: 64px; font-weight: 800; line-height: 1; margin: 12px 0 10px; font-family: Inter, "Hind Siliguri", sans-serif; }
+.dl-score small { font-size: 28px; color: var(--muted); font-weight: 700; }
+.dl-marks { display: flex; justify-content: center; gap: 8px; margin-bottom: 14px; }
+.dl-marks span { width: 38px; height: 38px; border-radius: 11px; display: grid; place-items: center; color: #fff; font-weight: 900; font-size: 17px; animation: qzIn .35s ease both; }
+.dl-marks span:nth-child(2) { animation-delay: .08s; } .dl-marks span:nth-child(3) { animation-delay: .16s; } .dl-marks span:nth-child(4) { animation-delay: .24s; } .dl-marks span:nth-child(5) { animation-delay: .32s; }
+.dl-marks .ok { background: #16a34a; } .dl-marks .bad { background: var(--red); }
+.dl-pts { font-size: 17px; font-weight: 600; } .dl-pts b { font-size: 30px; color: var(--green); font-family: Inter, "Hind Siliguri", sans-serif; }
+.dl-break { font-size: 12.5px; margin-top: 2px; }
+.dl-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 16px 0 14px; }
+.dl-stats div, .pb-stats div { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 10px 4px; border-radius: 14px; background: var(--bg); color: var(--muted); }
+.dl-stats b, .pb-stats b { font-size: 19px; color: var(--text); font-family: Inter, "Hind Siliguri", sans-serif; }
+.dl-stats small, .pb-stats small { font-size: 11.5px; }
+.fl { color: #f97316; }
+.dl-share { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 48px; }
+.dl-next { font-size: 13px; color: var(--muted); margin-top: 12px; } .dl-next b { color: var(--text); font-family: Inter, "Hind Siliguri", sans-serif; letter-spacing: .5px; }
+.dl-week { padding-bottom: 6px; }
+.dl-range { font-size: 12px; padding: 0 16px 6px; }
+.dl-row { border-bottom: 1px solid var(--line); }
+.dl-row:last-child { border-bottom: 0; }
+.bdg-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 4px; padding: 10px; }
+.bdg-cell { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 3px; padding: 10px 4px; border-radius: 14px; }
+.bdg-cell b { font-size: 12.5px; line-height: 1.3; }
+.bdg-cell small { font-size: 10.5px; color: var(--muted); line-height: 1.35; }
+.bdg-cell:not(.off) small { color: var(--green); font-weight: 700; }
+.bdg-cell.off b { color: var(--muted); }
+.bdg { filter: drop-shadow(0 4px 8px rgba(0,0,0,.15)); }
+.bdg.locked { filter: none; opacity: .7; }
+.bdg-grid.compact { grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); }
+.pb-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; padding: 12px 12px 0; }
+.bdg-veil { align-items: center; justify-content: center; padding: 24px; z-index: 90; }
+.bdg-pop { width: 100%; max-width: 340px; background: var(--card); border-radius: 24px; padding: 22px 20px 18px; text-align: center; animation: bdgIn .45s cubic-bezier(.2, 1.4, .4, 1) both; }
+.bdg-pop > small { font-size: 13px; font-weight: 800; color: var(--amber); letter-spacing: .3px; }
+.bdg-pop-row { display: flex; justify-content: center; gap: 8px; margin: 10px 0 6px; }
+.bdg-pop-row svg { animation: bdgSpin .9s ease both; }
+.bdg-pop-t { display: flex; flex-direction: column; gap: 2px; margin-bottom: 12px; } .bdg-pop-t b { font-size: 18px; } .bdg-pop-t span { font-size: 13px; }
+@keyframes bdgIn { from { opacity: 0; transform: scale(.7); } to { opacity: 1; transform: none; } }
+@keyframes bdgSpin { from { transform: rotateY(90deg) scale(.6); } to { transform: none; } }
+.dl-teaser-wrap { margin-top: 10px; }
+.dl-teaser { display: flex; align-items: center; gap: 12px; width: 100%; text-align: left; padding: 12px 14px; border-radius: 16px; border: 1.5px solid var(--line); color: var(--text);
+  background: linear-gradient(110deg, color-mix(in srgb, var(--green) 14%, var(--card)), var(--card) 70%); }
+.dl-teaser.glow { border-color: color-mix(in srgb, var(--green) 55%, transparent); animation: dlGlow 2.6s ease-in-out infinite; }
+@keyframes dlGlow { 0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--green) 0%, transparent); } 50% { box-shadow: 0 0 0 5px color-mix(in srgb, var(--green) 16%, transparent); } }
+.dl-teaser.done { background: var(--card); }
+.dl-t-ic { width: 40px; height: 40px; flex: none; border-radius: 12px; display: grid; place-items: center; background: var(--green); color: var(--onGreen); }
+.dl-teaser.done .dl-t-ic { background: var(--greenDim); color: var(--green); }
+.dl-t-txt { flex: 1; min-width: 0; display: flex; flex-direction: column; line-height: 1.35; }
+.dl-t-txt b { font-size: 15px; } .dl-t-txt small { font-size: 12.5px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.dl-t-streak { display: inline-flex; align-items: center; gap: 3px; font-weight: 800; font-size: 14px; color: #f97316; font-family: Inter, "Hind Siliguri", sans-serif; }
+.dl-t-go { flex: none; height: 34px; padding: 0 14px; border-radius: 17px; background: var(--green); color: var(--onGreen); font-weight: 700; font-size: 13.5px; display: grid; place-items: center; }
+.dl-teaser.side { padding: 14px; }
+
 /* হোম: বড় স্ক্রিনে ম্যাচ বাঁ পাশে, কাজের তথ্য ডান পাশে */
 @media (min-width: 1100px) {
   .home-grid { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 28px; align-items: start; }
@@ -813,7 +890,7 @@ button.scr { width: 100%; }
 }
 @media (min-width: 1280px) { .home-grid .groups { columns: 2 !important; } }
 /* লিগ আর দলের পাতা: মাঝারি ডেস্কটপে মাঝখানে পড়ার মতো চওড়া, বড় স্ক্রিনে দুই কলাম */
-@media (min-width: 1024px) and (max-width: 1099px) { .main.v-league, .main.v-team, .main.v-player, .main.v-predict { max-width: 820px; margin: 0 auto; } }
+@media (min-width: 1024px) and (max-width: 1099px) { .main.v-league, .main.v-team, .main.v-player, .main.v-predict, .main.v-daily { max-width: 820px; margin: 0 auto; } }
 @media (min-width: 1100px) {
   .pg-grid { display: grid; grid-template-columns: minmax(0, 1fr) 380px; gap: 28px; align-items: start; }
   .pg-side .sec:first-child, .pg-main .sec:first-child { margin-top: 18px; }
@@ -2708,6 +2785,7 @@ function Footer({ comps = [] }) {
       [bn ? "ম্যাচের সূচি" : "Fixtures", () => nav.go("matches")],
       [bn ? "প্রেডিকশন ও লিডারবোর্ড" : "Predictions & leaderboard", () => nav.go("predict")],
       [bn ? "বন্ধুদের লিগ" : "Friends' leagues", () => nav.openFriends()],
+      [bn ? "দৈনিক চ্যালেঞ্জ" : "Daily challenge", () => nav.openDaily()],
       [bn ? "স্পোর্টস কুইজ" : "Sports quiz", () => nav.openQuiz()],
       [bn ? "জিজ্ঞেস করুন" : "Ask", () => nav.go("ask")],
       [bn ? "দল ও খেলোয়াড় খুঁজুন" : "Search teams & players", () => nav.openSearch()],
@@ -3116,7 +3194,7 @@ function SideBoard() {
   );
 }
 
-function HomeSide({ comps, comp }) {
+function HomeSide({ comps, comp, user }) {
   const { lang } = useT();
   const nav = useNav();
   const bn = lang === "bn";
@@ -3124,15 +3202,8 @@ function HomeSide({ comps, comp }) {
   useEffect(() => { if (comp !== "ALL") setCode(comp); }, [comp]);
   return (
     <aside className="home-side">
+      <DailyTeaser user={user} side />
       {comps.length > 0 && <SideLeague comps={comps} code={code} setCode={setCode} />}
-      <div className="side-card side-quiz">
-        <div className="sq-ic" aria-hidden="true"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="9" /><path d="M9.5 9a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6v.6" /><path d="M12 17h.01" /></svg></div>
-        <div>
-          <h3>{bn ? "স্পোর্টস কুইজ" : "Sports quiz"}</h3>
-          <p className="muted">{bn ? "১০টা প্রশ্ন, প্রতিটায় ৩০ সেকেন্ড। একা খেলুন বা বন্ধুদের সাথে লাইভ।" : "10 questions, 30 seconds each. Play solo or live with friends."}</p>
-          <button className="btn" onClick={() => nav.openQuiz()}>{bn ? "খেলা শুরু করুন" : "Start playing"}</button>
-        </div>
-      </div>
       <SideBoard />
       <button className="side-card side-ask" onClick={() => nav.go("ask")}>
         <b>{bn ? "যেকোনো প্রশ্ন বাংলায় করুন" : "Ask anything"}</b>
@@ -3183,6 +3254,7 @@ function Matches({ user, myTeams, comps, preds, onOpen, goProfile }) {
         </div>
       )}
 
+      {!wide && <div className="sec dl-teaser-wrap"><DailyTeaser user={user} /></div>}
       <DateStrip day={day} setDay={setDay} />
       <div className="chips">
         <button className={"chip" + (comp === "ALL" ? " on" : "")} onClick={() => setComp("ALL")}>{t("all")}</button>
@@ -3200,7 +3272,7 @@ function Matches({ user, myTeams, comps, preds, onOpen, goProfile }) {
         <DayMatches day={day} setDay={setDay} comp={comp} preds={preds} onOpen={onOpen} />
       </div>
     </div>
-    {wide && <HomeSide comps={comps} comp={comp} />}
+    {wide && <HomeSide comps={comps} comp={comp} user={user} />}
     </div>
   );
 }
@@ -3731,10 +3803,470 @@ function GameSwitch({ on }) {
   const nav = useNav();
   const bn = lang === "bn";
   return (
-    <div className="game-sw">
-      <button className={on === "predict" ? "on" : ""} onClick={() => on !== "predict" && nav.go("predict")}><TargetIcon width={18} height={18} />{bn ? "প্রেডিকশন" : "Predict"}</button>
-      <button className={on === "quiz" ? "on" : ""} onClick={() => on !== "quiz" && nav.openQuiz()}><QuizIcon width={18} height={18} />{bn ? "স্পোর্টস কুইজ" : "Sports quiz"}</button>
+    <div className="game-sw three">
+      <button className={on === "predict" ? "on" : ""} onClick={() => on !== "predict" && nav.go("predict")}><TargetIcon width={18} height={18} /><span>{bn ? "প্রেডিকশন" : "Predict"}</span></button>
+      <button className={on === "daily" ? "on" : ""} onClick={() => on !== "daily" && nav.openDaily()}><CalIcon width={18} height={18} /><span>{bn ? "দৈনিক চ্যালেঞ্জ" : "Daily"}</span></button>
+      <button className={on === "quiz" ? "on" : ""} onClick={() => on !== "quiz" && nav.openQuiz()}><QuizIcon width={18} height={18} /><span>{bn ? "স্পোর্টস কুইজ" : "Sports quiz"}</span></button>
     </div>
+  );
+}
+
+// ════════════════ দৈনিক চ্যালেঞ্জ ════════════════
+// সব নিয়ম ডেটাবেসে (supabase/daily.sql); এখানে দেখানো, সময় গোনা আর ফল সাজানো
+const CalIcon = I(<><rect x="3" y="5" width="18" height="16" rx="3" /><path d="M3 10h18M8 3v4M16 3v4" /><path d="m9 15.5 2 2 4-4" /></>);
+const FlameIcon = (p) => <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" {...p}><path d="M12.6 2.2c.5 2.9-.8 4.6-2.3 6.3C8.6 10.3 6.5 12.4 6.5 15.6A5.6 5.6 0 0 0 12 21.5a5.6 5.6 0 0 0 5.5-5.9c0-2.4-1-4.4-2.5-6 .1 1.6-.5 2.8-1.6 3.4.4-3.7-.3-7.6-.8-10.8z" /></svg>;
+const DAILY_Q = 5, DAILY_SEC = 20;
+const bdDay = () => new Date(Date.now() + 6 * 3600000).toISOString().slice(0, 10);
+
+// ব্যাজ: id, বাংলা নাম, ইংরেজি নাম, কীভাবে পাবেন (বাংলা, ইংরেজি), রং, চিহ্ন
+const BADGES = [
+  ["first", "শুরুটা হলো", "First step", "প্রথম দৈনিক চ্যালেঞ্জ শেষ করুন", "Finish your first daily challenge", ["#34d399", "#059669"], "star"],
+  ["streak3", "টানা ৩ দিন", "3-day streak", "পরপর ৩ দিন খেলুন", "Play 3 days in a row", ["#fdba74", "#ea580c"], "flame3"],
+  ["streak7", "সপ্তাহজুড়ে", "7-day streak", "পরপর ৭ দিন খেলুন", "Play 7 days in a row", ["#fb923c", "#c2410c"], "flame7"],
+  ["streak30", "মাসজুড়ে", "30-day streak", "পরপর ৩০ দিন খেলুন", "Play 30 days in a row", ["#f87171", "#b91c1c"], "flame30"],
+  ["perfect", "নিখুঁত দিন", "Perfect day", "এক দিনে ৫টাই সঠিক", "All 5 right in one day", ["#a78bfa", "#6d28d9"], "check"],
+  ["perfect5", "নিখুঁত পাঁচ", "Perfect five", "৫টা দিনে ৫টাই সঠিক", "5 perfect days", ["#c084fc", "#7e22ce"], "check5"],
+  ["football50", "ফুটবল বিশেষজ্ঞ", "Football expert", "ফুটবলের ৫০টা প্রশ্নে সঠিক উত্তর", "50 football answers right", ["#4ade80", "#15803d"], "ball"],
+  ["cricket50", "ক্রিকেট বিশেষজ্ঞ", "Cricket expert", "ক্রিকেটের ৫০টা প্রশ্নে সঠিক উত্তর", "50 cricket answers right", ["#38bdf8", "#0369a1"], "bat"],
+  ["week10", "সপ্তাহের সেরা দশ", "Weekly top 10", "কোনো সপ্তাহে শীর্ষ ১০-এ থাকুন", "Finish a week in the top 10", ["#cbd5e1", "#64748b"], "laurel"],
+  ["week1", "সপ্তাহের চ্যাম্পিয়ন", "Weekly champion", "কোনো সপ্তাহে প্রথম হন", "Win a week", ["#fde047", "#ca8a04"], "crown"],
+];
+const badgeOf = (id) => BADGES.find((b) => b[0] === id);
+
+function BadgeIcon({ id, size = 56, locked }) {
+  const { lang } = useT();
+  const b = badgeOf(id); if (!b) return null;
+  const [c1, c2] = locked ? ["#d6dde3", "#9aa7b2"] : b[5];
+  const gid = "bg-" + id + (locked ? "-l" : "");
+  const glyph = {
+    star: <path d="M32 18l4.1 8.4 9.2 1.3-6.7 6.5 1.6 9.2L32 39l-8.2 4.4 1.6-9.2-6.7-6.5 9.2-1.3z" fill="#fff" />,
+    check: <path d="M22 32.5l7 7 13-14" stroke="#fff" strokeWidth="4.5" fill="none" strokeLinecap="round" strokeLinejoin="round" />,
+    check5: <><path d="M21 31l6 6 11-12" stroke="#fff" strokeWidth="4" fill="none" strokeLinecap="round" strokeLinejoin="round" /><text x="43" y="45" fontSize="11" fontWeight="900" fill="#fff" textAnchor="middle" fontFamily="Inter, 'Hind Siliguri', sans-serif">×{num(5, lang)}</text></>,
+    ball: <><circle cx="32" cy="32" r="12" fill="#fff" /><path d="M32 25.5l5.5 4-2.1 6.5h-6.8l-2.1-6.5z" fill={c2} /><path d="M32 20v5.5M37.5 29.5l5.5-1.8M35.4 36l3.3 4.6M28.6 36l-3.3 4.6M26.5 29.5L21 27.7" stroke={c2} strokeWidth="1.6" /></>,
+    bat: <><path d="M38.5 20.5l5 5-13 13-5-5z" fill="#fff" /><path d="M25.5 33.5l5 5-4 4-5-5z" fill="#fff" opacity=".85" /><circle cx="41" cy="40" r="3.6" fill="#fff" /></>,
+    laurel: <><path d="M24 22c-4 5-4 14 0 20M40 22c4 5 4 14 0 20" stroke="#fff" strokeWidth="3" fill="none" strokeLinecap="round" /><text x="32" y="37.5" fontSize="13" fontWeight="900" fill="#fff" textAnchor="middle" fontFamily="Inter, 'Hind Siliguri', sans-serif">{num(10, lang)}</text></>,
+    crown: <path d="M20 40l2.5-14 6 6 3.5-9 3.5 9 6-6 2.5 14z" fill="#fff" />,
+  };
+  const n = { flame3: "3", flame7: "7", flame30: "30" }[b[6]];
+  return (
+    <svg width={size} height={size} viewBox="0 0 64 64" aria-hidden="true" className={"bdg" + (locked ? " locked" : "")}>
+      <defs><linearGradient id={gid} x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor={c1} /><stop offset="1" stopColor={c2} /></linearGradient></defs>
+      <path d="M32 3l6.2 4.6 7.7-.3 2.4 7.3 6.4 4.4-2.4 7.3 2.4 7.4-6.4 4.3-2.4 7.4-7.7-.3L32 50.7l-6.2-4.6-7.7.3-2.4-7.4-6.4-4.3 2.4-7.4-2.4-7.3 6.4-4.4 2.4-7.3 7.7.3z" fill={`url(#${gid})`} transform="translate(0 5)" />
+      <circle cx="32" cy="32" r="17" fill="rgba(255,255,255,.16)" />
+      {n ? <><path d="M32.8 17.5c.6 3.4-.9 5.4-2.7 7.4-2 2.2-4.5 4.6-4.5 8.4A6.4 6.4 0 0 0 32 40a6.4 6.4 0 0 0 6.4-6.8c0-2.8-1.2-5.1-2.9-7 .1 1.9-.6 3.3-1.9 4 .5-4.3-.3-8.9-.8-12.7z" fill="#fff" /><text x="32" y="49" fontSize="9.5" fontWeight="900" fill="#fff" textAnchor="middle" fontFamily="Inter, 'Hind Siliguri', sans-serif">{num(+n, lang)}</text></> : glyph[b[6]]}
+      {locked && <g transform="translate(42 42)"><circle r="8" fill="var(--card)" /><path d="M-3 -1v-2a3 3 0 0 1 6 0v2M-4.2 -1h8.4v6h-8.4z" stroke="var(--muted)" strokeWidth="1.6" fill="none" /></g>}
+    </svg>
+  );
+}
+
+// ডেমো মোড: ব্রাউজারেই নকল দৈনিক চ্যালেঞ্জ (সার্ভারের নিয়মেই)
+function dailyDemo(fn, a = {}) {
+  const day = bdDay(), now = Date.now(), dn = Math.floor(Date.parse(day) / 86400000);
+  const set = Array.from({ length: DAILY_Q }, (_, i) => DEMO_QUIZ_Q[(dn * 3 + i) % DEMO_QUIZ_Q.length]);
+  const S = ls.get("daily_demo", { plays: {}, badges: [] });
+  const save = () => ls.set("daily_demo", S);
+  const yest = new Date(Date.parse(day) - 86400000).toISOString().slice(0, 10);
+  let pl = S.plays[day];
+  const settle = (grace) => {
+    if (!pl || pl.finished) return;
+    if (pl.qs && now > pl.qs + grace * 1000 && pl.idx < DAILY_Q) { pl.ans.push({ choice: null, ok: false, pts: 0 }); pl.idx++; pl.qs = null; }
+    if (pl.idx >= DAILY_Q) {
+      pl.finished = true;
+      const mult = pl.streak >= 7 ? 1.5 : pl.streak >= 3 ? 1.2 : 1;
+      pl.points = Math.round((pl.raw + (pl.correct === DAILY_Q ? 10 : 0)) * mult);
+    }
+  };
+  const award = () => {
+    const done = Object.values(S.plays).filter((x) => x.finished), got = [];
+    const best = Math.max(0, ...done.map((x) => x.streak)), perf = done.filter((x) => x.correct === DAILY_Q).length;
+    [[done.length > 0, "first"], [best >= 3, "streak3"], [best >= 7, "streak7"], [best >= 30, "streak30"], [perf >= 1, "perfect"], [perf >= 5, "perfect5"]]
+      .forEach(([ok, id]) => { if (ok && !S.badges.some((b) => b.id === id)) { S.badges.push({ id, at: new Date().toISOString() }); got.push(id); } });
+    return got;
+  };
+  const state = (newb = []) => {
+    const cur = pl && !pl.finished && pl.qs ? (() => { const [q, o] = set[pl.idx]; return { index: pl.idx, category: "খেলাধুলা", question: q, options: o, started_at: new Date(pl.qs).toISOString(), seconds: DAILY_SEC }; })() : null;
+    const wk = Object.entries(S.plays).reduce((t, [, x]) => t + (x.points ?? x.raw), 0);
+    return {
+      day, now: new Date(now).toISOString(), next_at: new Date(Date.parse(day) + 18 * 3600000).toISOString(), logged_in: true, players_today: 37 + (dn % 20),
+      play: pl ? { idx: pl.idx, finished: !!pl.finished, correct: pl.correct, raw: pl.raw, points: pl.points ?? null, streak: pl.streak, mult: pl.streak >= 7 ? 1.5 : pl.streak >= 3 ? 1.2 : 1, marks: pl.ans.map((x) => x.ok) } : null,
+      current: cur,
+      review: pl?.finished ? set.map(([q, o, ans, ex], i) => ({ question: q, options: o, answer: ans, explanation: ex, choice: pl.ans[i]?.choice ?? null, pts: pl.ans[i]?.pts ?? 0 })) : null,
+      streak: pl ? pl.streak : S.plays[yest]?.streak || 0, best_streak: Math.max(0, ...Object.values(S.plays).map((x) => x.streak)),
+      week: { start: day, points: wk, rank: wk ? dailyDemo("daily_week").rows.find((r) => r.is_me)?.rank ?? null : null }, badges: S.badges, new_badges: newb,
+    };
+  };
+  if (fn === "daily_week") {
+    const me = Object.values(S.plays).reduce((t, x) => t + (x.points ?? x.raw), 0);
+    const rows = DEMO_LEADERS.slice(0, 8).map((r, i) => ({ name: r.display_name, points: [212, 188, 171, 140, 122, 97, 80, 61][i] - (a.p_offset ? 20 : 0), days: 7 - Math.floor(i / 2) }));
+    if (!a.p_offset && me) rows.push({ name: "ডেমো খেলোয়াড়", points: me, days: Object.keys(S.plays).length, is_me: true });
+    rows.sort((x, y) => y.points - x.points).forEach((r, i) => { r.rank = i + 1; });
+    return { start: day, end: day, rows };
+  }
+  settle(fn === "daily_next" ? DAILY_SEC : DAILY_SEC + 2);
+  if (fn === "daily_start" && !pl) { pl = S.plays[day] = { idx: 0, qs: now, correct: 0, raw: 0, streak: (S.plays[yest]?.streak || 0) + 1, ans: [] }; }
+  if (fn === "daily_next" && pl && !pl.finished && !pl.qs) pl.qs = now;
+  if (fn === "daily_answer") {
+    if (!pl || pl.finished || !pl.qs || pl.idx !== a.p_index) throw new Error("time over");
+    const [, , ans, ex] = set[pl.idx], el = Math.min(DAILY_SEC * 1000, now - pl.qs), ok = a.p_choice === ans;
+    const pts = ok ? 10 + Math.round(5 * (1 - el / (DAILY_SEC * 1000))) : 0;
+    pl.ans.push({ choice: a.p_choice, ok, pts }); pl.idx++; pl.qs = null; pl.correct += ok ? 1 : 0; pl.raw += pts;
+    settle(DAILY_SEC + 2);
+    const newb = pl.finished ? award() : [];
+    save();
+    return { correct: ok, answer: ans, explanation: ex, pts, ms: el, finished: !!pl.finished, new_badges: newb };
+  }
+  const newb = award();
+  save();
+  return state(newb);
+}
+async function dailyCall(fn, args = {}) {
+  if (DEMO) return dailyDemo(fn, args);
+  const { data, error } = await sb.rpc(fn, args);
+  if (error) throw rpcMissing(error) ? Object.assign(new Error("missing"), { missing: true }) : new Error(error.message || "error");
+  return data;
+}
+// নতুন ব্যাজ একবারই উদযাপন
+const seenBadges = () => ls.get("badges_seen", []);
+const markBadgesSeen = (ids) => ls.set("badges_seen", [...new Set([...seenBadges(), ...ids])]);
+
+// ── দৈনিক চ্যালেঞ্জের শেয়ার কার্ড (১০৮০×১০৮০) ──
+async function makeDailyCard(st, lang) {
+  try { await Promise.all([document.fonts.load(`700 60px ${CARD_FONT}`, "খেলা"), document.fonts.load(`500 40px ${CARD_FONT}`, "খেলা")]); } catch { /* ignore */ }
+  const W = CARD_W, c = document.createElement("canvas"); c.width = W; c.height = W;
+  const ctx = c.getContext("2d"), bn = lang === "bn", pl = st.play;
+  const g = ctx.createLinearGradient(0, 0, W, W); g.addColorStop(0, "#0a3d2f"); g.addColorStop(0.55, "#064e3b"); g.addColorStop(1, "#06201a");
+  ctx.fillStyle = g; ctx.fillRect(0, 0, W, W);
+  const glow = ctx.createRadialGradient(W * 0.5, W * 0.42, 0, W * 0.5, W * 0.42, W * 0.6); glow.addColorStop(0, "rgba(0,230,118,0.22)"); glow.addColorStop(1, "rgba(0,230,118,0)");
+  ctx.fillStyle = glow; ctx.fillRect(0, 0, W, W);
+  clockLogo(ctx, 110, 108, 44);
+  ctx.textBaseline = "middle"; ctx.textAlign = "left"; ctx.fillStyle = "#fff"; ctx.font = `700 50px ${CARD_FONT}`; ctx.fillText("খেলা কখন", 172, 112);
+  ctx.fillStyle = "#f59e0b"; ctx.fillText("?", 172 + ctx.measureText("খেলা কখন").width + 4, 112);
+  ctx.textAlign = "right"; ctx.fillStyle = "rgba(255,255,255,0.8)"; ctx.font = `600 36px ${CARD_FONT}`;
+  ctx.fillText(dayLabel(st.day, lang, { short: true, abs: true }), W - 70, 112);
+  ctx.textAlign = "center"; ctx.fillStyle = "#00e676"; ctx.font = `700 46px ${CARD_FONT}`; ctx.fillText(bn ? "দৈনিক চ্যালেঞ্জ" : "Daily Challenge", W / 2, 250);
+  ctx.fillStyle = "#fff"; ctx.font = `800 210px Inter, ${CARD_FONT}`; ctx.fillText(`${num(pl.correct, lang)}/${num(DAILY_Q, lang)}`, W / 2, 420);
+  const sz = 92, gap = 22, x0 = W / 2 - (DAILY_Q * sz + (DAILY_Q - 1) * gap) / 2;
+  (pl.marks || []).forEach((ok, i) => {
+    const x = x0 + i * (sz + gap), y = 560; ctx.fillStyle = ok ? "#00c853" : "#ef4444";
+    ctx.beginPath(); ctx.roundRect ? ctx.roundRect(x, y, sz, sz, 20) : ctx.rect(x, y, sz, sz); ctx.fill();
+    ctx.strokeStyle = "#fff"; ctx.lineWidth = 9; ctx.lineCap = "round"; ctx.lineJoin = "round"; ctx.beginPath();
+    if (ok) { ctx.moveTo(x + 26, y + 48); ctx.lineTo(x + 41, y + 63); ctx.lineTo(x + 67, y + 33); } else { ctx.moveTo(x + 30, y + 30); ctx.lineTo(x + 62, y + 62); ctx.moveTo(x + 62, y + 30); ctx.lineTo(x + 30, y + 62); }
+    ctx.stroke();
+  });
+  ctx.fillStyle = "#fff"; ctx.font = `700 52px ${CARD_FONT}`;
+  ctx.fillText(bn ? `${num(pl.points ?? pl.raw, "bn")} পয়েন্ট` : `${pl.points ?? pl.raw} points`, W / 2, 760);
+  if (st.streak > 1) { ctx.fillStyle = "#fdba74"; ctx.font = `600 40px ${CARD_FONT}`; ctx.fillText(bn ? `টানা ${num(st.streak, "bn")} দিন` : `${st.streak}-day streak`, W / 2, 830); }
+  ctx.fillStyle = "rgba(255,255,255,0.85)"; ctx.font = `500 38px ${CARD_FONT}`; ctx.fillText(bn ? "আপনি পারবেন? আজকের চ্যালেঞ্জ খেলুন" : "Can you beat it? Play today's challenge", W / 2, 940);
+  ctx.fillStyle = "#00e676"; ctx.font = `700 40px Inter, ${CARD_FONT}`; ctx.fillText("khelakokhon.com/daily", W / 2, 1000);
+  return await new Promise((r) => c.toBlob(r, "image/png"));
+}
+async function shareDaily(st, lang, toast) {
+  const bn = lang === "bn";
+  const text = (bn ? `খেলা কখন? দৈনিক চ্যালেঞ্জ: ${num(st.play.correct, "bn")}/${num(DAILY_Q, "bn")} · ${num(st.play.points ?? st.play.raw, "bn")} পয়েন্ট${st.streak > 1 ? ` · টানা ${num(st.streak, "bn")} দিন` : ""}\n` : `Khela Kokhon daily: ${st.play.correct}/${DAILY_Q} · ${st.play.points ?? st.play.raw} pts\n`)
+    + (st.play.marks || []).map((x) => (x ? "🟩" : "🟥")).join("") + "\nkhelakokhon.com/daily";
+  try {
+    const blob = await makeDailyCard(st, lang);
+    const file = blob && new File([blob], `khelakokhon-daily-${st.day}.png`, { type: "image/png" });
+    if (file && navigator.canShare?.({ files: [file] })) { await navigator.share({ files: [file], text }); return; }
+    if (navigator.share) { await navigator.share({ text }); return; }
+  } catch (e) { if (e?.name === "AbortError") return; }
+  try { await navigator.clipboard.writeText(text); toast(bn ? "ফল কপি হয়েছে, বন্ধুদের পাঠান" : "Result copied"); } catch { /* ignore */ }
+}
+
+function useDaily(user) {
+  const [st, setSt] = useState(null);
+  const off = useRef(0);
+  const load = useCallback(() => dailyCall("daily_state").then((s) => { off.current = Date.parse(s.now) - Date.now(); setSt(s); return s; })
+    .catch((e) => { setSt({ error: e.missing ? "missing" : "x" }); return null; }), []);
+  useEffect(() => { load(); }, [user?.id, load]);
+  return [st, setSt, load, off];
+}
+
+function NewBadgePop({ ids, onClose }) {
+  const { lang } = useT();
+  const bn = lang === "bn";
+  useEffect(() => { quizAudio.sfx("win"); markBadgesSeen(ids); }, []);
+  return (
+    <div className="veil bdg-veil" onClick={onClose}>
+      <Confetti />
+      <div className="bdg-pop" onClick={(e) => e.stopPropagation()}>
+        <small>{bn ? (ids.length > 1 ? `${num(ids.length, "bn")}টা নতুন ব্যাজ!` : "নতুন ব্যাজ!") : (ids.length > 1 ? `${ids.length} new badges!` : "New badge!")}</small>
+        <div className="bdg-pop-row">{ids.map((id) => <BadgeIcon key={id} id={id} size={ids.length > 1 ? 84 : 112} />)}</div>
+        {ids.map((id) => { const b = badgeOf(id); return b && <div key={id} className="bdg-pop-t"><b>{bn ? b[1] : b[2]}</b><span className="muted">{bn ? b[3] : b[4]}</span></div>; })}
+        <button className="btn block" onClick={onClose}>{bn ? "দারুণ!" : "Awesome!"}</button>
+      </div>
+    </div>
+  );
+}
+
+function BadgeGrid({ have = [], compact }) {
+  const { lang } = useT();
+  const bn = lang === "bn";
+  const got = Object.fromEntries(have.map((b) => [b.id, b.at]));
+  return (
+    <div className={"bdg-grid" + (compact ? " compact" : "")}>
+      {BADGES.map(([id, nb, ne, db, de]) => (
+        <div key={id} className={"bdg-cell" + (got[id] ? "" : " off")} title={bn ? db : de}>
+          <BadgeIcon id={id} size={compact ? 46 : 54} locked={!got[id]} />
+          <b>{bn ? nb : ne}</b>
+          <small>{got[id] ? (bn ? "অর্জিত" : "Earned") : (bn ? db : de)}</small>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function WeekBoard() {
+  const { lang } = useT();
+  const bn = lang === "bn";
+  const [off, setOff] = useState(0);
+  const [d, setD] = useState(null);
+  useEffect(() => { setD(null); dailyCall("daily_week", { p_offset: off }).then(setD).catch(() => setD({ rows: [] })); }, [off]);
+  const range = d?.start && d?.end && d.start !== d.end ? (() => { const [s, e] = [new Date(d.start + "T00:00:00"), new Date(d.end + "T00:00:00")]; return bn ? `${num(s.getDate(), "bn")} ${BN_MONTHS[s.getMonth()]} – ${num(e.getDate(), "bn")} ${BN_MONTHS[e.getMonth()]}` : `${s.getDate()} ${EN_MONTHS[s.getMonth()]} – ${e.getDate()} ${EN_MONTHS[e.getMonth()]}`; })() : null;
+  return (
+    <div className="card dl-week">
+      <div className="seg" style={{ margin: "12px 12px 6px" }}>
+        <button className={off === 0 ? "on" : ""} onClick={() => setOff(0)}>{bn ? "এই সপ্তাহ" : "This week"}</button>
+        <button className={off === -1 ? "on" : ""} onClick={() => setOff(-1)}>{bn ? "গত সপ্তাহ" : "Last week"}</button>
+      </div>
+      {range && <div className="muted dl-range">{range}{off === 0 ? (bn ? " · শুক্রবার রাতে শেষ" : " · ends Friday night") : ""}</div>}
+      {d === null ? <div className="spin" /> : !d.rows.length ? <div className="empty muted" style={{ padding: "18px 16px" }}>{bn ? "এখনো কেউ খেলেননি। প্রথম হোন!" : "Nobody yet. Be the first!"}</div> : (
+        d.rows.map((r, i) => (
+          <div key={i} className={"qz-pl dl-row" + (r.is_me ? " me" : "")}>
+            <RankBadge rank={r.rank} lang={lang} />
+            <span className="qz-nm">{r.name}{r.is_me ? (bn ? " (আপনি)" : " (you)") : ""}<small className="muted"> · {bn ? `${num(r.days, "bn")} দিন` : `${r.days}d`}</small></span>
+            <span className="qz-sc"><b>{num(r.points, lang)}</b><small>{bn ? "পয়েন্ট" : "pts"}</small></span>
+          </div>
+        ))
+      )}
+    </div>
+  );
+}
+
+function DailyPage({ user, goProfile, toast }) {
+  const { lang } = useT();
+  const bn = lang === "bn";
+  const wide = useWide();
+  const [st, setSt, load, off] = useDaily(user);
+  const [rev, setRev] = useState(null);   // সর্বশেষ প্রশ্নের ফল
+  const [picked, setPicked] = useState(null);
+  const [busy, setBusy] = useState(false);
+  const [now, setNow] = useState(Date.now());
+  const [pop, setPop] = useState(null);
+  const [soundOn, setSoundOn] = useState(quizAudio.on);
+  const playing = !!st?.play && !st.play.finished;
+  const cur = st?.current;
+
+  useEffect(() => { const t = setInterval(() => setNow(Date.now()), playing ? 200 : 1000); return () => clearInterval(t); }, [playing]);
+  useEffect(() => { document.documentElement.classList.toggle("quiz-focus", playing); return () => document.documentElement.classList.remove("quiz-focus"); }, [playing]);
+  useEffect(() => { if (playing) quizAudio.start(); else quizAudio.stop(); return () => quizAudio.stop(); }, [playing]);
+  // নতুন ব্যাজ (সাপ্তাহিক ব্যাজ পরে আসে, তাই যেকোনো সময়)
+  useEffect(() => {
+    const ids = [...(st?.new_badges || []), ...(st?.badges || []).map((b) => b.id)].filter((id) => !seenBadges().includes(id));
+    if (ids.length && !playing) setPop([...new Set(ids)]);
+  }, [st?.badges?.length, playing]);
+
+  const nowS = now + (off.current || 0);
+  const el = cur ? (nowS - Date.parse(cur.started_at)) / 1000 : 0;
+  const left = cur ? Math.max(0, Math.ceil(DAILY_SEC - el)) : 0;
+  // সময় শেষ
+  useEffect(() => {
+    if (cur && !rev && picked == null && left === 0) { quizAudio.sfx("bad"); setRev({ index: cur.index, timeout: true }); }
+  }, [left, cur?.index]);
+
+  async function start() {
+    if (!user && !DEMO) return goProfile();
+    quizAudio.unlock(); setBusy(true);
+    try { const s = await dailyCall("daily_start"); off.current = Date.parse(s.now) - Date.now(); setSt(s); setRev(null); setPicked(null); }
+    catch (e) { toast(e.message === "login required" ? (bn ? "আগে লগইন করুন" : "Please log in") : (bn ? "শুরু করা গেল না, আবার চেষ্টা করুন" : "Couldn't start")); }
+    setBusy(false);
+  }
+  async function answer(i) {
+    if (!cur || rev || picked != null) return;
+    quizAudio.unlock(); setPicked(i);
+    try {
+      const r = await dailyCall("daily_answer", { p_index: cur.index, p_choice: i });
+      quizAudio.sfx(r.correct ? "ok" : "bad");
+      setRev({ ...r, index: cur.index, choice: i });
+      setSt((s) => ({ ...s, play: { ...s.play, correct: s.play.correct + (r.correct ? 1 : 0), raw: s.play.raw + r.pts, marks: [...(s.play.marks || []), r.correct] } }));
+    } catch { setRev({ index: cur.index, timeout: true }); }
+  }
+  async function next() {
+    setBusy(true);
+    try { const s = await dailyCall(rev?.finished ? "daily_state" : "daily_next"); off.current = Date.parse(s.now) - Date.now(); setSt(s); }
+    catch { await load(); }
+    setRev(null); setPicked(null); setBusy(false);
+  }
+
+  const switcher = <GameSwitch on="daily" />;
+  if (!st) return <div className="sec">{switcher}<Loading /></div>;
+  if (st.error) return <div className="sec">{switcher}<div className="card empty">{st.error === "missing" ? (bn ? "দৈনিক চ্যালেঞ্জ খুব শিগগিরই চালু হচ্ছে।" : "The daily challenge is coming soon.") : (bn ? "লোড করা গেল না। একটু পরে আবার চেষ্টা করুন।" : "Couldn't load. Try again shortly.")}</div></div>;
+
+  // ── খেলা চলছে ──
+  if (playing && (cur || rev)) {
+    const idx = rev ? rev.index : cur.index;
+    const marks = st.play.marks || [];
+    return (
+      <div className="sec qz-play dl-play">
+        <div className="qz-top">
+          <span className="dl-tag"><CalIcon width={15} height={15} />{bn ? "দৈনিক চ্যালেঞ্জ" : "Daily"}</span>
+          <span className="qz-dots">{Array.from({ length: DAILY_Q }, (_, i) => <i key={i} className={i < marks.length ? (marks[i] ? "ok" : "bad") : i === idx ? "cur" : ""} />)}</span>
+          <button className="qz-x" onClick={() => { quizAudio.setOn(!soundOn); setSoundOn(!soundOn); }} aria-label={soundOn ? (bn ? "শব্দ বন্ধ" : "Mute") : (bn ? "শব্দ চালু" : "Unmute")}><SoundIcon off={!soundOn} width={16} height={16} /></button>
+        </div>
+        <div className="qz-sub"><span>{bn ? `প্রশ্ন ${num(idx + 1, "bn")}/${num(DAILY_Q, "bn")}` : `Q ${idx + 1}/${DAILY_Q}`}{cur?.category ? ` · ${cur.category}` : ""}</span><span className="qz-myscore">{num(st.play.raw, lang)} {bn ? "পয়েন্ট" : "pts"}</span></div>
+        {cur && !rev && <>
+          <div className="qz-timer"><i style={{ width: `${Math.max(0, (DAILY_SEC - el) / DAILY_SEC) * 100}%` }} className={left <= 5 ? "low" : ""} /></div>
+          <div className={"qz-left" + (left <= 5 ? " low" : "")}>{num(left, lang)}</div>
+        </>}
+        {cur && cur.index === idx && (
+          <div className="qz-stage" key={idx}>
+            <h2 className="qz-q">{cur.question}</h2>
+            <div className="qz-opts">
+              {cur.options.map((o, i) => {
+                const cls = rev && !rev.timeout ? (i === rev.answer ? " right" : i === picked ? " wrong" : " dim") : rev?.timeout ? " dim" : picked === i ? " picked" : picked != null ? " dim" : "";
+                return <button key={i} style={{ animationDelay: `${120 + i * 70}ms` }} className={"qz-opt" + cls} disabled={!!rev || picked != null} onClick={() => answer(i)}><span className="qz-l">{bn ? LETTERS[i] : "ABCD"[i]}</span>{o}</button>;
+              })}
+            </div>
+          </div>
+        )}
+        {rev ? (
+          <>
+            <div className={"qz-verdict " + (rev.correct ? "ok" : "bad")}>
+              <b>{rev.timeout ? (bn ? "সময় শেষ!" : "Time's up!") : rev.correct ? (bn ? `✓ সঠিক! +${num(rev.pts, "bn")} পয়েন্ট` : `✓ Correct! +${rev.pts}`) : (bn ? "✗ ভুল" : "✗ Wrong")}</b>
+              {rev.correct && rev.pts > 10 && <span>{bn ? `দ্রুত উত্তরের বোনাস +${num(rev.pts - 10, "bn")}` : `Speed bonus +${rev.pts - 10}`}</span>}
+              {rev.explanation && <span>{rev.explanation}</span>}
+            </div>
+            <button className="btn block qz-next qz-ic-btn" disabled={busy} onClick={next}>
+              {rev.finished || idx + 1 >= DAILY_Q ? (bn ? "ফলাফল দেখুন" : "See result") : (bn ? "পরের প্রশ্ন" : "Next question")}
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+            </button>
+          </>
+        ) : picked != null ? <div className="qz-wait"><span className="spin sm" />{bn ? "উত্তর জমা হচ্ছে…" : "Locking in…"}</div> : null}
+      </div>
+    );
+  }
+  if (playing && !cur) {
+    // মাঝপথে ফিরে এলে: পরের প্রশ্ন খোলা হয়নি
+    return (
+      <div className="sec">{switcher}
+        <div className="card dl-hero">
+          <div className="dl-hero-ic"><CalIcon width={30} height={30} /></div>
+          <h2>{bn ? "চ্যালেঞ্জ চলছে" : "Challenge in progress"}</h2>
+          <p className="muted">{bn ? `${num(st.play.idx, "bn")}/${num(DAILY_Q, "bn")} প্রশ্ন শেষ · ${num(st.play.raw, "bn")} পয়েন্ট` : `${st.play.idx}/${DAILY_Q} done · ${st.play.raw} pts`}</p>
+          <button className="btn block dl-go" disabled={busy} onClick={next}>{bn ? "পরের প্রশ্নে চলুন" : "Continue"}</button>
+        </div>
+      </div>
+    );
+  }
+
+  const nextIn = Math.max(0, Date.parse(st.next_at) - nowS);
+  const hms = (() => { const t = Math.floor(nextIn / 1000), h = Math.floor(t / 3600), m = Math.floor((t % 3600) / 60), s2 = t % 60; return [h, m, s2].map((x) => String(x).padStart(2, "0")).join(":"); })();
+  const pl = st.play;
+  const mult = (st.streak + (pl ? 0 : 1)) >= 7 ? 1.5 : (st.streak + (pl ? 0 : 1)) >= 3 ? 1.2 : 1;
+
+  const main = pl?.finished ? (
+    <>
+      {pl.correct >= 4 && <Celebrate code={"daily-" + st.day} />}
+      <div className="card dl-done">
+        <div className="dl-done-h"><CalIcon width={18} height={18} />{bn ? "আজকের চ্যালেঞ্জ শেষ" : "Today's challenge done"} · {dayLabel(st.day, lang, { short: true, abs: true })}</div>
+        <div className="dl-score"><CountUp to={pl.correct} lang={lang} /><small>/{num(DAILY_Q, lang)}</small></div>
+        <div className="dl-marks">{(pl.marks || []).map((ok, i) => <span key={i} className={ok ? "ok" : "bad"}>{ok ? "✓" : "✕"}</span>)}</div>
+        <div className="dl-pts"><b><CountUp to={pl.points ?? pl.raw} lang={lang} /></b> {bn ? "পয়েন্ট" : "points"}</div>
+        <div className="muted dl-break">
+          {num(pl.raw, lang)}{pl.correct === DAILY_Q ? ` + ${bn ? "নিখুঁত" : "perfect"} ${num(10, lang)}` : ""}{pl.mult > 1 ? ` × ${num(pl.mult, lang)} (${bn ? "ধারাবাহিকতা" : "streak"})` : ""}
+        </div>
+        <div className="dl-stats">
+          <div><FlameIcon width={20} height={20} className="fl" /><b>{num(st.streak, lang)}</b><small>{bn ? "দিন টানা" : "day streak"}</small></div>
+          <div><TrophyIcon width={20} height={20} /><b>{st.week?.rank ? `#${num(st.week.rank, lang)}` : "–"}</b><small>{bn ? "এই সপ্তাহে" : "this week"}</small></div>
+          <div><TargetIcon width={20} height={20} /><b>{num(st.week?.points || 0, lang)}</b><small>{bn ? "সপ্তাহের পয়েন্ট" : "week pts"}</small></div>
+        </div>
+        <button className="btn block dl-share" onClick={() => shareDaily(st, lang, toast)}><ShareIcon width={18} height={18} />{bn ? "ফল শেয়ার করুন" : "Share result"}</button>
+        <div className="dl-next">{bn ? "পরের চ্যালেঞ্জ" : "Next challenge in"} <b>{bn ? num(hms, "bn") : hms}</b></div>
+      </div>
+      {st.review && (
+        <details className="card qz-review">
+          <summary>{bn ? "আজকের প্রশ্ন আর সঠিক উত্তর" : "Today's questions & answers"}</summary>
+          {st.review.map((r, i) => (
+            <div key={i} className="qz-rv">
+              <b>{num(i + 1, lang)}. {r.question}</b>
+              <div className={r.choice === r.answer ? "ok" : "bad"}>{r.choice === r.answer ? "✓ " : "✗ "}{bn ? "সঠিক উত্তর" : "Answer"}: {r.options[r.answer]}{r.choice != null && r.choice !== r.answer ? ` · ${bn ? "আপনার" : "you"}: ${r.options[r.choice]}` : r.choice == null ? ` · ${bn ? "উত্তর দেননি" : "no answer"}` : ` · +${num(r.pts, lang)}`}</div>
+              {r.explanation && <small className="muted">{r.explanation}</small>}
+            </div>
+          ))}
+        </details>
+      )}
+    </>
+  ) : (
+    <div className="card dl-hero">
+      <div className="dl-hero-top">
+        <div className="dl-hero-ic"><CalIcon width={30} height={30} /></div>
+        <div>
+          <h2>{bn ? "আজকের চ্যালেঞ্জ" : "Today's challenge"}</h2>
+          <div className="muted" style={{ fontSize: 13.5 }}>{dayLabel(st.day, lang, { abs: true })}</div>
+        </div>
+      </div>
+      <div className="dl-chips">
+        <span>{bn ? "৫টা প্রশ্ন" : "5 questions"}</span><span>{bn ? "প্রতিটায় ২০ সেকেন্ড" : "20s each"}</span><span>{bn ? "দিনে একবার" : "Once a day"}</span>
+      </div>
+      {st.streak > 0 && (
+        <div className="dl-streak"><FlameIcon width={22} height={22} /><span><b>{bn ? `টানা ${num(st.streak, "bn")} দিন` : `${st.streak}-day streak`}</b><small>{bn ? (mult > 1 ? `আজ খেললে পয়েন্ট ×${num(mult, "bn")}` : "আজ খেলে ধারাবাহিকতা ধরে রাখুন") : (mult > 1 ? `Play today for ×${mult}` : "Play today to keep it going")}</small></span></div>
+      )}
+      <button className="btn block dl-go" disabled={busy} onClick={start}>{!user && !DEMO ? (bn ? "লগইন করে খেলুন" : "Log in to play") : (bn ? "চ্যালেঞ্জ শুরু করুন" : "Start the challenge")}</button>
+      <div className="muted dl-meta">{st.players_today > 0 ? (bn ? `আজ ${num(st.players_today, "bn")} জন খেলেছেন · ` : `${st.players_today} played today · `) : ""}{bn ? "নতুন চ্যালেঞ্জ রাত ১২টায়" : "New challenge at midnight"}</div>
+      <div className="dl-rules">
+        <div><b>+১০</b><span>{bn ? "প্রতিটা সঠিক উত্তর" : "each right answer"}</span></div>
+        <div><b>+৫</b><span>{bn ? "পর্যন্ত দ্রুততার বোনাস" : "speed bonus, max"}</span></div>
+        <div><b>+১০</b><span>{bn ? "৫টাই সঠিক হলে" : "all 5 right"}</span></div>
+        <div><b>×১.৫</b><span>{bn ? "টানা ৭ দিন খেললে" : "7-day streak"}</span></div>
+      </div>
+    </div>
+  );
+
+  const side = (
+    <>
+      <div className="sec"><div className="sec-h"><h2>{bn ? "সাপ্তাহিক র‍্যাঙ্কিং" : "Weekly ranking"}</h2></div><WeekBoard /></div>
+      {(user || DEMO) && <div className="sec"><div className="sec-h"><h2>{bn ? "আপনার ব্যাজ" : "Your badges"}</h2><span className="muted" style={{ fontSize: 12.5 }}>{num((st.badges || []).length, lang)}/{num(BADGES.length, lang)}</span></div><div className="card"><BadgeGrid have={st.badges} /></div></div>}
+    </>
+  );
+
+  return (
+    <>
+      {pop && <NewBadgePop ids={pop} onClose={() => setPop(null)} />}
+      {wide ? (
+        <>
+          <div className="sec pd-top">{switcher}<span /></div>
+          <div className="pg-grid"><div className="pg-main"><div className="sec">{main}</div></div><aside className="pg-side">{side}</aside></div>
+        </>
+      ) : (
+        <div className="sec">{switcher}{main}{side}</div>
+      )}
+    </>
+  );
+}
+
+// হোমে আজকের চ্যালেঞ্জের ছোট কার্ড
+function DailyTeaser({ user, side }) {
+  const { lang } = useT();
+  const bn = lang === "bn";
+  const nav = useNav();
+  const [st] = useDaily(user);
+  const [, tick] = useState(0);
+  useEffect(() => { const t = setInterval(() => tick((x) => x + 1), 30000); return () => clearInterval(t); }, []);
+  if (st?.error) return null;
+  const pl = st?.play;
+  const done = pl?.finished;
+  return (
+    <button className={"dl-teaser" + (done ? " done" : " glow") + (side ? " side" : "")} onClick={() => nav.openDaily()}>
+      <span className="dl-t-ic"><CalIcon width={22} height={22} /></span>
+      <span className="dl-t-txt">
+        <b>{done ? (bn ? `আজকের চ্যালেঞ্জ ✓ ${num(pl.correct, "bn")}/${num(DAILY_Q, "bn")}` : `Today ✓ ${pl.correct}/${DAILY_Q}`) : pl ? (bn ? "চ্যালেঞ্জ চলছে" : "Challenge in progress") : (bn ? "আজকের চ্যালেঞ্জ" : "Today's challenge")}</b>
+        <small>{done
+          ? (bn ? `${num(pl.points ?? pl.raw, "bn")} পয়েন্ট · পরেরটা ${countdown(Date.parse(st.next_at) - Date.now(), "bn")} পর` : `${pl.points ?? pl.raw} pts · next in ${countdown(Date.parse(st.next_at) - Date.now(), "en")}`)
+          : pl ? (bn ? "চালিয়ে যান →" : "Continue →") : (bn ? "৫টা প্রশ্ন · ২ মিনিট · দিনে একবার" : "5 questions · 2 min · once a day")}</small>
+      </span>
+      {st?.streak > 0 && <span className="dl-t-streak"><FlameIcon width={16} height={16} />{num(st.streak, lang)}</span>}
+      {!done && <span className="dl-t-go">{bn ? "খেলুন" : "Play"}</span>}
+    </button>
   );
 }
 
@@ -4201,6 +4733,27 @@ function AuthForm() {
   );
 }
 
+function ProfileBadges({ user }) {
+  const { lang } = useT();
+  const bn = lang === "bn";
+  const nav = useNav();
+  const [st] = useDaily(user);
+  if (!st || st.error) return null;
+  return (
+    <div className="sec">
+      <div className="sec-h"><h2>{bn ? "দৈনিক চ্যালেঞ্জের ব্যাজ" : "Daily challenge badges"}</h2><button className="link" onClick={() => nav.openDaily()}>{bn ? "খেলুন" : "Play"} →</button></div>
+      <div className="card">
+        <div className="pb-stats">
+          <div><FlameIcon width={18} height={18} className="fl" /><b>{num(st.streak, lang)}</b><small>{bn ? "এখন টানা" : "current streak"}</small></div>
+          <div><TrophyIcon width={18} height={18} /><b>{num(st.best_streak, lang)}</b><small>{bn ? "সেরা ধারাবাহিকতা" : "best streak"}</small></div>
+          <div><CalIcon width={18} height={18} /><b>{num((st.badges || []).length, lang)}/{num(BADGES.length, lang)}</b><small>{bn ? "ব্যাজ" : "badges"}</small></div>
+        </div>
+        <BadgeGrid have={st.badges} compact />
+      </div>
+    </div>
+  );
+}
+
 function Profile({ user, profile, myTeams, teamsById, lang, setLang, theme, setTheme, onEditTeams }) {
   const { t } = useT();
   const settings = (
@@ -4250,6 +4803,7 @@ function Profile({ user, profile, myTeams, teamsById, lang, setLang, theme, setT
           <div className="team-chips">{myTeams.fav.length ? chips(myTeams.fav) : <span className="muted" style={{ fontSize: 13 }}>{lang === "bn" ? "এখনো কোনো প্রিয় দল নেই। যেকোনো দলের পাতায় ☆ চাপুন, বা ওপরে এডিট করুন।" : "No favourites yet. Tap ☆ on any team page, or Edit above."}</span>}</div>
         </div>
       </div>
+      <ProfileBadges user={user} />
       {settings}
       <div className="sec">
         <button className="btn ghost block" onClick={signOut}>{t("logout")}</button>
@@ -5873,6 +6427,7 @@ const viewFromPath = () => {
   if (kind === "team" && /^\d+$/.test(id || "")) return { kind: "team", id: +id };
   if (kind === "player" && /^\d+$/.test(id || "")) return { kind: "player", id: +id };
   if (kind === "quiz") return { kind: "quiz", code: id && /^[A-Za-z0-9]{4,8}$/.test(id) ? id.toUpperCase() : null };
+  if (kind === "daily" && !id) return { kind: "daily" };
   if (PAGE_PATHS[kind] && !id) return { kind: "page", id: PAGE_PATHS[kind] };
   return null;
 };
@@ -5882,10 +6437,11 @@ const store = (k, v) => { try { localStorage.setItem(k, v); } catch { /* ignore 
 // ডেস্কটপে হেডারের ভেতরে একই ট্যাবগুলো
 function DeskNav({ tab, go }) {
   const { t } = useT();
+  const nav = useNav();
   return (
     <nav className="dnav">
       {TABS.map(({ id, Icon }) => (
-        <button key={id} className={tab === id ? "on" : ""} onClick={() => go(id)}>
+        <button key={id} className={tab === id ? "on" : ""} onClick={() => (id === "predict" ? nav.openDaily() : go(id))}>
           <Icon />{t(id)}
         </button>
       ))}
@@ -5895,6 +6451,7 @@ function DeskNav({ tab, go }) {
 
 function Nav({ tab, go }) {
   const { t } = useT();
+  const nav = useNav();
   return (
     <nav className="nav">
       <div className="nav-in">
@@ -5903,7 +6460,7 @@ function Nav({ tab, go }) {
             <span className="ask-orb"><Icon /></span>{t(id)}
           </button>
         ) : (
-          <button key={id} className={tab === id ? "on" : ""} onClick={() => go(id)}>
+          <button key={id} className={tab === id ? "on" : ""} onClick={() => (id === "predict" ? nav.openDaily() : go(id))}>
             <Icon />{t(id)}
           </button>
         ))}
@@ -5915,7 +6472,7 @@ function Nav({ tab, go }) {
 export default function App() {
   const [lang, setLangS] = useState(() => stored("kk_lang", "bn"));
   const [theme, setThemeS] = useState(() => stored("kk_theme", "light"));
-  const [tab, setTab] = useState(() => (window.location.pathname.startsWith("/quiz") ? "predict" : tabFromPath()));
+  const [tab, setTab] = useState(() => (/^\/(quiz|daily)/.test(window.location.pathname) ? "predict" : tabFromPath()));
   const [view, setView] = useState(viewFromPath);
   const [comps, setComps] = useState([]);
   const [teamsById, setTeamsById] = useState({});
@@ -5968,6 +6525,7 @@ export default function App() {
     // কুইজ: /quiz (শুরুর পাতা) বা /quiz/কোড; replace = ইতিহাসে নতুন ধাপ না যোগ করে
     openFriends: () => { setPredTab((p) => ({ tab: "friends", league: null, key: p.key + 1 })); go("predict"); },
     openSearch: () => { setSheet(null); setSearching(true); },
+    openDaily: () => { setTab("predict"); openView("/daily", { kind: "daily" }); },
     openQuiz: (code, replace) => {
       setTab("predict");
       const path = code ? `/quiz/${code}` : "/quiz";
@@ -6098,7 +6656,7 @@ export default function App() {
         </header>
         {DEMO && <div className="demo-bar">{lang === "bn" ? "ডেমো মোড — নমুনা ডেটা দেখানো হচ্ছে" : "Demo mode — sample data"}</div>}
 
-        <main className={"main v-" + (onboarding ? "onboarding" : view?.kind || tab) + (!onboarding && ((!view && (tab === "matches" || tab === "leagues")) || view?.kind === "league" || view?.kind === "team" || view?.kind === "player" || (!view && tab === "predict")) ? " wide" : " narrow")}>
+        <main className={"main v-" + (onboarding ? "onboarding" : view?.kind || tab) + (!onboarding && ((!view && (tab === "matches" || tab === "leagues")) || view?.kind === "league" || view?.kind === "team" || view?.kind === "player" || view?.kind === "daily" || (!view && tab === "predict")) ? " wide" : " narrow")}>
         {onboarding ? (
           <Onboarding
             key={editing ? "edit" : "first"}
@@ -6114,6 +6672,8 @@ export default function App() {
           <Team key={view.id} id={view.id} teamsById={teamsById} preds={preds} onOpen={openMatch} isFav={myTeams.fav.includes(view.id)} onToggleFav={toggleFav} />
         ) : view?.kind === "page" ? (
           <InfoPage key={view.id} id={view.id} user={user} goProfile={() => go("profile")} />
+        ) : view?.kind === "daily" ? (
+          <DailyPage user={user} goProfile={() => go("profile")} toast={toast} />
         ) : view?.kind === "quiz" ? (
           <QuizPage code={view.code} user={user} goProfile={() => go("profile")} toast={toast} />
         ) : view?.kind === "player" ? (
@@ -6132,7 +6692,7 @@ export default function App() {
         </main>
 
         {/* ফুটার তথ্যের পাতাগুলোয়; গেম, কুইজ আর জিজ্ঞেস করুন-এ নয় (অ্যাপের মতো পরিষ্কার) */}
-        {!onboarding && view?.kind !== "quiz" && !(!view && (tab === "ask" || tab === "predict")) && <Footer comps={comps} />}
+        {!onboarding && view?.kind !== "quiz" && view?.kind !== "daily" && !(!view && (tab === "ask" || tab === "predict")) && <Footer comps={comps} />}
       </div>
 
       {!onboarding && <Nav tab={tab} go={go} />}
