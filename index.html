@@ -51,13 +51,13 @@
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 80'><circle cx='40' cy='40' r='38' fill='%23064e3b' stroke='%2300e676' stroke-width='3'/><line x1='40' y1='4' x2='40' y2='12' stroke='rgba(255,255,255,0.5)' stroke-width='2.5'/><line x1='76' y1='40' x2='68' y2='40' stroke='rgba(255,255,255,0.5)' stroke-width='2.5'/><line x1='4' y1='40' x2='12' y2='40' stroke='rgba(255,255,255,0.5)' stroke-width='2.5'/><line x1='40' y1='76' x2='40' y2='68' stroke='rgba(255,255,255,0.5)' stroke-width='2.5'/><line x1='40' y1='40' x2='40' y2='24' stroke='white' stroke-width='5' stroke-linecap='round'/><line x1='40' y1='40' x2='55' y2='32' stroke='%2300e676' stroke-width='3' stroke-linecap='round'/><line x1='40' y1='40' x2='62' y2='22' stroke='%23e11d48' stroke-width='1.5' stroke-linecap='round'/><circle cx='40' cy='40' r='3' fill='%23e11d48'/></svg>"/>
 
     <style>
-      /* ৪০০–৬০০ ওজনে Hind Siliguri-র "১" "\"-এর মতো দেখায়। তাই শুধু এই একটা অঙ্ক বদলানো:
-         Noto Sans Bengali-র স্পষ্ট ১-এর আকৃতি, Hind Siliguri-র অঙ্কের মাপে বসানো (উচ্চতা, তলা, জায়গা),
-         যাতে "১৩"-এ ১ আর ৩ একই ফন্টের মনে হয়। বাকি সব অঙ্ক ও অক্ষর, আর ৭০০+ ওজন আগের মতো Hind Siliguri।
-         ফাইলে শুধু "১" (প্রতিটা ১ KB-এর কম)। */
-      @font-face { font-family: 'Hind Siliguri'; font-weight: 400; font-display: swap; src: url(/fonts/bn-one-400.woff2) format('woff2'); unicode-range: U+09E7; }
-      @font-face { font-family: 'Hind Siliguri'; font-weight: 500; font-display: swap; src: url(/fonts/bn-one-500.woff2) format('woff2'); unicode-range: U+09E7; }
-      @font-face { font-family: 'Hind Siliguri'; font-weight: 600; font-display: swap; src: url(/fonts/bn-one-600.woff2) format('woff2'); unicode-range: U+09E7; }
+      /* ৪০০–৬০০ ওজনে Hind Siliguri-র "১" "\"-এর মতো দেখায়। তাই যে সংখ্যায় "১" আছে (১৯, +১০, ১.৫),
+         সেই পুরো সংখ্যাটা স্পষ্ট রূপে (Noto Sans Bengali-র আকৃতি, Hind Siliguri-র মাপে বসানো), যাতে সব অঙ্ক মেলে।
+         "১" নেই এমন সংখ্যা (২০, ৫টা) আর সব অক্ষর আগের মতো Hind Siliguri; ৭০০+ ওজনে কিছুই বদলায় না।
+         কাজটা ফন্টের ভেতরের calt নিয়মে হয়। ফাইলে শুধু অঙ্ক আর দশমিক (প্রতিটা ~৩ KB)। */
+      @font-face { font-family: 'Hind Siliguri'; font-weight: 400; font-display: swap; src: url(/fonts/bn-digits-400.woff2) format('woff2'); unicode-range: U+09E6-09EF, U+002E; }
+      @font-face { font-family: 'Hind Siliguri'; font-weight: 500; font-display: swap; src: url(/fonts/bn-digits-500.woff2) format('woff2'); unicode-range: U+09E6-09EF, U+002E; }
+      @font-face { font-family: 'Hind Siliguri'; font-weight: 600; font-display: swap; src: url(/fonts/bn-digits-600.woff2) format('woff2'); unicode-range: U+09E6-09EF, U+002E; }
       * { margin: 0; padding: 0; box-sizing: border-box; }
       body { font-family: 'Hind Siliguri', sans-serif; -webkit-tap-highlight-color: transparent; }
 
