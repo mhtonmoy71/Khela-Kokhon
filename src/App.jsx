@@ -775,6 +775,18 @@ button.scr { width: 100%; }
   .side-go { color: var(--green); font-weight: 600; font-size: 13.5px; margin-top: 4px; }
 }
 @media (min-width: 1280px) { .home-grid .groups { columns: 2 !important; } }
+/* লিগ আর দলের পাতা: মাঝারি ডেস্কটপে মাঝখানে পড়ার মতো চওড়া, বড় স্ক্রিনে দুই কলাম */
+@media (min-width: 1024px) and (max-width: 1099px) { .main.v-league, .main.v-team { max-width: 820px; margin: 0 auto; } }
+@media (min-width: 1100px) {
+  .pg-grid { display: grid; grid-template-columns: minmax(0, 1fr) 380px; gap: 28px; align-items: start; }
+  .pg-side .sec:first-child, .pg-main .sec:first-child { margin-top: 18px; }
+  .v-league .tbl { padding-top: 11px; padding-bottom: 11px; }
+  .team-hero.row { flex-direction: row; justify-content: flex-start; flex-wrap: wrap; gap: 14px 22px; text-align: left; padding-top: 4px; }
+  .team-hero.row .th-name { display: flex; flex-direction: column; }
+  .team-hero.row .th-name h1 { margin: 0; }
+  .team-hero.row .fav-btn { margin: 0 0 0 auto; }
+  .team-hero.row .team-pos { flex-basis: 100%; justify-content: flex-start; margin-top: 0; }
+}
 `;
 if (typeof document !== "undefined" && !document.getElementById("kk-css")) {
   const st = document.createElement("style");
@@ -5225,9 +5237,11 @@ function DatedRows({ list, preds, onOpen }) {
 }
 
 // ═════════ লিগের পাতা ═════════
+// মোবাইলে টেবিল/ম্যাচ/গোলদাতা ট্যাবে; বড় স্ক্রিনে সব একসাথে (বাঁয়ে টেবিল, ডানে বাকিটা)
 function League({ code, comps, preds, onOpen }) {
   const { lang } = useT();
   const nav = useNav();
+  const wide = useWide();
   const c = comps.find((x) => x.code === code) || { code, name_bn: code, name_en: code };
   const [tab, setTab] = useState("table");
   const [table, setTable] = useState(null);
@@ -5237,20 +5251,89 @@ function League({ code, comps, preds, onOpen }) {
 
   useEffect(() => { setTable(null); getStandings(code).then(setTable).catch(() => setTable([])); }, [code]);
   useEffect(() => {
-    if (tab === "scorers" && scorers === null) getScorers(code).then(setScorers).catch(() => setScorers([]));
-    if (tab === "matches" && games === null)
+    if ((wide || tab === "scorers") && scorers === null) getScorers(code).then(setScorers).catch(() => setScorers([]));
+    if ((wide || tab === "matches") && games === null)
       Promise.all([getCompUpcoming(code, 10), getCompRecent(code, 10)]).then(([up, past]) => setGames({ up, past })).catch(() => setGames({ up: [], past: [] }));
-  }, [tab, code]);
+  }, [tab, code, wide]);
 
   const notYet = bn ? "এখনো আসেনি। প্রতিদিন সকালে হালনাগাদ হয়।" : "Not available yet. Updated every morning.";
 
+  const tableBlock = table === null ? <Loading /> : !table.length ? <div className="card empty">{bn ? "টেবিল " : "Table "}{notYet}</div> : (
+    <>
+      <div className="card">
+        <div className="tbl tbl-h">
+          <span>#</span><span>{bn ? "দল" : "Team"}</span><span>{bn ? "খে" : "P"}</span><span>{bn ? "জ" : "W"}</span><span>{bn ? "ড্র" : "D"}</span><span>{bn ? "হা" : "L"}</span><span>+/-</span><span>{bn ? "প" : "Pts"}</span>
+        </div>
+        {table.map((r) => (
+          <button key={r.team_id} className={"tbl " + zone(code, r.position, table.length)} onClick={() => nav.openTeam(r.team_id)}>
+            <span className="pos">{num(r.position, lang)}</span>
+            <span className="tm"><Crest team={r.team} size={20} /><b>{teamName(r.team, lang)}</b></span>
+            <span>{num(r.played, lang)}</span><span>{num(r.won, lang)}</span><span>{num(r.draw, lang)}</span><span>{num(r.lost, lang)}</span>
+            <span>{r.gd > 0 ? "+" : ""}{num(r.gd, lang)}</span>
+            <span className="pts">{num(r.points, lang)}</span>
+          </button>
+        ))}
+      </div>
+      <div className="legend">
+        {code === "CL"
+          ? <><i className="z-up" />{bn ? "শেষ ষোলোয় সরাসরি" : "Round of 16"} <i className="z-mid" />{bn ? "প্লে-অফ" : "Play-offs"}</>
+          : <><i className="z-up" />{bn ? "চ্যাম্পিয়ন্স লিগ" : "Champions League"} <i className="z-down" />{bn ? "অবনমন" : "Relegation"}</>}
+      </div>
+    </>
+  );
+
+  const gamesBlock = (n) => games === null ? <Loading /> : (
+    <>
+      <div className="sec-h"><h2>{bn ? "সামনের খেলা" : "Upcoming"}</h2></div>
+      {games.up.length ? <div className="card"><DatedRows list={games.up.slice(0, n)} preds={preds} onOpen={onOpen} /></div> : <div className="card empty">{bn ? "সামনে কোনো খেলা নেই" : "No upcoming matches"}</div>}
+      <div className="sec-h" style={{ marginTop: 16 }}><h2>{bn ? "সাম্প্রতিক ফল" : "Recent results"}</h2></div>
+      {games.past.length ? <div className="card"><DatedRows list={games.past.slice(0, n)} preds={preds} onOpen={onOpen} /></div> : <div className="card empty">{bn ? "কোনো ফল নেই" : "No results"}</div>}
+    </>
+  );
+
+  const scorersBlock = (n) => scorers === null ? <Loading /> : !scorers.length ? <div className="card empty">{bn ? "গোলদাতার তালিকা " : "Scorers "}{notYet}</div> : (
+    <div className="card">
+      <div className="scr scr-h"><span>#</span><span>{bn ? "খেলোয়াড়" : "Player"}</span><span>{bn ? "অ্যাসিস্ট" : "Ast"}</span><span>{bn ? "গোল" : "Goals"}</span></div>
+      {scorers.slice(0, n).map((s, i) => (
+        <div className="scr" key={s.player_id}>
+          <span className="pos">{num(i + 1, lang)}</span>
+          <span className="pl">
+            <button className="pl-name" onClick={() => nav.openPlayer(s.player_id)}><b>{playerName(s.player_name, lang)}</b></button>
+            <button className="pl-team" onClick={() => s.team_id && nav.openTeam(s.team_id)}><Crest team={s.team} size={14} />{teamName(s.team, lang)}</button>
+          </span>
+          <span className="muted">{num(s.assists ?? 0, lang)}</span>
+          <span className="pts">{num(s.goals, lang)}</span>
+        </div>
+      ))}
+    </div>
+  );
+
+  const head = (
+    <div className="page-head">
+      <button className="back" onClick={() => window.history.back()} aria-label="back">←</button>
+      <CompIcon c={c} size={34} />
+      <h1>{compName(c, lang)}</h1>
+    </div>
+  );
+
+  if (wide) return (
+    <>
+      {head}
+      <div className="pg-grid">
+        <div className="pg-main">
+          <div className="sec"><div className="sec-h"><h2>{bn ? "পয়েন্ট টেবিল" : "Table"}</h2></div>{tableBlock}</div>
+        </div>
+        <aside className="pg-side">
+          <div className="sec"><div className="sec-h"><h2>{bn ? "শীর্ষ গোলদাতা" : "Top scorers"}</h2></div>{scorersBlock(10)}</div>
+          <div className="sec">{gamesBlock(5)}</div>
+        </aside>
+      </div>
+    </>
+  );
+
   return (
     <>
-      <div className="page-head">
-        <button className="back" onClick={() => window.history.back()} aria-label="back">←</button>
-        <CompIcon c={c} size={34} />
-        <h1>{compName(c, lang)}</h1>
-      </div>
+      {head}
       <div className="sec" style={{ marginTop: 10 }}>
         <div className="seg seg3">
           {[["table", bn ? "টেবিল" : "Table"], ["matches", bn ? "ম্যাচ" : "Matches"], ["scorers", bn ? "গোলদাতা" : "Scorers"]].map(([k, l]) => (
@@ -5258,68 +5341,9 @@ function League({ code, comps, preds, onOpen }) {
           ))}
         </div>
       </div>
-
-      {tab === "table" && (
-        <div className="sec">
-          {table === null ? <Loading /> : !table.length ? <div className="card empty">{bn ? "টেবিল " : "Table "}{notYet}</div> : (
-            <>
-              <div className="card">
-                <div className="tbl tbl-h">
-                  <span>#</span><span>{bn ? "দল" : "Team"}</span><span>{bn ? "খে" : "P"}</span><span>{bn ? "জ" : "W"}</span><span>{bn ? "ড্র" : "D"}</span><span>{bn ? "হা" : "L"}</span><span>+/-</span><span>{bn ? "প" : "Pts"}</span>
-                </div>
-                {table.map((r) => (
-                  <button key={r.team_id} className={"tbl " + zone(code, r.position, table.length)} onClick={() => nav.openTeam(r.team_id)}>
-                    <span className="pos">{num(r.position, lang)}</span>
-                    <span className="tm"><Crest team={r.team} size={20} /><b>{teamName(r.team, lang)}</b></span>
-                    <span>{num(r.played, lang)}</span><span>{num(r.won, lang)}</span><span>{num(r.draw, lang)}</span><span>{num(r.lost, lang)}</span>
-                    <span>{r.gd > 0 ? "+" : ""}{num(r.gd, lang)}</span>
-                    <span className="pts">{num(r.points, lang)}</span>
-                  </button>
-                ))}
-              </div>
-              <div className="legend">
-                {code === "CL"
-                  ? <><i className="z-up" />{bn ? "শেষ ষোলোয় সরাসরি" : "Round of 16"} <i className="z-mid" />{bn ? "প্লে-অফ" : "Play-offs"}</>
-                  : <><i className="z-up" />{bn ? "চ্যাম্পিয়ন্স লিগ" : "Champions League"} <i className="z-down" />{bn ? "অবনমন" : "Relegation"}</>}
-              </div>
-            </>
-          )}
-        </div>
-      )}
-
-      {tab === "matches" && (
-        <div className="sec">
-          {games === null ? <Loading /> : (
-            <>
-              <div className="sec-h"><h2>{bn ? "সামনের খেলা" : "Upcoming"}</h2></div>
-              {games.up.length ? <div className="card"><DatedRows list={games.up} preds={preds} onOpen={onOpen} /></div> : <div className="card empty">{bn ? "সামনে কোনো খেলা নেই" : "No upcoming matches"}</div>}
-              <div className="sec-h" style={{ marginTop: 16 }}><h2>{bn ? "সাম্প্রতিক ফল" : "Recent results"}</h2></div>
-              {games.past.length ? <div className="card"><DatedRows list={games.past} preds={preds} onOpen={onOpen} /></div> : <div className="card empty">{bn ? "কোনো ফল নেই" : "No results"}</div>}
-            </>
-          )}
-        </div>
-      )}
-
-      {tab === "scorers" && (
-        <div className="sec">
-          {scorers === null ? <Loading /> : !scorers.length ? <div className="card empty">{bn ? "গোলদাতার তালিকা " : "Scorers "}{notYet}</div> : (
-            <div className="card">
-              <div className="scr scr-h"><span>#</span><span>{bn ? "খেলোয়াড়" : "Player"}</span><span>{bn ? "অ্যাসিস্ট" : "Ast"}</span><span>{bn ? "গোল" : "Goals"}</span></div>
-              {scorers.map((s, i) => (
-                <div className="scr" key={s.player_id}>
-                  <span className="pos">{num(i + 1, lang)}</span>
-                  <span className="pl">
-                    <button className="pl-name" onClick={() => nav.openPlayer(s.player_id)}><b>{playerName(s.player_name, lang)}</b></button>
-                    <button className="pl-team" onClick={() => s.team_id && nav.openTeam(s.team_id)}><Crest team={s.team} size={14} />{teamName(s.team, lang)}</button>
-                  </span>
-                  <span className="muted">{num(s.assists ?? 0, lang)}</span>
-                  <span className="pts">{num(s.goals, lang)}</span>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
+      {tab === "table" && <div className="sec">{tableBlock}</div>}
+      {tab === "matches" && <div className="sec">{gamesBlock(10)}</div>}
+      {tab === "scorers" && <div className="sec">{scorersBlock(20)}</div>}
     </>
   );
 }
@@ -5513,6 +5537,7 @@ function Player({ id, teamsById, comps }) {
 function Team({ id, teamsById, preds, onOpen, isFav, onToggleFav }) {
   const { lang } = useT();
   const nav = useNav();
+  const wide = useWide();
   const bn = lang === "bn";
   const [pos, setPos] = useState(null);
   const [up, setUp] = useState(null);
@@ -5551,10 +5576,12 @@ function Team({ id, teamsById, preds, onOpen, isFav, onToggleFav }) {
       <div className="page-head">
         <button className="back" onClick={() => window.history.back()} aria-label="back">←</button>
       </div>
-      <div className="team-hero">
+      <div className={"team-hero" + (wide ? " row" : "")}>
         <Crest team={team} size={84} />
+        <div className="th-name">
         <h1>{teamName(team, lang)}</h1>
         {team && bn && <div className="muted" style={{ fontSize: 13 }}>{teamName(team, "en")}</div>}
+        </div>
         {team && onToggleFav && (
           <button className={"fav-btn" + (isFav ? " on" : "")} onClick={() => onToggleFav(id)}>
             <span>{isFav ? "★" : "☆"}</span>{isFav ? (bn ? "প্রিয় দল" : "Favourite") : (bn ? "প্রিয় দলে যোগ করুন" : "Add to favourites")}
@@ -5571,14 +5598,17 @@ function Team({ id, teamsById, preds, onOpen, isFav, onToggleFav }) {
         )}
       </div>
 
+      {!wide && (
       <div className="sec" style={{ marginTop: 14 }}>
         <div className="seg">
           <button className={tab === "overview" ? "on" : ""} onClick={() => setTab("overview")}>{bn ? "এক নজরে" : "Overview"}</button>
           <button className={tab === "squad" ? "on" : ""} onClick={() => setTab("squad")}>{bn ? "খেলোয়াড়" : "Squad"}</button>
         </div>
       </div>
+      )}
 
-      {tab === "squad" ? <div className="sec"><Squad info={info} lang={lang} photos={photos} /></div> : (<>
+      <div className={wide ? "pg-grid" : undefined}>
+      {!wide && tab === "squad" ? <div className="sec"><Squad info={info} lang={lang} photos={photos} /></div> : (<div className={wide ? "pg-main" : undefined}>
       {main && (
         <div className="sec">
           {pos.map((st) => (
@@ -5611,7 +5641,7 @@ function Team({ id, teamsById, preds, onOpen, isFav, onToggleFav }) {
         <div className="sec-h"><h2>{bn ? "সাম্প্রতিক ফল" : "Recent results"}</h2></div>
         {past === null ? <Loading /> : past.length ? <div className="card"><DatedRows list={past} preds={preds} onOpen={onOpen} /></div> : <div className="card empty">{bn ? "কোনো ফল নেই" : "No results"}</div>}
       </div>
-      {info && (info.venue || info.founded) && (
+      {!wide && info && (info.venue || info.founded) && (
         <div className="sec">
           <div className="card">
             {info.venue && <div className="info-row"><span className="muted">{bn ? "মাঠ" : "Stadium"}</span><b>{info.venue}</b></div>}
@@ -5620,7 +5650,25 @@ function Team({ id, teamsById, preds, onOpen, isFav, onToggleFav }) {
           </div>
         </div>
       )}
-      </>)}
+      </div>)}
+      {wide && (
+        <aside className="pg-side">
+          {info && (info.venue || info.founded) && (
+            <div className="sec">
+              <div className="sec-h"><h2>{bn ? "ক্লাবের তথ্য" : "Club info"}</h2></div>
+              <div className="card">
+                {info.venue && <div className="info-row"><span className="muted">{bn ? "মাঠ" : "Stadium"}</span><b>{info.venue}</b></div>}
+                {info.founded && <div className="info-row"><span className="muted">{bn ? "প্রতিষ্ঠা" : "Founded"}</span><b>{num(info.founded, lang)}</b></div>}
+              </div>
+            </div>
+          )}
+          <div className="sec">
+            <div className="sec-h"><h2>{bn ? "খেলোয়াড়" : "Squad"}</h2>{info?.squad?.length ? <span className="muted" style={{ fontSize: 12.5 }}>{num(info.squad.length, lang)} {bn ? "জন" : "players"}</span> : null}</div>
+            <Squad info={info} lang={lang} photos={photos} />
+          </div>
+        </aside>
+      )}
+      </div>
     </>
   );
 }
@@ -5870,7 +5918,7 @@ export default function App() {
         </header>
         {DEMO && <div className="demo-bar">{lang === "bn" ? "ডেমো মোড — নমুনা ডেটা দেখানো হচ্ছে" : "Demo mode — sample data"}</div>}
 
-        <main className={"main v-" + (onboarding ? "onboarding" : view?.kind || tab) + (!onboarding && !view && (tab === "matches" || tab === "leagues") ? " wide" : " narrow")}>
+        <main className={"main v-" + (onboarding ? "onboarding" : view?.kind || tab) + (!onboarding && ((!view && (tab === "matches" || tab === "leagues")) || view?.kind === "league" || view?.kind === "team") ? " wide" : " narrow")}>
         {onboarding ? (
           <Onboarding
             key={editing ? "edit" : "first"}
