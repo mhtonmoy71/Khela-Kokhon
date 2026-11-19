@@ -849,6 +849,9 @@ button.scr { width: 100%; }
 .dl-t-streak { display: inline-flex; align-items: center; gap: 3px; font-weight: 800; font-size: 14px; color: #f97316; font-family: Inter, "Hind Siliguri", sans-serif; }
 .dl-t-go { flex: none; height: 34px; padding: 0 14px; border-radius: 17px; background: var(--green); color: var(--onGreen); font-weight: 700; font-size: 13.5px; display: grid; place-items: center; }
 .dl-teaser.side { padding: 14px; }
+.dl-teaser { position: relative; cursor: pointer; padding-right: 40px; }
+.dl-t-x { position: absolute; top: 6px; right: 6px; width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; color: var(--muted); background: transparent; }
+.dl-t-x:hover, .dl-t-x:focus-visible { background: var(--card2); color: var(--text); }
 
 /* হোম: বড় স্ক্রিনে ম্যাচ বাঁ পাশে, কাজের তথ্য ডান পাশে */
 @media (min-width: 1100px) {
@@ -4263,12 +4266,15 @@ function DailyTeaser({ user, side }) {
   const nav = useNav();
   const [st] = useDaily(user);
   const [, tick] = useState(0);
+  const [hidden, setHidden] = useState(() => ls.get("daily_hide", null) === bdDay());
   useEffect(() => { const t = setInterval(() => tick((x) => x + 1), 30000); return () => clearInterval(t); }, []);
-  if (st?.error) return null;
+  if (st?.error || hidden) return null;
   const pl = st?.play;
   const done = pl?.finished;
+  // বন্ধ করলে শুধু আজকের জন্য; রাত ১২টায় নতুন চ্যালেঞ্জ এলে আবার দেখা যাবে
+  const close = (e) => { e.stopPropagation(); ls.set("daily_hide", st?.day || bdDay()); setHidden(true); };
   return (
-    <button className={"dl-teaser" + (done ? " done" : " glow") + (side ? " side" : "")} onClick={() => nav.openDaily()}>
+    <div role="button" tabIndex={0} className={"dl-teaser" + (done ? " done" : " glow") + (side ? " side" : "")} onClick={() => nav.openDaily()} onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && nav.openDaily()}>
       <span className="dl-t-ic"><CalIcon width={22} height={22} /></span>
       <span className="dl-t-txt">
         <b>{done ? (bn ? `আজকের চ্যালেঞ্জ ✓ ${num(pl.correct, "bn")}/${num(DAILY_Q, "bn")}` : `Today ✓ ${pl.correct}/${DAILY_Q}`) : pl ? (bn ? "চ্যালেঞ্জ চলছে" : "Challenge in progress") : (bn ? "আজকের চ্যালেঞ্জ" : "Today's challenge")}</b>
@@ -4278,7 +4284,10 @@ function DailyTeaser({ user, side }) {
       </span>
       {st?.streak > 0 && <span className="dl-t-streak"><FlameIcon width={16} height={16} />{num(st.streak, lang)}</span>}
       {!done && <span className="dl-t-go">{bn ? "খেলুন" : "Play"}</span>}
-    </button>
+      <button className="dl-t-x" onClick={close} aria-label={bn ? "আজকের জন্য লুকান" : "Hide for today"} title={bn ? "আজকের জন্য লুকান" : "Hide for today"}>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round"><path d="M6 6l12 12M18 6L6 18" /></svg>
+      </button>
+    </div>
   );
 }
 
