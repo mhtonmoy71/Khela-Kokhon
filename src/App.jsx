@@ -687,7 +687,7 @@ button.scr { width: 100%; }
 /* ══════ ডেস্কটপ (১০২৪px বা তার বেশি চওড়া স্ক্রিন) ══════ */
 .dnav { display: none; }
 @media (min-width: 1024px) {
-  .app { max-width: 1200px; padding: 0 24px 40px; }
+  .app { max-width: 1280px; padding: 0 28px 40px; }
   .top { padding: 14px 0; gap: 18px; }
   .nav { display: none; }
   .dnav { display: flex; gap: 4px; margin-left: 18px; }
@@ -735,6 +735,46 @@ button.scr { width: 100%; }
   .ask-page .ask-input { bottom: 0; padding-bottom: 24px; }
   .toast { bottom: 32px; }
 }
+/* হোম: বড় স্ক্রিনে ম্যাচ বাঁ পাশে, কাজের তথ্য ডান পাশে */
+@media (min-width: 1100px) {
+  .home-grid { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 28px; align-items: start; }
+  .home-grid .groups { columns: 1 !important; }
+  .home-side { display: flex; flex-direction: column; gap: 16px; padding-top: 18px; }
+  .side-card { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 14px 14px 10px; text-align: left; color: var(--text); }
+  .side-h { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+  .side-h h3, .side-quiz h3 { font-size: 15.5px; font-weight: 700; margin: 0; }
+  .side-h .link { font-size: 13px; }
+  .side-sub { font-size: 12.5px; margin: 8px 2px 4px; }
+  .side-empty { font-size: 13px; padding: 14px 2px; }
+  .side-lgs { display: flex; gap: 6px; }
+  .side-lgs button { flex: 1; height: 34px; border-radius: 10px; border: 1px solid var(--line); display: grid; place-items: center; background: var(--bg); }
+  .side-lgs button:hover { border-color: color-mix(in srgb, var(--green) 50%, transparent); }
+  .side-lgs button.on { border-color: var(--green); background: var(--greenDim); }
+  .side-lgs img { background: #fff; border-radius: 5px; padding: 2px; box-sizing: content-box; }
+  .mt { display: flex; flex-direction: column; }
+  .mt-row, .sc-row { display: grid; align-items: center; gap: 8px; padding: 7px 4px; border-radius: 8px; font-size: 13.5px; text-align: left; color: var(--text); width: 100%; }
+  .mt-row { grid-template-columns: 20px minmax(0, 1fr) 24px 34px 30px; }
+  .mt-row > span:nth-child(n+3) { text-align: right; }
+  .mt-h { font-size: 11.5px; padding-top: 2px; padding-bottom: 4px; }
+  .sc-row { grid-template-columns: 22px minmax(0, 1fr) auto; }
+  button.mt-row:hover, button.sc-row:hover { background: var(--card2); }
+  .mt-tm { display: flex; align-items: center; gap: 8px; min-width: 0; }
+  .mt-tm b, .sc-nm b { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .sc-nm { display: flex; flex-direction: column; min-width: 0; line-height: 1.3; }
+  .sc-nm small { font-size: 11.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .mt-pts { font-weight: 700; text-align: right; }
+  .rk-b { width: 22px; height: 22px; border-radius: 50%; display: grid; place-items: center; font-size: 12px; font-weight: 700; background: var(--card2); color: var(--muted); }
+  .rk-b.r1 { background: #f5c542; color: #3a2a00; } .rk-b.r2 { background: #cfd6dd; color: #2a3138; } .rk-b.r3 { background: #e0a46e; color: #3a2210; }
+  .side-quiz { display: flex; gap: 12px; padding: 16px; background: linear-gradient(135deg, var(--greenDim), var(--card) 70%); }
+  .sq-ic { width: 40px; height: 40px; flex: none; border-radius: 12px; display: grid; place-items: center; background: var(--green); color: var(--onGreen); }
+  .side-quiz p { font-size: 13px; margin: 4px 0 10px; line-height: 1.5; }
+  .side-quiz .btn { height: 36px; padding: 0 16px; font-size: 13.5px; }
+  .side-ask { display: flex; flex-direction: column; gap: 4px; padding: 14px 16px; cursor: pointer; }
+  .side-ask:hover { border-color: color-mix(in srgb, var(--green) 45%, transparent); }
+  .side-ask .muted { font-size: 12.5px; line-height: 1.5; }
+  .side-go { color: var(--green); font-weight: 600; font-size: 13.5px; margin-top: 4px; }
+}
+@media (min-width: 1280px) { .home-grid .groups { columns: 2 !important; } }
 `;
 if (typeof document !== "undefined" && !document.getElementById("kk-css")) {
   const st = document.createElement("style");
@@ -2814,6 +2854,137 @@ function Following({ list, preds, onOpen }) {
   );
 }
 
+// ── ডেস্কটপের সাইডবার: বড় স্ক্রিনেই শুধু তৈরি হয় (মোবাইলে বাড়তি ডেটা নামে না) ──
+function useWide(q = "(min-width: 1100px)") {
+  const get = () => typeof window !== "undefined" && !!window.matchMedia?.(q).matches;
+  const [on, setOn] = useState(get);
+  useEffect(() => {
+    const mq = window.matchMedia?.(q); if (!mq) return;
+    const f = () => setOn(mq.matches);
+    mq.addEventListener ? mq.addEventListener("change", f) : mq.addListener(f);
+    return () => (mq.removeEventListener ? mq.removeEventListener("change", f) : mq.removeListener(f));
+  }, [q]);
+  return on;
+}
+
+function SideLeague({ comps, code, setCode }) {
+  const { lang } = useT();
+  const nav = useNav();
+  const bn = lang === "bn";
+  const [table, setTable] = useState(null);
+  const [scorers, setScorers] = useState(null);
+  useEffect(() => {
+    let live = true; setTable(null); setScorers(null);
+    getStandings(code).then((r) => live && setTable(r)).catch(() => live && setTable([]));
+    getScorers(code).then((r) => live && setScorers(r)).catch(() => live && setScorers([]));
+    return () => { live = false; };
+  }, [code]);
+  const c = comps.find((x) => x.code === code);
+  const cl = code === "CL";
+  return (
+    <>
+      <div className="side-card">
+        <div className="side-h">
+          <h3>{bn ? "পয়েন্ট টেবিল" : "Table"}</h3>
+          <button className="link" onClick={() => nav.openLeague(code)}>{bn ? "পুরো টেবিল" : "Full table"} →</button>
+        </div>
+        <div className="side-lgs" role="tablist">
+          {comps.map((x) => (
+            <button key={x.code} role="tab" aria-selected={x.code === code} title={compName(x, lang)} className={x.code === code ? "on" : ""} onClick={() => setCode(x.code)}>
+              <CompIcon c={x} size={18} />
+            </button>
+          ))}
+        </div>
+        <div className="side-sub muted">{c ? compName(c, lang) : code}</div>
+        {table === null ? <div className="spin" /> : !table.length ? <div className="side-empty muted">{bn ? "টেবিল এখনো আসেনি" : "No table yet"}</div> : (
+          <div className="mt">
+            <div className="mt-row mt-h muted"><span>#</span><span>{bn ? "দল" : "Team"}</span><span>{bn ? "খে" : "P"}</span><span>+/-</span><span>{bn ? "প" : "Pts"}</span></div>
+            {table.slice(0, cl ? 8 : 6).map((r) => (
+              <button key={r.team_id} className="mt-row" onClick={() => nav.openTeam(r.team_id)}>
+                <span className="muted">{num(r.position, lang)}</span>
+                <span className="mt-tm"><Crest team={r.team} size={18} /><b>{teamName(r.team, lang)}</b></span>
+                <span className="muted">{num(r.played, lang)}</span>
+                <span className="muted">{r.gd > 0 ? "+" : ""}{num(r.gd, lang)}</span>
+                <span className="mt-pts">{num(r.points, lang)}</span>
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+      <div className="side-card">
+        <div className="side-h">
+          <h3>{bn ? "শীর্ষ গোলদাতা" : "Top scorers"}</h3>
+          <button className="link" onClick={() => nav.openLeague(code)}>{bn ? "সব" : "All"} →</button>
+        </div>
+        {scorers === null ? <div className="spin" /> : !scorers.length ? <div className="side-empty muted">{bn ? "তালিকা এখনো আসেনি" : "Not available yet"}</div> : (
+          <div className="mt">
+            {scorers.slice(0, 5).map((p, i) => (
+              <button key={p.player_id} className="sc-row" onClick={() => nav.openPlayer(p.player_id)}>
+                <span className="muted">{num(i + 1, lang)}</span>
+                <span className="mt-tm"><Crest team={p.team} size={18} /><span className="sc-nm"><b>{playerName(p.player_name, lang)}</b><small className="muted">{teamName(p.team, lang)}</small></span></span>
+                <span className="mt-pts">{num(p.goals, lang)}</span>
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+    </>
+  );
+}
+
+function SideBoard() {
+  const { lang, t } = useT();
+  const nav = useNav();
+  const bn = lang === "bn";
+  const [rows, setRows] = useState(null);
+  useEffect(() => { getLeaderboard(null).then((r) => setRows(r || [])).catch(() => setRows([])); }, []);
+  if (!rows?.length) return null;
+  return (
+    <div className="side-card">
+      <div className="side-h">
+        <h3>{bn ? "প্রেডিকশন লিডারবোর্ড" : "Prediction leaders"}</h3>
+        <button className="link" onClick={() => nav.go("predict")}>{bn ? "খেলুন" : "Play"} →</button>
+      </div>
+      <div className="mt">
+        {rows.slice(0, 5).map((r, i) => (
+          <div key={i} className="sc-row">
+            <span className={"rk-b" + (i < 3 ? " r" + (i + 1) : "")}>{num(i + 1, lang)}</span>
+            <span className="sc-nm"><b>{r.display_name}</b><small className="muted">{bn ? `${num(r.played, lang)} ম্যাচ · হুবহু ${num(r.exact, lang)}` : `${r.played} played · ${r.exact} exact`}</small></span>
+            <span className="mt-pts">{num(r.points, lang)} <small className="muted">{t("pts")}</small></span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function HomeSide({ comps, comp }) {
+  const { lang } = useT();
+  const nav = useNav();
+  const bn = lang === "bn";
+  const [code, setCode] = useState(comp !== "ALL" ? comp : "PL");
+  useEffect(() => { if (comp !== "ALL") setCode(comp); }, [comp]);
+  return (
+    <aside className="home-side">
+      {comps.length > 0 && <SideLeague comps={comps} code={code} setCode={setCode} />}
+      <div className="side-card side-quiz">
+        <div className="sq-ic" aria-hidden="true"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="9" /><path d="M9.5 9a2.5 2.5 0 1 1 3.5 2.3c-.6.3-1 .9-1 1.6v.6" /><path d="M12 17h.01" /></svg></div>
+        <div>
+          <h3>{bn ? "স্পোর্টস কুইজ" : "Sports quiz"}</h3>
+          <p className="muted">{bn ? "১০টা প্রশ্ন, প্রতিটায় ৩০ সেকেন্ড। একা খেলুন বা বন্ধুদের সাথে লাইভ।" : "10 questions, 30 seconds each. Play solo or live with friends."}</p>
+          <button className="btn" onClick={() => nav.openQuiz()}>{bn ? "খেলা শুরু করুন" : "Start playing"}</button>
+        </div>
+      </div>
+      <SideBoard />
+      <button className="side-card side-ask" onClick={() => nav.go("ask")}>
+        <b>{bn ? "যেকোনো প্রশ্ন বাংলায় করুন" : "Ask anything"}</b>
+        <span className="muted">{bn ? "“আজ বার্সার খেলা কখন?” · “প্রিমিয়ার লিগে শীর্ষে কে?”" : "“When do Barça play?” · “Who leads the Premier League?”"}</span>
+        <span className="side-go">{bn ? "জিজ্ঞেস করুন" : "Ask"} →</span>
+      </button>
+    </aside>
+  );
+}
+
 function Matches({ user, myTeams, comps, preds, onOpen, goProfile }) {
   const { t, lang } = useT();
   const [day, setDay] = useState(dayKey(new Date()));
@@ -2821,6 +2992,7 @@ function Matches({ user, myTeams, comps, preds, onOpen, goProfile }) {
   const nav = useNav();
   const fav = myTeams?.fav || [];
   const [mine, setMine] = useState(null);
+  const wide = useWide();
 
   // প্রতিটা প্রিয় দলের একটা করে খেলা: চলতি খেলা, নইলে আজ শেষ হওয়া খেলা, নইলে পরের ম্যাচ
   useEffect(() => {
@@ -2845,7 +3017,8 @@ function Matches({ user, myTeams, comps, preds, onOpen, goProfile }) {
   }, [fav.join(",")]);
 
   return (
-    <>
+    <div className={wide ? "home-grid" : undefined}>
+    <div className="home-main">
       {fav.length > 0 && mine?.length > 0 && (
         <div className="sec">
           <Following list={mine} preds={preds} onOpen={onOpen} />
@@ -2868,8 +3041,9 @@ function Matches({ user, myTeams, comps, preds, onOpen, goProfile }) {
         </div>
         <DayMatches day={day} setDay={setDay} comp={comp} preds={preds} onOpen={onOpen} />
       </div>
-
-    </>
+    </div>
+    {wide && <HomeSide comps={comps} comp={comp} />}
+    </div>
   );
 }
 
