@@ -169,7 +169,7 @@ img { display: block; }
 .sticky-foot { position: sticky; bottom: 0; background: var(--bg); padding: 12px 0 4px; display: flex; gap: 8px; }
 
 /* ── লিডারবোর্ড ── */
-.lb { display: grid; grid-template-columns: 32px 1fr auto; align-items: center; gap: 8px; padding: 11px 14px; border-bottom: 1px solid var(--line); font-size: 14px; }
+.lb { display: grid; grid-template-columns: 32px 32px 1fr auto; align-items: center; gap: 8px; padding: 11px 14px; border-bottom: 1px solid var(--line); font-size: 14px; }
 .lb:last-child { border-bottom: 0; }
 .lb .rk { font-family: Inter, sans-serif; font-weight: 800; color: var(--muted); text-align: center; }
 .lb .rk.top { color: var(--amber); }
@@ -873,7 +873,7 @@ button.scr { width: 100%; }
   .mt-row { grid-template-columns: 20px minmax(0, 1fr) 24px 34px 30px; }
   .mt-row > span:nth-child(n+3) { text-align: right; }
   .mt-h { font-size: 11.5px; padding-top: 2px; padding-bottom: 4px; }
-  .sc-row { grid-template-columns: 22px minmax(0, 1fr) auto; }
+  .sc-row { grid-template-columns: 22px 26px minmax(0, 1fr) auto; }
   button.mt-row:hover, button.sc-row:hover { background: var(--card2); }
   .mt-tm { display: flex; align-items: center; gap: 8px; min-width: 0; }
   .mt-tm b, .sc-nm b { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -1570,8 +1570,9 @@ async function savePrediction(user, matchId, home, away) {
 const rpcMissing = (e) => /PGRST202|could not find the function|does not exist/i.test((e?.code || "") + " " + (e?.message || ""));
 async function getLeaderboard(comp) {
   if (DEMO) return comp ? DEMO_LEADERS.filter((_, i) => (i + comp.length) % 3).map((r) => ({ ...r, points: Math.round(r.points / 3), exact: Math.round(r.exact / 3), played: Math.round(r.played / 3) })) : DEMO_LEADERS;
-  if (!comp) return ok(await sb.rpc("get_leaderboard", { lim: 50 }));
+  // সব লিগ মিলিয়েও নতুন ফাংশন (ছবিসহ); ডেটাবেসে না থাকলে পুরনোটা
   const { data, error } = await sb.rpc("get_leaderboard_comp", { lim: 50, comp });
+  if (error && !comp && rpcMissing(error)) return ok(await sb.rpc("get_leaderboard", { lim: 50 }));
   if (error) throw rpcMissing(error) ? Object.assign(new Error("missing"), { missing: true }) : error;
   return data;
 }
@@ -1602,8 +1603,8 @@ async function joinLeague(code) {
 
 async function leagueBoard(id, comp) {
   if (DEMO) { const b = demoLeagues().find((x) => x.id === id)?.board || []; return comp ? b.map((r) => ({ ...r, points: Math.round(r.points / 2), exact: Math.round(r.exact / 2), played: Math.round(r.played / 2) })) : b; }
-  if (!comp) return rpc("pleague_board", { p_id: id });
   const { data, error } = await sb.rpc("pleague_board_comp", { p_id: String(id), comp });
+  if (error && !comp && rpcMissing(error)) return rpc("pleague_board", { p_id: id });
   if (error) throw rpcMissing(error) ? Object.assign(new Error("missing"), { missing: true }) : error;
   return data;
 }
@@ -1627,7 +1628,8 @@ function BoardRows({ rows, isMe, lang, t }) {
       {rows.map((r, i) => (
         <div className="lb" key={i} style={isMe(r) ? { background: "var(--greenDim)" } : null}>
           <div className="rk"><RankBadge rank={i + 1} lang={lang} /></div>
-          <div>
+          <UserAvatar src={r.avatar} name={r.display_name} size={32} />
+          <div style={{ minWidth: 0 }}>
             <div style={{ fontWeight: 600 }}>{r.display_name}{isMe(r) ? (lang === "bn" ? " (আপনি)" : " (you)") : ""}</div>
             <div className="sub">{lang === "bn" ? `${num(r.played, lang)} ম্যাচ · হুবহু ${num(r.exact, lang)}` : `${r.played} played · ${r.exact} exact`}</div>
           </div>
@@ -3182,6 +3184,7 @@ function SideBoard() {
         {rows.slice(0, 5).map((r, i) => (
           <div key={i} className="sc-row">
             <span className={"rk-b" + (i < 3 ? " r" + (i + 1) : "")}>{num(i + 1, lang)}</span>
+            <UserAvatar src={r.avatar} name={r.display_name} size={26} />
             <span className="sc-nm"><b>{r.display_name}</b><small className="muted">{bn ? `${num(r.played, lang)} ম্যাচ · হুবহু ${num(r.exact, lang)}` : `${r.played} played · ${r.exact} exact`}</small></span>
             <span className="mt-pts">{num(r.points, lang)} <small className="muted">{t("pts")}</small></span>
           </div>
@@ -4043,6 +4046,7 @@ function WeekBoard() {
         d.rows.map((r, i) => (
           <div key={i} className={"qz-pl dl-row" + (r.is_me ? " me" : "")}>
             <RankBadge rank={r.rank} lang={lang} />
+            <UserAvatar src={r.avatar} name={r.name} size={30} />
             <span className="qz-nm">{r.name}{r.is_me ? (bn ? " (আপনি)" : " (you)") : ""}<small className="muted"> · {bn ? `${num(r.days, "bn")} দিন` : `${r.days}d`}</small></span>
             <span className="qz-sc"><b>{num(r.points, lang)}</b><small>{bn ? "পয়েন্ট" : "pts"}</small></span>
           </div>
@@ -4768,15 +4772,15 @@ function ProfileBadges({ st }) {
   );
 }
 
-// ছবি ছোট করে (১৬০px JPEG, ~১০ KB) প্রোফাইলেই রাখা — আলাদা স্টোরেজ লাগে না
+// ছবি ছোট করে (১২৮px JPEG, ~৬ KB; লিডারবোর্ডেও যায়) প্রোফাইলেই রাখা — আলাদা স্টোরেজ লাগে না
 function shrinkPhoto(file) {
   return new Promise((res, rej) => {
     const url = URL.createObjectURL(file); const img = new Image();
     img.onload = () => {
-      const S = 160, c = document.createElement("canvas"); c.width = c.height = S;
+      const S = 128, c = document.createElement("canvas"); c.width = c.height = S;
       const m = Math.min(img.width, img.height), x = c.getContext("2d");
       x.drawImage(img, (img.width - m) / 2, (img.height - m) / 2, m, m, 0, 0, S, S);
-      URL.revokeObjectURL(url); res(c.toDataURL("image/jpeg", 0.85));
+      URL.revokeObjectURL(url); res(c.toDataURL("image/jpeg", 0.82));
     };
     img.onerror = () => { URL.revokeObjectURL(url); rej(new Error("img")); };
     img.src = url;
@@ -4788,7 +4792,7 @@ function UserAvatar({ src, name, size }) {
   const [bad, setBad] = useState(false);
   useEffect(() => setBad(false), [src]);
   return (
-    <div className="avatar" style={size ? { width: size, height: size } : undefined}>
+    <div className="avatar" style={size ? { width: size, height: size, fontSize: Math.round(size * 0.42) } : undefined}>
       {src && !bad ? <img src={src} alt="" referrerPolicy="no-referrer" onError={() => setBad(true)} /> : (name || "?").slice(0, 1).toUpperCase()}
     </div>
   );
