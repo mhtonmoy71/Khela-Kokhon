@@ -776,10 +776,14 @@ button.scr { width: 100%; }
 }
 @media (min-width: 1280px) { .home-grid .groups { columns: 2 !important; } }
 /* লিগ আর দলের পাতা: মাঝারি ডেস্কটপে মাঝখানে পড়ার মতো চওড়া, বড় স্ক্রিনে দুই কলাম */
-@media (min-width: 1024px) and (max-width: 1099px) { .main.v-league, .main.v-team { max-width: 820px; margin: 0 auto; } }
+@media (min-width: 1024px) and (max-width: 1099px) { .main.v-league, .main.v-team, .main.v-player, .main.v-predict { max-width: 820px; margin: 0 auto; } }
 @media (min-width: 1100px) {
   .pg-grid { display: grid; grid-template-columns: minmax(0, 1fr) 380px; gap: 28px; align-items: start; }
   .pg-side .sec:first-child, .pg-main .sec:first-child { margin-top: 18px; }
+  .pd-top { display: grid; grid-template-columns: minmax(0, 1fr) 380px; gap: 28px; align-items: center; }
+  .pd-top > * { margin: 0 !important; }
+  .team-hero.row + .pl-credit { text-align: left; margin-left: 0; }
+  .lb .rk { display: grid; place-items: center; }
   .v-league .tbl { padding-top: 11px; padding-bottom: 11px; }
   .team-hero.row { flex-direction: row; justify-content: flex-start; flex-wrap: wrap; gap: 14px 22px; text-align: left; padding-top: 4px; }
   .team-hero.row .th-name { display: flex; flex-direction: column; }
@@ -1505,7 +1509,7 @@ function BoardRows({ rows, isMe, lang, t }) {
     <div className="card">
       {rows.map((r, i) => (
         <div className="lb" key={i} style={isMe(r) ? { background: "var(--greenDim)" } : null}>
-          <div className={"rk" + (i < 3 ? " top" : "")}>{i < 3 ? ["🥇", "🥈", "🥉"][i] : num(i + 1, lang)}</div>
+          <div className="rk"><RankBadge rank={i + 1} lang={lang} /></div>
           <div>
             <div style={{ fontWeight: 600 }}>{r.display_name}{isMe(r) ? (lang === "bn" ? " (আপনি)" : " (you)") : ""}</div>
             <div className="sub">{lang === "bn" ? `${num(r.played, lang)} ম্যাচ · হুবহু ${num(r.exact, lang)}` : `${r.played} played · ${r.exact} exact`}</div>
@@ -3319,7 +3323,33 @@ function Mine({ user, preds, fav, onOpen, goProfile }) {
 function Predict({ user, profile, preds, fav, onOpen, goProfile, toast, initialTab = "mine", openLeagueId, reloadKey }) {
   const { t, lang } = useT();
   const [tab, setTab] = useState(initialTab);
+  const wide = useWide();
   useEffect(() => { setTab(initialTab); }, [initialTab, reloadKey]);
+  const bn = lang === "bn";
+  // বড় স্ক্রিনে ট্যাব নয়: বাঁয়ে নিজের প্রেডিকশন, ডানে লিডারবোর্ড আর বন্ধুদের লিগ
+  if (wide) return (
+    <>
+      <div className="sec pd-top">
+        <GameSwitch on="predict" />
+        <p className="muted" style={{ fontSize: 13, lineHeight: 1.5 }}>{t("rules")}</p>
+      </div>
+      <div className="pg-grid">
+        <div className="pg-main">
+          <div className="sec"><div className="sec-h"><h2>{bn ? "আমার প্রেডিকশন" : "My predictions"}</h2></div>
+            <Mine user={user} preds={preds} fav={fav} onOpen={onOpen} goProfile={goProfile} />
+          </div>
+        </div>
+        <aside className="pg-side">
+          <div className="sec"><div className="sec-h"><h2>{bn ? "বন্ধুদের লিগ" : "Friends' leagues"}</h2></div>
+            <Friends user={user} goProfile={goProfile} toast={toast} openId={openLeagueId} reloadKey={reloadKey} />
+          </div>
+          <div className="sec"><div className="sec-h"><h2>{t("leaderboard")}</h2></div>
+            <Leaderboard me={profile?.display_name} />
+          </div>
+        </aside>
+      </div>
+    </>
+  );
   return (
     <div className="sec">
       <GameSwitch on="predict" />
@@ -5432,6 +5462,7 @@ const POS_BN = {
 };
 function Player({ id, teamsById, comps }) {
   const { lang } = useT();
+  const wide = useWide();
   const bn = lang === "bn";
   const nav = useNav();
   const [p, setP] = useState(null);
@@ -5479,10 +5510,12 @@ function Player({ id, teamsById, comps }) {
   return (
     <>
       {back}
-      <div className="team-hero">
+      <div className={"team-hero" + (wide ? " row" : "")}>
         <PlayerPhoto p={p} lang={lang} />
+        <div className="th-name">
         <h1>{playerName(p.name, lang)}</h1>
         {lang === "bn" && PLAYER_BN[p.name] && <div className="muted" style={{ fontSize: 13 }}>{p.name}</div>}
+        </div>
         {team && (
           <button className="chip" onClick={() => nav.openTeam(team.id)}><Crest team={team} size={18} />{teamName(team, lang) || team.shortName || team.name}</button>
         )}
@@ -5491,6 +5524,8 @@ function Player({ id, teamsById, comps }) {
       {p.photo?.url && (
         <p className="pl-credit"><a href={p.photo.page} target="_blank" rel="noopener noreferrer">{bn ? "ছবি: Wikimedia Commons" : "Photo: Wikimedia Commons"}</a></p>
       )}
+      <div className={wide ? "pg-grid" : undefined}>
+      <div className={wide ? "pg-main" : undefined}>
       {(st || scoring.length > 0) && (
         <div className="sec">
           <div className="sec-h"><h2>{bn ? "এই মৌসুমে" : "This season"}</h2><span className="muted" style={{ fontSize: 12 }}>{compList([...(st?.competitions || "").split(","), ...scoring.map((r) => r.competition_code)], lang)}</span></div>
@@ -5518,6 +5553,11 @@ function Player({ id, teamsById, comps }) {
         </div>
       )}
 
+      {!st && !scoring.length && (
+        <div className="sec"><div className="card empty">{bn ? "এই মৌসুমের পরিসংখ্যান এখনো পাওয়া যায়নি।" : "No stats for this season yet."}</div></div>
+      )}
+      </div>
+      <div className={wide ? "pg-side" : undefined}>
       {info.length > 0 && (
         <div className="sec">
           <div className="sec-h"><h2>{bn ? "পরিচয়" : "Profile"}</h2></div>
@@ -5526,10 +5566,8 @@ function Player({ id, teamsById, comps }) {
           </div>
         </div>
       )}
-
-      {!st && !scoring.length && (
-        <div className="sec"><div className="card empty">{bn ? "এই মৌসুমের পরিসংখ্যান এখনো পাওয়া যায়নি।" : "No stats for this season yet."}</div></div>
-      )}
+      </div>
+      </div>
     </>
   );
 }
@@ -5918,7 +5956,7 @@ export default function App() {
         </header>
         {DEMO && <div className="demo-bar">{lang === "bn" ? "ডেমো মোড — নমুনা ডেটা দেখানো হচ্ছে" : "Demo mode — sample data"}</div>}
 
-        <main className={"main v-" + (onboarding ? "onboarding" : view?.kind || tab) + (!onboarding && ((!view && (tab === "matches" || tab === "leagues")) || view?.kind === "league" || view?.kind === "team") ? " wide" : " narrow")}>
+        <main className={"main v-" + (onboarding ? "onboarding" : view?.kind || tab) + (!onboarding && ((!view && (tab === "matches" || tab === "leagues")) || view?.kind === "league" || view?.kind === "team" || view?.kind === "player" || (!view && tab === "predict")) ? " wide" : " narrow")}>
         {onboarding ? (
           <Onboarding
             key={editing ? "edit" : "first"}
