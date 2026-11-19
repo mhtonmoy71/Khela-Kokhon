@@ -1504,7 +1504,7 @@ const demoLogin = (user) => { ls.set("user", user); demoListeners.forEach((f) =>
 const pendingJoin = () => { try { return localStorage.getItem("kk_join"); } catch { return null; } };
 // লগইনের পর ফেরার ঠিকানা: আমন্ত্রণ থাকলে /join/কোড (অন্য ব্রাউজারে ইমেইল খুললেও কোড সাথে যায়)
 const pendingQuiz = () => { try { return localStorage.getItem("kk_quiz"); } catch { return null; } };
-const backTo = () => window.location.origin + (pendingJoin() ? `/join/${pendingJoin()}` : pendingQuiz() ? `/quiz${pendingQuiz() === "new" ? "" : "/" + pendingQuiz()}` : "");
+const backTo = () => window.location.origin + (pendingJoin() ? `/join/${pendingJoin()}` : pendingQuiz() ? `/quiz/play${pendingQuiz() === "new" ? "" : "/" + pendingQuiz()}` : "");
 
 async function signUp({ name, email, phone, password }) {
   const join = pendingJoin() || undefined;
@@ -3688,7 +3688,7 @@ async function quizCall(fn, args = {}) {
   if (error) throw new Error(error.message || "error");
   return data;
 }
-const quizLink = (code) => `${window.location.origin}/quiz/${code}`;
+const quizLink = (code) => `${window.location.origin}/quiz/play/${code}`;
 async function shareQuiz(code, bn, toast) {
   const text = bn ? `⚽ খেলা কখন?-এ স্পোর্টস কুইজে চ্যালেঞ্জ! ১০টা প্রশ্ন, প্রতিটায় ৩০ সেকেন্ড। কে জেতে দেখি 😎\n\n${quizLink(code)}\nকোড: ${code}` : `⚽ Sports quiz challenge on Khela Kokhon! 10 questions, 30 seconds each.\n\n${quizLink(code)}\nCode: ${code}`;
   try { if (navigator.share) { await navigator.share({ text }); return; } } catch (e) { if (e?.name === "AbortError") return; }
@@ -3973,13 +3973,13 @@ async function makeDailyCard(st, lang) {
   ctx.fillText(bn ? `${num(pl.points ?? pl.raw, "bn")} পয়েন্ট` : `${pl.points ?? pl.raw} points`, W / 2, 760);
   if (st.streak > 1) { ctx.fillStyle = "#fdba74"; ctx.font = `600 40px ${CARD_FONT}`; ctx.fillText(bn ? `টানা ${num(st.streak, "bn")} দিন` : `${st.streak}-day streak`, W / 2, 830); }
   ctx.fillStyle = "rgba(255,255,255,0.85)"; ctx.font = `500 38px ${CARD_FONT}`; ctx.fillText(bn ? "আপনি পারবেন? আজকের চ্যালেঞ্জ খেলুন" : "Can you beat it? Play today's challenge", W / 2, 940);
-  ctx.fillStyle = "#00e676"; ctx.font = `700 40px Inter, ${CARD_FONT}`; ctx.fillText("khelakokhon.com/daily", W / 2, 1000);
+  ctx.fillStyle = "#00e676"; ctx.font = `700 40px Inter, ${CARD_FONT}`; ctx.fillText("khelakokhon.com/quiz/daily", W / 2, 1000);
   return await new Promise((r) => c.toBlob(r, "image/png"));
 }
 async function shareDaily(st, lang, toast) {
   const bn = lang === "bn";
   const text = (bn ? `খেলা কখন? দৈনিক চ্যালেঞ্জ: ${num(st.play.correct, "bn")}/${num(DAILY_Q, "bn")} · ${num(st.play.points ?? st.play.raw, "bn")} পয়েন্ট${st.streak > 1 ? ` · টানা ${num(st.streak, "bn")} দিন` : ""}\n` : `Khela Kokhon daily: ${st.play.correct}/${DAILY_Q} · ${st.play.points ?? st.play.raw} pts\n`)
-    + (st.play.marks || []).map((x) => (x ? "🟩" : "🟥")).join("") + "\nkhelakokhon.com/daily";
+    + (st.play.marks || []).map((x) => (x ? "🟩" : "🟥")).join("") + "\nkhelakokhon.com/quiz/daily";
   try {
     const blob = await makeDailyCard(st, lang);
     const file = blob && new File([blob], `khelakokhon-daily-${st.day}.png`, { type: "image/png" });
@@ -6448,11 +6448,22 @@ const viewFromPath = () => {
   if (kind === "league" && id) return { kind: "league", code: id.toUpperCase() };
   if (kind === "team" && /^\d+$/.test(id || "")) return { kind: "team", id: +id };
   if (kind === "player" && /^\d+$/.test(id || "")) return { kind: "player", id: +id };
-  if (kind === "quiz") return { kind: "quiz", code: id && /^[A-Za-z0-9]{4,8}$/.test(id) ? id.toUpperCase() : null };
+  // স্পোর্টস কুইজ: /quiz/daily (দৈনিক চ্যালেঞ্জ), /quiz/play (একা বা বন্ধুদের সাথে), /quiz/play/কোড (কুইজ রুম)
+  // পুরনো লিংক /daily আর /quiz/কোড-ও চলে; শুধু /quiz হলে শেষবার যে ভাগে ছিলেন
+  const isCode = (x) => x && /^[A-Za-z0-9]{4,8}$/.test(x);
+  if (kind === "quiz") {
+    const sub = (id || "").toLowerCase(), code = window.location.pathname.split("/")[3];
+    if (sub === "daily") return { kind: "daily" };
+    if (sub === "play") return { kind: "quiz", code: isCode(code) ? code.toUpperCase() : null };
+    if (!id) return ls.get("quiz_last", "daily") === "quiz" ? { kind: "quiz", code: null } : { kind: "daily" };
+    return { kind: "quiz", code: isCode(id) ? id.toUpperCase() : null };
+  }
   if (kind === "daily" && !id) return { kind: "daily" };
   if (PAGE_PATHS[kind] && !id) return { kind: "page", id: PAGE_PATHS[kind] };
   return null;
 };
+// পাতার আসল ঠিকানা (পুরনো লিংক খুললে ঠিকানার ঘরে এটা বসে যায়)
+const quizPath = (v) => (v?.kind === "daily" ? "/quiz/daily" : v?.kind === "quiz" ? (v.code ? `/quiz/play/${v.code}` : "/quiz/play") : null);
 const stored = (k, d) => { try { return localStorage.getItem(k) || d; } catch { return d; } };
 const store = (k, v) => { try { localStorage.setItem(k, v); } catch { /* ignore */ } };
 
@@ -6547,14 +6558,14 @@ export default function App() {
     // কুইজ: /quiz (শুরুর পাতা) বা /quiz/কোড; replace = ইতিহাসে নতুন ধাপ না যোগ করে
     openFriends: () => { setPredTab((p) => ({ tab: "friends", league: null, key: p.key + 1 })); go("predict"); },
     openSearch: () => { setSheet(null); setSearching(true); },
-    openDaily: () => { setTab("predict"); openView("/daily", { kind: "daily" }); },
+    openDaily: () => { setTab("predict"); openView("/quiz/daily", { kind: "daily" }); },
     // গেম ট্যাব: শেষবার যেখানে ছিলেন সেখানে (প্রথমবার প্রেডিকশন)
     openGames: () => { const g = ls.get("game_last", "predict"); if (g === "daily") nav.openDaily(); else if (g === "quiz") nav.openQuiz(); else go("predict"); },
     // স্পোর্টস কুইজ বোতাম: কুইজের ভেতরের শেষ ভাগে (প্রথমবার দৈনিক চ্যালেঞ্জ)
     openQuizArea: () => (ls.get("quiz_last", "daily") === "quiz" ? nav.openQuiz() : nav.openDaily()),
     openQuiz: (code, replace) => {
       setTab("predict");
-      const path = code ? `/quiz/${code}` : "/quiz";
+      const path = code ? `/quiz/play/${code}` : "/quiz/play";
       if (replace) { window.history.replaceState({}, "", path); setSheet(null); setView({ kind: "quiz", code: code || null }); window.scrollTo(0, 0); }
       else openView(path, { kind: "quiz", code: code || null });
     },
@@ -6603,6 +6614,10 @@ export default function App() {
     try { localStorage.removeItem("kk_quiz"); } catch { /* ignore */ }
     nav.openQuiz(c === "new" ? null : c);
   }, [user?.id]);
+  useEffect(() => {
+    const want = quizPath(view);
+    if (want && window.location.pathname !== want) window.history.replaceState(window.history.state, "", want + window.location.search + window.location.hash);
+  }, [view]);
   const [joinedLeague, setJoinedLeague] = useState(null);
   useEffect(() => {
     const metaCode = user?.user_metadata?.join;
