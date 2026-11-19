@@ -735,41 +735,30 @@ button.scr { width: 100%; }
   .ask-page .ask-input { bottom: 0; padding-bottom: 24px; }
   .toast { bottom: 32px; }
 }
-/* ভক্তদের রায় */
-.fv { margin-top: 14px; padding: 14px 14px 12px; border-radius: 18px; border: 1px solid var(--line);
-  background: radial-gradient(120% 90% at 0% 0%, color-mix(in srgb, var(--green) 12%, transparent), transparent 60%),
-              radial-gradient(120% 90% at 100% 0%, color-mix(in srgb, var(--amber) 12%, transparent), transparent 60%), var(--card); }
-.fv-h { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; margin-bottom: 12px; }
-.fv-h h3 { font-size: 16px; font-weight: 800; margin: 0 0 2px; }
-.fv-h small { font-size: 12.5px; }
-.fv-state { display: inline-flex; align-items: center; gap: 6px; font-size: 11.5px; font-weight: 700; padding: 4px 10px; border-radius: 999px; background: var(--card2); color: var(--muted); white-space: nowrap; }
+/* ভক্তদের রায় (ছোট, মিনিমাল) */
+.fv { margin-top: 12px; padding: 10px 12px 10px; border-radius: 16px; border: 1px solid var(--line); background: var(--card); }
+.fv-h { display: flex; align-items: center; gap: 6px; margin-bottom: 8px; font-size: 13.5px; }
+.fv-h b { font-weight: 700; } .fv-h .muted { font-size: 12.5px; }
+.fv-state { margin-left: auto; display: inline-flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 999px; background: var(--card2); color: var(--muted); white-space: nowrap; }
 .fv-state.on { background: var(--greenDim); color: var(--green); }
-.fv-state i { width: 7px; height: 7px; border-radius: 50%; background: currentColor; animation: fvpulse 1.6s infinite; }
-@keyframes fvpulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: .35; transform: scale(.7); } }
-.fv-opts { display: grid; grid-template-columns: 1fr .72fr 1fr; gap: 8px; }
-.fv-opt { position: relative; display: flex; flex-direction: column; align-items: center; gap: 5px; padding: 12px 6px 10px; border-radius: 14px;
-  border: 1.5px solid var(--line); background: var(--bg); color: var(--text); transition: transform .15s, border-color .2s, background .2s, box-shadow .2s; min-width: 0; }
-.fv-opt:not(:disabled):hover { transform: translateY(-2px); border-color: color-mix(in srgb, var(--fvc) 55%, transparent); }
+.fv-state i { width: 6px; height: 6px; border-radius: 50%; background: currentColor; animation: fvpulse 1.6s infinite; }
+@keyframes fvpulse { 0%, 100% { opacity: 1; } 50% { opacity: .35; } }
+.fv-opts { display: grid; grid-template-columns: 1fr .5fr 1fr; gap: 6px; }
+.fv-opt { position: relative; display: flex; align-items: center; justify-content: center; gap: 5px; height: 40px; padding: 0 7px; border-radius: 12px; min-width: 0;
+  border: 1.5px solid var(--line); background: var(--bg); color: var(--text); transition: border-color .2s, background .2s, transform .1s; }
 .fv-opt:not(:disabled):active { transform: scale(.97); }
 .fv-opt:disabled { cursor: default; }
 .fv-opt.k0 { --fvc: var(--green); } .fv-opt.k1 { --fvc: #8b97a6; } .fv-opt.k2 { --fvc: var(--amber); }
 .fv-opt.lead { background: color-mix(in srgb, var(--fvc) 9%, var(--bg)); }
-.fv-opt.mine { border-color: var(--fvc); box-shadow: 0 0 0 3px color-mix(in srgb, var(--fvc) 22%, transparent); }
-.fv-opt.won::after { content: "✓"; position: absolute; top: 6px; right: 8px; width: 18px; height: 18px; border-radius: 50%; display: grid; place-items: center; font-size: 11px; font-weight: 900; background: var(--fvc); color: #fff; }
-.fv-ic { height: 34px; display: grid; place-items: center; }
-.fv-x { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; background: var(--card2); color: var(--muted); font-weight: 800; font-size: 17px; }
-.fv-nm { font-size: 12.5px; font-weight: 600; max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.fv-pc { font-size: 21px; font-weight: 800; color: var(--fvc); font-family: Inter, "Hind Siliguri", sans-serif; line-height: 1.1; }
-.fv-me { font-size: 10.5px; font-weight: 700; color: var(--fvc); }
-.fv-bar { display: flex; height: 10px; border-radius: 999px; overflow: hidden; margin-top: 12px; background: var(--card2); gap: 2px; }
+.fv-opt.mine { border-color: var(--fvc); box-shadow: 0 0 0 2px color-mix(in srgb, var(--fvc) 18%, transparent); }
+.fv-opt.won::after { content: "✓"; position: absolute; top: -6px; right: -4px; width: 16px; height: 16px; border-radius: 50%; display: grid; place-items: center; font-size: 10px; font-weight: 900; background: var(--fvc); color: #fff; }
+.fv-nm { font-size: 12.5px; font-weight: 600; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.fv-pc { font-size: 14px; font-weight: 800; color: var(--fvc); font-family: Inter, "Hind Siliguri", sans-serif; flex: none; }
+.fv-bar { display: flex; height: 5px; border-radius: 999px; overflow: hidden; margin-top: 8px; background: var(--card2); gap: 2px; }
 .fv-bar span { height: 100%; transition: width .8s cubic-bezier(.2, .8, .2, 1); }
-.fv-bar span:first-child { border-radius: 999px 0 0 999px; } .fv-bar span:last-child { border-radius: 0 999px 999px 0; }
-.fv-bar .k0 { background: linear-gradient(90deg, var(--green), color-mix(in srgb, var(--green) 75%, #fff)); }
-.fv-bar .k1 { background: #8b97a6; }
-.fv-bar .k2 { background: linear-gradient(90deg, color-mix(in srgb, var(--amber) 75%, #fff), var(--amber)); }
+.fv-bar .k0 { background: var(--green); } .fv-bar .k1 { background: #8b97a6; } .fv-bar .k2 { background: var(--amber); }
 .fv-bar.empty span { opacity: .18; }
-.fv-hint { font-size: 12px; text-align: center; margin-top: 10px; }
-.fv-verdict { margin-top: 10px; font-size: 13px; font-weight: 600; text-align: center; padding: 8px 10px; border-radius: 10px; background: color-mix(in srgb, var(--amber) 14%, transparent); }
+.fv-verdict { margin-top: 8px; font-size: 12px; font-weight: 600; text-align: center; padding: 5px 8px; border-radius: 8px; background: color-mix(in srgb, var(--amber) 14%, transparent); }
 .fv-verdict.ok { background: var(--greenDim); color: var(--green); }
 
 /* দৈনিক চ্যালেঞ্জ */
@@ -2651,34 +2640,29 @@ function FanVote({ m }) {
   return (
     <div className="fv">
       <div className="fv-h">
-        <div>
-          <h3>{bn ? "ভক্তদের রায়" : "Fans' verdict"}</h3>
-          <small className="muted">{counts === null ? "…" : total ? (bn ? `${num(total, "bn")} জন ভক্ত ভোট দিয়েছেন` : `${total.toLocaleString()} fan${total === 1 ? "" : "s"} voted`) : open ? (bn ? "প্রথম ভোটটা আপনার হোক" : "Be the first to vote") : (bn ? "কেউ ভোট দেননি" : "No votes")}</small>
-        </div>
-        <span className={"fv-state" + (open ? " on" : "")}>{open ? <><i />{bn ? "ভোট চলছে" : "Open"}</> : (bn ? "ভোট বন্ধ" : "Closed")}</span>
+        <b>{bn ? "ভক্তদের রায়" : "Fans' verdict"}</b>
+        <span className="muted">{counts === null ? "…" : total ? (bn ? `${num(total, "bn")} ভোট` : `${total.toLocaleString()} vote${total === 1 ? "" : "s"}`) : open ? (bn ? "প্রথম ভোটটা দিন" : "Be the first") : ""}</span>
+        <span className={"fv-state" + (open ? " on" : "")}>{open ? <><i />{bn ? "এক ট্যাপে ভোট" : "Tap to vote"}</> : (bn ? "ভোট বন্ধ" : "Closed")}</span>
       </div>
       <div className="fv-opts">
         {[0, 1, 2].map((k) => (
-          <button key={k} className={"fv-opt k" + k + (mine === k ? " mine" : "") + (lead === k ? " lead" : "") + (result === k ? " won" : "")} disabled={!open || busy} onClick={() => vote(k)} aria-pressed={mine === k}>
-            <span className="fv-ic">{k === 1 ? <span className="fv-x">=</span> : <Crest team={k === 0 ? m.home : m.away} size={30} />}</span>
-            <span className="fv-nm">{names[k]}</span>
+          <button key={k} className={"fv-opt k" + k + (mine === k ? " mine" : "") + (lead === k ? " lead" : "") + (result === k ? " won" : "")} disabled={!open || busy} onClick={() => vote(k)} aria-pressed={mine === k} title={names[k]}>
+            {k !== 1 && <Crest team={k === 0 ? m.home : m.away} size={20} />}
+            <span className="fv-nm">{k === 1 ? (bn ? "ড্র" : "Draw") : teamShort(k === 0 ? m.home : m.away, lang)}</span>
             <b className="fv-pc">{total ? `${num(pct[k], lang)}%` : "–"}</b>
-            {mine === k && <span className="fv-me">{bn ? "আপনার ভোট" : "Your vote"}</span>}
           </button>
         ))}
       </div>
       <div className={"fv-bar" + (total ? "" : " empty")}>
         {[0, 1, 2].map((k) => <span key={k} className={"k" + k} style={{ width: grow && total ? `${pct[k]}%` : total ? "0%" : "33.33%" }} />)}
       </div>
-      {result != null && total > 0 ? (
+      {result != null && total > 0 && (
         <div className={"fv-verdict" + (result === lead ? " ok" : "")}>
           {result === lead
-            ? (bn ? `ভক্তদের ধারণাই মিলে গেছে! বেশিরভাগ (${num(pct[lead], lang)}%) বলেছিলেন ${lead === 1 ? "ড্র হবে" : names[lead] + " জিতবে"}।` : `The fans called it: ${pct[lead]}% picked ${lead === 1 ? "a draw" : names[lead]}.`)
-            : (bn ? `চমক! বেশিরভাগ ভক্ত (${num(pct[lead], lang)}%) বলেছিলেন ${lead === 1 ? "ড্র হবে" : names[lead] + " জিতবে"}।` : `Upset! Most fans (${pct[lead]}%) picked ${lead === 1 ? "a draw" : names[lead]}.`)}
+            ? (bn ? `ভক্তদের ধারণাই মিলেছে · ${num(pct[lead], lang)}% বলেছিলেন ${lead === 1 ? "ড্র হবে" : teamShort(lead === 0 ? m.home : m.away, lang) + " জিতবে"}` : `Fans called it · ${pct[lead]}% picked ${lead === 1 ? "a draw" : teamShort(lead === 0 ? m.home : m.away, lang)}`)
+            : (bn ? `চমক! ${num(pct[lead], lang)}% ভক্ত বলেছিলেন ${lead === 1 ? "ড্র হবে" : teamShort(lead === 0 ? m.home : m.away, lang) + " জিতবে"}` : `Upset! ${pct[lead]}% picked ${lead === 1 ? "a draw" : teamShort(lead === 0 ? m.home : m.away, lang)}`)}
         </div>
-      ) : open && mine == null ? (
-        <div className="fv-hint muted">{bn ? "এক ট্যাপে ভোট দিন, লগইন লাগবে না। খেলা শুরুর আগ পর্যন্ত বদলাতে পারবেন।" : "Tap to vote, no login needed. You can change it until kickoff."}</div>
-      ) : null}
+      )}
     </div>
   );
 }
