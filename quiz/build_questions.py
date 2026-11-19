@@ -1,6 +1,7 @@
 # খেলা কখন? কুইজ: প্রশ্ন তৈরির স্ক্রিপ্ট
 # যাচাইযোগ্য, স্থির (ঐতিহাসিক) তথ্যের টেবিল থেকে প্রশ্ন বানায়; ভুল অপশন একই টেবিল থেকে আসে।
 # চালানো: python3 quiz/build_questions.py  →  quiz/questions.json, quiz/questions.csv
+# এটা চালালে ফাইলে শুধু প্রথম ৫০০টি থাকে; এরপর অবশ্যই python3 quiz/build_more.py চালাবেন (বাকি ১,০০০টি যোগ হয়)।
 import json, csv, random, os
 
 rng = random.Random(2026)
