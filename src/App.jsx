@@ -743,8 +743,8 @@ button.scr { width: 100%; }
 .fv-state.on { background: var(--greenDim); color: var(--green); }
 .fv-state i { width: 6px; height: 6px; border-radius: 50%; background: currentColor; animation: fvpulse 1.6s infinite; }
 @keyframes fvpulse { 0%, 100% { opacity: 1; } 50% { opacity: .35; } }
-.fv-opts { display: grid; grid-template-columns: 1fr .5fr 1fr; gap: 6px; }
-.fv-opt { position: relative; display: flex; align-items: center; justify-content: center; gap: 5px; height: 40px; padding: 0 7px; border-radius: 12px; min-width: 0;
+.fv-opts { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; }
+.fv-opt { position: relative; display: flex; align-items: center; justify-content: center; gap: 8px; height: 40px; padding: 0 7px; border-radius: 12px; min-width: 0;
   border: 1.5px solid var(--line); background: var(--bg); color: var(--text); transition: border-color .2s, background .2s, transform .1s; }
 .fv-opt:not(:disabled):active { transform: scale(.97); }
 .fv-opt:disabled { cursor: default; }
@@ -753,7 +753,7 @@ button.scr { width: 100%; }
 .fv-opt.mine { border-color: var(--fvc); box-shadow: 0 0 0 2px color-mix(in srgb, var(--fvc) 18%, transparent); }
 .fv-opt.won::after { content: "✓"; position: absolute; top: -6px; right: -4px; width: 16px; height: 16px; border-radius: 50%; display: grid; place-items: center; font-size: 10px; font-weight: 900; background: var(--fvc); color: #fff; }
 .fv-nm { font-size: 12.5px; font-weight: 600; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.fv-pc { font-size: 14px; font-weight: 800; color: var(--fvc); font-family: Inter, "Hind Siliguri", sans-serif; flex: none; }
+.fv-pc { font-size: 15px; font-weight: 800; color: var(--fvc); font-family: Inter, "Hind Siliguri", sans-serif; flex: none; }
 .fv-bar { display: flex; height: 5px; border-radius: 999px; overflow: hidden; margin-top: 8px; background: var(--card2); gap: 2px; }
 .fv-bar span { height: 100%; transition: width .8s cubic-bezier(.2, .8, .2, 1); }
 .fv-bar .k0 { background: var(--green); } .fv-bar .k1 { background: #8b97a6; } .fv-bar .k2 { background: var(--amber); }
@@ -2646,9 +2646,8 @@ function FanVote({ m }) {
       </div>
       <div className="fv-opts">
         {[0, 1, 2].map((k) => (
-          <button key={k} className={"fv-opt k" + k + (mine === k ? " mine" : "") + (lead === k ? " lead" : "") + (result === k ? " won" : "")} disabled={!open || busy} onClick={() => vote(k)} aria-pressed={mine === k} title={names[k]}>
-            {k !== 1 && <Crest team={k === 0 ? m.home : m.away} size={20} />}
-            <span className="fv-nm">{k === 1 ? (bn ? "ড্র" : "Draw") : teamShort(k === 0 ? m.home : m.away, lang)}</span>
+          <button key={k} className={"fv-opt k" + k + (mine === k ? " mine" : "") + (lead === k ? " lead" : "") + (result === k ? " won" : "")} disabled={!open || busy} onClick={() => vote(k)} aria-pressed={mine === k} title={names[k]} aria-label={`${names[k]}${total ? ` ${pct[k]}%` : ""}`}>
+            {k === 1 ? <span className="fv-nm">{bn ? "ড্র" : "Draw"}</span> : <Crest team={k === 0 ? m.home : m.away} size={24} />}
             <b className="fv-pc">{total ? `${num(pct[k], lang)}%` : "–"}</b>
           </button>
         ))}
