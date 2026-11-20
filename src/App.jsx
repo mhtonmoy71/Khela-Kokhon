@@ -315,15 +315,14 @@ img { display: block; }
 /* ── লিগ ও দলের পাতা ── */
 .comp-h { width: 100%; text-align: left; }
 .cg-h { padding: 0; gap: 0; }
-.cg-tog { flex: 1; min-width: 0; display: flex; align-items: center; gap: 9px; padding: 11px 6px 11px 14px; background: none; border: 0; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+.cg-link { flex: 0 1 auto; min-width: 0; display: flex; align-items: center; gap: 9px; padding: 11px 8px 11px 14px; background: none; border: 0; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+@media (hover: hover) { button.cg-link:hover .cg-nm { text-decoration: underline; text-underline-offset: 3px; } }
+.cg-tog { flex: 1; min-width: 44px; align-self: stretch; display: flex; align-items: center; justify-content: flex-end; gap: 6px; padding: 11px 14px 11px 6px; background: none; border: 0; color: inherit; font: inherit; text-align: left; cursor: pointer; }
 .cg-nm { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.cg-n { margin-left: auto; font-size: 12px; font-weight: 700; color: var(--muted); background: var(--card2); border-radius: 999px; padding: 1px 8px; }
-.cg-live { margin-left: auto; font-size: 12px; font-weight: 700; color: #fff; background: #16a34a; border-radius: 999px; padding: 1px 8px; }
+.cg-n { font-size: 12px; font-weight: 700; color: var(--muted); background: var(--card2); border-radius: 999px; padding: 1px 8px; }
+.cg-live { font-size: 12px; font-weight: 700; color: #fff; background: #16a34a; border-radius: 999px; padding: 1px 8px; }
 .cg-chev { flex: none; color: var(--muted); transition: transform .22s ease; }
-.cg-n + .cg-chev, .cg-live + .cg-chev { margin-left: 4px; }
-.cg-nm + .cg-chev { margin-left: auto; }
 .cg.shut .cg-chev { transform: rotate(180deg); }
-.cg-go { flex: none; align-self: stretch; width: 40px; background: none; border: 0; border-left: 1px solid var(--line); color: var(--muted); font-size: 20px; line-height: 1; cursor: pointer; }
 .cg-body { display: grid; grid-template-rows: 1fr; transition: grid-template-rows .22s ease; }
 .cg-body > div { overflow: hidden; min-height: 0; }
 .cg.shut .cg-body { grid-template-rows: 0fr; }
@@ -2520,13 +2519,14 @@ function CompGroups({ matches, preds = {}, onOpen }) {
         return (
           <div className={"card cg" + (off ? " shut" : "")} style={{ marginBottom: 10 }} key={k}>
             <div className="comp-h cg-h">
-              <button className="cg-tog" onClick={() => toggle(k)} aria-expanded={!off} aria-controls={bodyId}>
-                <CompIcon c={g.c} /><span className="cg-nm">{compName(g.c, lang)}</span>
+              {g.c
+                ? <button className="cg-link" onClick={() => nav.openLeague(g.c.code)}><CompIcon c={g.c} /><span className="cg-nm">{compName(g.c, lang)}</span></button>
+                : <span className="cg-link"><CompIcon c={g.c} /><span className="cg-nm">{compName(g.c, lang)}</span></span>}
+              <button className="cg-tog" onClick={() => toggle(k)} aria-expanded={!off} aria-controls={bodyId} aria-label={off ? (bn ? "ম্যাচগুলো দেখান" : "Show matches") : (bn ? "ম্যাচগুলো লুকান" : "Hide matches")}>
                 {live > 0 && <span className="cg-live" title={bn ? "লাইভ" : "Live"}>{num(live, lang)}/{num(g.list.length, lang)}</span>}
                 {off && !live && <span className="cg-n">{num(g.list.length, lang)}</span>}
                 <ChevronIcon className="cg-chev" width={18} height={18} />
               </button>
-              {g.c && <button className="cg-go" onClick={() => nav.openLeague(g.c.code)} aria-label={bn ? `${compName(g.c, lang)}-এর পাতা` : `${compName(g.c, lang)} page`}>›</button>}
             </div>
             <div className="cg-body" id={bodyId}><div>{g.list.map((m) => <MatchRow key={m.id} m={m} pred={preds[m.id]} onOpen={onOpen} />)}</div></div>
           </div>
