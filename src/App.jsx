@@ -314,6 +314,22 @@ img { display: block; }
 
 /* ── লিগ ও দলের পাতা ── */
 .comp-h { width: 100%; text-align: left; }
+.cg-h { padding: 0; gap: 0; }
+.cg-tog { flex: 1; min-width: 0; display: flex; align-items: center; gap: 9px; padding: 11px 6px 11px 14px; background: none; border: 0; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+.cg-nm { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cg-n { margin-left: auto; font-size: 12px; font-weight: 700; color: var(--muted); background: var(--card2); border-radius: 999px; padding: 1px 8px; }
+.cg-live { margin-left: auto; font-size: 12px; font-weight: 700; color: #fff; background: #16a34a; border-radius: 999px; padding: 1px 8px; }
+.cg-chev { flex: none; color: var(--muted); transition: transform .22s ease; }
+.cg-n + .cg-chev, .cg-live + .cg-chev { margin-left: 4px; }
+.cg-nm + .cg-chev { margin-left: auto; }
+.cg.shut .cg-chev { transform: rotate(180deg); }
+.cg-go { flex: none; align-self: stretch; width: 40px; background: none; border: 0; border-left: 1px solid var(--line); color: var(--muted); font-size: 20px; line-height: 1; cursor: pointer; }
+.cg-body { display: grid; grid-template-rows: 1fr; transition: grid-template-rows .22s ease; }
+.cg-body > div { overflow: hidden; min-height: 0; }
+.cg.shut .cg-body { grid-template-rows: 0fr; }
+.cg.shut .cg-body > div { visibility: hidden; transition: visibility 0s .22s; }
+.cg.shut .cg-h { border-bottom-color: transparent; }
+@media (prefers-reduced-motion: reduce) { .cg-body, .cg-chev { transition: none; } }
 .comp-go { margin-left: auto; color: var(--muted); font-size: 18px; line-height: 1; }
 .hero-top { color: inherit; text-align: left; }
 .hero-team { color: inherit; }
@@ -2481,7 +2497,11 @@ function MatchRow({ m, pred, onOpen, badge, plain, sub }) {
 // ── প্রতিযোগিতা অনুযায়ী ভাগ করা তালিকা ──
 function CompGroups({ matches, preds = {}, onOpen }) {
   const { lang } = useT();
+  const bn = lang === "bn";
   const nav = useNav();
+  // কোন লিগ ভাঁজ করা (ব্যবহারকারীর পছন্দ মনে থাকে)
+  const [shut, setShut] = useState(() => { const v = ls.get("cg_shut", []); return Array.isArray(v) ? v : []; });
+  const toggle = (k) => setShut((x) => { const n = x.includes(k) ? x.filter((y) => y !== k) : [...x, k]; ls.set("cg_shut", n); return n; });
   const groups = [];
   const idx = {};
   for (const m of matches) {
@@ -2492,12 +2512,26 @@ function CompGroups({ matches, preds = {}, onOpen }) {
   groups.sort((a, b) => (a.c?.sort ?? 99) - (b.c?.sort ?? 99));
   return (
     <div className="groups">
-      {groups.map((g) => (
-        <div className="card" style={{ marginBottom: 10 }} key={g.c?.code || "x"}>
-          <button className="comp-h" onClick={() => g.c && nav.openLeague(g.c.code)}><CompIcon c={g.c} />{compName(g.c, lang)}<span className="comp-go">›</span></button>
-          {g.list.map((m) => <MatchRow key={m.id} m={m} pred={preds[m.id]} onOpen={onOpen} />)}
-        </div>
-      ))}
+      {groups.map((g) => {
+        const k = g.c?.code || "x";
+        const off = shut.includes(k);
+        const live = g.list.filter(isLive).length;
+        const bodyId = "cg-" + k;
+        return (
+          <div className={"card cg" + (off ? " shut" : "")} style={{ marginBottom: 10 }} key={k}>
+            <div className="comp-h cg-h">
+              <button className="cg-tog" onClick={() => toggle(k)} aria-expanded={!off} aria-controls={bodyId}>
+                <CompIcon c={g.c} /><span className="cg-nm">{compName(g.c, lang)}</span>
+                {live > 0 && <span className="cg-live" title={bn ? "লাইভ" : "Live"}>{num(live, lang)}/{num(g.list.length, lang)}</span>}
+                {off && !live && <span className="cg-n">{num(g.list.length, lang)}</span>}
+                <ChevronIcon className="cg-chev" width={18} height={18} />
+              </button>
+              {g.c && <button className="cg-go" onClick={() => nav.openLeague(g.c.code)} aria-label={bn ? `${compName(g.c, lang)}-এর পাতা` : `${compName(g.c, lang)} page`}>›</button>}
+            </div>
+            <div className="cg-body" id={bodyId}><div>{g.list.map((m) => <MatchRow key={m.id} m={m} pred={preds[m.id]} onOpen={onOpen} />)}</div></div>
+          </div>
+        );
+      })}
     </div>
   );
 }
