@@ -7,7 +7,7 @@
 //    • প্রতি কলে ২০টা পর্যন্ত ম্যাচের মিনিট, স্কোর, ঘটনা, লাইনআপ, পরিসংখ্যান, খেলোয়াড়ের রেটিং
 //  সূচি আর প্রেডিকশনের পয়েন্ট আগের মতো football-data.org থেকেই (/api/sync); এটা শুধু ওপরে বাড়তি তথ্য।
 //
-//  Environment Variables: APIF_KEY, SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, CRON_SECRET
+//  Environment Variables: APIF_KEY, SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, CRON_SECRET, VAPID_PRIVATE_KEY (নোটিফিকেশন)
 // ═══════════════════════════════════════════════════════════════
 const AF = "https://v3.football.api-sports.io";
 const LEAGUE = { CL: 2, PL: 39, PD: 140, BL1: 78, SA: 135, FL1: 61 };
