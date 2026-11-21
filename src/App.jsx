@@ -3253,12 +3253,12 @@ function SoccerBall({ size = 16, own, miss, className = "" }) {
 // অ্যাসিস্টের আইকন: ফুটবল বুট (পাশ থেকে, তলায় স্টাড)
 const BootIcon = ({ size = 16, className = "" }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true" className={"boot " + className}>
-    <circle cx="12" cy="12" r="11.5" fill="#fff" />
-    <g transform="translate(-1.6 -1.4) scale(1.13)">
-    <path d="M3.4 14.6c0-.9.6-1.7 1.5-1.9l5-1.1 3.3-4.4c.4-.5 1-.7 1.6-.5l1.3.4c.5.2.8.7.7 1.2l-.5 2.1 4.2 1.4c1 .3 1.6 1.3 1.6 2.3v.9H3.4z" fill="#1f2937" />
-    <rect x="3.2" y="15.6" width="18.6" height="1.6" rx=".8" fill="#1f2937" />
-    <path d="M5.2 17.2v1.5M9 17.2v1.5M15 17.2v1.5M19 17.2v1.5" stroke="#1f2937" strokeWidth="1.4" strokeLinecap="round" />
-    <path d="M11.2 11.1l1.6.6M12.3 9.7l1.6.6M13.3 8.4l1.4.5" stroke="#fff" strokeWidth=".9" strokeLinecap="round" />
+    <circle cx="12" cy="12" r="11.4" fill="#fff" stroke="#1f2937" strokeWidth="1" />
+    <g transform="translate(0 -1.6)" fill="#1f2937">
+      <path d="M4.3 8.6H8.2c.9 0 1.5.5 2.2 1.2l1.3 1.3c.8.7 2.2 1.1 4.3 1.4 2.7.3 4.4 1.2 4.4 2.5v.7H3.3v-5c0-1.2.4-2.1 1-2.1z" />
+      <rect x="3.1" y="16.4" width="17.6" height="1.2" rx=".6" />
+      <path d="M5 17.6v1.3M8.2 17.6v1.3M14.4 17.6v1.3M17.8 17.6v1.3" stroke="#1f2937" strokeWidth="1.6" strokeLinecap="round" />
+      {size >= 16 && <path d="M9.4 10.6l1-.9M10.9 11.9l1-.9M12.5 12.9l.9-.8" stroke="#fff" strokeWidth=".85" strokeLinecap="round" />}
     </g>
   </svg>
 );
