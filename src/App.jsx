@@ -468,6 +468,48 @@ button.pm { background: none; border: 0; padding: 0; cursor: pointer; font: inhe
 .pmr-me .ball-mini b { color: var(--text); text-shadow: none; }
 .pmr-a { font: 700 10.5px 'Hind Siliguri', sans-serif; color: var(--brand); }
 .pmr-card { width: 8px; height: 11px; border-radius: 2px; background: #facc15; display: inline-block; } .pmr-card.red { background: #ef4444; }
+.lg-page { padding-top: 2px; }
+.lg-hero { padding: 10px 16px 16px; background: linear-gradient(135deg, #1e1b4b, #0b3b2e); color: #fff; }
+.lg-hero-id { display: flex; align-items: center; gap: 14px; margin-top: 10px; }
+.lg-hero-ic { width: 60px; height: 60px; border-radius: 50%; background: #fff; display: grid; place-items: center; flex: none; }
+.lg-hero h1 { font-size: 22px; margin: 0; line-height: 1.2; }
+.lg-hero small { opacity: .8; font-size: 12.5px; }
+.lgt-bar { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
+.lgt-seg { flex: 1; min-width: 150px; }
+.lgt { overflow: hidden; }
+.lgt-group { padding: 10px 12px 2px; font-weight: 700; font-size: 13px; }
+.lgt-row { display: grid; align-items: center; gap: 4px; padding: 9px 10px 9px 8px; font-size: 13px; text-align: center; border-left: 3px solid transparent; }
+.lgt-row.m-short { grid-template-columns: 24px minmax(0, 1fr) 28px 36px 32px; }
+.lgt-row.m-full { grid-template-columns: 22px minmax(0, 1fr) 24px 22px 22px 22px 46px 32px 30px; font-size: 12.5px; }
+.lgt-row.m-form { grid-template-columns: 24px minmax(0, 1fr) 26px 118px 30px; }
+.lgt-h { color: var(--muted); font-size: 11.5px; font-weight: 600; padding-top: 10px; padding-bottom: 6px; }
+.lgt-row .tm { display: flex; align-items: center; gap: 7px; min-width: 0; text-align: left; }
+.lgt-row .tm b { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lgt-h span:nth-child(2) { text-align: left; }
+.tm-link { cursor: pointer; }
+.lgt-row .pts { font-weight: 800; }
+.lgt-row.z-cl { border-left-color: #16a34a; } .lgt-row.z-el { border-left-color: #2563eb; } .lgt-row.z-ecl { border-left-color: #0891b2; } .lgt-row.z-rel { border-left-color: #dc2626; } .lgt-row.z-po { border-left-color: #d97706; }
+.lgt-form { display: flex; gap: 3px; justify-content: center; }
+.lgt-form i { font-style: normal; width: 21px; height: 21px; border-radius: 5px; display: grid; place-items: center; font: 700 10px 'Hind Siliguri', Inter, sans-serif; color: #fff; }
+.lgt-form .f-w { background: #16a34a; } .lgt-form .f-d { background: #94a3b8; } .lgt-form .f-l { background: #dc2626; } .lgt-form .f-x { background: var(--card2); color: var(--muted); }
+.lgt-legend { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 12px; color: var(--muted); margin: 4px 2px 0; }
+.lgt-legend span { display: inline-flex; align-items: center; gap: 6px; }
+.lgt-legend i { width: 10px; height: 10px; border-radius: 3px; }
+.lgt-legend i.z-cl { background: #16a34a; } .lgt-legend i.z-el { background: #2563eb; } .lgt-legend i.z-ecl { background: #0891b2; } .lgt-legend i.z-rel { background: #dc2626; } .lgt-legend i.z-po { background: #d97706; }
+.ldr-grid { display: grid; gap: 10px; }
+@media (min-width: 900px) { .ldr-grid { grid-template-columns: 1fr 1fr; } }
+.ldr { padding: 4px 0; }
+.ldr-h { display: flex; justify-content: space-between; align-items: center; padding: 10px 14px 6px; font-size: 14px; }
+.ldr-r { display: flex; align-items: center; gap: 10px; width: 100%; padding: 8px 14px; background: none; border: 0; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+.ldr-n { width: 18px; text-align: center; font: 700 12px Inter, 'Hind Siliguri', sans-serif; flex: none; display: grid; place-items: center; }
+.ldr-ph { width: 30px; height: 30px; border-radius: 50%; object-fit: cover; object-position: 50% 15%; background: var(--card2); flex: none; }
+.ldr-ph-fb { display: grid; place-items: center; font: 700 13px 'Hind Siliguri', sans-serif; color: var(--muted); }
+.ldr-nm { flex: 1; min-width: 0; display: flex; flex-direction: column; line-height: 1.25; }
+.ldr-nm b { font-size: 13.5px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ldr-nm small { font-size: 11.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ldr-v { font: 800 14px Inter, 'Hind Siliguri', sans-serif; flex: none; }
+.ldr-v.top { background: var(--brand); color: #fff; border-radius: 999px; padding: 2px 9px; }
+.ldr-v small { font-weight: 600; font-size: 10.5px; }
 .scr.afp { grid-template-columns: 26px minmax(0, 1fr) 34px 30px 30px 44px; }
 .scr.afp > span:nth-child(n+3) { text-align: center; }
 .pl-inj { display: inline-block; margin-top: 4px; font-size: 12px; font-weight: 700; color: #fff; background: #dc2626; border-radius: 999px; padding: 1px 9px; }
@@ -6751,7 +6793,191 @@ function DatedRows({ list, preds, onOpen }) {
 
 // ═════════ লিগের পাতা ═════════
 // মোবাইলে টেবিল/ম্যাচ/গোলদাতা ট্যাবে; বড় স্ক্রিনে সব একসাথে (বাঁয়ে টেবিল, ডানে বাকিটা)
-function League({ code, comps, preds, onOpen }) {
+// ── লিগের পাতা (FotMob-এর মতো): টেবিল · ম্যাচ · খেলোয়াড় · দল · মৌসুম ──
+const lgCache = {};
+function useLgInfo(code, kind, on = true) {
+  const k = code + ":" + kind;
+  const [d, setD] = useState(lgCache[k] ?? null);
+  useEffect(() => {
+    if (!on || lgCache[k] !== undefined || DEMO) { if (DEMO) setD(false); return; }
+    let a = true;
+    fetch(`/api/live?lg=${code}&kind=${kind}`).then((r) => (r.ok ? r.json() : false)).then((x) => { lgCache[k] = x; a && setD(x); }).catch(() => a && setD(false));
+    return () => { a = false; };
+  }, [k, on]);
+  return d;
+}
+// টেবিলের রঙ আর ব্যাখ্যা (উৎসের "description" থেকে)
+const zoneOf = (desc) => !desc ? null : /relegation/i.test(desc) ? "z-rel" : /europa/i.test(desc) ? "z-el" : /conference/i.test(desc) ? "z-ecl" : /champions|1\/8|round of 16|next round/i.test(desc) ? "z-cl" : "z-po";
+const zoneBn = (desc, bn) => {
+  if (!bn) return desc;
+  if (/relegation/i.test(desc)) return /round|play/i.test(desc) ? "অবনমন প্লে-অফ" : "অবনমন";
+  if (/afc champions/i.test(desc)) return "এএফসি চ্যাম্পিয়ন্স লিগ";
+  if (/europa/i.test(desc)) return /qualif/i.test(desc) ? "ইউরোপা লিগ বাছাই" : "ইউরোপা লিগ";
+  if (/conference/i.test(desc)) return /qualif/i.test(desc) ? "কনফারেন্স লিগ বাছাই" : "কনফারেন্স লিগ";
+  if (/champions league/i.test(desc)) return /qualif/i.test(desc) ? "চ্যাম্পিয়ন্স লিগ বাছাই" : "চ্যাম্পিয়ন্স লিগ";
+  if (/1\/8|round of 16|next round/i.test(desc)) return "শেষ ষোলো";
+  if (/play/i.test(desc)) return "প্লে-অফ";
+  return desc;
+};
+function TeamCell({ r, teamsById, lang, size = 20 }) {
+  const nav = useNav();
+  const ours = r.id ? teamsById?.[r.id] || { id: r.id, short_en: r.name, crest: r.logo } : findTeam(teamsById, r.name);
+  const inner = <><Crest team={ours?.crest ? ours : { short_en: r.name, crest: r.logo }} size={size} /><b>{ours ? teamName(ours, lang) || r.name : r.name}</b></>;
+  return ours ? <span className="tm tm-link" role="link" tabIndex={0} onClick={(e) => { e.stopPropagation(); nav.openTeam(ours.id); }}>{inner}</span> : <span className="tm">{inner}</span>;
+}
+const FORM = { W: ["জ", "w"], D: ["ড্র", "d"], L: ["হা", "l"] };
+
+function LgTable({ code, teamsById, lang, fallback }) {
+  const bn = lang === "bn";
+  const d = useLgInfo(code, "table");
+  const [mode, setMode] = useState("short");
+  const [venue, setVenue] = useState("all");
+  if (d === null) return <Loading />;
+  if (!d || !d.groups?.length) return fallback;
+  const descs = [...new Set(d.groups.flat().map((r) => r.desc).filter(Boolean))];
+  const rowsOf = (g) => venue === "all" ? g : [...g].map((r) => { const v = r[venue]; return { ...r, all: v, pts: (v.w || 0) * 3 + (v.d || 0), gd: (v.gf || 0) - (v.ga || 0) }; })
+    .sort((a, b) => b.pts - a.pts || b.gd - a.gd || (b.all.gf || 0) - (a.all.gf || 0)).map((r, i) => ({ ...r, rank: i + 1 }));
+  return (
+    <>
+      <div className="lgt-bar">
+        <div className="seg lgt-seg">{[["short", bn ? "সংক্ষেপ" : "Short"], ["full", bn ? "পূর্ণ" : "Full"], ["form", bn ? "ফর্ম" : "Form"]].map(([k, l]) => <button key={k} className={mode === k ? "on" : ""} onClick={() => setMode(k)}>{l}</button>)}</div>
+        <div className="seg lgt-seg">{[["all", bn ? "সব" : "All"], ["home", bn ? "ঘরে" : "Home"], ["away", bn ? "বাইরে" : "Away"]].map(([k, l]) => <button key={k} className={venue === k ? "on" : ""} onClick={() => setVenue(k)}>{l}</button>)}</div>
+      </div>
+      {d.groups.map((g, gi) => (
+        <div key={gi} className="card lgt" style={{ marginBottom: 10 }}>
+          {d.groups.length > 1 && g[0]?.group && <div className="lgt-group">{g[0].group}</div>}
+          <div className={"lgt-row lgt-h m-" + mode}>
+            <span>#</span><span>{bn ? "দল" : "Team"}</span><span>{bn ? "খে" : "P"}</span>
+            {mode === "full" && <><span>{bn ? "জ" : "W"}</span><span>{bn ? "ড্র" : "D"}</span><span>{bn ? "হা" : "L"}</span><span>{bn ? "গোল" : "Goals"}</span></>}
+            {mode === "form" ? <span className="lgt-form-h">{bn ? "শেষ ৫ ম্যাচ" : "Last 5"}</span> : <span>+/-</span>}
+            <span>{bn ? "প" : "Pts"}</span>
+          </div>
+          {rowsOf(g).map((r) => (
+            <div key={r.af} className={"lgt-row m-" + mode + " " + (venue === "all" ? zoneOf(r.desc) || "" : "")}>
+              <span className="pos">{num(r.rank, lang)}</span>
+              <TeamCell r={r} teamsById={teamsById} lang={lang} />
+              <span>{num(r.all.p ?? 0, lang)}</span>
+              {mode === "full" && <><span>{num(r.all.w ?? 0, lang)}</span><span>{num(r.all.d ?? 0, lang)}</span><span>{num(r.all.l ?? 0, lang)}</span><span className="muted">{num(r.all.gf ?? 0, lang)}-{num(r.all.ga ?? 0, lang)}</span></>}
+              {mode === "form" ? <span className="lgt-form">{(r.form || "").slice(-5).split("").map((f, i) => <i key={i} className={"f-" + (FORM[f]?.[1] || "x")}>{bn ? FORM[f]?.[0] || f : f}</i>)}</span>
+                : <span>{r.gd > 0 ? "+" : ""}{num(r.gd ?? 0, lang)}</span>}
+              <span className="pts">{num(r.pts ?? 0, lang)}</span>
+            </div>
+          ))}
+        </div>
+      ))}
+      {venue === "all" && descs.length > 0 && (
+        <div className="lgt-legend">{[...new Map(descs.map((x) => [zoneBn(x, bn), x])).entries()].map(([label, x]) => <span key={label}><i className={zoneOf(x)} />{label}</span>)}</div>
+      )}
+    </>
+  );
+}
+
+function LeaderCard({ title, list, lang, unit, fmt }) {
+  const [all, setAll] = useState(false);
+  const nav = useNav();
+  const bn = lang === "bn";
+  if (!list?.length) return null;
+  return (
+    <div className="card ldr">
+      <div className="ldr-h"><b>{title}</b>{list.length > 3 && <button className="link" onClick={() => setAll((x) => !x)}>{all ? (bn ? "কম দেখুন" : "Less") : (bn ? "সব দেখুন" : "See all")}</button>}</div>
+      {(all ? list : list.slice(0, 3)).map((r, i) => (
+        <button key={r.id || r.af || i} className="ldr-r" onClick={() => r.id && r.id >= 10000000 && !r.af ? nav.openPlayer(r.id) : r.onOpen?.()}>
+          <span className="ldr-n muted">{num(i + 1, lang)}</span>
+          {r.photo !== undefined ? <PhotoDot src={r.photo} name={r.name} /> : <Crest team={r.crestTeam} size={26} />}
+          <span className="ldr-nm"><b>{r.label || r.name}</b>{r.sub && <small className="muted">{r.sub}</small>}</span>
+          <span className={"ldr-v" + (i === 0 ? " top" : "")}>{fmt ? fmt(r.v) : num(r.v, lang)}{unit ? <small> {unit}</small> : null}</span>
+        </button>
+      ))}
+    </div>
+  );
+}
+function PhotoDot({ src, name }) {
+  const [bad, setBad] = useState(false);
+  return src && !bad ? <img className="ldr-ph" src={src} alt="" width="30" height="30" loading="lazy" onError={() => setBad(true)} /> : <span className="ldr-ph ldr-ph-fb">{(name || "?").slice(0, 1)}</span>;
+}
+
+function League({ code, comps, preds, onOpen, teamsById }) {
+  const { lang } = useT();
+  const bn = lang === "bn";
+  const nav = useNav();
+  const c = comps.find((x) => x.code === code) || { code, name_bn: code, name_en: code };
+  const [tab, setTab] = useState("table");
+  const tbl = useLgInfo(code, "table");
+  const pl = useLgInfo(code, "players", tab === "players");
+  const ss = useLgInfo(code, "seasons", tab === "seasons");
+  const [games, setGames] = useState(null);
+  useEffect(() => { if (tab === "matches" && games === null) Promise.all([getCompUpcoming(code, 15), getCompRecent(code, 15)]).then(([up, past]) => setGames({ up, past })).catch(() => setGames({ up: [], past: [] })); }, [tab]);
+  useEffect(() => { document.title = `${compName(c, lang)} · খেলা কখন?`; return () => { document.title = "খেলা কখন?"; }; }, [code, lang]);
+  const seTxt = (se) => (se ? (bn ? `${num(se, "bn")}–${num(String((se + 1) % 100).padStart(2, "0"), "bn")}` : `${se}/${String((se + 1) % 100).padStart(2, "0")}`) : "");
+  const tabs = [["table", bn ? "টেবিল" : "Table"], ["matches", bn ? "ম্যাচ" : "Matches"], ["players", bn ? "খেলোয়াড়" : "Players"], ["teams", bn ? "দল" : "Teams"], ...(code === "CL" ? [] : [["seasons", bn ? "মৌসুম" : "Seasons"]])];
+  const allRows = tbl && tbl.groups ? tbl.groups.flat() : [];
+  const teamItem = (r, v) => { const ours = r.id ? teamsById?.[r.id] : findTeam(teamsById, r.name); return { af: r.af, name: r.name, label: ours ? teamName(ours, lang) || r.name : r.name, crestTeam: ours?.crest ? ours : { short_en: r.name, crest: r.logo }, v, onOpen: ours ? () => nav.openTeam(ours.id) : null }; };
+  const top = (f, asc) => allRows.filter((r) => r.all?.p).map((r) => teamItem(r, f(r))).sort((a, b) => (asc ? a.v - b.v : b.v - a.v));
+  const pItems = (list) => (list || []).map((r) => ({ ...r, label: playerName(r.name, lang), sub: r.team?.name }));
+  const dec1 = (v) => num(v.toFixed(1), lang);
+  return (
+    <div className="lg-page">
+      <div className="lg-hero">
+        <button className="afp-back" onClick={() => window.history.back()} aria-label="back"><ChevronIcon style={{ transform: "rotate(-90deg)" }} /></button>
+        <div className="lg-hero-id">
+          <span className="lg-hero-ic"><CompIcon c={c} size={40} /></span>
+          <div><h1>{compName(c, lang)}</h1><small>{[tbl?.country && natName(tbl.country, lang), seTxt(tbl?.season)].filter(Boolean).join(" · ")}</small></div>
+        </div>
+      </div>
+      <div className="mp-tabs afp-tabs" role="tablist">{tabs.map(([k, l]) => <button key={k} role="tab" aria-selected={tab === k} className={tab === k ? "on" : ""} onClick={() => setTab(k)}>{l}</button>)}</div>
+      <div className="sec">
+        {tab === "table" && <LgTable code={code} teamsById={teamsById} lang={lang} fallback={<LeagueClassic code={code} comps={comps} preds={preds} onOpen={onOpen} onlyTable />} />}
+        {tab === "matches" && (games === null ? <Loading /> : (
+          <>
+            <div className="sec-h"><h2>{bn ? "সামনের খেলা" : "Upcoming"}</h2></div>
+            {games.up.length ? <div className="card"><DatedRows list={games.up} preds={preds} onOpen={onOpen} /></div> : <div className="card empty">{bn ? "সামনে কোনো খেলা নেই" : "No upcoming matches"}</div>}
+            <div className="sec-h" style={{ marginTop: 16 }}><h2>{bn ? "সাম্প্রতিক ফল" : "Recent results"}</h2></div>
+            {games.past.length ? <div className="card"><DatedRows list={games.past} preds={preds} onOpen={onOpen} /></div> : <div className="card empty">{bn ? "কোনো ফল নেই" : "No results"}</div>}
+          </>
+        ))}
+        {tab === "players" && (pl === null ? <Loading /> : !pl ? <div className="card empty">{bn ? "খেলোয়াড়ের পরিসংখ্যান এখন পাওয়া যাচ্ছে না" : "Player stats unavailable"}</div> : (
+          <div className="ldr-grid">
+            <LeaderCard title={bn ? "গোল" : "Goals"} list={pItems(pl.goals)} lang={lang} />
+            <LeaderCard title={bn ? "অ্যাসিস্ট" : "Assists"} list={pItems(pl.assists)} lang={lang} />
+            <LeaderCard title={bn ? "হলুদ কার্ড" : "Yellow cards"} list={pItems(pl.yellow)} lang={lang} />
+            <LeaderCard title={bn ? "লাল কার্ড" : "Red cards"} list={pItems(pl.red)} lang={lang} />
+          </div>
+        ))}
+        {tab === "teams" && (tbl === null ? <Loading /> : !allRows.length ? <div className="card empty">{bn ? "দলের পরিসংখ্যান এখন পাওয়া যাচ্ছে না" : "Team stats unavailable"}</div> : (
+          <div className="ldr-grid">
+            <LeaderCard title={bn ? "সবচেয়ে বেশি গোল" : "Most goals"} list={top((r) => r.all.gf || 0)} lang={lang} />
+            <LeaderCard title={bn ? "ম্যাচপ্রতি গোল" : "Goals per match"} list={top((r) => (r.all.gf || 0) / r.all.p)} lang={lang} fmt={dec1} />
+            <LeaderCard title={bn ? "ম্যাচপ্রতি সবচেয়ে কম গোল খেয়েছে" : "Fewest conceded per match"} list={top((r) => (r.all.ga || 0) / r.all.p, true)} lang={lang} fmt={dec1} />
+            <LeaderCard title={bn ? "সবচেয়ে বেশি জয়" : "Most wins"} list={top((r) => r.all.w || 0)} lang={lang} />
+            <LeaderCard title={bn ? "ঘরের মাঠে সেরা (পয়েন্ট)" : "Best at home (pts)"} list={top((r) => (r.home?.w || 0) * 3 + (r.home?.d || 0))} lang={lang} />
+            <LeaderCard title={bn ? "প্রতিপক্ষের মাঠে সেরা (পয়েন্ট)" : "Best away (pts)"} list={top((r) => (r.away?.w || 0) * 3 + (r.away?.d || 0))} lang={lang} />
+          </div>
+        ))}
+        {tab === "seasons" && (ss === null ? <Loading /> : !ss || !ss.list?.length ? <div className="card empty">{bn ? "আগের মৌসুমের তথ্য পাওয়া যায়নি" : "No past seasons"}</div> : (
+          <div className="ldr-grid">
+            {ss.list.map((x) => (
+              <div key={x.season} className="card ldr">
+                <div className="ldr-h"><b>{seTxt(x.season)}</b></div>
+                {[[x.first, bn ? "চ্যাম্পিয়ন" : "Winner"], [x.second, bn ? "রানার্স-আপ" : "Runner-up"]].filter(([r]) => r).map(([r, l], i) => {
+                  const it = teamItem(r, r.pts);
+                  return (
+                    <button key={i} className="ldr-r" onClick={() => it.onOpen?.()}>
+                      <span className="ldr-n">{i === 0 ? <TrophyIcon width={18} height={18} style={{ color: "#d4a017" }} /> : <span className="muted">{num(2, lang)}</span>}</span>
+                      <Crest team={it.crestTeam} size={26} />
+                      <span className="ldr-nm"><b>{it.label}</b><small className="muted">{l}</small></span>
+                      <span className="ldr-v">{num(r.pts, lang)}<small> {bn ? "প" : "pts"}</small></span>
+                    </button>
+                  );
+                })}
+              </div>
+            ))}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+function LeagueClassic({ code, comps, preds, onOpen, onlyTable }) {
   const { lang } = useT();
   const nav = useNav();
   const wide = useWide();
@@ -6794,6 +7020,8 @@ function League({ code, comps, preds, onOpen }) {
       </div>
     </>
   );
+
+  if (onlyTable) return tableBlock;
 
   const gamesBlock = (n) => games === null ? <Loading /> : (
     <>
@@ -7674,7 +7902,7 @@ export default function App() {
             onCancel={editing ? () => setEditing(false) : skipOnboarding}
           />
         ) : view?.kind === "league" ? (
-          <League key={view.code} code={view.code} comps={comps} preds={preds} onOpen={openMatch} />
+          <League key={view.code} code={view.code} comps={comps} preds={preds} onOpen={openMatch} teamsById={teamsById} />
         ) : view?.kind === "team" ? (
           <Team key={view.id} id={view.id} teamsById={teamsById} preds={preds} onOpen={openMatch} isFav={myTeams.fav.includes(view.id)} onToggleFav={toggleFav} />
         ) : view?.kind === "page" ? (
