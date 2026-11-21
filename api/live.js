@@ -584,6 +584,15 @@ export default async function handler(req, res) {
       return res.status(200).json(d);
     } catch (e) { return res.status(500).json({ ok: false, error: String(e.message || e).slice(0, 200) }); }
   }
+  if (q0.lgs) {
+    // একটি দেশের সব লিগ (কোন লিগ কোন আইডিতে আছে দেখার জন্য)
+    try {
+      const list = await af(`/leagues?country=${encodeURIComponent(String(q0.lgs).slice(0, 40))}`);
+      res.setHeader("Cache-Control", "public, s-maxage=3600, max-age=600");
+      return res.status(200).json(list.map((x) => ({ id: x.league?.id, name: x.league?.name, type: x.league?.type, logo: x.league?.logo,
+        seasons: (x.seasons || []).slice(-3).map((z) => ({ y: z.year, start: z.start, end: z.end, cur: z.current })) })));
+    } catch (e) { return res.status(500).json({ ok: false, error: String(e.message || e).slice(0, 200) }); }
+  }
   if (q0.lg) {
     const code = String(q0.lg).toUpperCase(), kind = String(q0.kind || "table");
     try {
