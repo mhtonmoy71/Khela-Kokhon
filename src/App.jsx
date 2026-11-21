@@ -1704,11 +1704,11 @@ function getAllPlayers() {
   if (!allPlayersP) {
     try {
       const j = JSON.parse(localStorage.getItem("kk_players") || "null");
-      if (j && j.v === 2 && Date.now() - j.t < 86400000 && Array.isArray(j.data)) allPlayersP = Promise.resolve(j.data);
+      if (j && j.v === 3 && Date.now() - j.t < 86400000 && Array.isArray(j.data)) allPlayersP = Promise.resolve(j.data);
     } catch { /* ignore */ }
     // ছয় লিগ (football-data) + API-Football-এর লিগগুলো (সৌদি, এমএলএস…), একসাথে
-    const afSq = fetch("/api/live?squads=1").then((r) => (r.ok ? r.json() : [])).then((d) => (Array.isArray(d) ? d : [])).catch(() => []);
-    allPlayersP ||= Promise.all([extra({ type: "players" }), afSq]).then(([a, b]) => [...a, ...b]).then((data) => { try { localStorage.setItem("kk_players", JSON.stringify({ t: Date.now(), v: 2, data })); } catch { /* ignore */ } return data; })
+    const afSq = fetch("/api/live?squads=3").then((r) => (r.ok ? r.json() : [])).then((d) => (Array.isArray(d) ? d : [])).catch(() => []);
+    allPlayersP ||= Promise.all([extra({ type: "players" }), afSq]).then(([a, b]) => [...a, ...b]).then((data) => { try { localStorage.setItem("kk_players", JSON.stringify({ t: Date.now(), v: 3, data })); } catch { /* ignore */ } return data; })
       .catch((e) => { allPlayersP = null; throw e; });
   }
   return allPlayersP;
