@@ -7072,6 +7072,20 @@ function AfPlayer({ id, comps, teamsById }) {
   );
 }
 
+// যেকোনো খেলোয়াড়ের পাতা: বড় ছয় লিগের খেলোয়াড়কে API-Football-এ খুঁজে নতুন পাতায়; না মিললে আগের পাতা
+const resolved = {};
+function PlayerAny({ id, comps, teamsById }) {
+  const [af, setAf] = useState(id >= 10000000 ? id : DEMO ? 0 : resolved[id] ?? null);
+  useEffect(() => {
+    if (af !== null) return;
+    let a = true;
+    fetch(`/api/live?resolve=${id}`).then((r) => r.json()).then((d) => { resolved[id] = d?.id || 0; a && setAf(resolved[id]); }).catch(() => a && setAf(0));
+    return () => { a = false; };
+  }, [id]);
+  if (af === null) return <><div className="page-head"><button className="back" onClick={() => window.history.back()} aria-label="back">←</button></div><div className="sec"><Loading /></div></>;
+  return af ? <AfPlayer id={af} comps={comps} teamsById={teamsById} /> : <Player id={id} teamsById={teamsById} comps={comps} />;
+}
+
 function PlayerPhoto({ p, lang }) {
   const [tries, setTries] = useState(0);
   const src = tries === 0 ? p.photo?.url : tries === 1 ? photoFallback(p.photo?.url) : null;
@@ -7644,7 +7658,7 @@ export default function App() {
         ) : view?.kind === "quiz" ? (
           <QuizPage code={view.code} user={user} goProfile={() => go("profile")} toast={toast} />
         ) : view?.kind === "player" ? (
-          view.id >= 10000000 ? <AfPlayer key={view.id} id={view.id} comps={comps} teamsById={teamsById} /> : <Player key={view.id} id={view.id} teamsById={teamsById} comps={comps} />
+          <PlayerAny key={view.id} id={view.id} comps={comps} teamsById={teamsById} />
         ) : view?.kind === "match" ? (
           <MatchPage key={view.id} id={view.id} m={view.m} user={user} pred={preds[view.id]} toast={toast} onSave={onSavePrediction} onLogin={() => go("profile")} />
         ) : tab === "matches" ? (

@@ -391,8 +391,38 @@ async function playerCareerAf(afId) {
   }).filter((r) => r.apps !== 0);
 }
 
+// football-data-এর খেলোয়াড় → API-Football-এর খেলোয়াড় (নাম + জন্মতারিখ মিলিয়ে), যাতে বড় ছয় লিগেও নতুন পাতা
+const asciiName = (x) => (x || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/ø/g, "o").replace(/[ßđłæ]/g, (c) => ({ ß: "ss", đ: "d", ł: "l", æ: "ae" })[c]);
+async function resolveFd(fdId) {
+  const r = await fetch(`https://api.football-data.org/v4/persons/${fdId}`, { headers: { "X-Auth-Token": process.env.FD_KEY } });
+  if (!r.ok) return null;
+  const fp = await r.json();
+  const dob = fp.dateOfBirth || null;
+  const words = asciiName(fp.name).split(/\s+/).filter((w) => w.length >= 3);
+  const tries = [...new Set([words[words.length - 1], words[0], ...words.slice(1, -1)].filter(Boolean))].slice(0, 3);
+  const nm = asciiName(fp.name).toLowerCase();
+  for (const w of tries) {
+    let list = [];
+    try { list = await af(`/players/profiles?search=${encodeURIComponent(w)}`); } catch { list = []; }
+    const cands = list.map((x) => x.player || x).filter((x) => x?.id);
+    // জন্মতারিখ মিললে নিশ্চিত; না থাকলে পুরো নামের মিল
+    const hit = (dob && cands.find((x) => x.birth?.date === dob)) || cands.find((x) => asciiName(`${x.firstname || ""} ${x.lastname || ""}`).toLowerCase() === nm || asciiName(x.name).toLowerCase() === nm);
+    if (hit) return hit.id;
+  }
+  return null;
+}
+
 export default async function handler(req, res) {
   const q0 = req.query || {};
+  if (q0.resolve) {
+    const id = parseInt(q0.resolve, 10);
+    if (!(id > 0 && id < POFF)) return res.status(400).json({ ok: false });
+    try {
+      const afId = await resolveFd(id);
+      res.setHeader("Cache-Control", afId ? "public, s-maxage=2592000, max-age=604800" : "public, s-maxage=86400, max-age=3600");   // মিলে গেলে ৩০ দিন জমা
+      return res.status(200).json({ ok: true, id: afId ? POFF + afId : null });
+    } catch (e) { return res.status(500).json({ ok: false, error: String(e.message || e).slice(0, 200) }); }
+  }
   if (q0.pmatches || q0.pcareer) {
     const id = parseInt(q0.pmatches || q0.pcareer, 10);
     if (!(id > POFF)) return res.status(400).json({ ok: false });
