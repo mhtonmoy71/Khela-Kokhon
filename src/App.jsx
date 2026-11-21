@@ -353,7 +353,8 @@ img { display: block; }
 .mp-head { padding: 2px 0 4px; }
 .mp-back { flex: none; width: 32px; height: 32px; border-radius: 50%; border: 1px solid var(--line); background: var(--card); color: var(--text); display: grid; place-items: center; cursor: pointer; }
 .mp-head .ms-top .ms-comp { flex: 1; min-width: 0; }
-.mp-cd { margin-top: 4px; font: 600 12px Inter, 'Hind Siliguri', sans-serif; color: var(--muted); }
+.mp-clock { font-variant-numeric: tabular-nums; }
+.mp-cd { margin-top: 4px; font: 700 13px Inter, 'Hind Siliguri', sans-serif; font-variant-numeric: tabular-nums; letter-spacing: .5px; color: var(--muted); }
 .mp-tabs { position: sticky; top: calc(64px + env(safe-area-inset-top)); z-index: 5; display: flex; gap: 2px; overflow-x: auto; scrollbar-width: none; margin: 2px -16px 10px; padding: 0 10px; background: var(--bg); border-bottom: 1px solid var(--line); }
 .mp-tabs::-webkit-scrollbar { display: none; }
 .mp-tabs button { flex: none; padding: 9px 10px 7px; background: none; border: 0; border-bottom: 2.5px solid transparent; color: var(--muted); font: 600 13.5px 'Hind Siliguri', sans-serif; cursor: pointer; white-space: nowrap; }
@@ -2675,6 +2676,26 @@ function CompGroups({ matches, preds = {}, onOpen }) {
 }
 
 // ── প্রতি মিনিটে রেন্ডার (কাউন্টডাউনের জন্য) ──
+// ঘড়ির মতো কাউন্টডাউন: ০৩:১২:০৫ (এক দিনের বেশি হলে "২ দিন ০৩:১২:০৫")
+const pad2 = (v, lang) => num(String(v).padStart(2, "0"), lang);
+function clockDown(ms, lang = "bn") {
+  const t = Math.max(0, Math.floor(ms / 1000));
+  const d = Math.floor(t / 86400), h = Math.floor((t % 86400) / 3600), mi = Math.floor((t % 3600) / 60), se = t % 60;
+  const hms = `${pad2(h, lang)}:${pad2(mi, lang)}:${pad2(se, lang)}`;
+  return d > 0 ? `${num(d, lang)} ${lang === "bn" ? "দিন" : "d"} ${hms}` : hms;
+}
+// চলমান খেলার ঘড়ি মিনিট:সেকেন্ড। উৎস প্রতি মিনিটে শুধু মিনিট দেয়, তাই শেষ হালনাগাদ থেকে সেকেন্ড গোনা
+// (হালনাগাদ থেমে গেলে ঘড়ি এক মিনিটের বেশি এগোয় না); যোগ করা সময়ে "৪৫+২'"
+function LiveClock({ m, L, lang }) {
+  const now = useNow(1000);
+  if (m.status === "PAUSED") return <span className="lv">{lang === "bn" ? "বিরতি" : "HT"}</span>;
+  if (!isLive(m) || m.minute == null) return <StatusText m={m} />;
+  const cap = L?.status === "1H" ? 45 : L?.status === "2H" ? 90 : L?.status === "ET" ? 120 : 999;
+  if (m.minute_x || m.minute >= cap) return <span className="lv"><i className="dot" />{minuteTxt(m.minute, m.minute_x, lang)}</span>;
+  const since = Math.max(0, Math.min(119, Math.floor((now - Date.parse(L?.updated_at || now)) / 1000)));
+  const mm = Math.min(cap, m.minute + Math.floor(since / 60)), ss = since % 60;
+  return <span className="lv mp-clock"><i className="dot" />{pad2(mm, lang)}:{pad2(ss, lang)}</span>;
+}
 function useNow(ms = 30000) {
   const [now, setNow] = useState(Date.now());
   useEffect(() => { const i = setInterval(() => setNow(Date.now()), ms); return () => clearInterval(i); }, [ms]);
@@ -3157,7 +3178,7 @@ function MatchPage({ id, m: mInit, user, pred, onSave, onLogin, toast }) {
   const L = useMatchLive(m0);
   const m = useMemo(() => (m0 ? mergeLive(m0, L) : null), [m0, L]);
   const nav = useNav();
-  const now = useNow(1000 * 20);
+  const now = useNow(1000);
   const [h, setH] = useState(pred?.home ?? 0);
   const [a, setA] = useState(pred?.away ?? 0);
   useEffect(() => { if (pred) { setH(pred.home); setA(pred.away); } }, [pred?.home, pred?.away]);
@@ -3210,8 +3231,8 @@ function MatchPage({ id, m: mInit, user, pred, onSave, onLogin, toast }) {
             {showScore
               ? <div className="ms-score">{num(m.home_score, lang)} - {num(m.away_score, lang)}</div>
               : <div className="ms-time">{timeLabel(m.utc_date, lang)}</div>}
-            <div className="ms-date">{showScore ? <StatusText m={m} /> : dayLabel(dayKey(m.utc_date), lang, { short: true })}</div>
-            {open && <div className="mp-cd">{countdown(new Date(m.utc_date) - now, lang)}</div>}
+            <div className="ms-date">{showScore ? <LiveClock m={m} L={L} lang={lang} /> : dayLabel(dayKey(m.utc_date), lang, { short: true })}</div>
+            {open && !isLive(m) && <div className="mp-cd">{clockDown(new Date(m.utc_date) - now, lang)}</div>}
           </div>
           <button className="ms-team" onClick={() => m.away_id && nav.openTeam(m.away_id)}><Crest team={m.away} size={42} /><span>{teamName(m.away, lang)}</span></button>
         </div>
