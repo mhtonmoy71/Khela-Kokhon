@@ -1219,7 +1219,7 @@ button.scr { width: 100%; }
   .mt-row { grid-template-columns: 20px minmax(0, 1fr) 24px 34px 30px; }
   .mt-row > span:nth-child(n+3) { text-align: right; }
   .mt-h { font-size: 11.5px; padding-top: 2px; padding-bottom: 4px; }
-  .sc-row { grid-template-columns: 22px 26px minmax(0, 1fr) auto; }
+  .sc-row { grid-template-columns: 22px minmax(0, 1fr) auto; }
   button.mt-row:hover, button.sc-row:hover { background: var(--card2); }
   .mt-tm { display: flex; align-items: center; gap: 8px; min-width: 0; }
   .mt-tm b, .sc-nm b { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -8486,7 +8486,7 @@ export default function App() {
         </header>
         {DEMO && <div className="demo-bar">{lang === "bn" ? "ডেমো মোড — নমুনা ডেটা দেখানো হচ্ছে" : "Demo mode — sample data"}</div>}
 
-        <main className={"main v-" + (onboarding ? "onboarding" : view?.kind || tab) + (!onboarding && ((!view && (tab === "matches" || tab === "leagues")) || view?.kind === "league" || view?.kind === "team" || view?.kind === "player" || view?.kind === "daily" || (!view && tab === "predict")) ? " wide" : " narrow")}>
+        <main className={"main v-" + (onboarding ? "onboarding" : view?.kind || tab) + (!onboarding && ((!view && tab === "matches") || view?.kind === "daily" || (!view && tab === "predict")) ? " wide" : " narrow")}>
         {onboarding ? (
           <Onboarding
             key={editing ? "edit" : "first"}
