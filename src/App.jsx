@@ -60,13 +60,14 @@ img { display: block; }
   border-bottom: 1px solid var(--line); text-align: left; }
 .row:last-child { border-bottom: 0; }
 .row:active { background: var(--card2); }
-.side { display: flex; align-items: center; gap: 8px; min-width: 0; font-size: 14px; font-weight: 500; }
-@media (max-width: 380px) { .side { font-size: 13px; gap: 6px; } .row { padding-left: 8px; padding-right: 8px; grid-template-columns: 1fr 66px 1fr; } .row.has-badge { padding-left: 46px; } }
+.side { display: flex; align-items: center; gap: 7px; min-width: 0; font-size: 14px; font-weight: 500; }
+@media (max-width: 380px) { .side { font-size: 13px; gap: 6px; } .row { padding-left: 8px; padding-right: 8px; grid-template-columns: 1fr 66px 1fr; } .row.has-badge { padding-left: 42px; padding-right: 6px; } }
 @media (max-width: 340px) { .side { font-size: 12.5px; gap: 4px; } .side .crest, .side .crest-fb { width: 18px !important; height: 18px !important; font-size: 6.5px !important; } .row { gap: 4px; padding-left: 6px; padding-right: 6px; grid-template-columns: 1fr 60px 1fr; } .mid .t { font-size: 12px; } }
 .side.home { justify-content: flex-end; text-align: right; }
 .side span { overflow: hidden; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; white-space: normal; line-height: 1.2; overflow-wrap: normal; word-break: normal; hyphens: none; }
-.side span.nm-s { font-size: .9em; }
-.side span.nm-xs { font-size: .8em; }
+/* প্রিয় দলের ★ লোগোর কোণে, নামের জায়গা না নিয়ে */
+.side .crw { position: relative; display: inline-flex; flex: none; overflow: visible; -webkit-line-clamp: none; }
+.fav-pin { position: absolute; top: -6px; right: -6px; font-style: normal; font-size: 11px; line-height: 1; color: var(--amber); text-shadow: 0 0 2px var(--card), 0 0 2px var(--card); }
 .side.win span { font-weight: 700; }
 .mid { text-align: center; line-height: 1.15; }
 .mid .t { font-size: 13px; font-weight: 600; }
@@ -796,11 +797,11 @@ button.pm { background: none; border: 0; padding: 0; cursor: pointer; font: inhe
 .ask-input { border-top: 0; }
 .follow-h { padding: 14px 16px; }
 .row { position: relative; }
-.row.has-badge { padding-left: 50px; padding-right: 14px; }
+.row.has-badge { padding-left: 44px; padding-right: 8px; }
 .rbadge.live { background: #16a34a; color: #fff; border-radius: 999px; font-family: Inter, 'Hind Siliguri', sans-serif; }
 .row.has-badge .mid .st { display: none; }
 .mid .st { white-space: nowrap; }
-.rbadge { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); width: 32px; padding: 3px 0; border-radius: 8px; background: var(--card2);
+.rbadge { position: absolute; left: 8px; top: 50%; transform: translateY(-50%); width: 32px; padding: 3px 0; border-radius: 8px; background: var(--card2);
   color: var(--muted); font-size: 10.5px; font-weight: 700; text-align: center; line-height: 1.2; white-space: nowrap; overflow: hidden; }
 
 /* ── ম্যাচের শিট: সাদামাটা, ভারী রঙ ছাড়া ── */
@@ -2957,11 +2958,6 @@ function StatusText({ m }) {
 }
 
 // ── ম্যাচের সারি ──
-// নামের মাঝখানে শব্দ ভাঙা নয়: লম্বা এক শব্দের নাম হলে অক্ষর একটু ছোট (Barcelona, Bournemouth)
-const nmFit = (name, star) => {
-  const w = Math.max(0, ...String(name || "").split(/\s+/).map((x) => [...x].length)) + (star ? 2 : 0);
-  return w >= 12 ? "nm-xs" : w >= 9 ? "nm-s" : undefined;
-};
 function MatchRow({ m, pred, onOpen, badge: badge0, plain, sub }) {
   const allFavs = useContext(FavCtx);
   const favs = plain ? [] : allFavs; // "ফলো করা" কার্ডে সবই প্রিয় দল, তাই আলাদা চিহ্ন লাগে না
@@ -2973,8 +2969,8 @@ function MatchRow({ m, pred, onOpen, badge: badge0, plain, sub }) {
     <button className={"row has-badge" + (favs.includes(m.home_id) || favs.includes(m.away_id) ? " my" : "")} onClick={() => onOpen?.(m)}>
       {badge}
       <div className={"side home" + (hw ? " win" : "")}>
-        <span className={nmFit(teamShort(m.home, lang), favs.includes(m.home_id))}>{favs.includes(m.home_id) && <i className="fav-star">★</i>}{teamShort(m.home, lang)}</span>
-        <Crest team={m.home} />
+        <span>{teamShort(m.home, lang)}</span>
+        <span className="crw"><Crest team={m.home} />{favs.includes(m.home_id) && <i className="fav-pin">★</i>}</span>
       </div>
       <div className="mid">
         {showScore ? (
@@ -2991,8 +2987,8 @@ function MatchRow({ m, pred, onOpen, badge: badge0, plain, sub }) {
         )}
       </div>
       <div className={"side" + (aw ? " win" : "")}>
-        <Crest team={m.away} />
-        <span className={nmFit(teamShort(m.away, lang), favs.includes(m.away_id))}>{teamShort(m.away, lang)}{favs.includes(m.away_id) && <i className="fav-star r">★</i>}</span>
+        <span className="crw"><Crest team={m.away} />{favs.includes(m.away_id) && <i className="fav-pin">★</i>}</span>
+        <span>{teamShort(m.away, lang)}</span>
       </div>
     </button>
   );
