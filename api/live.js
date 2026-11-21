@@ -261,19 +261,81 @@ export function slim(f) {
   };
 }
 
+
+// ── ফোনে নোটিফিকেশন (Web Push): প্রিয় দলের খেলা শুরু, গোল, খেলা শেষ ──
+// Vercel-এ VAPID_PRIVATE_KEY লাগে; না থাকলে চুপচাপ কিছু পাঠায় না
+export const VAPID_PUBLIC = "BFMXdQT5h_0cIPpPhwS5-piYi92NJHudRI63NzcxCBfCDO1JD2pK_DC-njO_aQx1DRVWsx4LKhSNs-62SRrl9OM";
+const BN_D = "০১২৩৪৫৬৭৮৯", bnN = (n) => String(n).replace(/\d/g, (d) => BN_D[d]);
+const tnm = (t) => t?.name_bn || t?.short_en || t?.name_en || "";
+async function sendPushes(notes) {
+  if (!notes.length || !process.env.VAPID_PRIVATE_KEY) return 0;
+  // একই ঘটনা দুবার না যায়: push_log-এ আগে দাবি করে নেওয়া (unique match_id+ev)
+  let claimed = [];
+  try {
+    claimed = await sb("push_log?on_conflict=match_id,ev", { method: "POST", body: notes.map((n) => ({ match_id: n.mid, ev: n.ev })), prefer: "resolution=ignore-duplicates,return=representation" });
+  } catch { return 0; }
+  const ok = new Set(claimed.map((r) => r.match_id + "|" + r.ev));
+  const todo = notes.filter((n) => ok.has(n.mid + "|" + n.ev));
+  if (!todo.length) return 0;
+  const teamIds = [...new Set(todo.flatMap((n) => [n.hid, n.aid]).filter(Boolean))];
+  const fans = await sb(`user_teams?select=user_id,team_id&kind=eq.fav&team_id=in.(${teamIds.join(",")})`);
+  if (!fans.length) return 0;
+  const users = [...new Set(fans.map((f) => f.user_id))];
+  const subs = await sb(`push_subs?select=id,user_id,endpoint,p256dh,auth,prefs&user_id=in.(${users.join(",")})`);
+  if (!subs.length) return 0;
+  const { default: webpush } = await import("web-push");
+  webpush.setVapidDetails("https://khelakokhon.com", VAPID_PUBLIC, process.env.VAPID_PRIVATE_KEY);
+  const dead = [];
+  let sent = 0;
+  const jobs = [];
+  for (const n of todo) {
+    const who = new Set(fans.filter((f) => f.team_id === n.hid || f.team_id === n.aid).map((f) => f.user_id));
+    for (const sub of subs.filter((x) => who.has(x.user_id) && (x.prefs?.[n.kind] ?? true))) {
+      jobs.push(webpush.sendNotification({ endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } },
+        JSON.stringify({ title: n.title, body: n.body, url: `/match/${n.mid}`, tag: `m${n.mid}-${n.kind}` }), { TTL: n.kind === "goal" ? 600 : 1800, urgency: "high" })
+        .then(() => { sent++; }, (e) => { if (e?.statusCode === 404 || e?.statusCode === 410) dead.push(sub.id); }));
+    }
+  }
+  await Promise.all(jobs);
+  if (dead.length) await sb(`push_subs?id=in.(${dead.join(",")})`, { method: "DELETE", prefer: "return=minimal" }).catch(() => {});
+  return sent;
+}
+// আগের আর এখনকার অবস্থা মিলিয়ে কী ঘটল
+function pushNotes(m, prev, s) {
+  const out = [];
+  if (!m?.home_id || !prev) return out;
+  const H = tnm(m.home), A = tnm(m.away), pst = prev.status;
+  const sc = `${H} ${bnN(s.home_goals ?? 0)}–${bnN(s.away_goals ?? 0)} ${A}`;
+  const base = { mid: m.id, hid: m.home_id, aid: m.away_id };
+  if (s.status === "1H" && (!pst || ["NS", "TBD"].includes(pst)) && (s.elapsed ?? 0) <= 15)
+    out.push({ ...base, kind: "start", ev: "start", title: "খেলা শুরু", body: `${H} বনাম ${A}` });
+  const was = (prev.home_goals ?? 0) + (prev.away_goals ?? 0), nowG = (s.home_goals ?? 0) + (s.away_goals ?? 0);
+  if (pst && nowG > was && s.status !== "P") {
+    const g = [...(s.events || [])].reverse().find((e) => e.t === "Goal" && !/Missed/i.test(e.d || "") && !/shootout/i.test(e.c || ""));
+    const who = g?.p ? ` · ${g.p}${g.m != null ? ` ${bnN(g.m)}${g.x ? "+" + bnN(g.x) : ""}'` : ""}` : "";
+    out.push({ ...base, kind: "goal", ev: `g${s.home_goals}-${s.away_goals}`, title: `গোল! ${sc}`, body: `${who.replace(/^ · /, "")}` || sc });
+  }
+  if (pst && FINAL.slice(0, 3).includes(s.status) && !FINAL.includes(pst)) {
+    const pens = s.pen ? ` (টাইব্রেকারে ${bnN(s.pen[0])}–${bnN(s.pen[1])})` : "";
+    out.push({ ...base, kind: "end", ev: "end", title: "খেলা শেষ", body: sc + pens });
+  }
+  return out;
+}
+
 export async function runLive() {
   if (!process.env.APIF_KEY) throw new Error("APIF_KEY সেট করা নেই");
   calls = 0;
   const now = Date.now();
   const from = new Date(now - AFTER).toISOString(), to = new Date(now + BEFORE).toISOString();
-  const T = "name_en,short_en";
-  const win = await sb(`matches?select=id,competition_code,utc_date,status,home:teams!matches_home_fk(${T}),away:teams!matches_away_fk(${T})&utc_date=gte.${from}&utc_date=lte.${to}&status=not.in.(POSTPONED,CANCELLED)`);
+  const T = "name_en,short_en,name_bn";
+  const win = await sb(`matches?select=id,competition_code,utc_date,status,home_id,away_id,home:teams!matches_home_fk(${T}),away:teams!matches_away_fk(${T})&utc_date=gte.${from}&utc_date=lte.${to}&status=not.in.(POSTPONED,CANCELLED)`);
   if (!win.length) return { calls, window: 0 };
   const have = await sb(`match_live?select=match_id,af_id,status,home_goals,away_goals,map_tried_at,final_seen_at&match_id=in.(${win.map((m) => m.id).join(",")})`);
   const byId = Object.fromEntries(have.map((r) => [r.match_id, r]));
   for (const m of win) if (AF_LEAGUES[m.competition_code]) byId[m.id] = { ...byId[m.id], af_id: m.id - MOFF };
   const rows = [];
   const fixUp = [];
+  const notes = [];
 
   // ১) এখনো না মেলানো ম্যাচ: লিগ + দিন ধরে একবার আনা (না মিললে ৩০ মিনিট পরে আবার চেষ্টা)
   const unmapped = win.filter((m) => !byId[m.id]?.af_id && LEAGUE[m.competition_code]
@@ -309,6 +371,7 @@ export async function runLive() {
       // সব লিগের ম্যাচের অবস্থা আর স্কোর এখান থেকেই (football-data-র ফ্রি স্তর খেলা চলা বা শেষ হওয়া দেরিতে জানায়)
       // শুধু শুরু হয়ে গেলে লেখা হয়; শুরুর আগের অবস্থা football-data-ই রাখে
       const { pen: penSc, ...sNoPen } = s;
+      try { notes.push(...pushNotes(wm, prev?.status !== undefined || prev?.home_goals !== undefined ? prev : null, s)); } catch { /* নোটিফিকেশন ঐচ্ছিক */ }
       const ast = AF_STATUS(s.status);
       if (wm && (AF_LEAGUES[wm.competition_code] || ["IN_PLAY", "PAUSED", "FINISHED"].includes(ast)) && (ast !== wm.status || true))
         fixUp.push({ id: mid, status: ast, home_score: s.home_goals, away_score: s.away_goals, pen: penSc });
@@ -341,7 +404,8 @@ export async function runLive() {
   const pen = fixUp.length ? await hasPen() : false;
   for (const x of fixUp) await sb(`matches?id=eq.${x.id}`, { method: "PATCH", body: { status: x.status, home_score: x.home_score, away_score: x.away_score, ...(pen && x.pen ? { pen_home: x.pen[0], pen_away: x.pen[1] } : {}), updated_at: new Date().toISOString() }, prefer: "return=minimal" });
   if (fixUp.some((x) => x.status === "FINISHED")) await sb("rpc/score_predictions", { method: "POST", body: {} }).catch(() => {});
-  return { calls, window: win.length, mapped: Object.values(byId).filter((r) => r?.af_id).length, updated: out.length };
+  const pushed = await sendPushes(notes).catch(() => 0);
+  return { calls, window: win.length, mapped: Object.values(byId).filter((r) => r?.af_id).length, updated: out.length, notes: notes.length, pushed };
 }
 
 // ── শেষ হওয়া একটা ম্যাচ কেউ খুললে: আগে আনা না থাকলে একবার এনে রাখা (পরে আর কখনো API-তে যায় না) ──
@@ -648,6 +712,23 @@ export default async function handler(req, res) {
       const d = await leagueInfo(code, kind);
       if (!d) return res.status(404).json({ ok: false });
       res.setHeader("Cache-Control", `public, s-maxage=${kind === "seasons" ? 2592000 : kind === "players" ? 21600 : 600}, max-age=${kind === "table" ? 120 : 3600}`);
+      return res.status(200).json(d);
+    } catch (e) { return res.status(500).json({ ok: false, error: String(e.message || e).slice(0, 200) }); }
+  }
+  if (q0.team) {
+    // API-Football-এর দলের তথ্য: মাঠ, প্রতিষ্ঠা, কোচ, স্কোয়াড (ছবিসহ)
+    const id = parseInt(q0.team, 10);
+    if (!(id > TOFF && id < 2 * TOFF)) return res.status(400).json({ ok: false });
+    try {
+      const t = id - TOFF;
+      const [[ti], [sq], co] = await Promise.all([af(`/teams?id=${t}`), af(`/players/squads?team=${t}`).catch(() => []), af(`/coachs?team=${t}`).catch(() => [])]);
+      const coach = co.find((c) => (c.career || []).some((x) => x.team?.id === t && !x.end)) || null;
+      const d = {
+        id, venue: ti?.venue?.name || null, city: ti?.venue?.city || null, capacity: ti?.venue?.capacity || null, founded: ti?.team?.founded || null, country: ti?.team?.country || null,
+        coach: coach ? { name: dec(coach.name), nationality: coach.nationality || null, photo: coach.photo || null } : null,
+        squad: (sq?.players || []).map((p) => ({ id: POFF + p.id, name: dec(p.name), position: p.position || null, number: p.number ?? null, age: p.age ?? null, photo: p.photo || null })),
+      };
+      res.setHeader("Cache-Control", d.squad.length ? "public, s-maxage=86400, max-age=21600" : "public, s-maxage=600, max-age=300");
       return res.status(200).json(d);
     } catch (e) { return res.status(500).json({ ok: false, error: String(e.message || e).slice(0, 200) }); }
   }
