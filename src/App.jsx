@@ -64,7 +64,9 @@ img { display: block; }
 @media (max-width: 380px) { .side { font-size: 13px; gap: 6px; } .row { padding-left: 8px; padding-right: 8px; grid-template-columns: 1fr 66px 1fr; } .row.has-badge { padding-left: 46px; } }
 @media (max-width: 340px) { .side { font-size: 12.5px; gap: 4px; } .side .crest, .side .crest-fb { width: 18px !important; height: 18px !important; font-size: 6.5px !important; } .row { gap: 4px; padding-left: 6px; padding-right: 6px; grid-template-columns: 1fr 60px 1fr; } .mid .t { font-size: 12px; } }
 .side.home { justify-content: flex-end; text-align: right; }
-.side span { overflow: hidden; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; white-space: normal; line-height: 1.2; overflow-wrap: break-word; hyphens: auto; }
+.side span { overflow: hidden; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; white-space: normal; line-height: 1.2; overflow-wrap: normal; word-break: normal; hyphens: none; }
+.side span.nm-s { font-size: .9em; }
+.side span.nm-xs { font-size: .8em; }
 .side.win span { font-weight: 700; }
 .mid { text-align: center; line-height: 1.15; }
 .mid .t { font-size: 13px; font-weight: 600; }
@@ -2955,6 +2957,11 @@ function StatusText({ m }) {
 }
 
 // ── ম্যাচের সারি ──
+// নামের মাঝখানে শব্দ ভাঙা নয়: লম্বা এক শব্দের নাম হলে অক্ষর একটু ছোট (Barcelona, Bournemouth)
+const nmFit = (name, star) => {
+  const w = Math.max(0, ...String(name || "").split(/\s+/).map((x) => [...x].length)) + (star ? 2 : 0);
+  return w >= 12 ? "nm-xs" : w >= 9 ? "nm-s" : undefined;
+};
 function MatchRow({ m, pred, onOpen, badge: badge0, plain, sub }) {
   const allFavs = useContext(FavCtx);
   const favs = plain ? [] : allFavs; // "ফলো করা" কার্ডে সবই প্রিয় দল, তাই আলাদা চিহ্ন লাগে না
@@ -2966,7 +2973,7 @@ function MatchRow({ m, pred, onOpen, badge: badge0, plain, sub }) {
     <button className={"row has-badge" + (favs.includes(m.home_id) || favs.includes(m.away_id) ? " my" : "")} onClick={() => onOpen?.(m)}>
       {badge}
       <div className={"side home" + (hw ? " win" : "")}>
-        <span>{favs.includes(m.home_id) && <i className="fav-star">★</i>}{teamShort(m.home, lang)}</span>
+        <span className={nmFit(teamShort(m.home, lang), favs.includes(m.home_id))}>{favs.includes(m.home_id) && <i className="fav-star">★</i>}{teamShort(m.home, lang)}</span>
         <Crest team={m.home} />
       </div>
       <div className="mid">
@@ -2985,7 +2992,7 @@ function MatchRow({ m, pred, onOpen, badge: badge0, plain, sub }) {
       </div>
       <div className={"side" + (aw ? " win" : "")}>
         <Crest team={m.away} />
-        <span>{teamShort(m.away, lang)}{favs.includes(m.away_id) && <i className="fav-star r">★</i>}</span>
+        <span className={nmFit(teamShort(m.away, lang), favs.includes(m.away_id))}>{teamShort(m.away, lang)}{favs.includes(m.away_id) && <i className="fav-star r">★</i>}</span>
       </div>
     </button>
   );
