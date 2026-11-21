@@ -662,6 +662,10 @@ button.pm { background: none; border: 0; padding: 0; cursor: pointer; font: inhe
 .push-top small { display: block; font-size: 12.5px; margin-top: 2px; line-height: 1.4; }
 .push-prefs { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
 .push-prefs .chip.on { background: var(--greenDim); border-color: var(--green); color: var(--text); }
+.push-help { margin-top: 12px; padding: 12px 14px; border-radius: 12px; background: color-mix(in srgb, #f59e0b 12%, transparent); font-size: 13px; line-height: 1.55; }
+.push-help b { display: block; margin-bottom: 4px; }
+.push-help ol { margin: 0 0 6px 18px; padding: 0; }
+.push-help small { display: block; font-size: 12px; }
 .push-note { font-size: 12.5px; line-height: 1.5; margin-top: 10px; }
 .push-card > .push-note:first-child { margin-top: 0; }
 .tgl { position: relative; width: 50px; height: 30px; border-radius: 15px; background: var(--line); border: 0; flex-shrink: 0; transition: background .2s; }
@@ -6231,6 +6235,8 @@ const standalone = () => window.matchMedia?.("(display-mode: standalone)").match
 function PushCard({ user, hasFav, toast, bn }) {
   const [row, setRow] = useState(undefined); // undefined = দেখা হচ্ছে, null = বন্ধ
   const [busy, setBusy] = useState(false);
+  // ব্রাউজারে এই সাইটের নোটিফিকেশন আগে বন্ধ করা থাকলে ব্রাউজার আর জিজ্ঞেস করে না; তখন কীভাবে খুলবেন তা দেখানো
+  const [blocked, setBlocked] = useState(() => pushOk() && Notification.permission === "denied");
   useEffect(() => {
     if (!pushOk() || DEMO) { setRow(null); return; }
     let a = true;
@@ -6248,8 +6254,11 @@ function PushCard({ user, hasFav, toast, bn }) {
   async function turnOn() {
     setBusy(true);
     try {
+      if (Notification.permission === "denied") { setBlocked(true); setBusy(false); return; }
       const perm = await Notification.requestPermission();
-      if (perm !== "granted") { toast(bn ? "ব্রাউজারের সেটিংসে এই সাইটের নোটিফিকেশন চালু করুন" : "Allow notifications for this site in browser settings"); setBusy(false); return; }
+      if (perm === "denied") { setBlocked(true); setBusy(false); return; }
+      if (perm !== "granted") { toast(bn ? "অনুমতির বার্তায় “Allow” চাপুন" : "Tap “Allow” when the browser asks"); setBusy(false); return; }
+      setBlocked(false);
       const reg = await navigator.serviceWorker.ready;
       const sub = (await reg.pushManager.getSubscription()) || (await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64u(VAPID_PUBLIC) }));
       const j = sub.toJSON();
@@ -6257,7 +6266,10 @@ function PushCard({ user, hasFav, toast, bn }) {
       if (error) throw error;
       setRow(data);
       toast(bn ? "নোটিফিকেশন চালু হয়েছে" : "Notifications on");
-    } catch { toast(bn ? "চালু করা গেল না, একটু পরে আবার চেষ্টা করুন" : "Couldn't turn on, try again later"); }
+    } catch (e) {
+      const missing = /push_subs|relation|schema cache|PGRST/i.test(String(e?.message || e?.code || ""));
+      toast(missing ? (bn ? "নোটিফিকেশন এখনো চালু হয়নি, শিগগিরই আসছে" : "Notifications aren't live yet, coming soon") : (bn ? "চালু করা গেল না, একটু পরে আবার চেষ্টা করুন" : "Couldn't turn on, try again later"));
+    }
     setBusy(false);
   }
   async function turnOff() {
@@ -6297,6 +6309,17 @@ function PushCard({ user, hasFav, toast, bn }) {
                 {[["start", bn ? "খেলা শুরু" : "Kick-off"], ["goal", bn ? "গোল" : "Goals"], ["end", bn ? "খেলা শেষ" : "Full time"]].map(([k, l]) => (
                   <button key={k} className={"chip" + (P[k] ? " on" : "")} onClick={() => pref(k)}>{P[k] ? "✓ " : ""}{l}</button>
                 ))}
+              </div>
+            )}
+            {blocked && !row && (
+              <div className="push-help">
+                <b>{bn ? "এই ব্রাউজারে নোটিফিকেশন বন্ধ করা আছে" : "Notifications are blocked in this browser"}</b>
+                <ol>
+                  <li>{bn ? "ওপরে ঠিকানার ঘরের বাঁ পাশের চিহ্নে চাপুন (তালা বা সেটিংসের চিহ্ন)" : "Tap the icon at the left of the address bar (lock or settings)"}</li>
+                  <li>{bn ? "“অনুমতি” বা “Permissions” থেকে “Notifications” খুলে “Allow” করুন" : "Open Permissions → Notifications and choose Allow"}</li>
+                  <li>{bn ? "পাতাটা রিফ্রেশ করে আবার এই বোতাম চাপুন" : "Refresh the page and tap the switch again"}</li>
+                </ol>
+                <small className="muted">{bn ? "হোম স্ক্রিনে ইনস্টল করা থাকলে: ফোনের সেটিংস → অ্যাপস → খেলা কখন → নোটিফিকেশন চালু করুন" : "If installed on your home screen: phone Settings → Apps → Khela Kokhon → Notifications"}</small>
               </div>
             )}
             {row && !hasFav && <div className="muted push-note">{bn ? "এখনো কোনো প্রিয় দল নেই। ওপরে প্রিয় দল যোগ করলে তাদের খেলার খবর আসবে।" : "No favourite teams yet. Add some above to get their alerts."}</div>}
