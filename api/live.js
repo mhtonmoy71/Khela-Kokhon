@@ -30,7 +30,7 @@ export const AF_LEAGUES = {
   UEL: { id: 3, en: "Europa League", bn: "ইউরোপা লিগ", sort: 9 },
   // বাংলাদেশ প্রিমিয়ার লিগ: আইডি দেশ ধরে খুঁজে নেওয়া হয় (country + নাম)
   // বাংলাদেশ ফেডারেশন কাপ
-  BFC: { id: 811, en: "Federation Cup", bn: "ফেডারেশন কাপ", sort: 8, squads: true },
+  BFC: { id: 811, en: "Federation Cup", bn: "ফেডারেশন কাপ", sort: 8, squads: true, ownTable: "groups" },
   BPL: { id: null, find: { country: "Bangladesh", name: /premier/i }, en: "Bangladesh Football League", bn: "বাংলাদেশ ফুটবল লিগ", sort: 7, squads: true, ownTable: true },
 };
 export const MOFF = 100000000, TOFF = 10000000, POFF = 10000000;
@@ -122,7 +122,9 @@ export async function syncAfLeagues(only) {
       // টেবিল: এমএলএস-এর দুই কনফারেন্স মিলিয়ে পয়েন্ট অনুযায়ী একটা তালিকা
       const [st] = await af(`/standings?league=${L.id}&season=${season}`);
       let rowsAll = (st?.league?.standings || []).flat().filter((r) => r.team?.id);
-      if (L.ownTable && staleTable(rowsAll, fx)) rowsAll = tableFromFixtures(fx);
+      // কয়েক গ্রুপের টেবিল এক তালিকায় মেশানো যায় না
+      if (L.ownTable === "groups") { if ((st?.league?.standings || []).length !== 1) rowsAll = []; }
+      else if (L.ownTable && staleTable(rowsAll, fx)) rowsAll = tableFromFixtures(fx);
       const seen = new Set();
       const rows = rowsAll.filter((r) => !seen.has(r.team.id) && seen.add(r.team.id))
         .sort((a, b) => b.points - a.points || b.goalsDiff - a.goalsDiff || (b.all?.goals?.for || 0) - (a.all?.goals?.for || 0));
@@ -536,6 +538,17 @@ function tableFromFixtures(fx) {
   const rows = [...T.values()].sort((x, y) => y.points - x.points || y.goalsDiff - x.goalsDiff || y.all.goals.for - x.all.goals.for || x.team.name.localeCompare(y.team.name));
   return rows.map((r, i) => ({ ...r, rank: i + 1, form: r.res.slice(-5).reverse().join("") || null }));
 }
+// গ্রুপ পর্ব: কে কার সাথে খেলছে দেখে দলগুলোকে গ্রুপে ভাগ করে প্রতিটার টেবিল (গ্রুপ A, B …)
+function groupTablesFromFixtures(fx) {
+  const gfx = fx.filter((f) => /group/i.test(f.league?.round || "") && f.teams?.home?.id && f.teams?.away?.id);
+  if (!gfx.length) return [];
+  const par = new Map(), find = (x) => { while (par.get(x) !== x) x = par.get(x); return x; };
+  for (const f of gfx) for (const t of [f.teams.home.id, f.teams.away.id]) if (!par.has(t)) par.set(t, t);
+  for (const f of gfx) { const a = find(f.teams.home.id), b = find(f.teams.away.id); if (a !== b) par.set(b, a); }
+  const order = [];
+  for (const f of [...gfx].sort((a, b) => a.fixture.timestamp - b.fixture.timestamp)) { const r = find(f.teams.home.id); if (!order.includes(r)) order.push(r); }
+  return order.map((root, i) => tableFromFixtures(gfx.filter((f) => find(f.teams.home.id) === root)).map((r) => ({ ...r, group: `Group ${String.fromCharCode(65 + i)}` })));
+}
 // API-এর টেবিলের ম্যাচসংখ্যা ফিক্সচারের সাথে না মিললে বা দল আলাদা হলে সেটা পুরনো
 function staleTable(rows, fx) {
   if (!rows.length) return true;
@@ -567,7 +580,8 @@ async function leagueInfo(code, kind) {
     let groups = st?.league?.standings || [];
     if (AF_LEAGUES[code]?.ownTable) {
       const fx = await af(`/fixtures?league=${lid}&season=${se}&timezone=UTC`);
-      if (staleTable(groups.flat(), fx)) groups = [tableFromFixtures(fx)];
+      if (AF_LEAGUES[code].ownTable === "groups") { if (!groups.length) groups = groupTablesFromFixtures(fx); }
+      else if (staleTable(groups.flat(), fx)) groups = [tableFromFixtures(fx)];
     }
     return { season: se, country: cur.country, groups: groups.map((g) => g.map((r) => tRow(r, code))) };
   }
