@@ -469,8 +469,27 @@ async function leagueInfo(code, kind) {
   return null;
 }
 
+// সার্চের জন্য: API-Football-এর লিগগুলোর (সৌদি, এমএলএস…) সব দলের স্কোয়াড, [আইডি, নাম, দল, পজিশন]
+async function afSquads() {
+  const teams = await sb(`teams?select=id&id=gte.${TOFF}&id=lt.${MOFF}`);
+  const out = [];
+  const ids = teams.map((t) => t.id - TOFF);
+  for (let i = 0; i < ids.length; i += 8) {
+    const got = await Promise.all(ids.slice(i, i + 8).map((t) => af(`/players/squads?team=${t}`).catch(() => [])));
+    got.forEach((r, k) => { for (const p of r[0]?.players || []) out.push([POFF + p.id, dec(p.name), TOFF + ids[i + k], p.position || null]); });
+  }
+  return out;
+}
+
 export default async function handler(req, res) {
   const q0 = req.query || {};
+  if (q0.squads) {
+    try {
+      const d = await afSquads();
+      res.setHeader("Cache-Control", "public, s-maxage=604800, max-age=86400");
+      return res.status(200).json(d);
+    } catch (e) { return res.status(500).json({ ok: false, error: String(e.message || e).slice(0, 200) }); }
+  }
   if (q0.lg) {
     const code = String(q0.lg).toUpperCase(), kind = String(q0.kind || "table");
     try {

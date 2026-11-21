@@ -1704,9 +1704,11 @@ function getAllPlayers() {
   if (!allPlayersP) {
     try {
       const j = JSON.parse(localStorage.getItem("kk_players") || "null");
-      if (j && Date.now() - j.t < 86400000 && Array.isArray(j.data)) allPlayersP = Promise.resolve(j.data);
+      if (j && j.v === 2 && Date.now() - j.t < 86400000 && Array.isArray(j.data)) allPlayersP = Promise.resolve(j.data);
     } catch { /* ignore */ }
-    allPlayersP ||= extra({ type: "players" }).then((data) => { try { localStorage.setItem("kk_players", JSON.stringify({ t: Date.now(), data })); } catch { /* ignore */ } return data; })
+    // ছয় লিগ (football-data) + API-Football-এর লিগগুলো (সৌদি, এমএলএস…), একসাথে
+    const afSq = fetch("/api/live?squads=1").then((r) => (r.ok ? r.json() : [])).then((d) => (Array.isArray(d) ? d : [])).catch(() => []);
+    allPlayersP ||= Promise.all([extra({ type: "players" }), afSq]).then(([a, b]) => [...a, ...b]).then((data) => { try { localStorage.setItem("kk_players", JSON.stringify({ t: Date.now(), v: 2, data })); } catch { /* ignore */ } return data; })
       .catch((e) => { allPlayersP = null; throw e; });
   }
   return allPlayersP;
@@ -2615,6 +2617,7 @@ const playerName = (name, lang) => (lang === "bn" && PLAYER_BN[name]) || name;
 
 // ── API-Football-এর নাম ("E. Haaland", "Cristiano Ronaldo") বাংলায়:
 //    ১) হাতে লেখা বানান ২) আমাদের বাংলা নামের তালিকা (পুরো নাম, বা আদ্যক্ষর + পদবি মিলিয়ে) ৩) উচ্চারণ ধরে আনুমানিক রূপান্তর
+const AF_FULL_EN = { "L. Messi": "Lionel Messi", "K. Mbappé": "Kylian Mbappe", "E. Mbappé": "Kylian Mbappe", "S. Mané": "Sadio Mane", "J. Bellingham": "Jude Bellingham", "A. Kanté": "Ngolo Kante", "R. De Paul": "Rodrigo De Paul", "J. Rodríguez": "James Rodriguez", "J. Díaz": "Luis Diaz", "M. Reus": "Marco Reus" };
 const AF_NAME_BN = {"L. Messi": "লিওনেল মেসি", "Lionel Messi": "লিওনেল মেসি", "Cristiano Ronaldo": "ক্রিস্তিয়ানো রোনালদো", "E. Mbappé": "এমবাপে", "K. Mbappé": "কিলিয়ান এমবাপে", "Son Heung-Min": "সন হিউং-মিন", "J. Bellingham": "বেলিংহাম", "A. Lacazette": "লাকাজেত", "A. Kanté": "কান্তে", "S. Mané": "সাদিও মানে", "João Félix": "জোয়াও ফেলিক্স", "Rúben Neves": "রুবেন নেভেস", "R. De Paul": "দি পল", "R. Bentancur": "বেন্তানকুর", "I. Toney": "টনি", "O. Watkins": "ওয়াটকিন্স", "M. Reus": "রয়েস", "M. Thuram": "থুরাম", "M. Politano": "পলিতানো", "M. Retegui": "রেতেগি", "S. Milinković-Savić": "মিলিনকোভিচ-সাভিচ", "M. Škriniar": "স্ক্রিনিয়ার", "M. Kudus": "কুদুস", "M. Gibbs-White": "গিবস-হোয়াইট", "J.  McGinn": "ম্যাকগিন", "J. McGinn": "ম্যাকগিন", "Gabriel Martinelli": "মার্তিনেল্লি", "Aymeric Laporte": "লাপোর্ত", "Y. Carrasco": "কারাস্কো", "Y. En-Nesyri": "এন-নেসিরি", "T. Reijnders": "রেইন্ডার্স", "J. Ramsey": "র‍্যামসি", "T. Weah": "টিমোথি উইয়াহ", "S. Bergwijn": "বার্গওয়াইন", "D. Kamada": "কামাদা", "C. De Ketelaere": "দে কেতেলায়েরে", "Talisca": "তালিসকা", "Trincão": "ত্রিনকাও", "Guilherme": "গিলহের্মে", "Thiago": "থিয়াগো", "Bernardo": "বের্নার্দো", "Emerson": "এমারসন", "Wesley": "ওয়েসলি", "Yuri": "ইউরি", "Evander": "ইভান্দার", "Rômulo": "রোমুলো", "A. Brown": "ব্রাউন", "C. Tolisso": "তোলিসো", "M. Guendouzi": "গেন্দুজি", "M. Zaccagni": "জাক্কাগনি", "J. Díaz": "লুইস দিয়াস", "M. Cash": "ক্যাশ", "E. Ampadu": "আমপাদু", "K. Dewsbury-Hall": "ডিউসবেরি-হল", "P. Aaronson": "অ্যারনসন", "M. Demiral": "দেমিরাল", "Danilo Pereira": "দানিলো পেরেইরা", "Carlos Soler": "কার্লোস সোলের", "José Gayà": "হোসে গায়া", "Marcos Alonso": "মার্কোস আলোনসো", "Iñigo Vicente": "ইনিগো ভিসেন্তে", "Yeremy Pino": "ইয়েরেমি পিনো", "D. Bouanga": "বোয়াঙ্গা", "Javier Hernandez": "হাভিয়ের এরনান্দেজ", "J. Rodríguez": "হামেস রদ্রিগেজ", "Gonzalo Villar": "গনসালো ভিয়ার"};
 // ইংরেজি হরফের নাম → বাংলা উচ্চারণ (আনুমানিক; বানানের তালিকায় না থাকলে)
 const TR_C = [
@@ -5758,6 +5761,8 @@ const COMP_WORDS = {
   BL1: ["বুন্দেসলিগা", "bundesliga"],
   SA: ["সিরি আ", "সিরিয়া", "সিরি এ", "serie a"],
   FL1: ["লিগ আঁ", "লিগ ওয়ান", "ligue 1", "ligue un"],
+  SPL: ["সৌদি প্রো লিগ", "সৌদি লিগ", "সৌদি", "saudi pro league", "saudi league", "roshn"],
+  MLS: ["এমএলএস", "মেজর লিগ সকার", "আমেরিকান লিগ", "mls", "major league soccer"],
 };
 
 const W = {
@@ -5830,7 +5835,8 @@ const poss = (name, lang) => (lang !== "bn" ? `${name}'s`
   : name + "ের");
 
 // ════════ খেলোয়াড়ের প্রশ্ন ════════
-const COMP_LABEL = { CL: ["চ্যাম্পিয়ন্স লিগ", "Champions League"], PL: ["প্রিমিয়ার লিগ", "Premier League"], PD: ["লা লিগা", "La Liga"], BL1: ["বুন্দেসলিগা", "Bundesliga"], SA: ["সিরি আ", "Serie A"], FL1: ["লিগ ওয়ান", "Ligue 1"] };
+const COMP_ORDER = ["CL", "PL", "PD", "BL1", "SA", "FL1", "SPL", "MLS"];
+const COMP_LABEL = { CL: ["চ্যাম্পিয়ন্স লিগ", "Champions League"], PL: ["প্রিমিয়ার লিগ", "Premier League"], PD: ["লা লিগা", "La Liga"], BL1: ["বুন্দেসলিগা", "Bundesliga"], SA: ["সিরি আ", "Serie A"], FL1: ["লিগ ওয়ান", "Ligue 1"], SPL: ["সৌদি প্রো লিগ", "Saudi Pro League"], MLS: ["এমএলএস", "MLS"] };
 const compLabel = (code, lang) => (COMP_LABEL[code] || [code, code])[lang === "bn" ? 0 : 1];
 // একটা দল/খেলোয়াড় যে প্রতিযোগিতাগুলোয় আছে, নাম ধরে: "লা লিগা ও চ্যাম্পিয়ন্স লিগ" (লিগ আগে, ইউসিএল পরে)
 const compList = (codes, lang) => {
@@ -5901,7 +5907,7 @@ function findPlayer(q, scorers, teams) {
   const latinQ = q.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
   // ১) ইংরেজি পুরো নাম বা শেষ নাম
   for (const r of people) {
-    const full = norm(r.player_name).normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    const full = norm(AF_FULL_EN[r.player_name] || r.player_name).normalize("NFD").replace(/[\u0300-\u036f]/g, "");
     const parts = full.split(" ").filter((w) => w.length >= (goalsOf[r.player_id] ? 4 : 5) && !teamWords.has(w) && !ASK_STOP_EXTRA.includes(w));
     if (latinQ.includes(full) || parts.some((w) => new RegExp("(^|[^a-z])" + esc(w) + "($|[^a-z])").test(latinQ))) return r;
   }
@@ -5917,7 +5923,8 @@ function findPlayer(q, scorers, teams) {
   // পুরো নাম মিললে সে-ই; শুধু শেষ অংশ মিললে (মার্তিনেজ) যার গোল বেশি
   let byKey = null;
   for (const r of people) {
-    const bnName = PLAYER_BN[r.player_name];
+    // API-Football-এর খেলোয়াড় (সৌদি, এমএলএস…): বাংলা নাম তালিকা বা উচ্চারণ থেকে
+    const bnName = PLAYER_BN[r.player_name] || (r.player_id >= 10000000 ? bnPlayer(r.player_name, "bn") : null);
     if (!bnName) continue;
     if (bnNameIn(q, norm(bnName))) return r;
     const parts = norm(bnName).split(" ");
@@ -5970,7 +5977,7 @@ async function answerPlayer(q, teams, lang) {
   const cName = (code) => compLabel(code, lang);
 
   if (wantTop) {
-    const codes = comp ? [comp] : ["CL", "PL", "PD", "BL1", "SA", "FL1"];
+    const codes = comp ? [comp] : [...new Set(scorers.map((r) => r.competition_code))].sort((a, b) => (COMP_ORDER.indexOf(a) + 1 || 99) - (COMP_ORDER.indexOf(b) + 1 || 99));
     if (comp) {
       const list = rank(comp).slice(0, 5);
       if (!list.length) return { text: bn ? "এই প্রতিযোগিতার গোলদাতার তালিকা এখনো আসেনি।" : "No scorers list for this competition yet.", matches: [] };
@@ -6529,7 +6536,18 @@ const plain = (s) => {
 const soundMemo = new Map();
 const soundOf = (w) => { let v = soundMemo.get(w); if (v === undefined) { v = sound(w); if (soundMemo.size < 50000) soundMemo.set(w, v); } return v; };
 // নামের কোনো শব্দ প্রশ্ন দিয়ে শুরু হয়, বা বাংলা উচ্চারণ প্রায় মেলে → স্কোর (কম = ভালো), না মিললে null
+// একাধিক শব্দের খোঁজ ("লিওনেল মেসি", "ronaldo nassr"): প্রতিটা শব্দ আলাদা মিলিয়ে, সব শব্দ মিললে
 function nameScore(q, names) {
+  const words = plain(q).split(" ").filter((w) => w.length >= 2);
+  if (words.length > 1) {
+    const whole = nameScore1(q, names);
+    let worst = 0;
+    for (const w of words) { const sc = nameScore1(w, names); if (sc == null) { worst = null; break; } worst = Math.max(worst, sc); }
+    return whole != null ? Math.min(whole, worst ?? 99) : worst == null ? null : worst + 0.5;
+  }
+  return nameScore1(q, names);
+}
+function nameScore1(q, names) {
   const pq = plain(q);
   let best = null;
   for (const n of names.filter(Boolean)) {
@@ -6537,7 +6555,7 @@ function nameScore(q, names) {
     if (pn === pq) return 0;
     if (pn.startsWith(pq)) best = Math.min(best ?? 9, 1);
     else if (pn.split(" ").some((w) => w.startsWith(pq))) best = Math.min(best ?? 9, 2);
-    else if (!isBn(pq) && pq.length >= 3 && pn.includes(pq)) best = Math.min(best ?? 9, 3);
+    else if (pq.length >= (isBn(pq) ? 2 : 3) && pn.includes(pq)) best = Math.min(best ?? 9, 3);
     else if (isBn(pq) && !isBn(pn) && pq.length >= 3) {
       // বাংলায় লেখা, নাম ইংরেজিতে: উচ্চারণের শুরুটা মেলাই (এমবা → mbappe, হালান্ড → haaland)
       const qv = bnSound(pq.replace(/\s+/g, ""));
@@ -6584,7 +6602,7 @@ function SearchSheet({ comps, teams, onClose }) {
     }
     const nickFor = {};
     for (const [n, part] of Object.entries(PLAYER_NICK)) (nickFor[part] ||= []).push(n);
-    return [...map.values()].map((r) => ({ ...r, names: [r.player_name, PLAYER_BN[r.player_name], ...plain(r.player_name).split(" ").flatMap((w) => nickFor[w] || [])].filter(Boolean) }));
+    return [...map.values()].map((r) => ({ ...r, names: [r.player_name, PLAYER_BN[r.player_name], r.player_id >= 10000000 ? bnPlayer(r.player_name, "bn") : null, AF_FULL_EN[r.player_name], ...plain(r.player_name).split(" ").flatMap((w) => nickFor[w] || [])].filter(Boolean) }));
   }, [scorers, squadPlayers, teams]);
   useEffect(() => { document.documentElement.style.overflow = "hidden"; return () => { document.documentElement.style.overflow = ""; }; }, []);
 
