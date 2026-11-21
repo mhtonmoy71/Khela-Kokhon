@@ -27,10 +27,17 @@ export const AF_LEAGUES = {
   CDR: { id: 143, en: "Copa del Rey", bn: "কোপা দেল রে", sort: 14 },
   CCC: { id: 16, en: "CONCACAF Champions Cup", bn: "কনকাকাফ চ্যাম্পিয়ন্স কাপ", sort: 15, squads: true },
   ACL: { id: 17, en: "AFC Champions League Elite", bn: "এএফসি চ্যাম্পিয়ন্স লিগ", sort: 16, squads: true },
+  UEL: { id: 3, en: "Europa League", bn: "ইউরোপা লিগ", sort: 9 },
+  // বাংলাদেশ প্রিমিয়ার লিগ: আইডি দেশ ধরে খুঁজে নেওয়া হয় (country + নাম)
+  BPL: { id: null, find: { country: "Bangladesh", name: /premier/i }, en: "Bangladesh Premier League", bn: "বাংলাদেশ প্রিমিয়ার লিগ", sort: 7, squads: true },
 };
 export const MOFF = 100000000, TOFF = 10000000, POFF = 10000000;
 // বড় দলগুলোর বাংলা নাম (API-Football-এর নামের অংশ → বাংলা); বাকিগুলো ইংরেজিতে
 const AF_TEAMS_BN = [
+  ["Bashundhara", "বসুন্ধরা কিংস"], ["Abahani Chittagong", "চট্টগ্রাম আবাহনী"], ["Chittagong Abahani", "চট্টগ্রাম আবাহনী"], ["Abahani", "ঢাকা আবাহনী"],
+  ["Mohammedan", "মোহামেডান"], ["Fortis", "ফর্টিস এফসি"], ["Rahmatganj", "রহমতগঞ্জ"], ["Brothers Union", "ব্রাদার্স ইউনিয়ন"],
+  ["Police", "পুলিশ এফসি"], ["Fakirerpool", "ফকিরেরপুল"], ["Dhaka Wanderers", "ঢাকা ওয়ান্ডারার্স"], ["Sheikh Russel", "শেখ রাসেল"],
+  ["Sheikh Jamal", "শেখ জামাল"], ["Arambagh", "আরামবাগ"], ["Muktijoddha", "মুক্তিযোদ্ধা"], ["Uttar Baridhara", "উত্তর বারিধারা"], ["Saif Sporting", "সাইফ স্পোর্টিং"],
   ["Al-Hilal", "আল হিলাল"], ["Al-Nassr", "আল নাসর"], ["Al-Ittihad", "আল ইত্তিহাদ"], ["Al-Ahli", "আল আহলি"],
   ["Al-Qadisiyah", "আল কাদসিয়া"], ["Al-Ettifaq", "আল ইত্তিফাক"], ["Al-Shabab", "আল শাবাব"], ["Al-Taawoun", "আল তাউন"],
   ["Al-Fateh", "আল ফাতেহ"], ["Al-Fayha", "আল ফাইহা"], ["Al-Khaleej", "আল খালিজ"], ["Al-Riyadh", "আল রিয়াদ"],
@@ -39,7 +46,7 @@ const AF_TEAMS_BN = [
   ["Atlanta United", "আটলান্টা ইউনাইটেড"], ["Columbus Crew", "কলম্বাস ক্রু"], ["FC Cincinnati", "এফসি সিনসিনাটি"],
   ["Philadelphia Union", "ফিলাডেলফিয়া ইউনিয়ন"], ["Orlando City", "অরল্যান্ডো সিটি"], ["Toronto FC", "টরন্টো এফসি"],
 ];
-const afBn = (name) => AF_TEAMS_BN.find(([k]) => (name || "").toLowerCase().startsWith(k.toLowerCase()))?.[1] || null;
+const afBn = (name) => AF_TEAMS_BN.find(([k]) => (name || "").toLowerCase().includes(k.toLowerCase()))?.[1] || null;
 const AF_STATUS = (st) => (["NS", "TBD"].includes(st) ? "TIMED" : st === "HT" ? "PAUSED" : ["FT", "AET", "PEN"].includes(st) ? "FINISHED"
   : st === "PST" ? "POSTPONED" : ["CANC", "ABD", "AWD", "WO"].includes(st) ? "CANCELLED" : "IN_PLAY");
 // লোগো না এলে দেখানোর তিন অক্ষর: "Al-Hilal" → HIL, "Inter Miami" → INT
@@ -88,6 +95,12 @@ export async function syncAfLeagues(only) {
   for (const [code, L] of Object.entries(AF_LEAGUES)) {
     if (only && !only.includes(code)) continue;
     try {
+      if (!L.id && L.find) {
+        const list = await af(`/leagues?country=${encodeURIComponent(L.find.country)}&type=league`);
+        const hit = list.find((x) => L.find.name.test(x.league?.name || ""));
+        if (!hit) { out[code] = "league not found"; continue; }
+        L.id = hit.league.id;
+      }
       const [lg] = await af(`/leagues?id=${L.id}&current=true`);
       const season = lg?.seasons?.find((x) => x.current)?.year;
       if (!season) { out[code] = "no season"; continue; }
@@ -486,7 +499,17 @@ async function resolveFd(fdId) {
 }
 
 // ── লিগের পাতা: টেবিল (সব/ঘরে/বাইরে, ফর্ম), খেলোয়াড়ের শীর্ষ তালিকা, আগের মৌসুমের চ্যাম্পিয়ন ──
-const afLeagueId = (code) => LEAGUE[code] || AF_LEAGUES[code]?.id || null;
+async function afLeagueId(code) {
+  const L = AF_LEAGUES[code];
+  if (LEAGUE[code] || L?.id) return LEAGUE[code] || L.id;
+  if (L?.find) {
+    const list = await af(`/leagues?country=${encodeURIComponent(L.find.country)}&type=league`);
+    const hit = list.find((x) => L.find.name.test(x.league?.name || ""));
+    if (hit) L.id = hit.league.id;
+    return L.id || null;
+  }
+  return null;
+}
 async function currentSeason(lid) {
   const [lg] = await af(`/leagues?id=${lid}&current=true`);
   return { season: lg?.seasons?.find((x) => x.current)?.year || null, country: lg?.country?.name || null, logo: lg?.league?.logo || null };
@@ -505,7 +528,7 @@ const pRow = (r, key) => {
   return { id: POFF + r.player.id, name: dec(r.player.name), full, photo: r.player.photo, team: { af: x.team?.id, name: dec(x.team?.name), logo: x.team?.logo }, apps: x.games?.appearences ?? null, v: v ?? 0 };
 };
 async function leagueInfo(code, kind) {
-  const lid = afLeagueId(code);
+  const lid = await afLeagueId(code);
   if (!lid) return null;
   const cur = await currentSeason(lid);
   const se = cur.season;
