@@ -2614,6 +2614,8 @@ const PLAYER_BN = {
   "Mathis Albert": "মাতিস আলবার্ট"
 };
 const playerName = (name, lang) => (lang === "bn" && PLAYER_BN[name]) || name;
+// খেলোয়াড়ের সারি ধরে নাম: API-Football-এর খেলোয়াড় (আইডি ১ কোটি+) হলে বাংলা রূপান্তর
+const pName = (r, lang) => (r && r.player_id >= 10000000 ? bnPlayer(r.player_name, lang) : playerName(r?.player_name, lang));
 
 // ── API-Football-এর নাম ("E. Haaland", "Cristiano Ronaldo") বাংলায়:
 //    ১) হাতে লেখা বানান ২) আমাদের বাংলা নামের তালিকা (পুরো নাম, বা আদ্যক্ষর + পদবি মিলিয়ে) ৩) উচ্চারণ ধরে আনুমানিক রূপান্তর
@@ -3911,7 +3913,7 @@ function SideLeague({ comps, code, setCode }) {
             {scorers.slice(0, 5).map((p, i) => (
               <button key={p.player_id} className="sc-row" onClick={() => nav.openPlayer(p.player_id)}>
                 <span className="muted">{num(i + 1, lang)}</span>
-                <span className="mt-tm"><Crest team={p.team} size={18} /><span className="sc-nm"><b>{playerName(p.player_name, lang)}</b><small className="muted">{teamName(p.team, lang)}</small></span></span>
+                <span className="mt-tm"><Crest team={p.team} size={18} /><span className="sc-nm"><b>{pName(p, lang)}</b><small className="muted">{teamName(p.team, lang)}</small></span></span>
                 <span className="mt-pts">{num(p.goals, lang)}</span>
               </button>
             ))}
@@ -6001,7 +6003,7 @@ async function answerPlayer(q, teams, lang) {
       return { text: bn ? "এই খেলোয়াড়কে খুঁজে পাইনি। ছয় লিগের খেলোয়াড়দের নাম দিয়ে জিজ্ঞেস করুন; নামটা অন্যভাবে লিখে দেখুন, যেমন ইংরেজিতে।" : "Couldn't find that player. Ask about players in the six competitions, or try the name another way, e.g. in English.", matches: [] };
     return null;
   }
-  const name = playerName(r.player_name, lang);
+  const name = pName(r, lang);
   const rows = scorers.filter((x) => x.player_id === r.player_id).sort((a, b) => b.goals - a.goals);
   const posName = posLabel(r.position, lang);
   const club = r.team ? teamName(r.team, lang) + (!rows.length && posName ? `, ${posName}` : "") : null;
@@ -6674,7 +6676,7 @@ function SearchSheet({ comps, teams, onClose }) {
           <div className="card">{res.players.map((r) => (
             <button key={r.player_id} className="s-row" onClick={() => go({ k: "p", id: r.player_id, name: r.player_name, team: r.team_id }, () => nav.openPlayer(r.player_id))}>
               <Avatar url={photoMemo[r.player_id]} name={r.player_name} team={r.team} size={36} />
-              <span className="s-txt"><b>{r.player_id >= 10000000 ? bnPlayer(r.player_name, lang) : playerName(r.player_name, lang)}</b><small className="muted">{[r.team ? teamName(r.team, lang) : "", posLabel(r.position, lang) || ""].filter(Boolean).join(" · ")}</small></span>
+              <span className="s-txt"><b>{r.player_id >= 10000000 ? bnPlayer(r.player_name, lang) : pName(r, lang)}</b><small className="muted">{[r.team ? teamName(r.team, lang) : "", posLabel(r.position, lang) || ""].filter(Boolean).join(" · ")}</small></span>
             </button>
           ))}</div>
         
@@ -6810,7 +6812,7 @@ function AskPage({ teams, preds, onOpen, chat, setChat }) {
                   {m.players.map((x) => (
                     <button key={x.player_id + x.code} className="ask-pl" onClick={() => nav.openPlayer(x.player_id)}>
                       <Crest team={x.team} size={26} />
-                      <span className="ask-pl-n"><b>{playerName(x.player_name, lang)}</b><small className="muted">{x.code ? compLabel(x.code, lang) : x.team ? teamName(x.team, lang) : ""}</small></span>
+                      <span className="ask-pl-n"><b>{pName(x, lang)}</b><small className="muted">{x.code ? compLabel(x.code, lang) : x.team ? teamName(x.team, lang) : ""}</small></span>
                       <span className="ask-pl-g">{x.goals == null ? "—" : num(x.goals, lang)}<small>{lang === "bn" ? "গোল" : "goals"}</small></span>
                     </button>
                   ))}
@@ -7139,7 +7141,7 @@ function LeagueClassic({ code, comps, preds, onOpen, onlyTable }) {
         <div className="scr" key={s.player_id}>
           <span className="pos">{num(i + 1, lang)}</span>
           <span className="pl">
-            <button className="pl-name" onClick={() => nav.openPlayer(s.player_id)}><b>{playerName(s.player_name, lang)}</b></button>
+            <button className="pl-name" onClick={() => nav.openPlayer(s.player_id)}><b>{pName(s, lang)}</b></button>
             <button className="pl-team" onClick={() => s.team_id && nav.openTeam(s.team_id)}><Crest team={s.team} size={14} />{teamName(s.team, lang)}</button>
           </span>
           <span className="muted">{num(s.assists ?? 0, lang)}</span>
