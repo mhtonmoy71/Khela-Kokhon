@@ -440,7 +440,11 @@ img { display: block; }
 .lu-cols .lu-subs + .lu-subs { border-left: 1px solid var(--line); }
 .lu-h { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; padding: 6px 0; font-size: 13px; }
 .lu-h small { width: 100%; font-size: 11.5px; }
-.lu-p { display: flex; align-items: center; gap: 6px; padding: 5px 0; font-size: 12.5px; color: var(--muted); }
+.lu-p { display: flex; align-items: center; gap: 6px; padding: 5px 0; font-size: 12.5px; color: var(--muted); width: 100%; background: none; border: 0; font-family: inherit; text-align: left; cursor: pointer; }
+button.pm { background: none; border: 0; padding: 0; cursor: pointer; font: inherit; color: inherit; }
+.scr.afp { grid-template-columns: 26px minmax(0, 1fr) 34px 30px 30px 44px; }
+.scr.afp > span:nth-child(n+3) { text-align: center; }
+.pl-inj { display: inline-block; margin-top: 4px; font-size: 12px; font-weight: 700; color: #fff; background: #dc2626; border-radius: 999px; padding: 1px 9px; }
 .lu-p.played { color: var(--text); }
 .lu-no { width: 18px; text-align: right; font: 700 11px Inter, sans-serif; color: var(--muted); flex: none; }
 .lu-n { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -3023,8 +3027,9 @@ const unEnt = (s) => (s || "").replace(/&(amp|apos|quot|#39);/g, (_, k) => ({ am
 const lastName = (n0) => { const n = unEnt(n0); const p = (n || "").split(" "); return p.length > 1 && /\.$/.test(p[0]) ? p.slice(1).join(" ") : p[p.length - 1] || n; };
 function PitchMan({ p, st, side }) {
   const [noPic, setNoPic] = useState(false);
+  const nav = useNav();
   return (
-    <div className={"pm pm-" + side}>
+    <button className={"pm pm-" + side} onClick={() => p.id && nav.openPlayer(10000000 + p.id)}>
       <span className="pm-shirt">{p.id && !noPic ? <img src={`https://media.api-sports.io/football/players/${p.id}.png`} alt="" loading="lazy" onError={() => setNoPic(true)} /> : (p.no ?? "")}
         {st?.r ? <em className={"pm-r " + rateCls(st.r)}>{st.r.toFixed(1)}</em> : null}
         {st?.cap ? <em className="pm-c">C</em> : null}
@@ -3032,7 +3037,7 @@ function PitchMan({ p, st, side }) {
         {st?.rc ? <em className="pm-card red" /> : st?.yc ? <em className="pm-card" /> : null}
       </span>
       <span className="pm-n">{p.no != null && !noPic ? <span className="pm-no">{p.no}</span> : null}{lastName(p.n)}</span>
-    </div>
+    </button>
   );
 }
 function TeamHalf({ T, side, P }) {
@@ -3053,6 +3058,7 @@ function TeamHalf({ T, side, P }) {
 }
 function MatchLineups({ L, m, lang }) {
   const bn = lang === "bn";
+  const nav = useNav();
   const { h, a } = L.lineups || {};
   if (!h?.xi?.length || !a?.xi?.length) return <div className="mc-empty muted">{bn ? "লাইনআপ সাধারণত খেলা শুরুর প্রায় এক ঘণ্টা আগে আসে" : "Lineups usually arrive about an hour before kickoff"}</div>;
   const P = L.players || {};
@@ -3064,11 +3070,11 @@ function MatchLineups({ L, m, lang }) {
     <div className="lu-subs">
       <div className="lu-h"><Crest team={side === "h" ? m.home : m.away} size={18} /><b>{teamShort(side === "h" ? m.home : m.away, lang)}</b>{T.coach && <small className="muted">{bn ? "কোচ" : "Coach"}: {T.coach}</small>}</div>
       {T.sub.map((p) => { const s = P[p.id]; return (
-        <div key={p.id || p.n} className={"lu-p" + (s?.min ? " played" : "")}>
+        <button key={p.id || p.n} className={"lu-p" + (s?.min ? " played" : "")} onClick={() => p.id && nav.openPlayer(10000000 + p.id)}>
           <span className="lu-no">{p.no ?? ""}</span><span className="lu-n">{p.n}</span>
           {s?.g ? <span className="lu-ev"><BallMini n={s.g} /></span> : null}
           {s?.r ? <em className={"pm-r " + rateCls(s.r)}>{s.r.toFixed(1)}</em> : null}
-        </div>
+        </button>
       ); })}
     </div>
   );
@@ -3089,7 +3095,7 @@ function MatchLineups({ L, m, lang }) {
       ) : (
         <div className="lu-cols">{[["h", h], ["a", a]].map(([sd, T]) => (
           <div key={sd} className="lu-subs"><div className="lu-h"><b>{teamShort(sd === "h" ? m.home : m.away, lang)}</b><small className="muted">{T.f}</small></div>
-            {T.xi.map((p) => <div key={p.id || p.n} className="lu-p"><span className="lu-no">{p.no}</span><span className="lu-n">{p.n}</span>{P[p.id]?.r ? <em className={"pm-r " + rateCls(P[p.id].r)}>{P[p.id].r.toFixed(1)}</em> : null}</div>)}
+            {T.xi.map((p) => <button key={p.id || p.n} className="lu-p played" onClick={() => p.id && nav.openPlayer(10000000 + p.id)}><span className="lu-no">{p.no}</span><span className="lu-n">{p.n}</span>{P[p.id]?.r ? <em className={"pm-r " + rateCls(P[p.id].r)}>{P[p.id].r.toFixed(1)}</em> : null}</button>)}
           </div>))}</div>
       )}
       <div className="sec-h" style={{ margin: "14px 0 6px" }}><h2>{bn ? "বদলি খেলোয়াড়" : "Substitutes"}</h2></div>
@@ -6867,6 +6873,102 @@ function Avatar({ url, name, team, size = 34 }) {
 
 // ════════════════ pages/Player.jsx ════════════════
 // ছবি না পেলে বা না এলে জার্সি নম্বর
+// ── যেকোনো লিগের খেলোয়াড়ের পাতা (API-Football; আইডি ১ কোটি+) ──
+async function getAfPlayer(id) {
+  const r = await fetch(`/api/live?player=${id}`);
+  if (!r.ok) throw new Error("player");
+  return r.json();
+}
+function AfPlayer({ id, comps }) {
+  const { lang } = useT();
+  const bn = lang === "bn";
+  const wide = useWide();
+  const nav = useNav();
+  const [p, setP] = useState(null);
+  const [badPic, setBadPic] = useState(false);
+  useEffect(() => { let a = true; setP(null); getAfPlayer(id).then((d) => a && setP(d)).catch(() => a && setP(false)); return () => { a = false; }; }, [id]);
+  useEffect(() => { if (p?.name) document.title = `${playerName(p.name, lang)} · খেলা কখন?`; return () => { document.title = "খেলা কখন?"; }; }, [p?.name, lang]);
+  const back = <div className="page-head"><button className="back" onClick={() => window.history.back()} aria-label="back">←</button></div>;
+  if (p === null) return <>{back}<div className="sec"><Loading /></div></>;
+  if (p === false) return <>{back}<div className="sec"><div className="card empty">{bn ? "খেলোয়াড়ের তথ্য এখন পাওয়া যাচ্ছে না। কিছুক্ষণ পরে আবার চেষ্টা করুন।" : "Player info isn't available right now."}</div></div></>;
+  const C = p.comps || [];
+  const tot = (k) => C.reduce((t, c) => t + (c[k] || 0), 0);
+  const mins = tot("minutes");
+  const rating = mins ? C.filter((c) => c.rating).reduce((t, c) => t + c.rating * c.minutes, 0) / (C.filter((c) => c.rating).reduce((t, c) => t + c.minutes, 0) || 1) : null;
+  const gk = p.position === "Goalkeeper";
+  const tiles = [[bn ? "ম্যাচ" : "Apps", num(tot("apps"), lang)], gk ? [bn ? "সেভ" : "Saves", num(tot("saves"), lang)] : [bn ? "গোল" : "Goals", num(tot("goals"), lang)],
+    gk ? [bn ? "গোল খেয়েছেন" : "Conceded", num(tot("conceded"), lang)] : [bn ? "অ্যাসিস্ট" : "Assists", num(tot("assists"), lang)],
+    rating ? [bn ? "গড় রেটিং" : "Avg rating", num(rating.toFixed(2), lang)] : [bn ? "মিনিট" : "Minutes", num(mins, lang)]];
+  const born = p.born && (() => { const [y, m, d] = p.born.split("-").map(Number); return bn ? `${num(d, "bn")} ${BN_MONTHS[m - 1]} ${num(y, "bn")}` : `${d} ${EN_MONTHS[m - 1]} ${y}`; })();
+  const info = [
+    [bn ? "পজিশন" : "Position", posLabel(p.position, lang)],
+    [bn ? "বয়স" : "Age", p.age != null ? `${num(p.age, lang)} ${bn ? "বছর" : ""}`.trim() : null],
+    [bn ? "জন্ম" : "Born", born && (p.birthplace ? `${born}, ${p.birthplace}` : born)],
+    [bn ? "দেশ" : "Nationality", natName(p.nationality, lang)],
+    [bn ? "উচ্চতা" : "Height", p.height && (bn ? num(p.height.replace(" cm", ""), "bn") + " সেমি" : p.height)],
+    [bn ? "জার্সি" : "Shirt", p.number != null ? num(p.number, lang) : null],
+  ].filter(([, v]) => v);
+  const compOf = (code) => comps.find((c) => c.code === code);
+  return (
+    <>
+      {back}
+      <div className={"team-hero" + (wide ? " row" : "")}>
+        {p.photo && !badPic
+          ? <div className="pl-photo-wrap"><img className="pl-photo" src={p.photo} alt={p.name} width="112" height="112" decoding="async" onError={() => setBadPic(true)} />{p.number != null && <span className="pl-shirt">{num(p.number, lang)}</span>}</div>
+          : <div className="pl-avatar">{p.number != null ? num(p.number, lang) : (p.name || "?").slice(0, 1)}</div>}
+        <div className="th-name">
+          <h1>{playerName(p.name, lang)}</h1>
+          {p.injured && <div className="pl-inj">{bn ? "ইনজুরিতে" : "Injured"}</div>}
+        </div>
+        {p.team && (p.team.id
+          ? <button className="chip" onClick={() => nav.openTeam(p.team.id)}><Crest team={{ crest: p.team.logo, short_en: p.team.name }} size={18} />{p.team.name}</button>
+          : <span className="chip"><Crest team={{ crest: p.team.logo, short_en: p.team.name }} size={18} />{p.team.name}</span>)}
+      </div>
+      <div className={wide ? "pg-grid" : undefined}>
+      <div className={wide ? "pg-main" : undefined}>
+        {C.length > 0 ? (
+          <>
+            <div className="sec">
+              <div className="sec-h"><h2>{bn ? "এই মৌসুমে" : "This season"}</h2></div>
+              <div className="card stat-grid" style={{ gridTemplateColumns: "repeat(4, 1fr)" }}>
+                {tiles.map(([l, v]) => <div key={l}><b>{v}</b><span>{l}</span></div>)}
+              </div>
+            </div>
+            <div className="sec">
+              <div className="sec-h"><h2>{bn ? "প্রতিযোগিতা অনুযায়ী" : "By competition"}</h2></div>
+              <div className="card">
+                <div className="scr scr-h afp"><span /><span style={{ textAlign: "left" }}>{bn ? "প্রতিযোগিতা" : "Competition"}</span><span>{bn ? "ম্যাচ" : "Apps"}</span><span>{gk ? (bn ? "সেভ" : "Sv") : (bn ? "গোল" : "G")}</span><span>{gk ? (bn ? "খেয়েছেন" : "GA") : (bn ? "অ্যা." : "A")}</span><span>{bn ? "রেটিং" : "Rtg"}</span></div>
+                {C.map((c, i) => {
+                  const cc = c.code && compOf(c.code);
+                  return (
+                    <button className="scr afp" key={i} onClick={() => cc && nav.openLeague(c.code)} disabled={!cc}>
+                      <span>{cc ? <CompIcon c={cc} size={18} /> : c.logo ? <img src={c.logo} alt="" width="18" height="18" style={{ objectFit: "contain" }} /> : null}</span>
+                      <span className="pl"><b>{cc ? compName(cc, lang) : c.league}</b>{c.team?.name && <span className="muted" style={{ fontSize: 12 }}>{c.team.name}</span>}</span>
+                      <span>{num(c.apps, lang)}</span>
+                      <span className="pts">{num(gk ? c.saves || 0 : c.goals, lang)}</span>
+                      <span className="muted">{num(gk ? c.conceded || 0 : c.assists, lang)}</span>
+                      <span>{c.rating ? <em className={"pm-r " + rateCls(c.rating)}>{num(c.rating.toFixed(1), lang)}</em> : "—"}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </>
+        ) : <div className="sec"><div className="card empty">{bn ? "এই মৌসুমের পরিসংখ্যান এখনো পাওয়া যায়নি।" : "No stats for this season yet."}</div></div>}
+      </div>
+      <div className={wide ? "pg-side" : undefined}>
+        {info.length > 0 && (
+          <div className="sec">
+            <div className="sec-h"><h2>{bn ? "পরিচয়" : "Profile"}</h2></div>
+            <div className="card">{info.map(([k, v]) => <div className="info-row" key={k}><span className="muted">{k}</span><b>{v}</b></div>)}</div>
+          </div>
+        )}
+      </div>
+      </div>
+    </>
+  );
+}
+
 function PlayerPhoto({ p, lang }) {
   const [tries, setTries] = useState(0);
   const src = tries === 0 ? p.photo?.url : tries === 1 ? photoFallback(p.photo?.url) : null;
@@ -6884,6 +6986,7 @@ const POS_EN = { Offence: "Forward", Defence: "Defender", Midfield: "Midfielder"
 const posLabel = (pos, lang) => (pos ? (lang === "bn" ? POS_BN[pos] : POS_EN[pos]) || pos : null);
 const POS_BN = {
   Goalkeeper: "গোলরক্ষক", Defence: "ডিফেন্ডার", Midfield: "মিডফিল্ডার", Offence: "ফরোয়ার্ড",
+  Defender: "ডিফেন্ডার", Midfielder: "মিডফিল্ডার", Attacker: "ফরোয়ার্ড",
   "Centre-Back": "সেন্টার-ব্যাক", "Left-Back": "লেফট-ব্যাক", "Right-Back": "রাইট-ব্যাক",
   "Defensive Midfield": "ডিফেন্সিভ মিডফিল্ডার", "Central Midfield": "সেন্ট্রাল মিডফিল্ডার", "Attacking Midfield": "অ্যাটাকিং মিডফিল্ডার",
   "Left Midfield": "লেফট মিডফিল্ডার", "Right Midfield": "রাইট মিডফিল্ডার",
@@ -7265,8 +7368,8 @@ export default function App() {
   const nav = {
     openLeague: (code) => openView(`/league/${code}`, { kind: "league", code }),
     openTeam: (id) => openView(`/team/${id}`, { kind: "team", id }),
-    // API-Football-এর লিগের খেলোয়াড়ের (আইডি ১ কোটি+) পাতা এখনো নেই
-    openPlayer: (id) => { if (id >= 10000000) return; openView(`/player/${id}`, { kind: "player", id }); },
+    // আইডি ১ কোটি+ = API-Football-এর খেলোয়াড় (যেকোনো লিগ)
+    openPlayer: (id) => openView(`/player/${id}`, { kind: "player", id }),
     openPage: (id) => openView(PAGE_URL[id], { kind: "page", id }),
     // কুইজ: /quiz (শুরুর পাতা) বা /quiz/কোড; replace = ইতিহাসে নতুন ধাপ না যোগ করে
     openFriends: () => { setPredTab((p) => ({ tab: "friends", league: null, key: p.key + 1 })); go("predict"); },
@@ -7437,7 +7540,7 @@ export default function App() {
         ) : view?.kind === "quiz" ? (
           <QuizPage code={view.code} user={user} goProfile={() => go("profile")} toast={toast} />
         ) : view?.kind === "player" ? (
-          <Player key={view.id} id={view.id} teamsById={teamsById} comps={comps} />
+          view.id >= 10000000 ? <AfPlayer key={view.id} id={view.id} comps={comps} /> : <Player key={view.id} id={view.id} teamsById={teamsById} comps={comps} />
         ) : view?.kind === "match" ? (
           <MatchPage key={view.id} id={view.id} m={view.m} user={user} pred={preds[view.id]} toast={toast} onSave={onSavePrediction} onLogin={() => go("profile")} />
         ) : tab === "matches" ? (
