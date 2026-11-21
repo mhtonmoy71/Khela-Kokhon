@@ -382,7 +382,7 @@ img { display: block; }
 .st-split { display: flex; gap: 3px; height: 8px; margin-top: 5px; }
 .st-split i { display: block; height: 100%; border-radius: 4px; transition: width .4s; }
 .st-split i.h { background: var(--brand); } .st-split i.a { background: #64748b; }
-.pitch { position: relative; margin: 6px 10px; aspect-ratio: 68 / 100; max-height: 640px; border-radius: 12px; overflow: hidden; background: repeating-linear-gradient(180deg, #2f8f4e 0 10%, #2a8447 10% 20%); }
+.pitch { position: relative; margin: 6px 10px; aspect-ratio: 68 / 118; max-height: 760px; border-radius: 12px; overflow: hidden; background: repeating-linear-gradient(180deg, #2f8f4e 0 10%, #2a8447 10% 20%); }
 .pitch-lines i { position: absolute; border: 1.5px solid rgba(255,255,255,.45); }
 .pitch-lines .half { left: 0; right: 0; top: 50%; border-width: 1.5px 0 0; }
 .pitch-lines .circle { left: 50%; top: 50%; width: 22%; aspect-ratio: 1; border-radius: 50%; transform: translate(-50%, -50%); }
@@ -392,13 +392,13 @@ img { display: block; }
 .pitch-f.pf-t { top: 6px; } .pitch-f.pf-b { bottom: 6px; }
 .pm-wrap { position: absolute; transform: translate(-50%, -50%); width: 19%; display: flex; justify-content: center; }
 .pm { display: flex; flex-direction: column; align-items: center; gap: 3px; min-width: 0; max-width: 100%; }
-.pm-shirt { position: relative; width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; font: 800 12px Inter, sans-serif; color: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.35); }
+.pm-shirt { position: relative; width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; font: 800 12px Inter, sans-serif; color: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.35); }
 .pm-h .pm-shirt { background: var(--brand); border: 2px solid #fff; }
 .pm-a .pm-shirt { background: #1e293b; border: 2px solid #e2e8f0; }
-.pm-n { font-size: 11px; font-weight: 600; color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,.6); max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pm-n { font-size: 10.5px; font-weight: 600; color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,.6); max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .pm-shirt em { position: absolute; font-style: normal; }
 .pm-r { font: 800 10px Inter, sans-serif; color: #fff; border-radius: 5px; padding: 1px 4px; font-style: normal; }
-.pm-shirt .pm-r { top: -7px; right: -16px; }
+.pm-shirt .pm-r { top: -6px; right: -18px; font-size: 9.5px; padding: 0 3px; }
 .pm-r.r-hi { background: #16a34a; } .pm-r.r-ok { background: #d97706; } .pm-r.r-lo { background: #dc2626; }
 .pm-r.big { font-size: 16px; padding: 4px 8px; border-radius: 8px; }
 .pm-c { top: -6px; left: -8px; background: #facc15; color: #111; font: 800 9px Inter, sans-serif; width: 14px; height: 14px; border-radius: 50%; display: grid; place-items: center; }
@@ -2899,7 +2899,7 @@ function MatchEvents({ L, m, lang }) {
     if (goal) { if (e.s === "h") h++; else if (e.s === "a") a++; }
     const sp = subs.get(e);
     const main = sp ? sp.in : e.p;
-    const sub = sp ? (bn ? `উঠলেন ${sp.off}` : `Off: ${sp.off}`)
+    const sub = sp ? (bn ? `মাঠ ছাড়লেন ${sp.off}` : `Off: ${sp.off}`)
       : e.t === "Goal" && e.a && !/Own|Missed/i.test(e.d || "") ? (bn ? `অ্যাসিস্ট: ${e.a}` : `Assist: ${e.a}`)
       : EV_BN[e.d] && (bn ? EV_BN[e.d] : e.d !== "Normal Goal" ? e.d : null);
     rows.push(
@@ -2973,7 +2973,7 @@ function TeamHalf({ T, side, P }) {
   return keys.map((r, i) => {
     const list = rows[r].sort((x, y) => x.c - y.c);
     // ঘরের দল নিচে (গোলরক্ষক একদম নিচে), অতিথি দল ওপরে; মুখোমুখি দেখাতে এক দিকের সারি উল্টো
-    const y = side === "h" ? 91 - (i / Math.max(1, n - 1)) * 36 : 9 + (i / Math.max(1, n - 1)) * 36;
+    const y = side === "h" ? 94 - (i / Math.max(1, n - 1)) * 40 : 6 + (i / Math.max(1, n - 1)) * 40;
     return list.map((p, j) => {
       const x = ((j + 0.5) / list.length) * 100;
       // API-Football-এ কলাম ১ = দলের বাঁ দিক; ঘরের দল ওপরের দিকে খেলে, তাই বাঁ দিক পর্দার বাঁয়ে, অতিথির উল্টো
