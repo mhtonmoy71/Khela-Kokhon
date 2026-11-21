@@ -316,6 +316,8 @@ img { display: block; }
 .bubble.me { align-self: flex-end; background: var(--green); color: var(--onGreen); border-bottom-right-radius: 5px; }
 .bubble.bot { align-self: flex-start; background: var(--card); border: 1px solid var(--line); border-bottom-left-radius: 5px; width: 92%; }
 .bubble .card .row { padding: 10px 6px; }
+.bubble .card .row.has-badge { padding-left: 44px; }
+.bubble .card .row .rbadge { left: 6px; }
 .ask-input { display: flex; gap: 8px; padding-top: 10px; border-top: 1px solid var(--line); }
 .ask-input input { flex: 1; height: 44px; border-radius: 22px; border: 1px solid var(--line); background: var(--card); padding: 0 16px; font-size: 15px; outline: none; }
 .ask-input input:focus { border-color: var(--green); }
