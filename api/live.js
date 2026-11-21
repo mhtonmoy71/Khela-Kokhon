@@ -204,7 +204,7 @@ export async function runLive() {
   const T = "name_en,short_en";
   const win = await sb(`matches?select=id,competition_code,utc_date,status,home:teams!matches_home_fk(${T}),away:teams!matches_away_fk(${T})&utc_date=gte.${from}&utc_date=lte.${to}&status=not.in.(POSTPONED,CANCELLED)`);
   if (!win.length) return { calls, window: 0 };
-  const have = await sb(`match_live?select=match_id,af_id,status,map_tried_at,final_seen_at&match_id=in.(${win.map((m) => m.id).join(",")})`);
+  const have = await sb(`match_live?select=match_id,af_id,status,home_goals,away_goals,map_tried_at,final_seen_at&match_id=in.(${win.map((m) => m.id).join(",")})`);
   const byId = Object.fromEntries(have.map((r) => [r.match_id, r]));
   for (const m of win) if (AF_LEAGUES[m.competition_code]) byId[m.id] = { ...byId[m.id], af_id: m.id - MOFF };
   const rows = [];
@@ -241,7 +241,11 @@ export async function runLive() {
       const s = slim(f);
       const prev = byId[mid];
       const wm = want.find((x) => x.id === mid);
-      if (wm && AF_LEAGUES[wm.competition_code]) fixUp.push({ id: mid, status: AF_STATUS(s.status), home_score: s.home_goals, away_score: s.away_goals });
+      // সব লিগের ম্যাচের অবস্থা আর স্কোর এখান থেকেই (football-data-র ফ্রি স্তর খেলা চলা বা শেষ হওয়া দেরিতে জানায়)
+      // শুধু শুরু হয়ে গেলে লেখা হয়; শুরুর আগের অবস্থা football-data-ই রাখে
+      const ast = AF_STATUS(s.status);
+      if (wm && (AF_LEAGUES[wm.competition_code] || ["IN_PLAY", "PAUSED", "FINISHED"].includes(ast)) && (ast !== wm.status || true))
+        fixUp.push({ id: mid, status: ast, home_score: s.home_goals, away_score: s.away_goals });
       rows.push({
         match_id: mid, ...s,
         final_seen_at: FINAL.includes(s.status) ? (prev?.final_seen_at || new Date().toISOString()) : null,
@@ -261,7 +265,13 @@ export async function runLive() {
   for (const list of Object.values(byShape)) {
     await sb("match_live?on_conflict=match_id", { method: "POST", body: list, prefer: "resolution=merge-duplicates,return=minimal" });
   }
-  // শুধু API-Football-এর লিগ: ম্যাচের অবস্থা আর স্কোরও এখান থেকে (প্রেডিকশনের পয়েন্টের জন্য)
+  // আগেই শেষ হয়ে যাওয়া (আর আনা বন্ধ) ম্যাচ, যার অবস্থা ডাটাবেসে এখনো "শুরু হয়নি": জমা থাকা ফল দিয়ে ঠিক করা
+  for (const m of win) {
+    const r = byId[m.id];
+    if (r?.status && ["FT", "AET", "PEN"].includes(r.status) && m.status !== "FINISHED" && !fixUp.some((x) => x.id === m.id))
+      fixUp.push({ id: m.id, status: "FINISHED", home_score: r.home_goals, away_score: r.away_goals });
+  }
+  // ম্যাচের অবস্থা আর স্কোর (প্রেডিকশনের পয়েন্টের জন্য)
   for (const x of fixUp) await sb(`matches?id=eq.${x.id}`, { method: "PATCH", body: { status: x.status, home_score: x.home_score, away_score: x.away_score, updated_at: new Date().toISOString() }, prefer: "return=minimal" });
   if (fixUp.some((x) => x.status === "FINISHED")) await sb("rpc/score_predictions", { method: "POST", body: {} }).catch(() => {});
   return { calls, window: win.length, mapped: Object.values(byId).filter((r) => r?.af_id).length, updated: out.length };
