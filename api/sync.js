@@ -309,18 +309,21 @@ export async function runSync(mode = "full") {
   }
   const { teams, matches } = transform(fdMatches);
   await upsert("teams", teams);      // আগে দল, কারণ matches দলের id-র ওপর নির্ভর করে
+  // টাইব্রেকারের ফল (ঘর থাকলে)
+  const pen = await sb("matches?select=pen_home&limit=1", { method: "GET" }).then(() => true).catch(() => false);
+  if (pen) for (const m of matches) { const fm = fdMatches.find((x) => x.id === m.id); m.pen_home = fm?.score?.penalties?.home ?? null; m.pen_away = fm?.score?.penalties?.away ?? null; }
   // football-data কখনো চলমান বা শেষ হওয়া ম্যাচকে আবার "শুরু হয়নি" (TIMED) বলে পাঠায়;
   // API-Football আগেই এগিয়ে থাকা অবস্থা আর স্কোর লিখে থাকলে সেটা পেছনে ফেরানো হয় না
   const RANK = { SCHEDULED: 0, TIMED: 0, IN_PLAY: 1, PAUSED: 1, FINISHED: 2 };
   const ids = matches.map((m) => m.id);
   const have = {};
   for (let i = 0; i < ids.length; i += 300) {
-    const r = await sb(`matches?select=id,status,home_score,away_score&id=in.(${ids.slice(i, i + 300).join(",")})&status=in.(IN_PLAY,PAUSED,FINISHED)`, { method: "GET" }).catch(() => []);
+    const r = await sb(`matches?select=id,status,home_score,away_score${pen ? ",pen_home,pen_away" : ""}&id=in.(${ids.slice(i, i + 300).join(",")})&status=in.(IN_PLAY,PAUSED,FINISHED)`, { method: "GET" }).catch(() => []);
     for (const x of r || []) have[x.id] = x;
   }
   for (const m of matches) {
     const old = have[m.id];
-    if (old && (RANK[old.status] ?? -1) > (RANK[m.status] ?? -1)) { m.status = old.status; m.home_score = old.home_score; m.away_score = old.away_score; }
+    if (old && (RANK[old.status] ?? -1) > (RANK[m.status] ?? -1)) { m.status = old.status; m.home_score = old.home_score; m.away_score = old.away_score; if (pen) { m.pen_home = old.pen_home ?? m.pen_home ?? null; m.pen_away = old.pen_away ?? m.pen_away ?? null; } }
   }
   await upsert("matches", matches);
   const scored = await sb("rpc/score_predictions", { body: {} });

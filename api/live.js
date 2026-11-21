@@ -17,8 +17,16 @@ export const FINAL = ["FT", "AET", "PEN", "CANC", "ABD", "AWD", "WO", "PST"];
 // ── শুধু API-Football থেকে আসা লিগ (football-data-এ নেই): সূচি, টেবিল, গোলদাতা সবই এখান থেকে ──
 // আইডি আলাদা রাখতে: ম্যাচ = ১০ কোটি + API-Football-এর আইডি, দল ও খেলোয়াড় = ১ কোটি + আইডি
 export const AF_LEAGUES = {
-  SPL: { id: 307, en: "Saudi Pro League", bn: "সৌদি প্রো লিগ", sort: 7 },
-  MLS: { id: 253, en: "MLS", bn: "এমএলএস", sort: 8 },
+  SPL: { id: 307, en: "Saudi Pro League", bn: "সৌদি প্রো লিগ", sort: 7, squads: true },
+  MLS: { id: 253, en: "MLS", bn: "এমএলএস", sort: 8, squads: true },
+  UECL: { id: 848, en: "Conference League", bn: "কনফারেন্স লিগ", sort: 9 },
+  UNL: { id: 5, en: "UEFA Nations League", bn: "নেশনস লিগ", sort: 10 },
+  EURO: { id: 4, en: "UEFA Euro", bn: "ইউরো", sort: 11 },
+  FAC: { id: 45, en: "FA Cup", bn: "এফএ কাপ", sort: 12 },
+  EFL: { id: 48, en: "Carabao Cup", bn: "কারাবাও কাপ", sort: 13 },
+  CDR: { id: 143, en: "Copa del Rey", bn: "কোপা দেল রে", sort: 14 },
+  CCC: { id: 16, en: "CONCACAF Champions Cup", bn: "কনকাকাফ চ্যাম্পিয়ন্স কাপ", sort: 15, squads: true },
+  ACL: { id: 17, en: "AFC Champions League Elite", bn: "এএফসি চ্যাম্পিয়ন্স লিগ", sort: 16, squads: true },
 };
 export const MOFF = 100000000, TOFF = 10000000, POFF = 10000000;
 // বড় দলগুলোর বাংলা নাম (API-Football-এর নামের অংশ → বাংলা); বাকিগুলো ইংরেজিতে
@@ -38,17 +46,29 @@ const AF_STATUS = (st) => (["NS", "TBD"].includes(st) ? "TIMED" : st === "HT" ? 
 const afTla = (n) => { const w = (dec(n) || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").split(/[\s-]+/).filter((x) => x && !/^(al|fc|sc|cf|cd|ac|club|de|the)$/i.test(x)); return (w[0] || n || "?").replace(/[^A-Za-z0-9]/g, "").slice(0, 3).toUpperCase() || null; };
 const afTeamRow = (t) => ({ id: TOFF + t.id, name_en: dec(t.name), short_en: dec(t.name), tla: afTla(t.name), name_bn: afBn(t.name), crest: t.logo || null, updated_at: new Date().toISOString() });
 
+// টাইব্রেকারের ফল রাখার ঘর (pen_home/pen_away) ডাটাবেসে আছে কিনা — SQL চালানোর আগেও যেন সিঙ্ক না ভাঙে
+let penCols = null;
+async function hasPen() {
+  if (penCols === null) penCols = await sb("matches?select=pen_home&limit=1").then(() => true).catch(() => false);
+  return penCols;
+}
+
 async function upsertRows(table, rows, conflict = "id") {
   for (let i = 0; i < rows.length; i += 500)
     await sb(`${table}?on_conflict=${conflict}`, { method: "POST", body: rows.slice(i, i + 500), prefer: "resolution=merge-duplicates,return=minimal" });
 }
 
 // দিনে একবার: চলতি মৌসুমের পুরো সূচি, পয়েন্ট টেবিল আর শীর্ষ গোলদাতা (প্রতি লিগে ৪টা কল)
-export async function syncAfLeagues() {
+export async function syncAfLeagues(only) {
   if (!process.env.APIF_KEY) throw new Error("APIF_KEY সেট করা নেই");
   calls = 0;
   const out = {};
+  // football-data-র দলগুলোর বাংলা নাম (আর্সেনাল, রিয়াল মাদ্রিদ…) API-Football-এর একই দলেও
+  const fdTeams = await sb(`teams?select=name_en,short_en,name_bn&id=lt.${TOFF}&name_bn=not.is.null`).catch(() => []);
+  const bnFromFd = (name) => { let best = null, bs = 0; for (const t of fdTeams) { const sc = sim([t.name_en, t.short_en].filter(Boolean), name); if (sc > bs) { bs = sc; best = t; } } return bs >= 0.99 ? best.name_bn : null; };
+  const teamRowX = (t) => { const r = afTeamRow(t); r.name_bn ||= bnFromFd(t.name); return r; };
   for (const [code, L] of Object.entries(AF_LEAGUES)) {
+    if (only && !only.includes(code)) continue;
     try {
       const [lg] = await af(`/leagues?id=${L.id}&current=true`);
       const season = lg?.seasons?.find((x) => x.current)?.year;
@@ -56,9 +76,11 @@ export async function syncAfLeagues() {
       await upsertRows("competitions", [{ code, name_en: L.en, name_bn: L.bn, emblem: lg.league?.logo || null, sort: L.sort }], "code");
       const fx = await af(`/fixtures?league=${L.id}&season=${season}&timezone=UTC`);
       const teams = new Map();
-      for (const f of fx) for (const t of [f.teams.home, f.teams.away]) if (t?.id) teams.set(t.id, afTeamRow(t));
+      for (const f of fx) for (const t of [f.teams.home, f.teams.away]) if (t?.id) teams.set(t.id, teamRowX(t));
       await upsertRows("teams", [...teams.values()]);
+      const pen = await hasPen();
       await upsertRows("matches", fx.map((f) => ({
+        ...(pen ? { pen_home: f.score?.penalty?.home ?? null, pen_away: f.score?.penalty?.away ?? null } : {}),
         id: MOFF + f.fixture.id, competition_code: code, season, matchday: parseInt((f.league?.round || "").match(/(\d+)\s*$/)?.[1], 10) || null,
         stage: f.league?.round || null, group_name: null, utc_date: new Date(f.fixture.timestamp * 1000).toISOString(),
         status: AF_STATUS(f.fixture.status?.short), home_id: TOFF + f.teams.home.id, away_id: TOFF + f.teams.away.id,
@@ -71,7 +93,7 @@ export async function syncAfLeagues() {
       const rows = rowsAll.filter((r) => !seen.has(r.team.id) && seen.add(r.team.id))
         .sort((a, b) => b.points - a.points || b.goalsDiff - a.goalsDiff || (b.all?.goals?.for || 0) - (a.all?.goals?.for || 0));
       if (rows.length) {
-        await upsertRows("teams", rows.filter((r) => !teams.has(r.team.id)).map((r) => afTeamRow(r.team)));
+        await upsertRows("teams", rows.filter((r) => !teams.has(r.team.id)).map((r) => teamRowX(r.team)));
         await sb(`standings?competition_code=eq.${code}`, { method: "DELETE", prefer: "return=minimal" });
         await sb("standings", { method: "POST", prefer: "return=minimal", body: rows.map((r, i) => ({
           competition_code: code, team_id: TOFF + r.team.id, position: i + 1, played: r.all?.played ?? 0, won: r.all?.win ?? 0, draw: r.all?.draw ?? 0,
@@ -81,7 +103,7 @@ export async function syncAfLeagues() {
       }
       const sc = await af(`/players/topscorers?league=${L.id}&season=${season}`);
       if (sc.length) {
-        await upsertRows("teams", sc.map((r) => r.statistics?.[0]?.team).filter((t) => t?.id && !teams.has(t.id)).map(afTeamRow));
+        await upsertRows("teams", sc.map((r) => r.statistics?.[0]?.team).filter((t) => t?.id && !teams.has(t.id)).map(teamRowX));
         await sb(`scorers?competition_code=eq.${code}`, { method: "DELETE", prefer: "return=minimal" });
         const ps = new Set();
         await sb("scorers", { method: "POST", prefer: "return=minimal", body: sc.filter((r) => r.player?.id && !ps.has(r.player.id) && ps.add(r.player.id)).map((r) => {
@@ -191,6 +213,7 @@ export function slim(f) {
     extra: f.fixture.status?.extra ?? null,
     home_goals: f.goals?.home ?? null,
     away_goals: f.goals?.away ?? null,
+    pen: f.score?.penalty?.home != null ? [f.score.penalty.home, f.score.penalty.away] : null,
     events, lineups, stats,
     players: Object.keys(players).length ? players : null,
   };
@@ -245,9 +268,10 @@ export async function runLive() {
       // শুধু শুরু হয়ে গেলে লেখা হয়; শুরুর আগের অবস্থা football-data-ই রাখে
       const ast = AF_STATUS(s.status);
       if (wm && (AF_LEAGUES[wm.competition_code] || ["IN_PLAY", "PAUSED", "FINISHED"].includes(ast)) && (ast !== wm.status || true))
-        fixUp.push({ id: mid, status: ast, home_score: s.home_goals, away_score: s.away_goals });
+        fixUp.push({ id: mid, status: ast, home_score: s.home_goals, away_score: s.away_goals, pen: penSc });
+      const { pen: penSc, ...sNoPen } = s;
       rows.push({
-        match_id: mid, ...s,
+        match_id: mid, ...sNoPen,
         final_seen_at: FINAL.includes(s.status) ? (prev?.final_seen_at || new Date().toISOString()) : null,
         updated_at: new Date().toISOString(),
       });
@@ -272,7 +296,8 @@ export async function runLive() {
       fixUp.push({ id: m.id, status: "FINISHED", home_score: r.home_goals, away_score: r.away_goals });
   }
   // ম্যাচের অবস্থা আর স্কোর (প্রেডিকশনের পয়েন্টের জন্য)
-  for (const x of fixUp) await sb(`matches?id=eq.${x.id}`, { method: "PATCH", body: { status: x.status, home_score: x.home_score, away_score: x.away_score, updated_at: new Date().toISOString() }, prefer: "return=minimal" });
+  const pen = fixUp.length ? await hasPen() : false;
+  for (const x of fixUp) await sb(`matches?id=eq.${x.id}`, { method: "PATCH", body: { status: x.status, home_score: x.home_score, away_score: x.away_score, ...(pen && x.pen ? { pen_home: x.pen[0], pen_away: x.pen[1] } : {}), updated_at: new Date().toISOString() }, prefer: "return=minimal" });
   if (fixUp.some((x) => x.status === "FINISHED")) await sb("rpc/score_predictions", { method: "POST", body: {} }).catch(() => {});
   return { calls, window: win.length, mapped: Object.values(byId).filter((r) => r?.af_id).length, updated: out.length };
 }
@@ -301,7 +326,8 @@ export async function fetchOne(id) {
   }
   const [f] = await af(`/fixtures?ids=${afId}&timezone=UTC`);
   if (!f) return null;
-  const row = { match_id: id, map_tried_at: new Date().toISOString(), ...slim(f), final_seen_at: new Date(0).toISOString(), updated_at: new Date().toISOString() };
+  const { pen: _p, ...sl } = slim(f);
+  const row = { match_id: id, map_tried_at: new Date().toISOString(), ...sl, final_seen_at: new Date(0).toISOString(), updated_at: new Date().toISOString() };
   await sb("match_live?on_conflict=match_id", { method: "POST", body: [row], prefer: "resolution=merge-duplicates,return=minimal" });
   return row;
 }
@@ -481,9 +507,11 @@ async function leagueInfo(code, kind) {
 
 // সার্চের জন্য: API-Football-এর লিগগুলোর (সৌদি, এমএলএস…) সব দলের স্কোয়াড, [আইডি, নাম, দল, পজিশন]
 async function afSquads() {
-  const teams = await sb(`teams?select=id&id=gte.${TOFF}&id=lt.${MOFF}`);
+  // শুধু ঘরোয়া লিগের ক্লাব (সৌদি, এমএলএস); কাপের বড় দলগুলোর খেলোয়াড় এমনিতেই আছে
+  const codes = Object.keys(AF_LEAGUES).filter((k) => AF_LEAGUES[k].squads);
+  const ms = await sb(`matches?select=home_id,away_id&competition_code=in.(${codes.join(",")})`);
+  const ids = [...new Set(ms.flatMap((m) => [m.home_id, m.away_id]).filter((x) => x >= TOFF && x < MOFF))].map((x) => x - TOFF);
   const out = [];
-  const ids = teams.map((t) => t.id - TOFF);
   let failed = 0;
   // ৫টা করে, ব্যর্থ হলে একটু থেমে আবার (API-র সেকেন্ডপ্রতি সীমা)
   const one = (t) => af(`/players/squads?team=${t}`).catch(() => new Promise((ok) => setTimeout(ok, 1200)).then(() => af(`/players/squads?team=${t}`))).catch(() => { failed++; return []; });
@@ -574,7 +602,7 @@ export default async function handler(req, res) {
   const auth = req.headers?.authorization || "";
   if (secret && auth !== `Bearer ${secret}` && (req.query || {}).secret !== secret) return res.status(401).json({ ok: false, error: "unauthorized" });
   try {
-    const result = q0.mode === "leagues" ? await syncAfLeagues() : await runLive();
+    const result = q0.mode === "leagues" ? await syncAfLeagues(q0.only ? String(q0.only).toUpperCase().split(",") : null) : await runLive();
     if (result.calls) await sb("sync_log", { method: "POST", body: { mode: q0.mode === "leagues" ? "leagues" : "live", ok: true, detail: JSON.stringify(result) }, prefer: "return=minimal" }).catch(() => {});
     return res.status(200).json({ ok: true, ...result });
   } catch (e) {
