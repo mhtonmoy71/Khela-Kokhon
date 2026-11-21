@@ -49,7 +49,8 @@ const afTeamRow = (t) => ({ id: TOFF + t.id, name_en: dec(t.name), short_en: dec
 // টাইব্রেকারের ফল রাখার ঘর (pen_home/pen_away) ডাটাবেসে আছে কিনা — SQL চালানোর আগেও যেন সিঙ্ক না ভাঙে
 let penCols = null;
 async function hasPen() {
-  if (penCols === null) penCols = await sb("matches?select=pen_home&limit=1").then(() => true).catch(() => false);
+  // "আছে" মনে রাখা হয়; "নেই" হলে প্রতিবার আবার দেখা (SQL চালানোর পরপরই যেন কাজ শুরু করে)
+  if (!penCols) penCols = await sb("matches?select=pen_home&limit=1").then(() => true).catch(() => false);
   return penCols;
 }
 
