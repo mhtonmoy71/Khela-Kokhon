@@ -1647,7 +1647,7 @@ async function makeCard(m, { lang = "bn", teamName, compName, L, pred }) {
     ctx.fillStyle = "#fff"; ctx.font = bn ? `700 100px ${CARD_FONT}` : `800 96px Inter, sans-serif`; ctx.fillText(sc, CARD_W / 2, py + 140);
     let foot;
     if (pred.points != null) foot = pred.points > 0 ? (bn ? `ঠিক হয়েছে · +${num(pred.points, "bn")} পয়েন্ট` : `Nailed it · +${pred.points} pts`) : (bn ? "এবার মেলেনি" : "Not this time");
-    else if (pred.pen_pick && pred.home === pred.away) foot = bn ? `টাইব্রেকারে জিতবে ${teamName(pred.pen_pick === 1 ? m.home : m.away)}` : `${teamName(pred.pen_pick === 1 ? m.home : m.away)} win on pens`;
+    else if (pred.pen_pick) foot = bn ? `টাইব্রেকারে জিতবে ${teamName(pred.pen_pick === 1 ? m.home : m.away)}` : `${teamName(pred.pen_pick === 1 ? m.home : m.away)} win on pens`;
     else foot = bn ? "আপনার প্রেডিকশন কী?" : "What's yours?";
     ctx.fillStyle = pred.points > 0 ? "#7dffb8" : "rgba(255,255,255,0.8)"; fitText(ctx, foot, bw2 - 80, 40, 600); ctx.fillText(foot, CARD_W / 2, py + 212);
   }
@@ -2002,10 +2002,10 @@ async function getMyPredictions(user) {
   return Object.fromEntries(rows.map((r) => [r.match_id, r]));
 }
 
-// penPick: নকআউটে ড্র দিলে টাইব্রেকারে কে জিতবে (১ ঘরের দল, ২ অতিথি); না দিলে ঘরটা পাঠানোই হয় না
+// penPick: খেলা টাইব্রেকারে গেলে কে জিতবে (১ ঘরের দল, ২ অতিথি); দুই লেগে মোট গোল সমান হলেও। না দিলে ঘরটা পাঠানোই হয় না
 async function savePrediction(user, matchId, home, away, penPick) {
   if (DEMO) { const p = ls.get("preds", {}); p[matchId] = { match_id: matchId, home, away, pen_pick: penPick ?? null, points: null }; ls.set("preds", p); return p[matchId]; }
-  const row = { user_id: user.id, match_id: matchId, home, away, ...(penPick !== undefined ? { pen_pick: home === away ? penPick : null } : {}) };
+  const row = { user_id: user.id, match_id: matchId, home, away, ...(penPick !== undefined ? { pen_pick: penPick ?? null } : {}) };
   return ok(await sb.from("predictions").upsert(row, { onConflict: "user_id,match_id" }).select("*").single());
 }
 
@@ -3821,6 +3821,31 @@ function KnockoutTab({ m, list, lang, onOpen }) {
     </>
   );
 }
+// এই প্রেডিকশনে খেলা টাইব্রেকারে যাবে কি না, আর কোন নিয়মে (প্রতিযোগিতা ধরে)
+//  • দুই লেগ: প্রথম লেগে কখনো টাইব্রেকার নয়; দ্বিতীয় লেগে দুই লেগ মিলিয়ে সমান হলে অতিরিক্ত ৩০ মিনিট, তারপর টাইব্রেকার
+//  • এমএলএস রাউন্ড ওয়ান (৩ ম্যাচের সিরিজ) আর কারাবাও কাপ (ফাইনাল বাদে): ৯০ মিনিটে ড্র হলে সরাসরি টাইব্রেকার
+//  • বাকি এক ম্যাচের নকআউট: ৯০ মিনিটে ড্র হলে অতিরিক্ত ৩০ মিনিট, তারপর টাইব্রেকার
+function penCase(m, list, h, a, bn) {
+  if (!isKnockout(m) || !m.home_id) return null;
+  const bo3 = isBo3(m);
+  const T = list?.length ? tieOf(list, m.home_id, m.away_id, bo3) : null;
+  const legs = !bo3 && T && T.games.length >= 2;
+  if (legs) {
+    const i = T.games.findIndex((x) => x.id === m.id);
+    if (i <= 0) return null;                                   // প্রথম লেগ
+    const firsts = T.games.slice(0, i);
+    if (!firsts.every((g) => isDone(g) && g.home_score != null)) return null;
+    const pre = firsts.reduce((acc, g) => { acc.h += g.home_id === m.home_id ? g.home_score : g.away_score; acc.a += g.home_id === m.home_id ? g.away_score : g.home_score; return acc; }, { h: 0, a: 0 });
+    if (pre.h + h !== pre.a + a) return null;
+    return { q: bn ? `দুই লেগ মিলিয়ে ${num(pre.h + h, "bn")}–${num(pre.a + a, "bn")}। অতিরিক্ত ৩০ মিনিটের পরও সমান থাকলে টাইব্রেকারে কে জিতবে?` : `That's ${pre.h + h}–${pre.a + a} on aggregate. If still level after extra time, who wins the shootout?` };
+  }
+  if (h !== a) return null;
+  const straight = bo3 || (m.competition_code === "EFL" && !/final/i.test(m.stage || "")) || (m.competition_code === "EFL" && /semi/i.test(m.stage || ""));
+  return { q: straight
+    ? (bn ? "ড্র হলে অতিরিক্ত সময় নেই, সরাসরি টাইব্রেকার। কে জিতবে?" : "A draw goes straight to penalties. Who wins the shootout?")
+    : (bn ? "৯০+৩০ মিনিটে নিষ্পত্তি না হলে টাইব্রেকারে কে জিতবে?" : "If it's still level after extra time, who wins the shootout?") };
+}
+
 // বিরতির পর দ্বিতীয়ার্ধ কখন: শুরু + ৪৫ + প্রথমার্ধের যোগ করা সময় + ১৫ মিনিট (আনুমানিক)
 function HtCountdown({ m, L, lang }) {
   const now = useNow(1000);
@@ -3860,12 +3885,13 @@ function MatchPage({ id, m: mInit, user, pred, onSave, onLogin, toast }) {
   if (!m) return <Loading />;
   const open = canPredict(m);
   const ko = isKnockout(m);
+  const pc = penCase(m, stageList, h, a, bn);
   const showScore = (isLive(m) || isDone(m)) && m.home_score != null;
 
   async function save() {
     setBusy(true); setErr("");
-    if (ko && h === a && !pen) { setErr(bn ? "ড্র দিলে টাইব্রেকারে কে জিতবে, সেটাও বেছে নিন" : "Pick who wins the shootout"); setBusy(false); return; }
-    try { await onSave(m, h, a, ko ? (h === a ? pen : null) : undefined); toast(pred ? (bn ? "প্রেডিকশন বদলানো হয়েছে ✓" : "Prediction updated ✓") : (bn ? "প্রেডিকশন জমা হয়েছে ✓" : "Prediction submitted ✓")); }
+    if (pc && !pen) { setErr(bn ? "ড্র দিলে টাইব্রেকারে কে জিতবে, সেটাও বেছে নিন" : "Pick who wins the shootout"); setBusy(false); return; }
+    try { await onSave(m, h, a, ko ? (pc ? pen : null) : undefined); toast(pred ? (bn ? "প্রেডিকশন বদলানো হয়েছে ✓" : "Prediction updated ✓") : (bn ? "প্রেডিকশন জমা হয়েছে ✓" : "Prediction submitted ✓")); }
     catch (e) { setErr(e?.message || t("error")); }
     setBusy(false);
   }
@@ -3937,9 +3963,9 @@ function MatchPage({ id, m: mInit, user, pred, onSave, onLogin, toast }) {
                 <div className="dash">–</div>
                 <div className="pick-side"><small className="muted">{teamName(m.away, lang)}</small><Stepper v={a} set={setA} /></div>
               </div>
-              {ko && h === a && (
+              {pc && (
                 <div className="pen-pick">
-                  <div className="pen-q">{bn ? "৯০+৩০ মিনিটে নিষ্পত্তি না হলে টাইব্রেকারে কে জিতবে?" : "If it's still level after extra time, who wins the shootout?"} </div>
+                  <div className="pen-q">{pc.q}</div>
                   <div className="pen-rule muted">{bn ? `স্কোর আর জয়ী দুটোই ঠিক হলে ${num(5, lang)}, শুধু টাইব্রেকারের জয়ী ঠিক হলে ${num(4, lang)} পয়েন্ট` : "Score and winner right: 5 · shootout winner right: 4"}</div>
                   <div className="pen-opts">
                     {[[1, m.home], [2, m.away]].map(([k, t]) => <button key={k} className={"pen-opt" + (pen === k ? " on" : "")} onClick={() => setPen(k)}><Crest team={t} size={20} />{teamName(t, lang)}</button>)}
@@ -3949,7 +3975,7 @@ function MatchPage({ id, m: mInit, user, pred, onSave, onLogin, toast }) {
               <div className="pick-out">{h > a ? (lang === "bn" ? `${teamName(m.home, lang)} জিতবে` : `${teamName(m.home, lang)} win`) : h < a ? (lang === "bn" ? `${teamName(m.away, lang)} জিতবে` : `${teamName(m.away, lang)} win`) : (lang === "bn" ? "ড্র হবে" : "Draw")}</div>
               <div style={{ padding: "0 12px 12px" }}>
                 {err && <div className="err">{err}</div>}
-                {pred && !(pred.home !== h || pred.away !== a) && (!ko || h !== a || (pred.pen_pick ?? null) === pen) ? (
+                {pred && !(pred.home !== h || pred.away !== a) && (!pc || (pred.pen_pick ?? null) === pen) ? (
                   <div className="pick-done">
                     <span className="pick-ok">✓</span>
                     <span><b>{lang === "bn" ? "প্রেডিকশন দেওয়া আছে" : "Prediction locked in"}</b><small className="muted">{lang === "bn" ? "খেলা শুরুর আগ পর্যন্ত স্কোর বদলে আবার দিতে পারবেন" : "Change the score any time before kickoff"}</small></span>
