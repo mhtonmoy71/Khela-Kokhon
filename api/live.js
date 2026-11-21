@@ -885,6 +885,16 @@ export default async function handler(req, res) {
   const auth = req.headers?.authorization || "";
   if (secret && auth !== `Bearer ${secret}` && (req.query || {}).secret !== secret) return res.status(401).json({ ok: false, error: "unauthorized" });
   try {
+    if (q0.mode === "pushtest") {
+      // পরীক্ষা: নোটিফিকেশন চালু করা সবার ফোনে একটা বার্তা (শুধু CRON_SECRET দিয়ে)
+      if (!process.env.VAPID_PRIVATE_KEY) return res.status(200).json({ ok: false, error: "VAPID_PRIVATE_KEY নেই" });
+      const subs = await sb("push_subs?select=id,endpoint,p256dh,auth");
+      const { default: webpush } = await import("web-push");
+      webpush.setVapidDetails("https://khelakokhon.com", VAPID_PUBLIC, process.env.VAPID_PRIVATE_KEY);
+      const out = await Promise.all(subs.map((x) => webpush.sendNotification({ endpoint: x.endpoint, keys: { p256dh: x.p256dh, auth: x.auth } },
+        JSON.stringify({ title: "খেলা কখন?", body: "নোটিফিকেশন চালু আছে ✓ প্রিয় দলের খেলার খবর এভাবেই আসবে", url: "/", tag: "test" }), { TTL: 600 }).then(() => "ok", (e) => String(e?.statusCode || e?.message || e).slice(0, 60))));
+      return res.status(200).json({ ok: true, subs: subs.length, results: out });
+    }
     const result = q0.mode === "leagues" ? await syncAfLeagues(q0.only ? String(q0.only).toUpperCase().split(",") : null)
       : q0.mode === "tables" ? { mode: "tables", ...(await refreshStandings(q0.only ? String(q0.only).toUpperCase().split(",") : TABLE_LEAGUES)) }
       : await runLive();
