@@ -63,10 +63,27 @@ export async function syncAfLeagues(only) {
   if (!process.env.APIF_KEY) throw new Error("APIF_KEY সেট করা নেই");
   calls = 0;
   const out = {};
-  // football-data-র দলগুলোর বাংলা নাম (আর্সেনাল, রিয়াল মাদ্রিদ…) API-Football-এর একই দলেও
-  const fdTeams = await sb(`teams?select=name_en,short_en,name_bn&id=lt.${TOFF}&name_bn=not.is.null`).catch(() => []);
-  const bnFromFd = (name) => { let best = null, bs = 0; for (const t of fdTeams) { const sc = sim([t.name_en, t.short_en].filter(Boolean), name); if (sc > bs) { bs = sc; best = t; } } return bs >= 0.99 ? best.name_bn : null; };
-  const teamRowX = (t) => { const r = afTeamRow(t); r.name_bn ||= bnFromFd(t.name); return r; };
+  // একই ক্লাব দুই উৎসে: এফএ কাপের আর্সেনাল = প্রিমিয়ার লিগের আর্সেনাল।
+  // API-Football-এর দলের নাম আমাদের (football-data) দলের সাথে নিখুঁত আর একমাত্র মিললে সেই দলেরই আইডি ব্যবহার
+  const fdTeams = await sb(`teams?select=id,name_en,short_en,name_bn&id=lt.${TOFF}`).catch(() => []);
+  const fdMemo = new Map();
+  const fdOf = (t) => {
+    if (fdMemo.has(t.id)) return fdMemo.get(t.id);
+    let best = null, n = 0;
+    // "Leeds United" = "Leeds", "Ipswich Town" = "Ipswich": সাধারণ শব্দ বাদ দিয়েও মেলানো (একমাত্র মিল হলেই)
+    const GEN = /\b(united|town|city|hotspur|albion|wanderers|county|rovers|athletic)\b/gi;
+    for (const x of fdTeams) {
+      const names = [x.name_en, x.short_en].filter(Boolean);
+      if (sim([...names, ...names.map((y) => y.replace(GEN, " ").trim()).filter(Boolean)], t.name) >= 0.999) { best = x; n++; }
+    }
+    const r = n === 1 ? best : null;
+    fdMemo.set(t.id, r);
+    return r;
+  };
+  const tid = (t) => (t?.id ? fdOf(t)?.id ?? TOFF + t.id : null);
+  const merged = new Set();
+  const teamRowX = (t) => afTeamRow(t);
+  const needRow = (t) => { if (fdOf(t)) { merged.add(TOFF + t.id); return false; } return true; };
   for (const [code, L] of Object.entries(AF_LEAGUES)) {
     if (only && !only.includes(code)) continue;
     try {
@@ -76,14 +93,14 @@ export async function syncAfLeagues(only) {
       await upsertRows("competitions", [{ code, name_en: L.en, name_bn: L.bn, emblem: lg.league?.logo || null, sort: L.sort }], "code");
       const fx = await af(`/fixtures?league=${L.id}&season=${season}&timezone=UTC`);
       const teams = new Map();
-      for (const f of fx) for (const t of [f.teams.home, f.teams.away]) if (t?.id) teams.set(t.id, teamRowX(t));
+      for (const f of fx) for (const t of [f.teams.home, f.teams.away]) if (t?.id && needRow(t)) teams.set(t.id, teamRowX(t));
       await upsertRows("teams", [...teams.values()]);
       const pen = await hasPen();
       await upsertRows("matches", fx.map((f) => ({
         ...(pen ? { pen_home: f.score?.penalty?.home ?? null, pen_away: f.score?.penalty?.away ?? null } : {}),
         id: MOFF + f.fixture.id, competition_code: code, season, matchday: parseInt((f.league?.round || "").match(/(\d+)\s*$/)?.[1], 10) || null,
         stage: f.league?.round || null, group_name: null, utc_date: new Date(f.fixture.timestamp * 1000).toISOString(),
-        status: AF_STATUS(f.fixture.status?.short), home_id: TOFF + f.teams.home.id, away_id: TOFF + f.teams.away.id,
+        status: AF_STATUS(f.fixture.status?.short), home_id: tid(f.teams.home), away_id: tid(f.teams.away),
         home_score: f.goals?.home ?? null, away_score: f.goals?.away ?? null, updated_at: new Date().toISOString(),
       })));
       // টেবিল: এমএলএস-এর দুই কনফারেন্স মিলিয়ে পয়েন্ট অনুযায়ী একটা তালিকা
@@ -93,29 +110,35 @@ export async function syncAfLeagues(only) {
       const rows = rowsAll.filter((r) => !seen.has(r.team.id) && seen.add(r.team.id))
         .sort((a, b) => b.points - a.points || b.goalsDiff - a.goalsDiff || (b.all?.goals?.for || 0) - (a.all?.goals?.for || 0));
       if (rows.length) {
-        await upsertRows("teams", rows.filter((r) => !teams.has(r.team.id)).map((r) => teamRowX(r.team)));
+        await upsertRows("teams", rows.filter((r) => !teams.has(r.team.id) && needRow(r.team)).map((r) => teamRowX(r.team)));
         await sb(`standings?competition_code=eq.${code}`, { method: "DELETE", prefer: "return=minimal" });
         await sb("standings", { method: "POST", prefer: "return=minimal", body: rows.map((r, i) => ({
-          competition_code: code, team_id: TOFF + r.team.id, position: i + 1, played: r.all?.played ?? 0, won: r.all?.win ?? 0, draw: r.all?.draw ?? 0,
+          competition_code: code, team_id: tid(r.team), position: i + 1, played: r.all?.played ?? 0, won: r.all?.win ?? 0, draw: r.all?.draw ?? 0,
           lost: r.all?.lose ?? 0, gf: r.all?.goals?.for ?? 0, ga: r.all?.goals?.against ?? 0, gd: r.goalsDiff ?? 0, points: r.points ?? 0,
           form: r.form || null, updated_at: new Date().toISOString(),
         })) });
       }
       const sc = await af(`/players/topscorers?league=${L.id}&season=${season}`);
       if (sc.length) {
-        await upsertRows("teams", sc.map((r) => r.statistics?.[0]?.team).filter((t) => t?.id && !teams.has(t.id)).map(teamRowX));
+        await upsertRows("teams", sc.map((r) => r.statistics?.[0]?.team).filter((t) => t?.id && !teams.has(t.id) && needRow(t)).map(teamRowX));
         await sb(`scorers?competition_code=eq.${code}`, { method: "DELETE", prefer: "return=minimal" });
         const ps = new Set();
         await sb("scorers", { method: "POST", prefer: "return=minimal", body: sc.filter((r) => r.player?.id && !ps.has(r.player.id) && ps.add(r.player.id)).map((r) => {
           const x = r.statistics?.[0] || {};
           return { competition_code: code, player_id: POFF + r.player.id, player_name: dec(r.player.name), nationality: r.player.nationality || null,
-            team_id: x.team?.id ? TOFF + x.team.id : null, played: x.games?.appearences ?? null, goals: x.goals?.total ?? 0,
+            team_id: x.team?.id ? tid(x.team) : null, played: x.games?.appearences ?? null, goals: x.goals?.total ?? 0,
             assists: x.goals?.assists ?? 0, penalties: x.penalty?.scored ?? 0, updated_at: new Date().toISOString() };
         }) });
       }
       out[code] = { season, matches: fx.length, table: rows.length, scorers: sc.length };
     } catch (e) { out[code] = "error: " + String(e.message || e).slice(0, 120); }
   }
+  // আগে আলাদা করে রাখা একই ক্লাবের বাড়তি সারি মুছে ফেলা (কোথাও ব্যবহার না হলে)
+  let removed = 0;
+  for (const id of merged) {
+    try { await sb(`teams?id=eq.${id}`, { method: "DELETE", prefer: "return=minimal" }); removed++; } catch { /* কোথাও (প্রিয় দল) ব্যবহার হচ্ছে */ }
+  }
+  out.merged = merged.size; out.removed = removed;
   return { mode: "leagues", calls, ...out };
 }
 
@@ -336,11 +359,15 @@ export async function fetchOne(id) {
 async function h2hAf(id) {
   const [m] = await sb(`matches?select=id,home_id,away_id,competition_code&id=eq.${id}`);
   if (!m || !AF_LEAGUES[m.competition_code]) return null;
-  const fx = await af(`/fixtures/headtohead?h2h=${m.home_id - TOFF}-${m.away_id - TOFF}&last=10&timezone=UTC`);
+  // দলের API-Football আইডি ম্যাচ থেকেই (বড় ক্লাবের আইডি এখন আমাদের নিজের)
+  const [fxm] = await af(`/fixtures?id=${m.id - MOFF}`);
+  if (!fxm) return null;
+  const fx = await af(`/fixtures/headtohead?h2h=${fxm.teams.home.id}-${fxm.teams.away.id}&last=10&timezone=UTC`);
   return { matches: fx.map((f) => ({
     id: MOFF + f.fixture.id, utcDate: new Date(f.fixture.timestamp * 1000).toISOString(), status: AF_STATUS(f.fixture.status?.short),
     competition: { code: Object.keys(AF_LEAGUES).find((k) => AF_LEAGUES[k].id === f.league?.id) || null, name: f.league?.name },
-    homeTeam: { id: TOFF + f.teams.home.id, name: dec(f.teams.home.name) }, awayTeam: { id: TOFF + f.teams.away.id, name: dec(f.teams.away.name) },
+    homeTeam: { id: f.teams.home.id === fxm.teams.home.id ? m.home_id : f.teams.home.id === fxm.teams.away.id ? m.away_id : TOFF + f.teams.home.id, name: dec(f.teams.home.name) },
+    awayTeam: { id: f.teams.away.id === fxm.teams.home.id ? m.home_id : f.teams.away.id === fxm.teams.away.id ? m.away_id : TOFF + f.teams.away.id, name: dec(f.teams.away.name) },
     score: { home: f.goals?.home ?? null, away: f.goals?.away ?? null },
   })).sort((a, b) => b.utcDate.localeCompare(a.utcDate)) };
 }
