@@ -14,6 +14,87 @@ const LEAGUE = { CL: 2, PL: 39, PD: 140, BL1: 78, SA: 135, FL1: 61 };
 const BEFORE = 75 * 60000, AFTER = 4 * 3600000, SETTLE = 20 * 60000, RETRY_MAP = 30 * 60000;
 export const FINAL = ["FT", "AET", "PEN", "CANC", "ABD", "AWD", "WO", "PST"];
 
+// ── শুধু API-Football থেকে আসা লিগ (football-data-এ নেই): সূচি, টেবিল, গোলদাতা সবই এখান থেকে ──
+// আইডি আলাদা রাখতে: ম্যাচ = ১০ কোটি + API-Football-এর আইডি, দল ও খেলোয়াড় = ১ কোটি + আইডি
+export const AF_LEAGUES = {
+  SPL: { id: 307, en: "Saudi Pro League", bn: "সৌদি প্রো লিগ", sort: 7 },
+  MLS: { id: 253, en: "MLS", bn: "এমএলএস", sort: 8 },
+};
+export const MOFF = 100000000, TOFF = 10000000, POFF = 10000000;
+// বড় দলগুলোর বাংলা নাম (API-Football-এর নামের অংশ → বাংলা); বাকিগুলো ইংরেজিতে
+const AF_TEAMS_BN = [
+  ["Al-Hilal", "আল হিলাল"], ["Al-Nassr", "আল নাসর"], ["Al-Ittihad", "আল ইত্তিহাদ"], ["Al-Ahli", "আল আহলি"],
+  ["Al-Qadisiyah", "আল কাদসিয়া"], ["Al-Ettifaq", "আল ইত্তিফাক"], ["Al-Shabab", "আল শাবাব"], ["Al-Taawoun", "আল তাউন"],
+  ["Al-Fateh", "আল ফাতেহ"], ["Al-Fayha", "আল ফাইহা"], ["Al-Khaleej", "আল খালিজ"], ["Al-Riyadh", "আল রিয়াদ"],
+  ["Inter Miami", "ইন্টার মায়ামি"], ["Los Angeles Galaxy", "এলএ গ্যালাক্সি"], ["Los Angeles FC", "লস অ্যাঞ্জেলেস এফসি"],
+  ["New York City", "নিউ ইয়র্ক সিটি"], ["New York Red Bulls", "নিউ ইয়র্ক রেড বুলস"], ["Seattle Sounders", "সিয়াটল সাউন্ডার্স"],
+  ["Atlanta United", "আটলান্টা ইউনাইটেড"], ["Columbus Crew", "কলম্বাস ক্রু"], ["FC Cincinnati", "এফসি সিনসিনাটি"],
+  ["Philadelphia Union", "ফিলাডেলফিয়া ইউনিয়ন"], ["Orlando City", "অরল্যান্ডো সিটি"], ["Toronto FC", "টরন্টো এফসি"],
+];
+const afBn = (name) => AF_TEAMS_BN.find(([k]) => (name || "").toLowerCase().startsWith(k.toLowerCase()))?.[1] || null;
+const AF_STATUS = (st) => (["NS", "TBD"].includes(st) ? "TIMED" : st === "HT" ? "PAUSED" : ["FT", "AET", "PEN"].includes(st) ? "FINISHED"
+  : st === "PST" ? "POSTPONED" : ["CANC", "ABD", "AWD", "WO"].includes(st) ? "CANCELLED" : "IN_PLAY");
+const afTeamRow = (t) => ({ id: TOFF + t.id, name_en: dec(t.name), short_en: dec(t.name), tla: null, name_bn: afBn(t.name), crest: t.logo || null, updated_at: new Date().toISOString() });
+
+async function upsertRows(table, rows, conflict = "id") {
+  for (let i = 0; i < rows.length; i += 500)
+    await sb(`${table}?on_conflict=${conflict}`, { method: "POST", body: rows.slice(i, i + 500), prefer: "resolution=merge-duplicates,return=minimal" });
+}
+
+// দিনে একবার: চলতি মৌসুমের পুরো সূচি, পয়েন্ট টেবিল আর শীর্ষ গোলদাতা (প্রতি লিগে ৪টা কল)
+export async function syncAfLeagues() {
+  if (!process.env.APIF_KEY) throw new Error("APIF_KEY সেট করা নেই");
+  calls = 0;
+  const out = {};
+  for (const [code, L] of Object.entries(AF_LEAGUES)) {
+    try {
+      const [lg] = await af(`/leagues?id=${L.id}&current=true`);
+      const season = lg?.seasons?.find((x) => x.current)?.year;
+      if (!season) { out[code] = "no season"; continue; }
+      await upsertRows("competitions", [{ code, name_en: L.en, name_bn: L.bn, emblem: lg.league?.logo || null, sort: L.sort }], "code");
+      const fx = await af(`/fixtures?league=${L.id}&season=${season}&timezone=UTC`);
+      const teams = new Map();
+      for (const f of fx) for (const t of [f.teams.home, f.teams.away]) if (t?.id) teams.set(t.id, afTeamRow(t));
+      await upsertRows("teams", [...teams.values()]);
+      await upsertRows("matches", fx.map((f) => ({
+        id: MOFF + f.fixture.id, competition_code: code, season, matchday: parseInt((f.league?.round || "").match(/(\d+)\s*$/)?.[1], 10) || null,
+        stage: f.league?.round || null, group_name: null, utc_date: new Date(f.fixture.timestamp * 1000).toISOString(),
+        status: AF_STATUS(f.fixture.status?.short), home_id: TOFF + f.teams.home.id, away_id: TOFF + f.teams.away.id,
+        home_score: f.goals?.home ?? null, away_score: f.goals?.away ?? null, updated_at: new Date().toISOString(),
+      })));
+      // টেবিল: এমএলএস-এর দুই কনফারেন্স মিলিয়ে পয়েন্ট অনুযায়ী একটা তালিকা
+      const [st] = await af(`/standings?league=${L.id}&season=${season}`);
+      const rowsAll = (st?.league?.standings || []).flat().filter((r) => r.team?.id);
+      const seen = new Set();
+      const rows = rowsAll.filter((r) => !seen.has(r.team.id) && seen.add(r.team.id))
+        .sort((a, b) => b.points - a.points || b.goalsDiff - a.goalsDiff || (b.all?.goals?.for || 0) - (a.all?.goals?.for || 0));
+      if (rows.length) {
+        await upsertRows("teams", rows.filter((r) => !teams.has(r.team.id)).map((r) => afTeamRow(r.team)));
+        await sb(`standings?competition_code=eq.${code}`, { method: "DELETE", prefer: "return=minimal" });
+        await sb("standings", { method: "POST", prefer: "return=minimal", body: rows.map((r, i) => ({
+          competition_code: code, team_id: TOFF + r.team.id, position: i + 1, played: r.all?.played ?? 0, won: r.all?.win ?? 0, draw: r.all?.draw ?? 0,
+          lost: r.all?.lose ?? 0, gf: r.all?.goals?.for ?? 0, ga: r.all?.goals?.against ?? 0, gd: r.goalsDiff ?? 0, points: r.points ?? 0,
+          form: r.form || null, updated_at: new Date().toISOString(),
+        })) });
+      }
+      const sc = await af(`/players/topscorers?league=${L.id}&season=${season}`);
+      if (sc.length) {
+        await upsertRows("teams", sc.map((r) => r.statistics?.[0]?.team).filter((t) => t?.id && !teams.has(t.id)).map(afTeamRow));
+        await sb(`scorers?competition_code=eq.${code}`, { method: "DELETE", prefer: "return=minimal" });
+        const ps = new Set();
+        await sb("scorers", { method: "POST", prefer: "return=minimal", body: sc.filter((r) => r.player?.id && !ps.has(r.player.id) && ps.add(r.player.id)).map((r) => {
+          const x = r.statistics?.[0] || {};
+          return { competition_code: code, player_id: POFF + r.player.id, player_name: dec(r.player.name), nationality: r.player.nationality || null,
+            team_id: x.team?.id ? TOFF + x.team.id : null, played: x.games?.appearences ?? null, goals: x.goals?.total ?? 0,
+            assists: x.goals?.assists ?? 0, penalties: x.penalty?.scored ?? 0, updated_at: new Date().toISOString() };
+        }) });
+      }
+      out[code] = { season, matches: fx.length, table: rows.length, scorers: sc.length };
+    } catch (e) { out[code] = "error: " + String(e.message || e).slice(0, 120); }
+  }
+  return { mode: "leagues", calls, ...out };
+}
+
 async function sb(path, { method = "GET", body, prefer } = {}) {
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
   const r = await fetch(process.env.SUPABASE_URL.replace(/\/$/, "") + "/rest/v1/" + path, {
@@ -123,7 +204,9 @@ export async function runLive() {
   if (!win.length) return { calls, window: 0 };
   const have = await sb(`match_live?select=match_id,af_id,status,map_tried_at,final_seen_at&match_id=in.(${win.map((m) => m.id).join(",")})`);
   const byId = Object.fromEntries(have.map((r) => [r.match_id, r]));
+  for (const m of win) if (AF_LEAGUES[m.competition_code]) byId[m.id] = { ...byId[m.id], af_id: m.id - MOFF };
   const rows = [];
+  const fixUp = [];
 
   // ১) এখনো না মেলানো ম্যাচ: লিগ + দিন ধরে একবার আনা (না মিললে ৩০ মিনিট পরে আবার চেষ্টা)
   const unmapped = win.filter((m) => !byId[m.id]?.af_id && LEAGUE[m.competition_code]
@@ -155,6 +238,8 @@ export async function runLive() {
       const mid = back[f.fixture.id]; if (!mid) continue;
       const s = slim(f);
       const prev = byId[mid];
+      const wm = want.find((x) => x.id === mid);
+      if (wm && AF_LEAGUES[wm.competition_code]) fixUp.push({ id: mid, status: AF_STATUS(s.status), home_score: s.home_goals, away_score: s.away_goals });
       rows.push({
         match_id: mid, ...s,
         final_seen_at: FINAL.includes(s.status) ? (prev?.final_seen_at || new Date().toISOString()) : null,
@@ -174,6 +259,9 @@ export async function runLive() {
   for (const list of Object.values(byShape)) {
     await sb("match_live?on_conflict=match_id", { method: "POST", body: list, prefer: "resolution=merge-duplicates,return=minimal" });
   }
+  // শুধু API-Football-এর লিগ: ম্যাচের অবস্থা আর স্কোরও এখান থেকে (প্রেডিকশনের পয়েন্টের জন্য)
+  for (const x of fixUp) await sb(`matches?id=eq.${x.id}`, { method: "PATCH", body: { status: x.status, home_score: x.home_score, away_score: x.away_score, updated_at: new Date().toISOString() }, prefer: "return=minimal" });
+  if (fixUp.some((x) => x.status === "FINISHED")) await sb("rpc/score_predictions", { method: "POST", body: {} }).catch(() => {});
   return { calls, window: win.length, mapped: Object.values(byId).filter((r) => r?.af_id).length, updated: out.length };
 }
 
@@ -183,12 +271,13 @@ export async function fetchOne(id) {
   calls = 0;
   const T = "name_en,short_en";
   const [m] = await sb(`matches?select=id,competition_code,utc_date,status,home:teams!matches_home_fk(${T}),away:teams!matches_away_fk(${T})&id=eq.${id}`);
-  if (!m || !LEAGUE[m.competition_code]) return null;
+  const isAf = !!AF_LEAGUES[m?.competition_code];
+  if (!m || !(LEAGUE[m.competition_code] || isAf)) return null;
   const [have] = await sb(`match_live?select=*&match_id=eq.${id}`);
   if (have?.events && have.final_seen_at) return have;                       // আগেই আছে
   // শুধু শেষ হওয়া ম্যাচ (চলমানগুলো প্রতি মিনিটের কাজ দেখে); শুরুর ২ ঘণ্টার আগে নয়
   if (m.status !== "FINISHED" || Date.now() - Date.parse(m.utc_date) < 2 * 3600000) return have || null;
-  let afId = have?.af_id;
+  let afId = have?.af_id || (isAf ? id - MOFF : null);
   if (!afId) {
     if (have?.map_tried_at && Date.now() - Date.parse(have.map_tried_at) < RETRY_MAP) return have;
     const fx = await af(`/fixtures?league=${LEAGUE[m.competition_code]}&season=${seasonOf(m.utc_date)}&date=${m.utc_date.slice(0, 10)}&timezone=UTC`);
@@ -205,8 +294,30 @@ export async function fetchOne(id) {
   return row;
 }
 
+// API-Football-এর লিগের মুখোমুখি রেকর্ড (football-data-এর মতো আকারে, যাতে সাইটের একই অংশ দেখাতে পারে)
+async function h2hAf(id) {
+  const [m] = await sb(`matches?select=id,home_id,away_id,competition_code&id=eq.${id}`);
+  if (!m || !AF_LEAGUES[m.competition_code]) return null;
+  const fx = await af(`/fixtures/headtohead?h2h=${m.home_id - TOFF}-${m.away_id - TOFF}&last=10&timezone=UTC`);
+  return { matches: fx.map((f) => ({
+    id: MOFF + f.fixture.id, utcDate: new Date(f.fixture.timestamp * 1000).toISOString(), status: AF_STATUS(f.fixture.status?.short),
+    competition: { code: Object.keys(AF_LEAGUES).find((k) => AF_LEAGUES[k].id === f.league?.id) || null, name: f.league?.name },
+    homeTeam: { id: TOFF + f.teams.home.id, name: dec(f.teams.home.name) }, awayTeam: { id: TOFF + f.teams.away.id, name: dec(f.teams.away.name) },
+    score: { home: f.goals?.home ?? null, away: f.goals?.away ?? null },
+  })).sort((a, b) => b.utcDate.localeCompare(a.utcDate)) };
+}
+
 export default async function handler(req, res) {
   const q0 = req.query || {};
+  if (q0.h2h) {
+    const id = parseInt(q0.h2h, 10);
+    try {
+      const d = id >= MOFF ? await h2hAf(id) : null;
+      if (!d) return res.status(404).json({ ok: false });
+      res.setHeader("Cache-Control", "public, s-maxage=86400, max-age=3600");   // দিনে একবারই API-তে যায়
+      return res.status(200).json(d);
+    } catch (e) { return res.status(500).json({ ok: false, error: String(e.message || e).slice(0, 200) }); }
+  }
   if (q0.match) {
     // সবার জন্য খোলা, কিন্তু প্রতি ম্যাচে জীবনে একবারই API-তে যায়
     const id = parseInt(q0.match, 10);
@@ -223,8 +334,8 @@ export default async function handler(req, res) {
   const auth = req.headers?.authorization || "";
   if (secret && auth !== `Bearer ${secret}` && (req.query || {}).secret !== secret) return res.status(401).json({ ok: false, error: "unauthorized" });
   try {
-    const result = await runLive();
-    if (result.calls) await sb("sync_log", { method: "POST", body: { mode: "live", ok: true, detail: JSON.stringify(result) }, prefer: "return=minimal" }).catch(() => {});
+    const result = q0.mode === "leagues" ? await syncAfLeagues() : await runLive();
+    if (result.calls) await sb("sync_log", { method: "POST", body: { mode: q0.mode === "leagues" ? "leagues" : "live", ok: true, detail: JSON.stringify(result) }, prefer: "return=minimal" }).catch(() => {});
     return res.status(200).json({ ok: true, ...result });
   } catch (e) {
     await sb("sync_log", { method: "POST", body: { mode: "live", ok: false, detail: String(e.message || e) }, prefer: "return=minimal" }).catch(() => {});
