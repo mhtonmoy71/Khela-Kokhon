@@ -829,6 +829,14 @@ button.scr { width: 100%; }
 .lg-fol { flex: none; height: 32px; padding: 0 14px; border-radius: 999px; border: 1px solid var(--brand); background: none; color: var(--brand); font: 600 13px 'Hind Siliguri', sans-serif; cursor: pointer; }
 .lg-fol.on { background: var(--brand); color: #fff; }
 .lg-tip { font-size: 12.5px; margin: -4px 0 10px; }
+.lg-no { flex: none; width: 22px; text-align: center; font: 800 14px Inter, 'Hind Siliguri', sans-serif; color: var(--brand); }
+.lg-card.on { gap: 8px; padding-left: 10px; }
+.lg-ord { display: flex; align-items: center; gap: 2px; flex: none; }
+.lg-ord button { width: 34px; height: 34px; border-radius: 50%; border: 0; background: var(--card2); color: var(--text); display: grid; place-items: center; cursor: pointer; }
+.lg-ord button:disabled { opacity: .3; cursor: default; }
+.lg-ord .lg-x { background: none; color: var(--muted); font-size: 14px; }
+.lg-empty { font-size: 13.5px; }
+.scr.cr-tot { background: var(--greenDim); }
 .lg-ic { width: 48px; height: 48px; flex: none; border-radius: 50%; background: #fff; display: grid; place-items: center; box-shadow: 0 0 0 1px var(--line); }
 .lg-ic:empty::after { content: attr(data-c); font-family: Inter, sans-serif; font-weight: 800; font-size: 13px; color: #064e3b; }
 .lg-nm { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
@@ -2685,8 +2693,11 @@ const getFollowLg = () => { const v = ls.get("follow_lg", []); return Array.isAr
 function useFollowLg() {
   const [v, setV] = useState(getFollowLg);
   useEffect(() => { lgSubs.add(setV); return () => lgSubs.delete(setV); }, []);
-  const toggle = (code) => { const cur = getFollowLg(); const n = cur.includes(code) ? cur.filter((x) => x !== code) : [...cur, code]; ls.set("follow_lg", n); lgSubs.forEach((f) => f(n)); return !cur.includes(code); };
-  return [v, toggle];
+  const save = (n) => { ls.set("follow_lg", n); lgSubs.forEach((f) => f(n)); };
+  const toggle = (code) => { const cur = getFollowLg(); const n = cur.includes(code) ? cur.filter((x) => x !== code) : [...cur, code]; save(n); return !cur.includes(code); };
+  // ফলো করা লিগের ক্রম বদলানো: d = -1 (ওপরে) বা +1 (নিচে)
+  const move = (code, d) => { const n = [...getFollowLg()]; const i = n.indexOf(code), j = i + d; if (i < 0 || j < 0 || j >= n.length) return; [n[i], n[j]] = [n[j], n[i]]; save(n); };
+  return [v, toggle, move];
 }
 // ফলো করা লিগ আগে (যে ক্রমে ফলো করেছেন), তারপর বাকিগুলো স্বাভাবিক ক্রমে
 const lgRank = (follow, c) => { const i = follow.indexOf(c?.code); return i >= 0 ? i - 1000 : (c?.sort ?? 99); };
@@ -3936,32 +3947,43 @@ function Leagues({ comps, toast }) {
   const { t, lang } = useT();
   const bn = lang === "bn";
   const nav = useNav();
-  const [follow, toggle] = useFollowLg();
-  const list = orderComps(comps, follow);
+  const [follow, toggle, move] = useFollowLg();
+  const mine = follow.map((c) => comps.find((x) => x.code === c)).filter(Boolean);
+  const rest = orderComps(comps.filter((c) => !follow.includes(c.code)), []);
+  const flip = (c) => { const now = toggle(c.code); toast?.(now ? (bn ? `${compName(c, lang)} ফলো করছেন` : `Following ${compName(c, lang)}`) : (bn ? "ফলো বাদ দেওয়া হয়েছে" : "Unfollowed")); };
+  const card = (c, i, followed) => (
+    <div key={c.code} className={"lg-card" + (followed ? " on" : "")}>
+      {followed && <span className="lg-no">{num(i + 1, lang)}</span>}
+      <button className="lg-open" onClick={() => nav.openLeague(c.code)}>
+        <span className="lg-ic" data-c={c.code}><CompIcon c={c} size={30} /></span>
+        <span className="lg-nm"><b>{compName(c, lang)}</b><small className="muted">{bn ? "টেবিল · ম্যাচ · গোলদাতা" : "Table · Matches · Scorers"}</small></span>
+      </button>
+      {followed ? (
+        <span className="lg-ord">
+          <button aria-label={bn ? "ওপরে" : "Move up"} disabled={i === 0} onClick={() => move(c.code, -1)}><ChevronIcon width={18} height={18} /></button>
+          <button aria-label={bn ? "নিচে" : "Move down"} disabled={i === mine.length - 1} onClick={() => move(c.code, 1)}><ChevronIcon width={18} height={18} style={{ transform: "rotate(180deg)" }} /></button>
+          <button className="lg-x" aria-label={bn ? "ফলো বাদ" : "Unfollow"} onClick={() => flip(c)}>✕</button>
+        </span>
+      ) : <button className="lg-fol" onClick={() => flip(c)}>{bn ? "ফলো" : "Follow"}</button>}
+    </div>
+  );
   return (
     <div className="sec">
       <div className="sec-h"><h2 style={{ fontSize: 19 }}>{t("leagues")}</h2></div>
-      <div className="muted lg-tip">{bn ? "যে লিগ ফলো করবেন, ম্যাচ ট্যাবে সেগুলোর খেলা আগে দেখাবে" : "Followed leagues appear first on the Matches tab"}</div>
       {!comps.length ? <Loading /> : (
-        <div className="lg-list">
-          {list.map((c) => {
-            const on = follow.includes(c.code);
-            return (
-              <div key={c.code} className={"lg-card" + (on ? " on" : "")}>
-                <button className="lg-open" onClick={() => nav.openLeague(c.code)}>
-                  <span className="lg-ic" data-c={c.code}><CompIcon c={c} size={30} /></span>
-                  <span className="lg-nm">
-                    <b>{compName(c, lang)}</b>
-                    <small className="muted">{bn ? "টেবিল · ম্যাচ · গোলদাতা" : "Table · Matches · Scorers"}</small>
-                  </span>
-                </button>
-                <button className={"lg-fol" + (on ? " on" : "")} aria-pressed={on} onClick={() => { const now = toggle(c.code); toast?.(now ? (bn ? `${compName(c, lang)} ফলো করছেন` : `Following ${compName(c, lang)}`) : (bn ? "ফলো বাদ দেওয়া হয়েছে" : "Unfollowed")); }}>
-                  {on ? (bn ? "ফলো করছেন" : "Following") : (bn ? "ফলো" : "Follow")}
-                </button>
-              </div>
-            );
-          })}
-        </div>
+        <>
+          <div className="sec-h" style={{ marginTop: 4 }}><h2>{bn ? "আমার লিগ" : "My leagues"}</h2></div>
+          {mine.length ? (
+            <>
+              <div className="muted lg-tip">{bn ? "এই ক্রমেই ম্যাচ ট্যাবে খেলা দেখাবে। তীর চেপে ওপরে-নিচে সাজান।" : "Matches show in this order. Use the arrows to reorder."}</div>
+              <div className="lg-list">{mine.map((c, i) => card(c, i, true))}</div>
+            </>
+          ) : <div className="card empty lg-empty">{bn ? "পছন্দের লিগ ফলো করুন। ম্যাচ ট্যাবে সেগুলো আপনার সাজানো ক্রমে আগে দেখাবে।" : "Follow leagues to see them first, in your order, on the Matches tab."}</div>}
+          {rest.length > 0 && <>
+            <div className="sec-h" style={{ marginTop: 18 }}><h2>{mine.length ? (bn ? "আরও লিগ" : "More leagues") : (bn ? "সব লিগ" : "All leagues")}</h2></div>
+            <div className="lg-list">{rest.map((c, i) => card(c, i, false))}</div>
+          </>}
+        </>
       )}
     </div>
   );
@@ -6906,7 +6928,8 @@ async function getAfPlayer(id) {
   return r.json();
 }
 // "E. Haaland" → "Erling Haaland" (পুরো নাম থাকলে বাংলা নামের তালিকায় মেলে)
-const afFullName = (p) => (p.first && p.last ? `${p.first.split(" ")[0]} ${p.last}` : p.name);
+// "E. Haaland" → "Erling Haaland", "L. Messi" → "Lionel Messi"; আদ্যক্ষর না থাকলে উৎসের নামই ("Cristiano Ronaldo")
+const afFullName = (p) => { const m = /^[A-Z]\.\s+(.+)$/.exec(p.name || ""); return m && p.first ? `${p.first.split(" ")[0]} ${m[1]}` : p.name; };
 const nrm = (x) => (x || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/\b(fc|cf|afc|sc|ac)\b/g, "").replace(/[^a-z0-9]+/g, " ").trim();
 // API-Football-এর দলের নাম → আমাদের দলের তালিকার দল (বড় ছয় লিগের জন্য, যাতে দলের পাতায় যাওয়া যায়)
 const findTeam = (teamsById, name) => { const n = nrm(name); if (!n) return null; return Object.values(teamsById || {}).find((t) => nrm(t.short_en) === n || nrm(t.name_en) === n || nrm(t.name_en).startsWith(n + " ")) || null; };
@@ -7054,6 +7077,9 @@ function AfPlayer({ id, comps, teamsById }) {
         <div className="sec">
           <div className="card">
             <div className="scr scr-h afp"><span /><span style={{ textAlign: "left" }}>{bn ? "দল · মৌসুম" : "Team · Season"}</span><span>{bn ? "ম্যাচ" : "Apps"}</span><span>{bn ? "গোল" : "G"}</span><span>{bn ? "অ্যা." : "A"}</span><span>{bn ? "রেটিং" : "Rtg"}</span></div>
+            {(() => { const R = career.filter((r) => r.apps != null); const t = (k) => R.reduce((a, r) => a + (r[k] || 0), 0); return R.length ? (
+              <div className="scr afp cr-tot"><span /><span className="pl"><b>{bn ? "ক্যারিয়ারে মোট" : "Career total"}</b><span className="muted" style={{ fontSize: 12 }}>{bn ? "ক্লাব ও জাতীয় দল" : "Club & country"}</span></span><span>{num(t("apps"), lang)}</span><span className="pts">{num(t("goals"), lang)}</span><span className="muted">{num(t("assists"), lang)}</span><span /></div>
+            ) : null; })()}
             {career.map((r, i) => (
               <div className="scr afp" key={i}>
                 <span>{logo(r.team.logo)}</span>
@@ -7065,7 +7091,7 @@ function AfPlayer({ id, comps, teamsById }) {
               </div>
             ))}
           </div>
-          <p className="muted" style={{ fontSize: 12, marginTop: 6 }}>{bn ? "সাম্প্রতিক চার মৌসুমের হিসাব; আগের মৌসুমে শুধু দল।" : "Stats for the last four seasons; earlier seasons show the team only."}</p>
+
         </div>
       ))}
     </div>
