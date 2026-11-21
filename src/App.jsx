@@ -661,6 +661,21 @@ button.pm { background: none; border: 0; padding: 0; cursor: pointer; font: inhe
 .ptbadge.live { border: 1px dashed #e11d48; }
 .pt-live { color: #e11d48; }
 .lb-live-note { font-size: 12px; padding: 10px 14px; border-top: 1px solid var(--line); display: flex; align-items: center; }
+.lgx-h { display: flex; align-items: center; justify-content: space-between; font-size: 13px; font-weight: 700; color: var(--muted); margin: 6px 4px 8px; }
+.lgx-card { padding: 2px 0; overflow: hidden; }
+.lgx { display: flex; align-items: center; min-height: 48px; padding: 0 10px 0 4px; }
+.lgx + .lgx { border-top: 1px solid var(--line); }
+.lgx-open { flex: 1; min-width: 0; display: flex; align-items: center; gap: 12px; padding: 10px; background: none; border: 0; color: var(--text); text-align: left; }
+.lgx-open:disabled { opacity: 1; }
+.lgx-ic { width: 26px; height: 26px; display: grid; place-items: center; flex-shrink: 0; }
+.lgx-nm { font-size: 14.5px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.lgx-go { color: var(--muted); opacity: .6; flex-shrink: 0; }
+.lgx-ord { display: flex; gap: 4px; flex-shrink: 0; }
+.lgx-ord button, .lgx-add { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; background: none; border: 1px solid var(--line); color: var(--text); font-size: 18px; line-height: 1; padding: 0; }
+.lgx-ord button:disabled { opacity: .3; }
+.lgx-rm { color: #e11d48 !important; }
+.lgx-add { color: var(--green); border-color: var(--green); font-weight: 600; }
+.lgx-tip { font-size: 12px; margin: 8px 4px 0; }
 .fav-btn { display: inline-flex; align-items: center; gap: 7px; margin-top: 10px; height: 36px; padding: 0 16px; border-radius: 18px; border: 1.5px solid var(--line); background: var(--card); font-weight: 700; font-size: 13.5px; color: var(--text); }
 .fav-btn span { color: var(--amber); font-size: 17px; }
 .fav-btn.on { border-color: var(--amber); background: rgba(245,158,11,.12); }
@@ -4415,20 +4430,22 @@ function Leagues({ comps, toast }) {
   const mine = follow.map((c) => comps.find((x) => x.code === c)).filter(Boolean);
   const rest = orderComps(comps.filter((c) => !follow.includes(c.code)), []);
   const flip = (c) => { const now = toggle(c.code); toast?.(now ? (bn ? `${compName(c, lang)} ফলো করছেন` : `Following ${compName(c, lang)}`) : (bn ? "ফলো বাদ দেওয়া হয়েছে" : "Unfollowed")); };
-  const card = (c, i, followed) => (
-    <div key={c.code} className={"lg-card" + (followed ? " on" : "")}>
-      {followed && <span className="lg-no">{num(i + 1, lang)}</span>}
-      <button className="lg-open" onClick={() => nav.openLeague(c.code)}>
-        <span className="lg-ic" data-c={c.code}><CompIcon c={c} size={30} /></span>
-        <span className="lg-nm"><b>{compName(c, lang)}</b><small className="muted">{bn ? "টেবিল · ম্যাচ · গোলদাতা" : "Table · Matches · Scorers"}</small></span>
+  const [edit, setEdit] = useState(false);
+  useEffect(() => { if (!mine.length) setEdit(false); }, [mine.length]);
+  const row = (c, i, followed) => (
+    <div key={c.code} className="lgx">
+      <button className="lgx-open" onClick={() => !edit && nav.openLeague(c.code)} disabled={edit && followed}>
+        <span className="lgx-ic"><CompIcon c={c} size={22} /></span>
+        <span className="lgx-nm">{compName(c, lang)}</span>
       </button>
-      {followed ? (
-        <span className="lg-ord">
-          <button aria-label={bn ? "ওপরে" : "Move up"} disabled={i === 0} onClick={() => move(c.code, -1)}><ChevronIcon width={18} height={18} /></button>
-          <button aria-label={bn ? "নিচে" : "Move down"} disabled={i === mine.length - 1} onClick={() => move(c.code, 1)}><ChevronIcon width={18} height={18} style={{ transform: "rotate(180deg)" }} /></button>
-          <button className="lg-x" aria-label={bn ? "ফলো বাদ" : "Unfollow"} onClick={() => flip(c)}>✕</button>
+      {followed ? (edit ? (
+        <span className="lgx-ord">
+          <button aria-label={bn ? "ওপরে" : "Move up"} disabled={i === 0} onClick={() => move(c.code, -1)}><ChevronIcon width={16} height={16} /></button>
+          <button aria-label={bn ? "নিচে" : "Move down"} disabled={i === mine.length - 1} onClick={() => move(c.code, 1)}><ChevronIcon width={16} height={16} style={{ transform: "rotate(180deg)" }} /></button>
+          <button className="lgx-rm" aria-label={bn ? "ফলো বাদ" : "Unfollow"} onClick={() => flip(c)}>−</button>
         </span>
-      ) : <button className="lg-fol" onClick={() => flip(c)}>{bn ? "ফলো" : "Follow"}</button>}
+      ) : <ChevronIcon className="lgx-go" width={15} height={15} style={{ transform: "rotate(90deg)" }} />)
+        : <button className="lgx-add" aria-label={bn ? "ফলো" : "Follow"} onClick={() => flip(c)}>+</button>}
     </div>
   );
   return (
@@ -4436,16 +4453,16 @@ function Leagues({ comps, toast }) {
       <div className="sec-h"><h2 style={{ fontSize: 19 }}>{t("leagues")}</h2></div>
       {!comps.length ? <Loading /> : (
         <>
-          <div className="sec-h" style={{ marginTop: 4 }}><h2>{bn ? "আমার লিগ" : "My leagues"}</h2></div>
+          <div className="lgx-h"><span>{bn ? "আমার লিগ" : "Following"}</span>{mine.length > 0 && <button className="link" onClick={() => setEdit(!edit)}>{edit ? (bn ? "হয়ে গেছে" : "Done") : (bn ? "সাজান" : "Edit")}</button>}</div>
           {mine.length ? (
             <>
-              <div className="muted lg-tip">{bn ? "এই ক্রমেই ম্যাচ ট্যাবে খেলা দেখাবে। তীর চেপে ওপরে-নিচে সাজান।" : "Matches show in this order. Use the arrows to reorder."}</div>
-              <div className="lg-list">{mine.map((c, i) => card(c, i, true))}</div>
+              <div className="card lgx-card">{mine.map((c, i) => row(c, i, true))}</div>
+              {edit && <div className="muted lgx-tip">{bn ? "এই ক্রমেই ম্যাচ ট্যাবে খেলা দেখাবে" : "Matches show in this order"}</div>}
             </>
-          ) : <div className="card empty lg-empty">{bn ? "পছন্দের লিগ ফলো করুন। ম্যাচ ট্যাবে সেগুলো আপনার সাজানো ক্রমে আগে দেখাবে।" : "Follow leagues to see them first, in your order, on the Matches tab."}</div>}
+          ) : <div className="muted lgx-tip">{bn ? "+ চেপে পছন্দের লিগ ফলো করুন। ম্যাচ ট্যাবে সেগুলো আগে দেখাবে।" : "Tap + to follow. Followed leagues show first on Matches."}</div>}
           {rest.length > 0 && <>
-            <div className="sec-h" style={{ marginTop: 18 }}><h2>{mine.length ? (bn ? "আরও লিগ" : "More leagues") : (bn ? "সব লিগ" : "All leagues")}</h2></div>
-            <div className="lg-list">{rest.map((c, i) => card(c, i, false))}</div>
+            <div className="lgx-h" style={{ marginTop: 18 }}><span>{mine.length ? (bn ? "আরও লিগ" : "More leagues") : (bn ? "সব লিগ" : "All leagues")}</span></div>
+            <div className="card lgx-card">{rest.map((c, i) => row(c, i, false))}</div>
           </>}
         </>
       )}
