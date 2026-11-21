@@ -2930,7 +2930,8 @@ const BallMini = ({ n }) => (
   <span className="ball-mini"><svg width="11" height="11" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="11" fill="#fff" stroke="#111" strokeWidth="1.5" /><path d="M12 7.2l3.6 2.6-1.4 4.3H9.8L8.4 9.8z" fill="#111" /></svg>{n > 1 ? <b>×{n}</b> : null}</span>
 );
 const rateCls = (r) => (r >= 7.5 ? "r-hi" : r >= 6.5 ? "r-ok" : "r-lo");
-const lastName = (n) => { const p = (n || "").split(" "); return p.length > 1 && /\.$/.test(p[0]) ? p.slice(1).join(" ") : p[p.length - 1] || n; };
+const unEnt = (s) => (s || "").replace(/&(amp|apos|quot|#39);/g, (_, k) => ({ amp: "&", apos: "'", quot: '"', "#39": "'" })[k]);
+const lastName = (n0) => { const n = unEnt(n0); const p = (n || "").split(" "); return p.length > 1 && /\.$/.test(p[0]) ? p.slice(1).join(" ") : p[p.length - 1] || n; };
 function PitchMan({ p, st, side }) {
   return (
     <div className={"pm pm-" + side}>
@@ -2955,7 +2956,8 @@ function TeamHalf({ T, side, P }) {
     const y = side === "h" ? 91 - (i / Math.max(1, n - 1)) * 36 : 9 + (i / Math.max(1, n - 1)) * 36;
     return list.map((p, j) => {
       const x = ((j + 0.5) / list.length) * 100;
-      return <div key={p.id || p.n} className="pm-wrap" style={{ left: `${side === "h" ? 100 - x : x}%`, top: `${y}%` }}><PitchMan p={p} st={P?.[p.id]} side={side} /></div>;
+      // API-Football-এ কলাম ১ = দলের বাঁ দিক; ঘরের দল ওপরের দিকে খেলে, তাই বাঁ দিক পর্দার বাঁয়ে, অতিথির উল্টো
+      return <div key={p.id || p.n} className="pm-wrap" style={{ left: `${side === "h" ? x : 100 - x}%`, top: `${y}%` }}><PitchMan p={p} st={P?.[p.id]} side={side} /></div>;
     });
   });
 }

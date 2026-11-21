@@ -69,17 +69,21 @@ export function pickFixture(m, fixtures) {
 
 const seasonOf = (iso) => { const d = new Date(iso); return d.getUTCMonth() >= 6 ? d.getUTCFullYear() : d.getUTCFullYear() - 1; };
 
+// API-Football নামের ভেতরে HTML চিহ্ন পাঠায় (যেমন O&apos;Reilly)
+const ENT = { amp: "&", apos: "'", quot: '"', lt: "<", gt: ">", "#39": "'" };
+const dec = (s) => (s == null ? null : String(s).replace(/&(amp|apos|quot|lt|gt|#39);/g, (_, k) => ENT[k]));
+
 // ── API-Football-এর বড় উত্তর থেকে শুধু দরকারি অংশ (ডেটাবেস আর ফোনের ডেটা হালকা রাখতে) ──
 export function slim(f) {
   const side = (id) => (id === f.teams.home.id ? "h" : id === f.teams.away.id ? "a" : null);
   const events = (f.events || []).map((e) => ({
     m: e.time?.elapsed ?? null, x: e.time?.extra ?? null, s: side(e.team?.id),
-    t: e.type, d: e.detail, p: e.player?.name || null, pid: e.player?.id || null, a: e.assist?.name || null, aid: e.assist?.id || null, c: e.comments || null,
+    t: e.type, d: e.detail, p: dec(e.player?.name), pid: e.player?.id || null, a: dec(e.assist?.name), aid: e.assist?.id || null, c: e.comments || null,
   }));
   const lu = (l) => l && ({
-    f: l.formation || null, coach: l.coach?.name || null,
-    xi: (l.startXI || []).map(({ player: p }) => ({ id: p.id, n: p.name, no: p.number, pos: p.pos, g: p.grid || null })),
-    sub: (l.substitutes || []).map(({ player: p }) => ({ id: p.id, n: p.name, no: p.number, pos: p.pos })),
+    f: l.formation || null, coach: dec(l.coach?.name),
+    xi: (l.startXI || []).map(({ player: p }) => ({ id: p.id, n: dec(p.name), no: p.number, pos: p.pos, g: p.grid || null })),
+    sub: (l.substitutes || []).map(({ player: p }) => ({ id: p.id, n: dec(p.name), no: p.number, pos: p.pos })),
   });
   const L = f.lineups || [];
   const lineups = L.length ? { h: lu(L.find((l) => side(l.team?.id) === "h")), a: lu(L.find((l) => side(l.team?.id) === "a")) } : null;
