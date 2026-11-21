@@ -64,7 +64,7 @@ img { display: block; }
 @media (max-width: 380px) { .side { font-size: 13px; gap: 6px; } .row { padding-left: 8px; padding-right: 8px; grid-template-columns: 1fr 66px 1fr; } .row.has-badge { padding-left: 46px; } }
 @media (max-width: 340px) { .side { font-size: 12.5px; gap: 4px; } .side .crest, .side .crest-fb { width: 18px !important; height: 18px !important; font-size: 6.5px !important; } .row { gap: 4px; padding-left: 6px; padding-right: 6px; grid-template-columns: 1fr 60px 1fr; } .mid .t { font-size: 12px; } }
 .side.home { justify-content: flex-end; text-align: right; }
-.side span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.side span { overflow: hidden; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; white-space: normal; line-height: 1.2; overflow-wrap: break-word; hyphens: auto; }
 .side.win span { font-weight: 700; }
 .mid { text-align: center; line-height: 1.15; }
 .mid .t { font-size: 13px; font-weight: 600; }
@@ -318,6 +318,9 @@ img { display: block; }
 .bubble .card .row { padding: 10px 6px; }
 .bubble .card .row.has-badge { padding-left: 44px; }
 .bubble .card .row .rbadge { left: 6px; }
+.bubble .card .row .side { font-size: 13px; gap: 5px; }
+.bubble .card .row .side .crest, .bubble .card .row .side .crest-fb { width: 18px !important; height: 18px !important; }
+.bubble .card .row { grid-template-columns: 1fr 58px 1fr; gap: 4px; }
 .ask-input { display: flex; gap: 8px; padding-top: 10px; border-top: 1px solid var(--line); }
 .ask-input input { flex: 1; height: 44px; border-radius: 22px; border: 1px solid var(--line); background: var(--card); padding: 0 16px; font-size: 15px; outline: none; }
 .ask-input input:focus { border-color: var(--green); }
@@ -511,7 +514,7 @@ button.pm { background: none; border: 0; padding: 0; cursor: pointer; font: inhe
 .lgt-row.m-form { grid-template-columns: 24px minmax(0, 1fr) 26px 118px 30px; }
 .lgt-h { color: var(--muted); font-size: 11.5px; font-weight: 600; padding-top: 10px; padding-bottom: 6px; }
 .lgt-row .tm { display: flex; align-items: center; gap: 7px; min-width: 0; text-align: left; }
-.lgt-row .tm b { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lgt-row .tm b { font-weight: 600; overflow: hidden; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-height: 1.2; }
 .lgt-h span:nth-child(2) { text-align: left; }
 .tm-link { cursor: pointer; }
 .lgt-row .pts { font-weight: 800; }
