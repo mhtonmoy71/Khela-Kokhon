@@ -1322,7 +1322,7 @@ const NAT_BN = {
   Albania: "আলবেনিয়া", Kosovo: "কসোভো", Bosnia: "বসনিয়া", "Bosnia and Herzegovina": "বসনিয়া", Armenia: "আর্মেনিয়া", Israel: "ইসরায়েল", Iran: "ইরান",
   "Saudi Arabia": "সৌদি আরব", Jamaica: "জ্যামাইকা", "Cape Verde Islands": "কেপ ভার্দে", Guinea: "গিনি", "DR Congo": "ডিআর কঙ্গো", "Congo DR": "ডিআর কঙ্গো", Gabon: "গ্যাবন",
 };
-const natName = (n, lang) => (lang === "bn" ? NAT_BN[n] || n : n);
+const natName = (n, lang) => (lang === "bn" ? NAT_BN[n] || (n === "Bangladesh" ? "বাংলাদেশ" : n) : n);
 // কোচদের নাম বাংলায়
 const COACH_BN = {
   "José Mourinho": "জোসে মরিনিও", "Vincent Kompany": "ভিনসেন্ট কোম্পানি", "Mikel Arteta": "মিকেল আর্তেতা", "Pep Guardiola": "পেপ গার্দিওলা", "Josep Guardiola": "পেপ গার্দিওলা",
@@ -7248,7 +7248,8 @@ function League({ code, comps, preds, onOpen, teamsById }) {
   const [games, setGames] = useState(null);
   useEffect(() => { if (tab === "matches" && games === null) Promise.all([getCompUpcoming(code, 15), getCompRecent(code, 15)]).then(([up, past]) => setGames({ up, past })).catch(() => setGames({ up: [], past: [] })); }, [tab]);
   useEffect(() => { document.title = `${compName(c, lang)} · খেলা কখন?`; return () => { document.title = "খেলা কখন?"; }; }, [code, lang]);
-  const seTxt = (se) => (se ? (bn ? `${num(se, "bn")}–${num(String((se + 1) % 100).padStart(2, "0"), "bn")}` : `${se}/${String((se + 1) % 100).padStart(2, "0")}`) : "");
+  // বাংলাদেশ ফুটবল লিগের মৌসুম API শেষ বছর দিয়ে চিহ্নিত করে (২০২৭ = ২০২৬–২৭)
+  const seTxt = (se0) => { const se = se0 && code === "BPL" ? se0 - 1 : se0; return se ? (bn ? `${num(se, "bn")}–${num(String((se + 1) % 100).padStart(2, "0"), "bn")}` : `${se}/${String((se + 1) % 100).padStart(2, "0")}`) : ""; };
   const tabs = [["table", bn ? "টেবিল" : "Table"], ["matches", bn ? "ম্যাচ" : "Matches"], ["stats", bn ? "পরিসংখ্যান" : "Stats"], ...(code === "CL" ? [] : [["seasons", bn ? "মৌসুম" : "Seasons"]])];
   const [sub, setSub] = useState("players");
   const allRows = tbl && tbl.groups ? tbl.groups.flat() : [];
