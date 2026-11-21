@@ -24,7 +24,7 @@ export default defineConfig({
       },
       workbox: {
         navigateFallbackDenylist: [/^\/api\//],
-        importScripts: ["/push-sw.js"],
+        importScripts: ["/push-sw.js?v=2"],
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/crests\.football-data\.org\/.*/i,
