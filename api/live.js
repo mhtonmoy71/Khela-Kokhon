@@ -114,7 +114,7 @@ export async function syncAfLeagues(only) {
       const pen = await hasPen();
       await upsertRows("matches", fx.map((f) => ({
         ...(pen ? { pen_home: f.score?.penalty?.home ?? null, pen_away: f.score?.penalty?.away ?? null } : {}),
-        id: MOFF + f.fixture.id, competition_code: code, season, matchday: parseInt((f.league?.round || "").match(/(\d+)\s*$/)?.[1], 10) || null,
+        id: MOFF + f.fixture.id, competition_code: code, season, matchday: /regular|season|league/i.test(f.league?.round || "") ? parseInt((f.league?.round || "").match(/(\d+)\s*$/)?.[1], 10) || null : null,
         stage: f.league?.round || null, group_name: null, utc_date: new Date(f.fixture.timestamp * 1000).toISOString(),
         status: AF_STATUS(f.fixture.status?.short), home_id: tid(f.teams.home), away_id: tid(f.teams.away),
         home_score: f.goals?.home ?? null, away_score: f.goals?.away ?? null, updated_at: new Date().toISOString(),
@@ -370,7 +370,7 @@ export async function runLive() {
   const T = "name_en,short_en,name_bn";
   const win = await sb(`matches?select=id,competition_code,utc_date,status,home_id,away_id,home:teams!matches_home_fk(${T}),away:teams!matches_away_fk(${T})&utc_date=gte.${from}&utc_date=lte.${to}&status=not.in.(POSTPONED,CANCELLED)`);
   if (!win.length) return { calls, window: 0 };
-  const have = await sb(`match_live?select=match_id,af_id,status,home_goals,away_goals,map_tried_at,final_seen_at&match_id=in.(${win.map((m) => m.id).join(",")})`);
+  const have = await sb(`match_live?select=match_id,af_id,status,home_goals,away_goals,map_tried_at,final_seen_at,ht_at:lineups->ht&match_id=in.(${win.map((m) => m.id).join(",")})`);
   const byId = Object.fromEntries(have.map((r) => [r.match_id, r]));
   for (const m of win) if (AF_LEAGUES[m.competition_code]) byId[m.id] = { ...byId[m.id], af_id: m.id - MOFF };
   const rows = [];
@@ -411,6 +411,8 @@ export async function runLive() {
       // সব লিগের ম্যাচের অবস্থা আর স্কোর এখান থেকেই (football-data-র ফ্রি স্তর খেলা চলা বা শেষ হওয়া দেরিতে জানায়)
       // শুধু শুরু হয়ে গেলে লেখা হয়; শুরুর আগের অবস্থা football-data-ই রাখে
       const { pen: penSc, ...sNoPen } = s;
+      // বিরতি কখন শুরু হলো (দ্বিতীয়ার্ধের কাউন্টডাউনের জন্য), লাইনআপের সাথে রাখা
+      if (s.status === "HT" && sNoPen.lineups) sNoPen.lineups = { ...sNoPen.lineups, ht: (prev?.status === "HT" && prev?.ht_at) || new Date().toISOString() };
       try { notes.push(...pushNotes(wm, prev?.status !== undefined || prev?.home_goals !== undefined ? prev : null, s)); } catch { /* নোটিফিকেশন ঐচ্ছিক */ }
       const ast = AF_STATUS(s.status);
       if (wm && (AF_LEAGUES[wm.competition_code] || ["IN_PLAY", "PAUSED", "FINISHED"].includes(ast)) && (ast !== wm.status || true))
