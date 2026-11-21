@@ -657,6 +657,10 @@ button.pm { background: none; border: 0; padding: 0; cursor: pointer; font: inhe
 .dr-h { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 11.5px; padding: 8px 14px 0; }
 .dr-c { display: inline-flex; align-items: center; gap: 5px; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .dr-c img { flex-shrink: 0; }
+.lv-dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: #e11d48; margin-right: 5px; vertical-align: 1px; animation: lgtp 1.4s ease-in-out infinite; }
+.ptbadge.live { border: 1px dashed #e11d48; }
+.pt-live { color: #e11d48; }
+.lb-live-note { font-size: 12px; padding: 10px 14px; border-top: 1px solid var(--line); display: flex; align-items: center; }
 .fav-btn { display: inline-flex; align-items: center; gap: 7px; margin-top: 10px; height: 36px; padding: 0 16px; border-radius: 18px; border: 1.5px solid var(--line); background: var(--card); font-weight: 700; font-size: 13.5px; color: var(--text); }
 .fav-btn span { color: var(--amber); font-size: 17px; }
 .fav-btn.on { border-color: var(--amber); background: rgba(245,158,11,.12); }
@@ -1459,6 +1463,16 @@ const isDone = (m) => m.status === "FINISHED";
 const isOff = (m) => ["POSTPONED", "CANCELLED", "SUSPENDED"].includes(m.status);
 // নকআউট ম্যাচ (টাইব্রেকার হতে পারে): লিগ/গ্রুপ পর্ব নয় এমন রাউন্ড
 const isKnockout = (m) => (DEMO && typeof window !== "undefined" && window.__kkKO) || !!m?.stage && !/regular|league stage|league phase|group|^league [a-d]|^league - |REGULAR_SEASON|LEAGUE_STAGE|GROUP_STAGE/i.test(m.stage);
+// খেলা চলার সময় এখনকার স্কোর ধরে প্রেডিকশনের পয়েন্ট (শেষ হলে আসল পয়েন্ট)
+const predPts = (pred, m) => {
+  if (!pred) return null;
+  if (pred.points != null) return { v: pred.points, live: false };
+  if (m && isLive(m) && m.home_score != null && m.away_score != null) {
+    const v = pred.home === m.home_score && pred.away === m.away_score ? 3 : Math.sign(pred.home - pred.away) === Math.sign(m.home_score - m.away_score) ? 1 : 0;
+    return { v, live: true };
+  }
+  return null;
+};
 const canPredict = (m) => !isOff(m) && new Date(m.utc_date) > new Date();
 
 // "শনিবার, ২১ নভেম্বর দিবাগত রাত ২:০০" — মাঝরাতের পরের খেলা আগের দিনের নামে
@@ -2030,12 +2044,13 @@ function BoardRows({ rows, isMe, lang, t }) {
           <div className="rk"><RankBadge rank={i + 1} lang={lang} /></div>
           <UserAvatar src={r.avatar} name={r.display_name} size={32} />
           <div style={{ minWidth: 0 }}>
-            <div style={{ fontWeight: 600 }}>{r.display_name}{isMe(r) ? (lang === "bn" ? " (আপনি)" : " (you)") : ""}</div>
+            <div style={{ fontWeight: 600 }}>{r.display_name}{isMe(r) ? (lang === "bn" ? " (আপনি)" : " (you)") : ""}{r.live > 0 && <i className="lv-dot" style={{ marginLeft: 6 }} title={lang === "bn" ? "খেলা চলছে" : "Live"} />}</div>
             <div className="sub">{lang === "bn" ? `${num(r.played, lang)} ম্যাচ · হুবহু ${num(r.exact, lang)}` : `${r.played} played · ${r.exact} exact`}</div>
           </div>
           <div className="pt">{num(r.points, lang)} <span className="sub">{t("pts")}</span></div>
         </div>
       ))}
+      {rows.some((r) => r.live > 0) && <div className="muted lb-live-note"><i className="lv-dot" />{lang === "bn" ? "খেলা চলছে · এখনকার স্কোর ধরে পয়েন্ট, শেষ হলে চূড়ান্ত" : "Live · points as it stands, final at full time"}</div>}
     </div>
   );
 }
@@ -2949,7 +2964,7 @@ function MatchRow({ m, pred, onOpen, badge: badge0, plain, sub }) {
         {pred && (
           <span className="pred-tag">
             <TargetIcon width={11} height={11} style={{ verticalAlign: -1 }} /> {num(pred.home, lang)}-{num(pred.away, lang)}
-            {pred.points != null && ` · +${num(pred.points, lang)}`}
+            {(() => { const q = predPts(pred, m); return q ? <span className={q.live ? "pt-live" : undefined}>{` · +${num(q.v, lang)}`}</span> : null; })()}
           </span>
         )}
       </div>
@@ -3758,7 +3773,7 @@ function MatchPage({ id, m: mInit, user, pred, onSave, onLogin, toast }) {
             <FanVote m={m} />
         <div className="sec" style={{ margin: "16px 0 0" }}>
           <div className="sec-h"><h2>{t("yourPick")}</h2>
-            {pred?.points != null && <span className={"ptbadge p" + pred.points}>+{num(pred.points, lang)} {t("pts")}</span>}</div>
+            {(() => { const q = predPts(pred, m); return q ? <span className={"ptbadge p" + q.v + (q.live ? " live" : "")}>{q.live && <i className="lv-dot" />}+{num(q.v, lang)} {t("pts")}{q.live ? (bn ? " · এখন পর্যন্ত" : " · so far") : ""}</span> : null; })()}</div>
           {!user ? (
             <button className="btn ghost block" onClick={onLogin}>{t("loginToPredict")}</button>
           ) : open ? (
@@ -4461,7 +4476,10 @@ function Board({ league, user, onBack, onLeft, toast }) {
   const [comp, setComp] = useState(null);
   useEffect(() => {
     setRows(null); setErr("");
-    leagueBoard(league.id, comp).then(setRows).catch((e) => { setErr(e.missing ? "missing" : e.message); setRows([]); });
+    let a = true;
+    leagueBoard(league.id, comp).then((r) => a && setRows(r)).catch((e) => { if (!a) return; setErr(e.missing ? "missing" : e.message); setRows([]); });
+    const iv = setInterval(() => { if (!document.hidden) leagueBoard(league.id, comp).then((r) => a && r && setRows(r)).catch(() => {}); }, 60000);
+    return () => { a = false; clearInterval(iv); };
   }, [league.id, comp]);
 
   async function leave() {
@@ -4588,7 +4606,11 @@ function Leaderboard({ me }) {
   const [comp, setComp] = useState(null);
   useEffect(() => {
     setRows(null); setErr("");
-    getLeaderboard(comp).then(setRows).catch((e) => { setErr(e?.missing ? "missing" : "x"); setRows([]); });
+    let a = true;
+    getLeaderboard(comp).then((r) => a && setRows(r)).catch((e) => { if (!a) return; setErr(e?.missing ? "missing" : "x"); setRows([]); });
+    // রিয়েল টাইম: প্রতি মিনিটে নতুন (খেলা চলার সময় পয়েন্ট বদলায়)
+    const iv = setInterval(() => { if (!document.hidden) getLeaderboard(comp).then((r) => a && r && setRows(r)).catch(() => {}); }, 60000);
+    return () => { a = false; clearInterval(iv); };
   }, [comp]);
   const isMe = (r) => r.is_me ?? (me && r.display_name === me);
   return (
@@ -4610,8 +4632,11 @@ function Mine({ user, preds, fav, onOpen, goProfile }) {
 
   useEffect(() => {
     let live = true;
-    getMatchesByIds(ids).then((r) => live && setMade(r.sort((a, b) => b.utc_date.localeCompare(a.utc_date)))).catch(() => live && setMade([]));
-    return () => { live = false; };
+    const load = (first) => getMatchesByIds(ids).then((r) => live && setMade(r.sort((a, b) => b.utc_date.localeCompare(a.utc_date)))).catch(() => live && first && setMade([]));
+    load(true);
+    // খেলা চলার সময় স্কোর আর এখন পর্যন্ত পয়েন্ট প্রতি মিনিটে
+    const iv = setInterval(() => { if (!document.hidden) load(false); }, 60000);
+    return () => { live = false; clearInterval(iv); };
   }, [ids.join(",")]);
 
   useEffect(() => {
@@ -4629,7 +4654,8 @@ function Mine({ user, preds, fav, onOpen, goProfile }) {
     </div>
   );
 
-  const total = Object.values(preds).reduce((s, p) => s + (p.points || 0), 0);
+  // খেলা চলার ম্যাচের এখন পর্যন্ত পয়েন্টও যোগ (রিয়েল টাইম)
+  const total = Object.values(preds).reduce((s, p) => s + (p.points || 0), 0) + (made || []).reduce((s, m) => { const q = predPts(preds[m.id], m); return s + (q?.live ? q.v : 0); }, 0);
   return (
     <>
       <div className="card" style={{ display: "flex", padding: "14px 16px", gap: 16, marginBottom: 14 }}>
@@ -4657,9 +4683,9 @@ function Mine({ user, preds, fav, onOpen, goProfile }) {
                 <div className="muted" style={{ fontSize: 11.5, padding: "8px 14px 0", display: "flex", gap: 6, alignItems: "center" }}>
                   <CompIcon c={m.competition} size={13} /> {dayLabel(dayKey(m.utc_date), lang, { short: true })}
                   <span style={{ flex: 1 }} />
-                  {preds[m.id]?.points != null
-                    ? <span className={"ptbadge p" + preds[m.id].points}>+{num(preds[m.id].points, lang)}</span>
-                    : <span className="ptbadge">{t("pending")}</span>}
+                  {(() => { const q = predPts(preds[m.id], m); return q
+                    ? <span className={"ptbadge p" + q.v + (q.live ? " live" : "")}>{q.live && <i className="lv-dot" />}+{num(q.v, lang)}</span>
+                    : <span className="ptbadge">{t("pending")}</span>; })()}
                 </div>
                 <MatchRow m={m} pred={preds[m.id]} onOpen={onOpen} />
               </div>
