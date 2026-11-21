@@ -442,6 +442,32 @@ img { display: block; }
 .lu-h small { width: 100%; font-size: 11.5px; }
 .lu-p { display: flex; align-items: center; gap: 6px; padding: 5px 0; font-size: 12.5px; color: var(--muted); width: 100%; background: none; border: 0; font-family: inherit; text-align: left; cursor: pointer; }
 button.pm { background: none; border: 0; padding: 0; cursor: pointer; font: inherit; color: inherit; }
+.afp-page { padding-top: 2px; }
+.afp-head { margin: 0 -16px; padding: 10px 16px 16px; background: linear-gradient(135deg, #065f46, #0b3b2e); color: #fff; }
+.afp-back { width: 32px; height: 32px; border-radius: 50%; border: 0; background: rgba(255,255,255,.14); color: #fff; display: grid; place-items: center; cursor: pointer; }
+.afp-id { display: flex; align-items: center; gap: 14px; margin-top: 10px; }
+.afp-ph { width: 64px; height: 64px; border-radius: 50%; object-fit: cover; object-position: 50% 15%; background: #fff; flex: none; border: 2px solid rgba(255,255,255,.7); }
+.afp-ph-fb { display: grid; place-items: center; font: 800 22px Inter, sans-serif; color: #065f46; }
+.afp-id h1 { font-size: 21px; line-height: 1.2; margin: 0 0 6px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.afp-id .pl-inj { margin: 0; font-size: 11px; }
+.afp-team { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px 3px 4px; border-radius: 999px; border: 0; background: rgba(255,255,255,.16); color: #fff; font: 600 12.5px 'Hind Siliguri', sans-serif; cursor: pointer; }
+.afp-team img, .afp-team .crest-fb { background: #fff; border-radius: 50%; }
+.afp-tabs { margin-top: 0; }
+.pmr { display: block; width: 100%; padding: 10px 14px; background: none; border: 0; border-top: 1px solid var(--line); color: inherit; font: inherit; text-align: left; cursor: pointer; }
+.pmr:first-child { border-top: 0; }
+.pmr:disabled { cursor: default; }
+.pmr-top { display: flex; justify-content: space-between; gap: 8px; font-size: 11px; margin-bottom: 4px; }
+.pmr-top span:last-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pmr-main { display: flex; align-items: center; gap: 8px; }
+.pmr-opp { flex: 1; min-width: 0; display: flex; flex-direction: column; line-height: 1.25; }
+.pmr-opp b { font-size: 13.5px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pmr-opp small { font-size: 11px; color: var(--muted); }
+.pmr-res { font: 700 11.5px Inter, 'Hind Siliguri', sans-serif; padding: 2px 7px; border-radius: 6px; white-space: nowrap; }
+.pmr-res.rW { background: #dcfce7; color: #15803d; } .pmr-res.rD { background: var(--card2); color: var(--muted); } .pmr-res.rL { background: #fee2e2; color: #b91c1c; }
+.pmr-me { display: flex; align-items: center; gap: 5px; min-width: 64px; justify-content: flex-end; }
+.pmr-me .ball-mini b { color: var(--text); text-shadow: none; }
+.pmr-a { font: 700 10.5px 'Hind Siliguri', sans-serif; color: var(--brand); }
+.pmr-card { width: 8px; height: 11px; border-radius: 2px; background: #facc15; display: inline-block; } .pmr-card.red { background: #ef4444; }
 .scr.afp { grid-template-columns: 26px minmax(0, 1fr) 34px 30px 30px 44px; }
 .scr.afp > span:nth-child(n+3) { text-align: center; }
 .pl-inj { display: inline-block; margin-top: 4px; font-size: 12px; font-weight: 700; color: #fff; background: #dc2626; border-radius: 999px; padding: 1px 9px; }
@@ -6887,19 +6913,29 @@ const findTeam = (teamsById, name) => { const n = nrm(name); if (!n) return null
 function AfPlayer({ id, comps, teamsById }) {
   const { lang } = useT();
   const bn = lang === "bn";
-  const wide = useWide();
   const nav = useNav();
   const [p, setP] = useState(null);
   const [badPic, setBadPic] = useState(false);
+  const [tab, setTab] = useState("pr");
+  const [games, setGames] = useState(null);
+  const [career, setCareer] = useState(null);
+  const [lg, setLg] = useState("all");
   useEffect(() => { let a = true; setP(null); getAfPlayer(id).then((d) => a && setP(d)).catch(() => a && setP(false)); return () => { a = false; }; }, [id]);
-  useEffect(() => { if (p?.name) document.title = `${playerName(p.name, lang)} · খেলা কখন?`; return () => { document.title = "খেলা কখন?"; }; }, [p?.name, lang]);
+  useEffect(() => { if (p?.name) document.title = `${playerName(afFullName(p), lang)} · খেলা কখন?`; return () => { document.title = "খেলা কখন?"; }; }, [p?.name, lang]);
+  // ম্যাচ আর ক্যারিয়ার শুধু সেই ট্যাব খুললে আনা
+  useEffect(() => {
+    if (tab === "mt" && games === null && p?.teams) fetch(`/api/live?pmatches=${id}&teams=${p.teams.join(",")}`).then((r) => r.json()).then((d) => setGames(Array.isArray(d) ? d : [])).catch(() => setGames([]));
+    if (tab === "cr" && career === null) fetch(`/api/live?pcareer=${id}`).then((r) => r.json()).then((d) => setCareer(Array.isArray(d) ? d : [])).catch(() => setCareer([]));
+  }, [tab, p?.teams?.join(",")]);
   const back = <div className="page-head"><button className="back" onClick={() => window.history.back()} aria-label="back">←</button></div>;
   if (p === null) return <>{back}<div className="sec"><Loading /></div></>;
   if (p === false) return <>{back}<div className="sec"><div className="card empty">{bn ? "খেলোয়াড়ের তথ্য এখন পাওয়া যাচ্ছে না। কিছুক্ষণ পরে আবার চেষ্টা করুন।" : "Player info isn't available right now."}</div></div></>;
+
   const C = p.comps || [];
   const tot = (k) => C.reduce((t, c) => t + (c[k] || 0), 0);
   const mins = tot("minutes");
-  const rating = mins ? C.filter((c) => c.rating).reduce((t, c) => t + c.rating * c.minutes, 0) / (C.filter((c) => c.rating).reduce((t, c) => t + c.minutes, 0) || 1) : null;
+  const rated = C.filter((c) => c.rating);
+  const rating = rated.length ? rated.reduce((t, c) => t + c.rating * c.minutes, 0) / (rated.reduce((t, c) => t + c.minutes, 0) || 1) : null;
   const gk = p.position === "Goalkeeper";
   const tiles = [[bn ? "ম্যাচ" : "Apps", num(tot("apps"), lang)], gk ? [bn ? "সেভ" : "Saves", num(tot("saves"), lang)] : [bn ? "গোল" : "Goals", num(tot("goals"), lang)],
     gk ? [bn ? "গোল খেয়েছেন" : "Conceded", num(tot("conceded"), lang)] : [bn ? "অ্যাসিস্ট" : "Assists", num(tot("assists"), lang)],
@@ -6911,67 +6947,128 @@ function AfPlayer({ id, comps, teamsById }) {
     [bn ? "জন্ম" : "Born", born && (p.birthplace ? `${born}, ${p.birthplace}` : born)],
     [bn ? "দেশ" : "Nationality", natName(p.nationality, lang)],
     [bn ? "উচ্চতা" : "Height", p.height && (bn ? num(p.height.replace(" cm", ""), "bn") + " সেমি" : p.height)],
+    [bn ? "ওজন" : "Weight", p.weight && (bn ? num(p.weight.replace(" kg", ""), "bn") + " কেজি" : p.weight)],
     [bn ? "জার্সি" : "Shirt", p.number != null ? num(p.number, lang) : null],
   ].filter(([, v]) => v);
   const compOf = (code) => comps.find((c) => c.code === code);
   const teamLink = p.team ? (p.team.id ? teamsById?.[p.team.id] || { id: p.team.id, short_en: p.team.name, crest: p.team.logo } : findTeam(teamsById, p.team.name)) : null;
+  const logo = (src) => (src ? <img src={src} alt="" width="18" height="18" style={{ objectFit: "contain" }} onError={(e) => { e.currentTarget.style.visibility = "hidden"; }} /> : null);
+  const lgName = (code, name) => (code && compOf(code) ? compName(compOf(code), lang) : name);
+  const RES = { W: bn ? "জ" : "W", D: bn ? "ড্র" : "D", L: bn ? "হা" : "L" };
+  const tabs = [["pr", bn ? "পরিচয়" : "Profile"], ["mt", bn ? "ম্যাচ" : "Matches"], ["st", bn ? "পরিসংখ্যান" : "Stats"], ["cr", bn ? "ক্যারিয়ার" : "Career"]];
+  const seasonTxt = (se) => (bn ? `${num(se, "bn")}–${num(String((se + 1) % 100).padStart(2, "0"), "bn")}` : `${se}/${String((se + 1) % 100).padStart(2, "0")}`);
+
   return (
-    <>
-      {back}
-      <div className={"team-hero" + (wide ? " row" : "")}>
-        {p.photo && !badPic
-          ? <div className="pl-photo-wrap"><img className="pl-photo" src={p.photo} alt={p.name} width="112" height="112" decoding="async" onError={() => setBadPic(true)} />{p.number != null && <span className="pl-shirt">{num(p.number, lang)}</span>}</div>
-          : <div className="pl-avatar">{p.number != null ? num(p.number, lang) : (p.name || "?").slice(0, 1)}</div>}
-        <div className="th-name">
-          <h1>{playerName(afFullName(p), lang)}</h1>
-          {p.injured && <div className="pl-inj">{bn ? "ইনজুরিতে" : "Injured"}</div>}
+    <div className="afp-page">
+      <div className="afp-head">
+        <button className="afp-back" onClick={() => window.history.back()} aria-label="back"><ChevronIcon style={{ transform: "rotate(-90deg)" }} /></button>
+        <div className="afp-id">
+          {p.photo && !badPic
+            ? <img className="afp-ph" src={p.photo} alt="" width="64" height="64" onError={() => setBadPic(true)} />
+            : <span className="afp-ph afp-ph-fb">{p.number != null ? num(p.number, lang) : (p.name || "?").slice(0, 1)}</span>}
+          <div style={{ minWidth: 0 }}>
+            <h1>{playerName(afFullName(p), lang)}{p.injured && <span className="pl-inj">{bn ? "ইনজুরিতে" : "Injured"}</span>}</h1>
+            {p.team && (teamLink
+              ? <button className="afp-team" onClick={() => nav.openTeam(teamLink.id)}><Crest team={teamLink.crest ? teamLink : { ...teamLink, crest: p.team.logo }} size={16} />{teamName(teamLink, lang) || p.team.name}</button>
+              : <span className="afp-team"><Crest team={{ crest: p.team.logo, short_en: p.team.name }} size={16} />{p.team.name}</span>)}
+          </div>
         </div>
-        {p.team && (teamLink
-          ? <button className="chip" onClick={() => nav.openTeam(teamLink.id)}><Crest team={teamLink.crest ? teamLink : { ...teamLink, crest: p.team.logo }} size={18} />{teamName(teamLink, lang) || p.team.name}</button>
-          : <span className="chip"><Crest team={{ crest: p.team.logo, short_en: p.team.name }} size={18} />{p.team.name}</span>)}
       </div>
-      <div className={wide ? "pg-grid" : undefined}>
-      <div className={wide ? "pg-main" : undefined}>
-        {C.length > 0 ? (
-          <>
+      <div className="mp-tabs afp-tabs" role="tablist">
+        {tabs.map(([k, l]) => <button key={k} role="tab" aria-selected={tab === k} className={tab === k ? "on" : ""} onClick={() => setTab(k)}>{l}</button>)}
+      </div>
+
+      {tab === "pr" && (
+        <>
+          {C.length > 0 && (
             <div className="sec">
               <div className="sec-h"><h2>{bn ? "এই মৌসুমে" : "This season"}</h2></div>
-              <div className="card stat-grid" style={{ gridTemplateColumns: "repeat(4, 1fr)" }}>
-                {tiles.map(([l, v]) => <div key={l}><b>{v}</b><span>{l}</span></div>)}
-              </div>
+              <div className="card stat-grid" style={{ gridTemplateColumns: "repeat(4, 1fr)" }}>{tiles.map(([l, v]) => <div key={l}><b>{v}</b><span>{l}</span></div>)}</div>
             </div>
+          )}
+          {info.length > 0 && (
             <div className="sec">
-              <div className="sec-h"><h2>{bn ? "প্রতিযোগিতা অনুযায়ী" : "By competition"}</h2></div>
-              <div className="card">
-                <div className="scr scr-h afp"><span /><span style={{ textAlign: "left" }}>{bn ? "প্রতিযোগিতা" : "Competition"}</span><span>{bn ? "ম্যাচ" : "Apps"}</span><span>{gk ? (bn ? "সেভ" : "Sv") : (bn ? "গোল" : "G")}</span><span>{gk ? (bn ? "খেয়েছেন" : "GA") : (bn ? "অ্যা." : "A")}</span><span>{bn ? "রেটিং" : "Rtg"}</span></div>
-                {C.map((c, i) => {
-                  const cc = c.code && compOf(c.code);
-                  return (
-                    <button className="scr afp" key={i} onClick={() => cc && nav.openLeague(c.code)} disabled={!cc}>
-                      <span>{cc ? <CompIcon c={cc} size={18} /> : c.logo ? <img src={c.logo} alt="" width="18" height="18" style={{ objectFit: "contain" }} onError={(e) => { e.currentTarget.style.visibility = "hidden"; }} /> : null}</span>
-                      <span className="pl"><b>{cc ? compName(cc, lang) : c.league}</b>{c.team?.name && <span className="muted" style={{ fontSize: 12 }}>{c.team.name}</span>}</span>
-                      <span>{num(c.apps, lang)}</span>
-                      <span className="pts">{num(gk ? c.saves || 0 : c.goals, lang)}</span>
-                      <span className="muted">{num(gk ? c.conceded || 0 : c.assists, lang)}</span>
-                      <span>{c.rating ? <em className={"pm-r " + rateCls(c.rating)}>{num(c.rating.toFixed(1), lang)}</em> : "—"}</span>
-                    </button>
-                  );
-                })}
-              </div>
+              <div className="sec-h"><h2>{bn ? "পরিচয়" : "Profile"}</h2></div>
+              <div className="card">{info.map(([k, v]) => <div className="info-row" key={k}><span className="muted">{k}</span><b>{v}</b></div>)}</div>
             </div>
-          </>
-        ) : <div className="sec"><div className="card empty">{bn ? "এই মৌসুমের পরিসংখ্যান এখনো পাওয়া যায়নি।" : "No stats for this season yet."}</div></div>}
-      </div>
-      <div className={wide ? "pg-side" : undefined}>
-        {info.length > 0 && (
+          )}
+        </>
+      )}
+
+      {tab === "mt" && (games === null ? <div className="sec"><Loading /></div> : !games.length ? <div className="sec"><div className="card empty">{bn ? "সাম্প্রতিক ম্যাচ পাওয়া যায়নি" : "No recent matches"}</div></div> : (() => {
+        const lgs = [...new Map(games.map((g) => [g.league, g])).values()];
+        const shown = games.filter((g) => lg === "all" || g.league === lg);
+        return (
           <div className="sec">
-            <div className="sec-h"><h2>{bn ? "পরিচয়" : "Profile"}</h2></div>
-            <div className="card">{info.map(([k, v]) => <div className="info-row" key={k}><span className="muted">{k}</span><b>{v}</b></div>)}</div>
+            {lgs.length > 1 && (
+              <div className="chips" style={{ marginBottom: 10 }}>
+                <button className={"chip" + (lg === "all" ? " on" : "")} onClick={() => setLg("all")}>{bn ? "সব" : "All"}</button>
+                {lgs.map((g) => <button key={g.league} className={"chip" + (lg === g.league ? " on" : "")} onClick={() => setLg(g.league)}>{lgName(g.code, g.league)}</button>)}
+              </div>
+            )}
+            <div className="card">
+              {shown.map((g, i) => (
+                <button key={i} className="pmr" onClick={() => g.id && nav.openMatch({ id: g.id })} disabled={!g.id}>
+                  <span className="pmr-top muted"><span>{dayLabel(dayKey(g.date), lang, { short: true })}</span><span>{lgName(g.code, g.league)}</span></span>
+                  <span className="pmr-main">
+                    {logo(g.opp.logo)}
+                    <span className="pmr-opp"><b>{g.opp.name}</b><small>{g.home ? (bn ? "ঘরে" : "Home") : (bn ? "বাইরে" : "Away")} · {g.team.name}</small></span>
+                    {g.res && <span className={"pmr-res r" + g.res}>{RES[g.res]} {num(g.gf, lang)}-{num(g.ga, lang)}</span>}
+                    <span className="pmr-me">
+                      {g.goals > 0 && <BallMini n={g.goals} />}
+                      {g.assists > 0 && <span className="pmr-a">{bn ? "অ্যা" : "A"}{g.assists > 1 ? "×" + num(g.assists, lang) : ""}</span>}
+                      {g.rc ? <i className="pmr-card red" /> : g.yc ? <i className="pmr-card" /> : null}
+                      {g.bench ? <small className="muted">{bn ? "বেঞ্চে" : "Bench"}</small> : g.min != null && <small className="muted">{num(g.min, lang)}'</small>}
+                      {g.rating ? <em className={"pm-r " + rateCls(g.rating)}>{num(g.rating.toFixed(1), lang)}</em> : null}
+                    </span>
+                  </span>
+                </button>
+              ))}
+            </div>
           </div>
-        )}
-      </div>
-      </div>
-    </>
+        );
+      })())}
+
+      {tab === "st" && (C.length > 0 ? (
+        <div className="sec">
+          <div className="card">
+            <div className="scr scr-h afp"><span /><span style={{ textAlign: "left" }}>{bn ? "প্রতিযোগিতা" : "Competition"}</span><span>{bn ? "ম্যাচ" : "Apps"}</span><span>{gk ? (bn ? "সেভ" : "Sv") : (bn ? "গোল" : "G")}</span><span>{gk ? (bn ? "খেয়েছেন" : "GA") : (bn ? "অ্যা." : "A")}</span><span>{bn ? "রেটিং" : "Rtg"}</span></div>
+            {C.map((c, i) => {
+              const cc = c.code && compOf(c.code);
+              return (
+                <button className="scr afp" key={i} onClick={() => cc && nav.openLeague(c.code)} disabled={!cc}>
+                  <span>{cc ? <CompIcon c={cc} size={18} /> : logo(c.logo)}</span>
+                  <span className="pl"><b>{cc ? compName(cc, lang) : c.league}</b>{c.team?.name && <span className="muted" style={{ fontSize: 12 }}>{c.team.name} · {num(c.minutes, lang)} {bn ? "মিনিট" : "min"}</span>}</span>
+                  <span>{num(c.apps, lang)}</span>
+                  <span className="pts">{num(gk ? c.saves || 0 : c.goals, lang)}</span>
+                  <span className="muted">{num(gk ? c.conceded || 0 : c.assists, lang)}</span>
+                  <span>{c.rating ? <em className={"pm-r " + rateCls(c.rating)}>{num(c.rating.toFixed(1), lang)}</em> : "—"}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      ) : <div className="sec"><div className="card empty">{bn ? "এই মৌসুমের পরিসংখ্যান এখনো পাওয়া যায়নি।" : "No stats yet."}</div></div>)}
+
+      {tab === "cr" && (career === null ? <div className="sec"><Loading /></div> : !career.length ? <div className="sec"><div className="card empty">{bn ? "ক্যারিয়ারের তথ্য পাওয়া যায়নি" : "No career data"}</div></div> : (
+        <div className="sec">
+          <div className="card">
+            <div className="scr scr-h afp"><span /><span style={{ textAlign: "left" }}>{bn ? "দল · মৌসুম" : "Team · Season"}</span><span>{bn ? "ম্যাচ" : "Apps"}</span><span>{bn ? "গোল" : "G"}</span><span>{bn ? "অ্যা." : "A"}</span><span>{bn ? "রেটিং" : "Rtg"}</span></div>
+            {career.map((r, i) => (
+              <div className="scr afp" key={i}>
+                <span>{logo(r.team.logo)}</span>
+                <span className="pl"><b>{r.team.name}</b><span className="muted" style={{ fontSize: 12 }}>{seasonTxt(r.season)}</span></span>
+                <span>{r.apps == null ? "—" : num(r.apps, lang)}</span>
+                <span className="pts">{r.goals == null ? "—" : num(r.goals, lang)}</span>
+                <span className="muted">{r.assists == null ? "—" : num(r.assists, lang)}</span>
+                <span>{r.rating ? <em className={"pm-r " + rateCls(r.rating)}>{num(r.rating.toFixed(1), lang)}</em> : "—"}</span>
+              </div>
+            ))}
+          </div>
+          <p className="muted" style={{ fontSize: 12, marginTop: 6 }}>{bn ? "সাম্প্রতিক চার মৌসুমের হিসাব; আগের মৌসুমে শুধু দল।" : "Stats for the last four seasons; earlier seasons show the team only."}</p>
+        </div>
+      ))}
+    </div>
   );
 }
 
@@ -7377,6 +7474,7 @@ export default function App() {
     // আইডি ১ কোটি+ = API-Football-এর খেলোয়াড় (যেকোনো লিগ)
     openPlayer: (id) => openView(`/player/${id}`, { kind: "player", id }),
     openPage: (id) => openView(PAGE_URL[id], { kind: "page", id }),
+    openMatch: (m) => openView(`/match/${m.id}`, { kind: "match", id: m.id, m: m.home ? m : undefined }),
     // কুইজ: /quiz (শুরুর পাতা) বা /quiz/কোড; replace = ইতিহাসে নতুন ধাপ না যোগ করে
     openFriends: () => { setPredTab((p) => ({ tab: "friends", league: null, key: p.key + 1 })); go("predict"); },
     openSearch: () => { setSheet(null); setSearching(true); },
