@@ -339,11 +339,74 @@ async function playerAf(afId) {
     position: main?.position || (got.statistics || [])[0]?.games?.position || null, number: main?.number ?? null,
     team: main?.team || (got.statistics || [])[0]?.team && { af: got.statistics[0].team.id, name: dec(got.statistics[0].team.name), logo: got.statistics[0].team.logo, id: null },
     comps,
+    teams: [...new Set(comps.map((c) => c.team?.af).filter(Boolean))].slice(0, 2),
   };
+}
+
+// খেলোয়াড়ের সাম্প্রতিক ম্যাচ (ক্লাব + জাতীয় দল): প্রতিটায় ফল, মিনিট, রেটিং, গোল, অ্যাসিস্ট
+const ourCodeOf = (lid) => Object.entries(LEAGUE).find(([, v]) => v === lid)?.[0] || Object.entries(AF_LEAGUES).find(([, v]) => v.id === lid)?.[0] || null;
+async function playerMatchesAf(afId, teamIds) {
+  const per = teamIds.length > 1 ? 6 : 10;
+  const lists = await Promise.all(teamIds.slice(0, 2).map((t) => af(`/fixtures?team=${t}&last=${per}&timezone=UTC`)));
+  const ids = [...new Set(lists.flat().map((f) => f.fixture.id))].slice(0, 20);
+  if (!ids.length) return [];
+  const full = await af(`/fixtures?ids=${ids.join("-")}&timezone=UTC`);
+  return full.map((f) => {
+    let st = null, team = null;
+    for (const tp of f.players || []) { const x = (tp.players || []).find((q) => q.player?.id === afId); if (x) { st = x.statistics?.[0] || {}; team = tp.team; } }
+    if (!team) team = [f.teams.home, f.teams.away].find((t) => teamIds.includes(t.id)) || f.teams.home;
+    const home = f.teams.home.id === team.id, opp = home ? f.teams.away : f.teams.home;
+    const gf = home ? f.goals?.home : f.goals?.away, ga = home ? f.goals?.away : f.goals?.home;
+    const r = parseFloat(st?.games?.rating);
+    const inSquad = !!st || (f.lineups || []).some((l) => [...(l.startXI || []), ...(l.substitutes || [])].some((q) => q.player?.id === afId));
+    return {
+      id: AF_LEAGUES[ourCodeOf(f.league?.id)] ? MOFF + f.fixture.id : null, date: new Date(f.fixture.timestamp * 1000).toISOString(),
+      league: f.league?.name || null, round: f.league?.round || null, code: ourCodeOf(f.league?.id), team: { name: dec(team.name), logo: team.logo },
+      opp: { name: dec(opp.name), logo: opp.logo }, home, gf: gf ?? null, ga: ga ?? null,
+      res: gf == null || ga == null ? null : gf > ga ? "W" : gf < ga ? "L" : "D",
+      min: st?.games?.minutes ?? null, rating: Number.isFinite(r) ? r : null, goals: st?.goals?.total || 0, assists: st?.goals?.assists || 0,
+      yc: st?.cards?.yellow || 0, rc: st?.cards?.red || 0, bench: inSquad && !st?.games?.minutes, squad: inSquad,
+    };
+  }).filter((x) => x.squad).sort((a, b) => b.date.localeCompare(a.date));
+}
+
+// ক্যারিয়ার: কোন মৌসুমে কোন দলে; সাম্প্রতিক ৪ মৌসুমের ম্যাচ, গোল, অ্যাসিস্ট, রেটিং
+async function playerCareerAf(afId) {
+  const teams = await af(`/players/teams?player=${afId}`);
+  const rows = [];
+  for (const t of teams) for (const se of t.seasons || []) rows.push({ season: se, team: { af: t.team?.id, name: dec(t.team?.name), logo: t.team?.logo } });
+  rows.sort((a, b) => b.season - a.season);
+  const recent = [...new Set(rows.map((r) => r.season))].slice(0, 4);
+  const stats = await Promise.all(recent.map((se) => af(`/players?id=${afId}&season=${se}`).then((r) => [se, r[0]?.statistics || []]).catch(() => [se, []])));
+  const by = Object.fromEntries(stats);
+  return rows.map((r) => {
+    const st = (by[r.season] || []).filter((x) => x.team?.id === r.team.af);
+    if (!st.length) return { ...r, apps: null };
+    const sum = (f) => st.reduce((t, x) => t + (f(x) || 0), 0);
+    const mins = sum((x) => x.games?.minutes);
+    const rated = st.filter((x) => x.games?.rating);
+    const rm = rated.reduce((t, x) => t + (x.games.minutes || 0), 0);
+    return { ...r, apps: sum((x) => x.games?.appearences), goals: sum((x) => x.goals?.total), assists: sum((x) => x.goals?.assists), minutes: mins,
+      rating: rm ? Math.round(rated.reduce((t, x) => t + parseFloat(x.games.rating) * (x.games.minutes || 0), 0) / rm * 100) / 100 : null };
+  }).filter((r) => r.apps !== 0);
 }
 
 export default async function handler(req, res) {
   const q0 = req.query || {};
+  if (q0.pmatches || q0.pcareer) {
+    const id = parseInt(q0.pmatches || q0.pcareer, 10);
+    if (!(id > POFF)) return res.status(400).json({ ok: false });
+    try {
+      let d;
+      if (q0.pcareer) d = await playerCareerAf(id - POFF);
+      else {
+        const teams = String(q0.teams || "").split(",").map((x) => parseInt(x, 10)).filter(Boolean).slice(0, 2);
+        d = teams.length ? await playerMatchesAf(id - POFF, teams) : [];
+      }
+      res.setHeader("Cache-Control", `public, s-maxage=${q0.pcareer ? 86400 : 21600}, max-age=1800`);
+      return res.status(200).json(d);
+    } catch (e) { return res.status(500).json({ ok: false, error: String(e.message || e).slice(0, 200) }); }
+  }
   if (q0.player) {
     const id = parseInt(q0.player, 10);
     if (!(id > POFF)) return res.status(400).json({ ok: false });
