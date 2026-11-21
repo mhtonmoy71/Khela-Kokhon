@@ -7122,7 +7122,7 @@ const zoneBn = (desc, bn) => {
 };
 function TeamCell({ r, teamsById, lang, size = 20 }) {
   const nav = useNav();
-  const ours = r.id ? teamsById?.[r.id] || { id: r.id, short_en: r.name, crest: r.logo } : findTeam(teamsById, r.name);
+  const ours = (r.id && teamsById?.[r.id]) || findTeam(teamsById, r.name) || (r.id && teamsById && Object.keys(teamsById).length === 0 ? { id: r.id, short_en: r.name, crest: r.logo } : null);
   const inner = <><Crest team={ours?.crest ? ours : { short_en: r.name, crest: r.logo }} size={size} /><b>{ours ? teamName(ours, lang) || r.name : r.name}</b></>;
   return ours ? <span className="tm tm-link" role="link" tabIndex={0} onClick={(e) => { e.stopPropagation(); nav.openTeam(ours.id); }}>{inner}</span> : <span className="tm">{inner}</span>;
 }
@@ -7213,7 +7213,7 @@ function League({ code, comps, preds, onOpen, teamsById }) {
   const tabs = [["table", bn ? "টেবিল" : "Table"], ["matches", bn ? "ম্যাচ" : "Matches"], ["stats", bn ? "পরিসংখ্যান" : "Stats"], ...(code === "CL" ? [] : [["seasons", bn ? "মৌসুম" : "Seasons"]])];
   const [sub, setSub] = useState("players");
   const allRows = tbl && tbl.groups ? tbl.groups.flat() : [];
-  const teamItem = (r, v) => { const ours = r.id ? teamsById?.[r.id] : findTeam(teamsById, r.name); return { af: r.af, name: r.name, label: ours ? teamName(ours, lang) || r.name : r.name, crestTeam: ours?.crest ? ours : { short_en: r.name, crest: r.logo }, v, onOpen: ours ? () => nav.openTeam(ours.id) : null }; };
+  const teamItem = (r, v) => { const ours = (r.id && teamsById?.[r.id]) || findTeam(teamsById, r.name); return { af: r.af, name: r.name, label: ours ? teamName(ours, lang) || r.name : r.name, crestTeam: ours?.crest ? ours : { short_en: r.name, crest: r.logo }, v, onOpen: ours ? () => nav.openTeam(ours.id) : null }; };
   const top = (f, asc) => allRows.filter((r) => r.all?.p).map((r) => teamItem(r, f(r))).sort((a, b) => (asc ? a.v - b.v : b.v - a.v));
   const tName = (t) => { const ours = t?.af && (teamsById?.[10000000 + t.af] || findTeam(teamsById, t.name)); return ours ? teamName(ours, lang) || t.name : t?.name; };
   const pItems = (list) => (list || []).map((r) => ({ ...r, label: bnPlayer(r.name, lang, r.full), sub: tName(r.team) }));
@@ -7506,7 +7506,7 @@ function AfPlayer({ id, comps, teamsById }) {
     [bn ? "জার্সি" : "Shirt", p.number != null ? num(p.number, lang) : null],
   ].filter(([, v]) => v);
   const compOf = (code) => comps.find((c) => c.code === code);
-  const teamLink = p.team ? (p.team.id ? teamsById?.[p.team.id] || { id: p.team.id, short_en: p.team.name, crest: p.team.logo } : findTeam(teamsById, p.team.name)) : null;
+  const teamLink = p.team ? ((p.team.id && teamsById?.[p.team.id]) || findTeam(teamsById, p.team.name)) : null;
   const logo = (src) => (src ? <img src={src} alt="" width="18" height="18" style={{ objectFit: "contain" }} onError={(e) => { e.currentTarget.style.visibility = "hidden"; }} /> : null);
   const lgName = (code, name) => (code && compOf(code) ? compName(compOf(code), lang) : name);
   const RES = { W: bn ? "জ" : "W", D: bn ? "ড্র" : "D", L: bn ? "হা" : "L" };
