@@ -1063,7 +1063,19 @@ button.scr { width: 100%; }
 /* ══════ ডেস্কটপ (১০২৪px বা তার বেশি চওড়া স্ক্রিন) ══════ */
 .dnav { display: none; }
 @media (min-width: 1024px) {
-  .app { max-width: 1280px; padding: 0 28px 40px; }
+  .app { max-width: 1440px; padding: 0 28px 40px; }
+  /* বাঁ পাশের লিগের তালিকা */
+  .rail { position: sticky; top: 76px; max-height: calc(100vh - 92px); overflow-y: auto; scrollbar-width: thin; background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 8px; margin-top: 14px; }
+  .rail-h { font-size: 11.5px; font-weight: 700; color: var(--muted); padding: 10px 10px 4px; }
+  .rail-i { display: flex; align-items: center; gap: 10px; width: 100%; padding: 7px 10px; border-radius: 10px; background: none; border: 0; color: var(--text); text-align: left; font-size: 13.5px; font-weight: 500; }
+  .rail-i:hover { background: var(--card2); }
+  .rail-i.on { background: var(--greenDim); color: var(--text); font-weight: 700; }
+  .rail-ic { width: 20px; height: 20px; display: grid; place-items: center; flex-shrink: 0; color: var(--green); }
+  .rail-nm { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+  .rail-all { font-weight: 700; }
+  /* অন্য পাতা: বাঁয়ে লিগের তালিকা, ডানে লেখা */
+  .rail-wrap { display: grid; grid-template-columns: 220px minmax(0, 860px); gap: 28px; justify-content: center; align-items: start; }
+  .rail-wrap > .main.narrow { max-width: none; margin: 0; width: 100%; }
   .top { padding: 14px 0; gap: 18px; }
   .nav { display: none; }
   .dnav { display: flex; gap: 4px; margin-left: 18px; }
@@ -1220,7 +1232,7 @@ button.scr { width: 100%; }
 
 /* হোম: বড় স্ক্রিনে ম্যাচ বাঁ পাশে, কাজের তথ্য ডান পাশে */
 @media (min-width: 1100px) {
-  .home-grid { display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 28px; align-items: start; }
+  .home-grid { display: grid; grid-template-columns: 220px minmax(0, 1fr) 320px; gap: 24px; align-items: start; }
   .home-grid .groups { columns: 1 !important; }
   .home-side { display: flex; flex-direction: column; gap: 16px; padding-top: 18px; }
   .side-card { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 14px 14px 10px; text-align: left; color: var(--text); }
@@ -1229,6 +1241,9 @@ button.scr { width: 100%; }
   .side-h .link { font-size: 13px; }
   .side-sub { font-size: 12.5px; margin: 8px 2px 4px; }
   .side-empty { font-size: 13px; padding: 14px 2px; }
+  .side-sel { position: relative; display: flex; align-items: center; gap: 8px; height: 36px; padding: 0 10px; border-radius: 10px; border: 1px solid var(--line); background: var(--bg); color: var(--text); margin-bottom: 6px; }
+  .side-sel select { appearance: none; -webkit-appearance: none; flex: 1; min-width: 0; border: 0; background: none; color: var(--text); font: inherit; font-size: 13.5px; font-weight: 600; cursor: pointer; padding-right: 18px; }
+  .side-sel svg { position: absolute; right: 10px; pointer-events: none; color: var(--muted); }
   .side-lgs { display: flex; gap: 6px; }
   .side-lgs button { flex: 1; height: 34px; border-radius: 10px; border: 1px solid var(--line); display: grid; place-items: center; background: var(--bg); }
   .side-lgs button:hover { border-color: color-mix(in srgb, var(--green) 50%, transparent); }
@@ -4406,14 +4421,13 @@ function SideLeague({ comps, code, setCode }) {
           <h3>{bn ? "পয়েন্ট টেবিল" : "Table"}</h3>
           <button className="link" onClick={() => nav.openLeague(code)}>{bn ? "পুরো টেবিল" : "Full table"} →</button>
         </div>
-        <div className="side-lgs" role="tablist">
-          {comps.map((x) => (
-            <button key={x.code} role="tab" aria-selected={x.code === code} title={compName(x, lang)} className={x.code === code ? "on" : ""} onClick={() => setCode(x.code)}>
-              <CompIcon c={x} size={18} />
-            </button>
-          ))}
-        </div>
-        <div className="side-sub muted">{c ? compName(c, lang) : code}</div>
+        <label className="side-sel">
+          <CompIcon c={c} size={18} />
+          <select value={code} onChange={(e) => setCode(e.target.value)} aria-label={bn ? "লিগ বাছুন" : "Choose league"}>
+            {comps.filter((x) => TABLE_CODES.includes(x.code)).map((x) => <option key={x.code} value={x.code}>{compName(x, lang)}</option>)}
+          </select>
+          <ChevronIcon width={14} height={14} style={{ transform: "rotate(180deg)" }} />
+        </label>
         {table === null ? <div className="spin" /> : !table.length ? <div className="side-empty muted">{bn ? "টেবিল এখনো আসেনি" : "No table yet"}</div> : (
           <div className="mt">
             <div className="mt-row mt-h muted"><span>#</span><span>{bn ? "দল" : "Team"}</span><span>{bn ? "খে" : "P"}</span><span>+/-</span><span>{bn ? "প" : "Pts"}</span></div>
@@ -4477,12 +4491,36 @@ function SideBoard() {
   );
 }
 
+// ── ডেস্কটপের বাঁ পাশের লিগের তালিকা (হোমে ফিল্টার, অন্য পাতায় লিগে যাওয়ার পথ) ──
+function LeagueRail({ comps, active, onPick, all }) {
+  const { lang } = useT();
+  const bn = lang === "bn";
+  const [follow] = useFollowLg();
+  const mine = follow.map((c) => comps.find((x) => x.code === c)).filter(Boolean);
+  const rest = orderComps(comps.filter((c) => !follow.includes(c.code)), []);
+  const item = (c) => (
+    <button key={c.code} className={"rail-i" + (active === c.code ? " on" : "")} onClick={() => onPick(c.code)}>
+      <span className="rail-ic"><CompIcon c={c} size={18} /></span><span className="rail-nm">{compName(c, lang)}</span>
+    </button>
+  );
+  return (
+    <aside className="rail">
+      {all && <button className={"rail-i rail-all" + (active === "ALL" ? " on" : "")} onClick={() => onPick("ALL")}><span className="rail-ic"><BallIcon width={17} height={17} /></span><span className="rail-nm">{bn ? "সব ম্যাচ" : "All matches"}</span></button>}
+      {mine.length > 0 && <><div className="rail-h">{bn ? "আমার লিগ" : "Following"}</div>{mine.map(item)}</>}
+      <div className="rail-h">{mine.length ? (bn ? "আরও লিগ" : "More leagues") : (bn ? "লিগ" : "Leagues")}</div>
+      {rest.map(item)}
+    </aside>
+  );
+}
+
+// যেসব প্রতিযোগিতার এক টেবিল আছে (কাপ/নকআউট বাদ)
+const TABLE_CODES = ["PL", "PD", "BL1", "SA", "FL1", "CL", "UEL", "UECL", "BPL", "SPL", "MLS"];
 function HomeSide({ comps, comp, user }) {
   const { lang } = useT();
   const nav = useNav();
   const bn = lang === "bn";
-  const [code, setCode] = useState(comp !== "ALL" ? comp : "PL");
-  useEffect(() => { if (comp !== "ALL") setCode(comp); }, [comp]);
+  const [code, setCode] = useState(comp !== "ALL" && TABLE_CODES.includes(comp) ? comp : "PL");
+  useEffect(() => { if (comp !== "ALL" && TABLE_CODES.includes(comp)) setCode(comp); }, [comp]);
   return (
     <aside className="home-side">
       <DailyTeaser user={user} side />
@@ -4554,6 +4592,7 @@ function Matches({ user, myTeams, comps, preds, onOpen, goProfile }) {
 
   return (
     <div className={wide ? "home-grid" : undefined}>
+    {wide && <LeagueRail comps={comps} active={comp} onPick={setComp} all />}
     <div className="home-main">
       {fav.length > 0 && mine?.length > 0 && (
         <div className="sec">
@@ -4563,14 +4602,14 @@ function Matches({ user, myTeams, comps, preds, onOpen, goProfile }) {
 
       {!wide && <div className="sec dl-teaser-wrap"><DailyTeaser user={user} /></div>}
       <div className={liveOn ? "ds-off" : undefined}><DateStrip day={day} setDay={setDay} /></div>
-      <div className="chips">
+      {!wide && <div className="chips">
         <button className={"chip" + (comp === "ALL" ? " on" : "")} onClick={() => setComp("ALL")}>{t("all")}</button>
         {orderComps(comps, follow).map((c) => (
           <button key={c.code} className={"chip" + (comp === c.code ? " on" : "")} onClick={() => setComp(c.code)}>
             <CompIcon c={c} size={16} />{compName(c, lang)}
           </button>
         ))}
-      </div>
+      </div>}
       <div className="sec" style={{ marginTop: 14 }}>
         <div className="sec-h">
           <h2>{liveOn ? (lang === "bn" ? "এখন চলছে" : "Live now") : dayLabel(day, lang)}</h2>
@@ -8457,6 +8496,7 @@ function Nav({ tab, go }) {
 }
 
 export default function App() {
+  const deskWide = useWide();
   const [lang, setLangS] = useState(() => stored("kk_lang", "bn"));
   const [theme, setThemeS] = useState(() => stored("kk_theme", "light"));
   const [tab, setTab] = useState(() => (/^\/(quiz|daily)/.test(window.location.pathname) ? "predict" : tabFromPath()));
@@ -8636,6 +8676,8 @@ export default function App() {
     setPreds((x) => ({ ...x, [m.id]: p }));
   }
 
+  // ডেস্কটপে বাঁ পাশে লিগের তালিকা: হোম, প্রেডিকশন, দৈনিক চ্যালেঞ্জ, লিগ ট্যাব আর জিজ্ঞেস করুন বাদে
+  const railPage = deskWide && !onboarding && !((!view && ["matches", "predict", "leagues", "ask"].includes(tab)) || view?.kind === "daily");
   return (
     <LangCtx.Provider value={lang}>
     <NavCtx.Provider value={nav}>
@@ -8659,6 +8701,8 @@ export default function App() {
         </header>
         {DEMO && <div className="demo-bar">{lang === "bn" ? "ডেমো মোড — নমুনা ডেটা দেখানো হচ্ছে" : "Demo mode — sample data"}</div>}
 
+        <div className={railPage ? "rail-wrap" : undefined}>
+        {railPage && <LeagueRail comps={comps} active={view?.kind === "league" ? view.code : null} onPick={(c) => nav.openLeague(c)} />}
         <main className={"main v-" + (onboarding ? "onboarding" : view?.kind || tab) + (!onboarding && ((!view && tab === "matches") || view?.kind === "daily" || (!view && tab === "predict")) ? " wide" : " narrow")}>
         {onboarding ? (
           <Onboarding
@@ -8695,6 +8739,7 @@ export default function App() {
           <Profile user={user} profile={profile} setProfile={setProfile} toast={toast} myTeams={myTeams} teamsById={teamsById} lang={lang} setLang={setLang} theme={theme} setTheme={setTheme} onEditTeams={() => { setEditing(true); window.scrollTo(0, 0); }} />
         )}
         </main>
+        </div>
 
         {/* ফুটার তথ্যের পাতাগুলোয়; গেম, কুইজ আর জিজ্ঞেস করুন-এ নয় (অ্যাপের মতো পরিষ্কার) */}
         {!onboarding && view?.kind !== "quiz" && view?.kind !== "daily" && !(!view && (tab === "ask" || tab === "predict")) && <Footer comps={comps} />}
