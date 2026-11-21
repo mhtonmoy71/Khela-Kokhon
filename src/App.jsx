@@ -680,14 +680,16 @@ button.pm { background: none; border: 0; padding: 0; cursor: pointer; font: inhe
 .lgx-add { color: var(--green); border-color: var(--green); font-weight: 600; }
 .lgx-tip { font-size: 12px; margin: 8px 4px 0; }
 .mp-leg { font-size: 11.5px; font-weight: 600; color: var(--muted); margin-bottom: 2px; }
-.mp-tie { font-size: 12px; font-weight: 600; color: var(--muted); margin-top: 4px; white-space: nowrap; }
+.mp-tie { font-size: 12.5px; font-weight: 600; color: var(--muted); text-align: center; margin: 2px 0 4px; }
 .ko-h { font-size: 14px; font-weight: 700; margin: 2px 2px 10px; }
 .ko-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
 .ko-tie { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 4px; padding: 10px 8px; border-radius: 14px; background: var(--card); border: 1.5px solid transparent; color: var(--text); }
 .ko-tie.on { border-color: var(--green); }
-.ko-t { display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 11.5px; }
+.ko-t { display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 11.5px; min-width: 0; text-align: center; line-height: 1.2; }
+.ko-t b { font-weight: 600; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; }
 .ko-t.out { opacity: .4; }
-.ko-m { font-size: 13px; font-weight: 700; white-space: nowrap; display: inline-flex; align-items: center; }
+.ko-m { font-size: 13px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; text-align: center; max-width: 64px; line-height: 1.25; }
+.ko-m.d { font-size: 11px; font-weight: 600; color: var(--muted); }
 .ko-note { font-size: 12px; line-height: 1.5; margin: 12px 2px 0; }
 .fav-btn { display: inline-flex; align-items: center; gap: 7px; margin-top: 10px; height: 36px; padding: 0 16px; border-radius: 18px; border: 1.5px solid var(--line); background: var(--card); font-weight: 700; font-size: 13.5px; color: var(--text); }
 .fav-btn span { color: var(--amber); font-size: 17px; }
@@ -3778,7 +3780,7 @@ function TieLine({ m, list, lang, where }) {
   const H = teamShort(m.home, lang), A = teamShort(m.away, lang);
   if (bo3) {
     const wH = T.wa, wA = T.wb;
-    if (!T.played) return <div className="mp-tie">{bn ? "৩ ম্যাচের সিরিজ · আগে ২ জয় যার, সে পরের রাউন্ডে" : "Best of 3 · first to 2 wins"}</div>;
+    if (!T.played) return <div className="mp-tie">{bn ? "৩ ম্যাচের সিরিজ · আগে ২ জয়ে পরের রাউন্ড" : "Best of 3 · first to 2 wins"}</div>;
     const lead = T.winner ? (bn ? `${teamShort(T.winner === m.home_id ? m.home : m.away, lang)} পরের রাউন্ডে` : `${teamShort(T.winner === m.home_id ? m.home : m.away, lang)} advance`) : null;
     return <div className="mp-tie">{bn ? "সিরিজ" : "Series"} · {H} {num(wH, lang)}–{num(wA, lang)} {A}{lead ? ` · ${lead}` : ""}</div>;
   }
@@ -3808,9 +3810,9 @@ function KnockoutTab({ m, list, lang, onOpen }) {
           const winA = bo3 ? T.winner === T.a : T.done && T.ga > T.gb, winB = bo3 ? T.winner === T.b : T.done && T.gb > T.ga;
           return (
             <button key={pairKey(first)} className={"ko-tie" + (pairKey(first) === cur ? " on" : "")} onClick={() => onOpen?.(next)}>
-              <span className={"ko-t" + (winB ? " out" : "")}><Crest team={tA} size={22} /><b>{tA?.tla || teamShort(tA, lang)}</b></span>
-              <span className="ko-m">{live && <i className="lv-dot" />}{mid}</span>
-              <span className={"ko-t" + (winA ? " out" : "")}><Crest team={tB} size={22} /><b>{tB?.tla || teamShort(tB, lang)}</b></span>
+              <span className={"ko-t" + (winB ? " out" : "")}><Crest team={tA} size={22} /><b>{teamShort(tA, lang)}</b></span>
+              <span className={"ko-m" + (/\d\s*–\s*\d|[০-৯]\s*–\s*[০-৯]/.test(mid) ? "" : " d")}>{live && <i className="lv-dot" />}{mid}</span>
+              <span className={"ko-t" + (winA ? " out" : "")}><Crest team={tB} size={22} /><b>{teamShort(tB, lang)}</b></span>
             </button>
           );
         })}
@@ -3823,7 +3825,7 @@ function KnockoutTab({ m, list, lang, onOpen }) {
 function HtCountdown({ m, L, lang }) {
   const now = useNow(1000);
   if (m.status !== "PAUSED" || !/HT/.test(L?.status || "HT")) return null;
-  const start = Date.parse(m.utc_date) + (45 + (L?.extra || 2) + 1) * 60000;
+  const start = L?.lineups?.ht ? Date.parse(L.lineups.ht) : Date.parse(m.utc_date) + (45 + (L?.extra || 2) + 1) * 60000;
   const left = start + 15 * 60000 - now;
   if (left <= 0 || left > 20 * 60000) return null;
   const mm = Math.floor(left / 60000), ss = Math.floor((left % 60000) / 1000);
@@ -3886,7 +3888,7 @@ function MatchPage({ id, m: mInit, user, pred, onSave, onLogin, toast }) {
         <div className="ms-top">
           <button className="mp-back" onClick={back} aria-label={bn ? "পেছনে" : "Back"}><ChevronIcon style={{ transform: "rotate(-90deg)" }} /></button>
           <button className="ms-comp" onClick={() => m.competition && nav.openLeague(m.competition.code)}>
-            <CompIcon c={m.competition} size={18} /><span>{compName(m.competition, lang)}{m.matchday ? ` · ${t("matchday")} ${num(m.matchday, lang)}` : ""}</span>
+            <CompIcon c={m.competition} size={18} /><span>{compName(m.competition, lang)}{isKnockout(m) ? ` · ${isBo3(m) ? (bn ? "রাউন্ড ওয়ান" : "Round One") : stageLabel(m.stage, lang)}` : m.matchday ? ` · ${t("matchday")} ${num(m.matchday, lang)}` : ""}</span>
           </button>
           <button className="ms-share" disabled={making} aria-label={bn ? "শেয়ার" : "Share"} onClick={async () => {
             setMaking(true);
@@ -3904,12 +3906,12 @@ function MatchPage({ id, m: mInit, user, pred, onSave, onLogin, toast }) {
               : <div className="ms-time">{timeLabel(m.utc_date, lang)}</div>}
             <div className={"ms-date" + (isDone(m) ? " mp-ft" : "")}>{showScore ? <LiveClock m={m} L={L} lang={lang} /> : dayLabel(dayKey(m.utc_date), lang, { short: true })}</div>
             <HtCountdown m={m} L={L} lang={lang} />
-            <TieLine m={m} list={stageList} lang={lang} />
             {m.pen_home != null && m.pen_away != null && <div className="mp-pen">{bn ? `টাইব্রেকারে ${num(m.pen_home, lang)}–${num(m.pen_away, lang)}` : `Pens ${m.pen_home}–${m.pen_away}`}</div>}
             {open && !isLive(m) && <div className="mp-cd">{clockDown(new Date(m.utc_date) - now, lang)}</div>}
           </div>
           <button className="ms-team" onClick={() => m.away_id && nav.openTeam(m.away_id)}><Crest team={m.away} size={42} /><span>{teamName(m.away, lang)}</span></button>
         </div>
+        <TieLine m={m} list={stageList} lang={lang} />
         <Scorers L={L} lang={lang} />
       </div>
 
@@ -3977,7 +3979,7 @@ function MatchPage({ id, m: mInit, user, pred, onSave, onLogin, toast }) {
               <div className="sec-h"><h2>{bn ? "ম্যাচের তথ্য" : "Match info"}</h2></div>
               <div className="card mp-info">
                 <div><CalIcon width={16} height={16} /><span>{dayLabel(dayKey(m.utc_date), lang)} · {timeLabel(m.utc_date, lang)} <small className="muted">({t("bdTime")})</small></span></div>
-                <div><TrophyIcon width={16} height={16} /><span>{compName(m.competition, lang)}{m.matchday ? ` · ${t("matchday")} ${num(m.matchday, lang)}` : ""}</span></div>
+                <div><TrophyIcon width={16} height={16} /><span>{compName(m.competition, lang)}{isKnockout(m) ? ` · ${isBo3(m) ? (bn ? "রাউন্ড ওয়ান" : "Round One") : stageLabel(m.stage, lang)}` : m.matchday ? ` · ${t("matchday")} ${num(m.matchday, lang)}` : ""}</span></div>
               </div>
             </div>
           </>
