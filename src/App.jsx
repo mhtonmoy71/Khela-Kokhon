@@ -340,6 +340,30 @@ img { display: block; }
 @media (prefers-reduced-motion: reduce) { .cg-body, .cg-chev { transition: none; } }
 /* ── ম্যাচ সেন্টার ── */
 .mc { margin-top: 14px; }
+/* ── ম্যাচের পাতার মাথা: পরিষ্কার কার্ড ── */
+.mp .mp-head { background: var(--card); border-radius: 18px; padding: 10px 12px 14px; margin: 4px 0 10px; box-shadow: 0 1px 2px rgba(0,0,0,.04); }
+.mp .mp-head .ms-top { padding: 0; }
+.mp .mp-head .mp-back, .mp .mp-head .ms-share { background: none; border: 0; width: 34px; height: 34px; color: var(--muted); }
+.mp .mp-head .ms-comp { justify-content: center; font-size: 12.5px; font-weight: 600; }
+.mp .mp-head .ms-comp img { padding: 0; background: none; }
+.mp .ms-teams { grid-template-columns: 1fr 96px 1fr; padding: 10px 0 0; align-items: start; }
+.mp .ms-team { gap: 8px; font-size: 14px; font-weight: 700; line-height: 1.25; }
+.mp .ms-team img, .mp .ms-team .crest-fb { width: 52px !important; height: 52px !important; }
+.mp .ms-mid { padding-top: 8px; min-width: 0; }
+.mp .ms-score { font-size: 30px; font-weight: 800; letter-spacing: 1px; line-height: 1.1; }
+.mp .ms-time { font-size: 22px; font-weight: 700; }
+.mp .ms-date { margin-top: 6px; font-size: 12px; }
+.mp .ms-date.mp-ft { display: inline-block; background: var(--card2); color: var(--muted); border-radius: 999px; padding: 1px 10px; font-weight: 600; }
+.mp .ms-date .lv { color: #16a34a; }
+.mp .ms-date .lv .dot { background: #16a34a; }
+.mp .ms-goals { grid-template-columns: 1fr 96px 1fr; gap: 6px; margin: 10px 0 0; padding-top: 10px; border-top: 1px dashed var(--line); font-size: 12px; line-height: 1.6; }
+.mp .ms-goals .h, .mp .ms-goals .a { text-align: center; }
+.mp .ms-goals b { font-weight: 600; }
+.mp .ms-goals span { color: var(--muted); }
+.mp .ms-goals .ball-mini { justify-self: center; opacity: .5; margin-top: 2px; }
+.mp { padding-left: 12px; padding-right: 12px; }
+.mp .mp-tabs { margin: 0 -12px 10px; padding: 0 12px; }
+
 .mp { padding-top: 2px; }
 .mp .ms-top { padding: 0 0 2px; gap: 8px; }
 .mp .ms-comp { font-size: 12.5px; }
@@ -3299,7 +3323,7 @@ function Scorers({ L, lang }) {
       const tag = /Own/i.test(e.d || "") ? (bn ? " (আত্মঘাতী)" : " (OG)") : /Penalty/i.test(e.d || "") ? (bn ? " (পেনাল্টি)" : " (P)") : "";
       (by.get(k) || by.set(k, []).get(k)).push(minuteTxt(e.m ?? 0, e.x, lang) + tag);
     }
-    return [...by].map(([n, ms]) => <div key={n}><b>{shortName(n, lang)}</b> {ms.join(", ")}</div>);
+    return [...by].map(([n, ms]) => <div key={n}><b>{shortName(n, lang)}</b> <span>{ms.join(", ")}</span></div>);
   };
   return (
     <div className="ms-goals">
@@ -3431,7 +3455,7 @@ function MatchPage({ id, m: mInit, user, pred, onSave, onLogin, toast }) {
             {showScore
               ? <div className="ms-score">{num(m.home_score, lang)} - {num(m.away_score, lang)}</div>
               : <div className="ms-time">{timeLabel(m.utc_date, lang)}</div>}
-            <div className="ms-date">{showScore ? <LiveClock m={m} L={L} lang={lang} /> : dayLabel(dayKey(m.utc_date), lang, { short: true })}</div>
+            <div className={"ms-date" + (isDone(m) ? " mp-ft" : "")}>{showScore ? <LiveClock m={m} L={L} lang={lang} /> : dayLabel(dayKey(m.utc_date), lang, { short: true })}</div>
             {open && !isLive(m) && <div className="mp-cd">{clockDown(new Date(m.utc_date) - now, lang)}</div>}
           </div>
           <button className="ms-team" onClick={() => m.away_id && nav.openTeam(m.away_id)}><Crest team={m.away} size={42} /><span>{teamName(m.away, lang)}</span></button>
