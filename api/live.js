@@ -177,7 +177,48 @@ export async function runLive() {
   return { calls, window: win.length, mapped: Object.values(byId).filter((r) => r?.af_id).length, updated: out.length };
 }
 
+// ── শেষ হওয়া একটা ম্যাচ কেউ খুললে: আগে আনা না থাকলে একবার এনে রাখা (পরে আর কখনো API-তে যায় না) ──
+export async function fetchOne(id) {
+  if (!process.env.APIF_KEY) throw new Error("APIF_KEY সেট করা নেই");
+  calls = 0;
+  const T = "name_en,short_en";
+  const [m] = await sb(`matches?select=id,competition_code,utc_date,status,home:teams!matches_home_fk(${T}),away:teams!matches_away_fk(${T})&id=eq.${id}`);
+  if (!m || !LEAGUE[m.competition_code]) return null;
+  const [have] = await sb(`match_live?select=*&match_id=eq.${id}`);
+  if (have?.events && have.final_seen_at) return have;                       // আগেই আছে
+  // শুধু শেষ হওয়া ম্যাচ (চলমানগুলো প্রতি মিনিটের কাজ দেখে); শুরুর ২ ঘণ্টার আগে নয়
+  if (m.status !== "FINISHED" || Date.now() - Date.parse(m.utc_date) < 2 * 3600000) return have || null;
+  let afId = have?.af_id;
+  if (!afId) {
+    if (have?.map_tried_at && Date.now() - Date.parse(have.map_tried_at) < RETRY_MAP) return have;
+    const fx = await af(`/fixtures?league=${LEAGUE[m.competition_code]}&season=${seasonOf(m.utc_date)}&date=${m.utc_date.slice(0, 10)}&timezone=UTC`);
+    afId = pickFixture(m, fx)?.fixture.id || null;
+    if (!afId) {
+      await sb("match_live?on_conflict=match_id", { method: "POST", body: [{ match_id: id, map_tried_at: new Date().toISOString() }], prefer: "resolution=merge-duplicates,return=minimal" });
+      return null;
+    }
+  }
+  const [f] = await af(`/fixtures?ids=${afId}&timezone=UTC`);
+  if (!f) return null;
+  const row = { match_id: id, map_tried_at: new Date().toISOString(), ...slim(f), final_seen_at: new Date(0).toISOString(), updated_at: new Date().toISOString() };
+  await sb("match_live?on_conflict=match_id", { method: "POST", body: [row], prefer: "resolution=merge-duplicates,return=minimal" });
+  return row;
+}
+
 export default async function handler(req, res) {
+  const q0 = req.query || {};
+  if (q0.match) {
+    // সবার জন্য খোলা, কিন্তু প্রতি ম্যাচে জীবনে একবারই API-তে যায়
+    const id = parseInt(q0.match, 10);
+    if (!id) return res.status(400).json({ ok: false });
+    try {
+      const row = await fetchOne(id);
+      res.setHeader("Cache-Control", row?.events ? "public, max-age=86400" : "no-store");
+      return res.status(200).json({ ok: true, row, calls });
+    } catch (e) {
+      return res.status(500).json({ ok: false, error: String(e.message || e).slice(0, 200) });
+    }
+  }
   const secret = process.env.CRON_SECRET;
   const auth = req.headers?.authorization || "";
   if (secret && auth !== `Bearer ${secret}` && (req.query || {}).secret !== secret) return res.status(401).json({ ok: false, error: "unauthorized" });
