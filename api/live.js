@@ -309,8 +309,51 @@ async function h2hAf(id) {
   })).sort((a, b) => b.utcDate.localeCompare(a.utcDate)) };
 }
 
+// খেলোয়াড়ের পাতা (যেকোনো লিগের): পরিচয় আর এই মৌসুমের প্রতিযোগিতা অনুযায়ী হিসাব
+async function playerAf(afId) {
+  const now = new Date(), y = now.getUTCFullYear();
+  // ইউরোপের মৌসুম জুলাইয়ে শুরু; এমএলএস-এর মতো লিগে ক্যালেন্ডার বছর, তাই দুটোই চেষ্টা
+  const seasons = [...new Set([now.getUTCMonth() >= 6 ? y : y - 1, y])];
+  let got = null;
+  for (const se of seasons) {
+    const [r] = await af(`/players?id=${afId}&season=${se}`);
+    if (r && (!got || (r.statistics || []).some((x) => x.games?.appearences))) got = r;
+    if (got && (got.statistics || []).some((x) => x.games?.appearences)) break;
+  }
+  if (!got) return null;
+  const p = got.player || {};
+  const ourCode = (lid) => Object.entries(LEAGUE).find(([, v]) => v === lid)?.[0] || Object.entries(AF_LEAGUES).find(([, v]) => v.id === lid)?.[0] || null;
+  const comps = (got.statistics || []).map((x) => ({
+    code: ourCode(x.league?.id), league: x.league?.name || null, logo: x.league?.logo || null, season: x.league?.season || null,
+    team: x.team ? { af: x.team.id, id: AF_LEAGUES[ourCode(x.league?.id)] ? TOFF + x.team.id : null, name: dec(x.team.name), logo: x.team.logo } : null,
+    apps: x.games?.appearences ?? 0, starts: x.games?.lineups ?? 0, minutes: x.games?.minutes ?? 0, number: x.games?.number ?? null,
+    position: x.games?.position || null, rating: x.games?.rating ? Math.round(parseFloat(x.games.rating) * 100) / 100 : null,
+    goals: x.goals?.total ?? 0, assists: x.goals?.assists ?? 0, saves: x.goals?.saves ?? null, conceded: x.goals?.conceded ?? null,
+    yc: x.cards?.yellow ?? 0, rc: x.cards?.red ?? 0, pen: x.penalty?.scored ?? 0,
+  })).filter((c) => c.apps || c.minutes).sort((a, b) => b.minutes - a.minutes);
+  const main = comps[0] || null;
+  return {
+    id: POFF + afId, af: afId, name: dec(p.name), first: dec(p.firstname), last: dec(p.lastname), age: p.age ?? null,
+    born: p.birth?.date || null, birthplace: [p.birth?.place, p.birth?.country].filter(Boolean).join(", ") || null,
+    nationality: p.nationality || null, height: p.height || null, weight: p.weight || null, injured: !!p.injured, photo: p.photo || null,
+    position: main?.position || (got.statistics || [])[0]?.games?.position || null, number: main?.number ?? null,
+    team: main?.team || (got.statistics || [])[0]?.team && { af: got.statistics[0].team.id, name: dec(got.statistics[0].team.name), logo: got.statistics[0].team.logo, id: null },
+    comps,
+  };
+}
+
 export default async function handler(req, res) {
   const q0 = req.query || {};
+  if (q0.player) {
+    const id = parseInt(q0.player, 10);
+    if (!(id > POFF)) return res.status(400).json({ ok: false });
+    try {
+      const d = await playerAf(id - POFF);
+      if (!d) return res.status(404).json({ ok: false });
+      res.setHeader("Cache-Control", "public, s-maxage=43200, max-age=1800");   // দিনে দুবারের বেশি API-তে যায় না
+      return res.status(200).json(d);
+    } catch (e) { return res.status(500).json({ ok: false, error: String(e.message || e).slice(0, 200) }); }
+  }
   if (q0.h2h) {
     const id = parseInt(q0.h2h, 10);
     try {
