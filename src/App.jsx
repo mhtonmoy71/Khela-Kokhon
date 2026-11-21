@@ -345,6 +345,30 @@ img { display: block; }
 @media (prefers-reduced-motion: reduce) { .cg-body, .cg-chev { transition: none; } }
 /* ── ম্যাচ সেন্টার ── */
 .mc { margin-top: 14px; }
+.cm-list { display: flex; flex-direction: column; gap: 10px; }
+.cm { background: var(--card); border-radius: 18px; padding: 12px 14px 14px; }
+.cm-goal { background: linear-gradient(180deg, color-mix(in srgb, #3b82f6 16%, var(--card)) 0, var(--card) 70px); }
+.cm-red { background: linear-gradient(180deg, color-mix(in srgb, #ef4444 12%, var(--card)) 0, var(--card) 60px); }
+.cm-h { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.cm-h b { font-size: 18px; font-weight: 800; flex: 1; }
+.cm-min { background: #1d4ed8; color: #fff; border-radius: 999px; padding: 2px 10px; font: 700 13px Inter, 'Hind Siliguri', sans-serif; }
+.cm-sc { font: 800 15px Inter, 'Hind Siliguri', sans-serif; background: var(--card2); border-radius: 8px; padding: 2px 9px; }
+.cm-pl { display: flex; align-items: center; gap: 10px; width: 100%; padding: 8px 10px; border-radius: 999px; background: var(--card2); border: 0; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+.cm-pl-n { flex: 1; min-width: 0; display: flex; align-items: baseline; gap: 6px; }
+.cm-pl-n small { color: var(--muted); font: 600 13px Inter, sans-serif; }
+.cm-pl-n b { font-size: 15px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cm-ph { position: relative; width: 46px; height: 46px; flex: none; }
+.cm-ph img, .cm-ph i { width: 46px; height: 46px; border-radius: 50%; object-fit: cover; object-position: 50% 15%; background: var(--card); display: grid; place-items: center; font-style: normal; font-weight: 700; color: var(--muted); }
+.cm-ph em { position: absolute; right: -4px; bottom: -4px; background: #fff; border-radius: 50%; padding: 1px; display: grid; }
+.cm-txt { margin: 10px 2px 0; font-size: 14px; line-height: 1.5; }
+.cm-sub-h { margin: 12px 2px 6px; font-weight: 700; font-size: 14px; }
+.cm-subs { display: flex; flex-direction: column; gap: 6px; }
+.cm-in, .cm-out { display: flex; align-items: center; gap: 8px; }
+.cm-arr { width: 22px; height: 22px; flex: none; border-radius: 50%; color: #fff; display: grid; place-items: center; font-weight: 800; font-size: 13px; }
+.cm-arr.in { background: #16a34a; } .cm-arr.out { background: #dc2626; }
+.cm-mark { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 12px; }
+.cm-mark span { color: var(--muted); font-size: 13px; }
+
 /* ── ম্যাচের পাতার মাথা: পরিষ্কার কার্ড ── */
 .mp .mp-head { background: var(--card); border-radius: 18px; padding: 10px 12px 14px; margin: 4px 0 10px; box-shadow: 0 1px 2px rgba(0,0,0,.04); }
 .mp .mp-head .ms-top { padding: 0; }
@@ -3355,6 +3379,84 @@ function Scorers({ L, lang }) {
   );
 }
 
+// ── ধারাভাষ্য: প্রতিটা ঘটনা আলাদা কার্ডে (নতুনটা ওপরে), খেলোয়াড়ের ছবি-নম্বর আর বাংলায় এক লাইনের বর্ণনা ──
+function CmPlayer({ id, name, team, no, lang, badge }) {
+  const nav = useNav();
+  const [bad, setBad] = useState(false);
+  return (
+    <button className="cm-pl" onClick={() => id && nav.openPlayer(10000000 + id)}>
+      <Crest team={team} size={26} />
+      <span className="cm-pl-n">{no != null && <small>{num(no, lang)}</small>}<b>{bnPlayer(name, lang)}</b></span>
+      <span className="cm-ph">{id && !bad ? <img src={`https://media.api-sports.io/football/players/${id}.png`} alt="" loading="lazy" onError={() => setBad(true)} /> : <i>{(bnPlayer(name, lang) || "?").slice(0, 1)}</i>}{badge && <em>{badge}</em>}</span>
+    </button>
+  );
+}
+function MatchCommentary({ L, m, lang }) {
+  const bn = lang === "bn";
+  const subs = useMemo(() => subPairs(L), [L]);
+  const noOf = useMemo(() => { const o = {}; for (const T of [L.lineups?.h, L.lineups?.a]) for (const p of [...(T?.xi || []), ...(T?.sub || [])]) o[p.id] = p.no; return o; }, [L]);
+  const ev = [...(L.events || [])].sort((x, y) => (x.m ?? 0) - (y.m ?? 0) || (x.x ?? 0) - (y.x ?? 0));
+  if (!ev.length) return <div className="card empty">{bn ? "খেলা শুরু হলে এখানে প্রতিটা মুহূর্ত আসবে" : "Moments appear here once the match starts"}</div>;
+  const tn = (sd) => teamName(sd === "h" ? m.home : m.away, lang);
+  const team = (sd) => (sd === "h" ? m.home : m.away);
+  let h = 0, a = 0;
+  const cards = [];
+  for (const e of ev) {
+    const sd = e.s === "a" ? "a" : "h", other = sd === "h" ? "a" : "h";
+    const mt = minuteTxt(e.m ?? 0, e.x, lang);
+    const d = e.d || "";
+    if (e.t === "Goal" && !/Missed/i.test(d)) {
+      const own = /Own/i.test(d), pen = /Penalty/i.test(d);
+      const before = sd === "h" ? h - a : a - h;
+      if (sd === "h") h++; else a++;
+      const sc = `${num(h, lang)}–${num(a, lang)}`;
+      const line = bn
+        ? `${own ? `আত্মঘাতী গোল! ${tn(sd)} পেল উপহারের গোল` : `${bnPlayer(e.p, lang)}${pen ? " পেনাল্টি থেকে" : ""} গোল করলেন`}। ${before === 0 ? `${tn(sd)} এগিয়ে গেল` : before === -1 ? `${tn(sd)} সমতায় ফিরল` : before < -1 ? `${tn(sd)} ব্যবধান কমাল` : `${tn(sd)} ব্যবধান বাড়াল`} (${sc})।`
+        : `${own ? `Own goal! ${tn(sd)} benefit` : `${e.p} scores${pen ? " from the spot" : ""}`}. ${before === 0 ? `${tn(sd)} take the lead` : before === -1 ? `${tn(sd)} equalise` : before < -1 ? `${tn(sd)} pull one back` : `${tn(sd)} extend the lead`} (${sc}).`;
+      cards.push(
+        <div key={cards.length} className="cm cm-goal">
+          <div className="cm-h"><span className="cm-min">{mt}</span><b>{own ? (bn ? "আত্মঘাতী গোল!" : "Own goal!") : (bn ? "গোল!" : "Goal!")}</b><span className="cm-sc">{sc}</span></div>
+          <CmPlayer id={e.pid} name={e.p} team={own ? team(other) : team(sd)} no={noOf[e.pid]} lang={lang} badge={<SoccerBall size={18} own={own} />} />
+          <p className="cm-txt">{line}</p>
+          {e.a && !own && (
+            <>
+              <div className="cm-sub-h">{bn ? "অ্যাসিস্ট" : "Assist"}</div>
+              <CmPlayer id={e.aid} name={e.a} team={team(sd)} no={noOf[e.aid]} lang={lang} />
+            </>
+          )}
+        </div>
+      );
+    } else if (e.t === "Goal") {
+      cards.push(<div key={cards.length} className="cm"><div className="cm-h"><span className="cm-min">{mt}</span><b>{bn ? "পেনাল্টি মিস" : "Penalty missed"}</b></div><CmPlayer id={e.pid} name={e.p} team={team(sd)} no={noOf[e.pid]} lang={lang} badge={<SoccerBall size={18} miss />} /></div>);
+    } else if (e.t === "Card") {
+      const red = /Red|Second/i.test(d);
+      cards.push(
+        <div key={cards.length} className={"cm" + (red ? " cm-red" : "")}>
+          <div className="cm-h"><span className="cm-min">{mt}</span><b>{bn ? (/Second/i.test(d) ? "দ্বিতীয় হলুদ, লাল কার্ড" : red ? "লাল কার্ড" : "হলুদ কার্ড") : d}</b><EvIcon e={e} /></div>
+          <CmPlayer id={e.pid} name={e.p} team={team(sd)} no={noOf[e.pid]} lang={lang} />
+          {e.c && <p className="cm-txt muted">{e.c}</p>}
+        </div>
+      );
+    } else if (e.t === "subst") {
+      const sp = subs.get(e) || { in: e.a, off: e.p };
+      const inId = sp.in === e.p ? e.pid : e.aid, offId = sp.in === e.p ? e.aid : e.pid;
+      cards.push(
+        <div key={cards.length} className="cm">
+          <div className="cm-h"><span className="cm-min">{mt}</span><b>{bn ? `বদলি · ${tn(sd)}` : `Substitution · ${tn(sd)}`}</b></div>
+          <div className="cm-subs">
+            <div className="cm-in"><span className="cm-arr in">↑</span><CmPlayer id={inId} name={sp.in} team={team(sd)} no={noOf[inId]} lang={lang} /></div>
+            <div className="cm-out"><span className="cm-arr out">↓</span><CmPlayer id={offId} name={sp.off} team={team(sd)} no={noOf[offId]} lang={lang} /></div>
+          </div>
+        </div>
+      );
+    } else {
+      cards.push(<div key={cards.length} className="cm"><div className="cm-h"><span className="cm-min">{mt}</span><b>VAR</b></div><p className="cm-txt">{bn ? EV_BN[d] || d : d}{e.p ? ` · ${bnPlayer(e.p, lang)}` : ""}</p></div>);
+    }
+  }
+  if (AF_DONE.includes(L.status)) cards.push(<div key="ft" className="cm cm-mark"><b>{bn ? "খেলা শেষ" : "Full time"}</b><span>{teamName(m.home, lang)} {num(m.home_score ?? h, lang)}–{num(m.away_score ?? a, lang)} {teamName(m.away, lang)}</span></div>);
+  return <div className="cm-list">{cards.filter(Boolean).reverse()}</div>;
+}
+
 // ম্যাচের পাতা খোলা থাকলে লাইভ বিস্তারিত আনা, খেলা চললে প্রতি মিনিটে নতুন করে
 function useMatchLive(m) {
   const [L, setL] = useState(null);
@@ -3448,6 +3550,7 @@ function MatchPage({ id, m: mInit, user, pred, onSave, onLogin, toast }) {
 
   const tabs = [
     ["ov", bn ? "সংক্ষেপ" : "Overview"],
+    ["cm", bn ? "ধারাভাষ্য" : "Commentary"],
     ["lu", bn ? "লাইনআপ" : "Lineups"],
     ["tb", bn ? "টেবিল" : "Table"],
     ["st", bn ? "পরিসংখ্যান" : "Stats"],
@@ -3540,6 +3643,7 @@ function MatchPage({ id, m: mInit, user, pred, onSave, onLogin, toast }) {
         )}
         {tab === "lu" && (L?.lineups?.h?.xi?.length ? <div className="mc-body"><MatchLineups L={L} m={m} lang={lang} /></div>
           : <div className="card empty">{bn ? "লাইনআপ সাধারণত খেলা শুরুর প্রায় এক ঘণ্টা আগে আসে" : "Lineups usually arrive about an hour before kickoff"}</div>)}
+        {tab === "cm" && (L ? <MatchCommentary L={L} m={m} lang={lang} /> : <div className="card empty">{bn ? "খেলা শুরু হলে এখানে প্রতিটা মুহূর্ত আসবে" : "Moments appear here once the match starts"}</div>)}
         {tab === "tb" && <MatchTable m={m} lang={lang} />}
         {tab === "st" && ((L?.stats || []).length ? <div className="mc-body"><MatchStats L={L} lang={lang} /></div>
           : <div className="card empty">{bn ? "খেলা শুরু হলে পরিসংখ্যান দেখা যাবে" : "Stats appear once the match starts"}</div>)}
