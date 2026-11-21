@@ -36,6 +36,14 @@ export const AF_LEAGUES = {
 export const MOFF = 100000000, TOFF = 10000000, POFF = 10000000;
 // বড় দলগুলোর বাংলা নাম (API-Football-এর নামের অংশ → বাংলা); বাকিগুলো ইংরেজিতে
 const AF_TEAMS_BN = [
+  // এমএলএস
+  ["New England", "নিউ ইংল্যান্ড রেভোলিউশন"], ["Philadelphia", "ফিলাডেলফিয়া ইউনিয়ন"], ["Inter Miami", "ইন্টার মায়ামি"], ["Columbus", "কলম্বাস ক্রু"],
+  ["Nashville", "ন্যাশভিল"], ["Cincinnati", "এফসি সিনসিনাটি"], ["Chicago Fire", "শিকাগো ফায়ার"], ["Charlotte", "শার্লট"], ["Vancouver", "ভ্যাঙ্কুভার হোয়াইটক্যাপস"],
+  ["Real Salt Lake", "রিয়েল সল্ট লেক"], ["St. Louis", "সেন্ট লুইস সিটি"], ["St Louis", "সেন্ট লুইস সিটি"], ["Los Angeles FC", "লস অ্যাঞ্জেলেস এফসি"], ["Galaxy", "এলএ গ্যালাক্সি"],
+  ["San Jose", "সান হোসে আর্থকোয়েকস"], ["Houston", "হিউস্টন ডায়নামো"], ["FC Dallas", "এফসি ডালাস"], ["Portland", "পোর্টল্যান্ড টিম্বার্স"], ["Seattle", "সিয়াটল সাউন্ডার্স"],
+  ["Minnesota", "মিনেসোটা ইউনাইটেড"], ["Austin", "অস্টিন এফসি"], ["Kansas City", "স্পোর্টিং কানসাস সিটি"], ["Colorado", "কলোরাডো র‍্যাপিডস"], ["New York City", "নিউ ইয়র্ক সিটি"],
+  ["Red Bulls", "নিউ ইয়র্ক রেড বুলস"], ["Orlando", "অরল্যান্ডো সিটি"], ["Atlanta", "আটলান্টা ইউনাইটেড"], ["DC United", "ডিসি ইউনাইটেড"], ["Toronto", "টরন্টো এফসি"],
+  ["Montreal", "সিএফ মন্ট্রিয়ল"], ["San Diego", "সান দিয়েগো এফসি"],
   ["Bashundhara", "বসুন্ধরা কিংস"], ["Abahani Chittagong", "চট্টগ্রাম আবাহনী"], ["Chittagong Abahani", "চট্টগ্রাম আবাহনী"], ["Chattogram Abahani", "চট্টগ্রাম আবাহনী"], ["Abahani", "ঢাকা আবাহনী"],
   ["Mohammedan", "মোহামেডান"], ["Fortis", "ফর্টিস এফসি"], ["Rahmatganj", "রহমতগঞ্জ"], ["Rahmatgonj", "রহমতগঞ্জ"], ["PWD", "পিডব্লিউডি"], ["Brothers Union", "ব্রাদার্স ইউনিয়ন"],
   ["Police", "পুলিশ এফসি"], ["City Club", "সিটি ক্লাব"], ["Chattogram", "চট্টগ্রাম"], ["Fakirerpool", "ফকিরেরপুল"], ["Dhaka Wanderers", "ঢাকা ওয়ান্ডারার্স"], ["Sheikh Russel", "শেখ রাসেল"],
