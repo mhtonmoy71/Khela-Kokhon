@@ -35,7 +35,7 @@ export const MOFF = 100000000, TOFF = 10000000, POFF = 10000000;
 // বড় দলগুলোর বাংলা নাম (API-Football-এর নামের অংশ → বাংলা); বাকিগুলো ইংরেজিতে
 const AF_TEAMS_BN = [
   ["Bashundhara", "বসুন্ধরা কিংস"], ["Abahani Chittagong", "চট্টগ্রাম আবাহনী"], ["Chittagong Abahani", "চট্টগ্রাম আবাহনী"], ["Abahani", "ঢাকা আবাহনী"],
-  ["Mohammedan", "মোহামেডান"], ["Fortis", "ফর্টিস এফসি"], ["Rahmatganj", "রহমতগঞ্জ"], ["Brothers Union", "ব্রাদার্স ইউনিয়ন"],
+  ["Mohammedan", "মোহামেডান"], ["Fortis", "ফর্টিস এফসি"], ["Rahmatganj", "রহমতগঞ্জ"], ["Rahmatgonj", "রহমতগঞ্জ"], ["PWD", "পিডব্লিউডি"], ["Brothers Union", "ব্রাদার্স ইউনিয়ন"],
   ["Police", "পুলিশ এফসি"], ["Fakirerpool", "ফকিরেরপুল"], ["Dhaka Wanderers", "ঢাকা ওয়ান্ডারার্স"], ["Sheikh Russel", "শেখ রাসেল"],
   ["Sheikh Jamal", "শেখ জামাল"], ["Arambagh", "আরামবাগ"], ["Muktijoddha", "মুক্তিযোদ্ধা"], ["Uttar Baridhara", "উত্তর বারিধারা"], ["Saif Sporting", "সাইফ স্পোর্টিং"],
   ["Al-Hilal", "আল হিলাল"], ["Al-Nassr", "আল নাসর"], ["Al-Ittihad", "আল ইত্তিহাদ"], ["Al-Ahli", "আল আহলি"],
