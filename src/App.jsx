@@ -496,24 +496,31 @@ img { display: block; }
 .st-split { display: flex; gap: 3px; height: 8px; margin-top: 5px; }
 .st-split i { display: block; height: 100%; border-radius: 4px; transition: width .4s; }
 .st-split i.h { background: var(--brand); } .st-split i.a { background: #64748b; }
-.pitch { position: relative; margin: 6px 10px; aspect-ratio: 68 / 118; max-height: 760px; border-radius: 12px; overflow: hidden; background: repeating-linear-gradient(180deg, #2f8f4e 0 10%, #2a8447 10% 20%); }
+.pitch-card { margin: 6px 0; border-radius: 16px; overflow: hidden; background: #1f7a43; }
+.pitch-team { display: flex; align-items: center; gap: 8px; padding: 9px 14px; color: #fff; font-size: 13px; background: rgba(0,0,0,.14); }
+.pitch-team b { font-weight: 700; }
+.pitch-team span { margin-left: auto; font: 600 12px Inter, 'Hind Siliguri', sans-serif; opacity: .85; }
+.pitch-team .crest { background: #fff; border-radius: 50%; padding: 2px; box-sizing: content-box; }
+.pitch { position: relative; aspect-ratio: 68 / 112; max-height: 820px; overflow: hidden; background: repeating-linear-gradient(180deg, #2b8a4b 0 8.333%, #27804500 8.333% 16.666%), #278045; }
 .pitch-lines i { position: absolute; border: 1.5px solid rgba(255,255,255,.45); }
 .pitch-lines .half { left: 0; right: 0; top: 50%; border-width: 1.5px 0 0; }
 .pitch-lines .circle { left: 50%; top: 50%; width: 22%; aspect-ratio: 1; border-radius: 50%; transform: translate(-50%, -50%); }
 .pitch-lines .pbox { left: 22%; right: 22%; height: 13%; }
 .pitch-lines .pb-t { top: 0; border-top: 0; } .pitch-lines .pb-b { bottom: 0; border-bottom: 0; }
+.pitch-lines .gbox { left: 38%; right: 38%; height: 4.5%; }
+.pitch-lines .gb-t { top: 0; border-top: 0; } .pitch-lines .gb-b { bottom: 0; border-bottom: 0; }
+.pitch-lines .spot { left: 50%; top: 50%; width: 5px; height: 5px; border-radius: 50%; background: rgba(255,255,255,.55); border: 0; transform: translate(-50%, -50%); }
 .pitch-f { position: absolute; left: 8px; font-size: 11px; font-weight: 700; color: rgba(255,255,255,.85); }
 .pitch-f.pf-t { top: 6px; } .pitch-f.pf-b { bottom: 6px; }
-.pm-wrap { position: absolute; transform: translate(-50%, -50%); width: 19%; display: flex; justify-content: center; }
+.pm-wrap { position: absolute; transform: translate(-50%, -20px); display: flex; justify-content: center; }
 .pm { display: flex; flex-direction: column; align-items: center; gap: 3px; min-width: 0; max-width: 100%; }
-.pm-shirt { position: relative; width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; font: 800 12px Inter, sans-serif; color: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.35); }
-.pm-h .pm-shirt { background: var(--brand); border: 2px solid #fff; }
-.pm-a .pm-shirt { background: #1e293b; border: 2px solid #e2e8f0; }
-.pm-n { font-size: 10.5px; font-weight: 600; color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,.6); max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pm-shirt { position: relative; width: 38px; height: 38px; border-radius: 50%; display: grid; place-items: center; font: 800 12px Inter, sans-serif; color: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.35); }
+.pm-h .pm-shirt, .pm-a .pm-shirt { background: #e5e7eb; border: 2px solid #fff; }
+.pm-n { font-size: 11.5px; font-weight: 600; color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,.55); max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; line-height: 1.3; }
 .pm-shirt em { position: absolute; font-style: normal; }
 .pm-r { font: 800 10px Inter, sans-serif; color: #fff; border-radius: 5px; padding: 1px 4px; font-style: normal; }
-.pm-shirt .pm-r { top: -6px; right: -18px; font-size: 9.5px; padding: 0 3px; }
-.pm-r.r-hi { background: #16a34a; } .pm-r.r-ok { background: #d97706; } .pm-r.r-lo { background: #dc2626; }
+.pm-shirt .pm-r { top: -5px; right: -20px; font-size: 10px; padding: 1px 4px; border-radius: 6px; box-shadow: 0 1px 2px rgba(0,0,0,.25); font-family: Inter, 'Hind Siliguri', sans-serif; }
+.pm-r.r-top { background: #2563eb; } .pm-r.r-hi { background: #16a34a; } .pm-r.r-ok { background: #ea8a0b; } .pm-r.r-lo { background: #dc2626; }
 .pm-r.big { font-size: 16px; padding: 4px 8px; border-radius: 8px; }
 .pm-c { top: -6px; left: -8px; background: #facc15; color: #111; font: 800 9px Inter, sans-serif; width: 14px; height: 14px; border-radius: 50%; display: grid; place-items: center; }
 .pm-g { bottom: -6px; right: -10px; font-size: 10px; }
@@ -3461,7 +3468,8 @@ const BootMini = ({ n, size = 12 }) => (
 const BallMini = ({ n, size = 12 }) => (
   <span className="ball-mini"><SoccerBall size={size} />{n > 1 ? <b>×{n}</b> : null}</span>
 );
-const rateCls = (r) => (r >= 7.5 ? "r-hi" : r >= 6.5 ? "r-ok" : "r-lo");
+const rateCls = (r) => (r >= 8 ? "r-top" : r >= 7 ? "r-hi" : r >= 6 ? "r-ok" : "r-lo");
+const rateTxt = (r, lang) => num(r.toFixed(1), lang);
 const unEnt = (s) => (s || "").replace(/&(amp|apos|quot|#39);/g, (_, k) => ({ amp: "&", apos: "'", quot: '"', "#39": "'" })[k]);
 // মাঠ আর গোলদাতার সারির জন্য ছোট নাম (বাংলায় পদবি)
 const shortName = (n, lang) => { if (lang !== "bn") return lastName(n); const b = bnPlayer(unEnt(n), lang); const w = b.split(" "); return w.length > 1 && !/^(দি|দে|ডি|ভান|আল|এল|বেন)$/.test(w[w.length - 2]) ? w[w.length - 1] : w.slice(-2).join(" "); };
@@ -3473,13 +3481,13 @@ function PitchMan({ p, st, side }) {
   return (
     <button className={"pm pm-" + side} onClick={() => p.id && nav.openPlayer(10000000 + p.id)}>
       <span className="pm-shirt">{p.id && !noPic ? <img src={`https://media.api-sports.io/football/players/${p.id}.png`} alt="" loading="lazy" onError={() => setNoPic(true)} /> : (p.no ?? "")}
-        {st?.r ? <em className={"pm-r " + rateCls(st.r)}>{st.r.toFixed(1)}</em> : null}
+        {st?.r ? <em className={"pm-r " + rateCls(st.r)}>{rateTxt(st.r, lang)}</em> : null}
         {st?.cap ? <em className="pm-c">C</em> : null}
         {st?.g ? <em className="pm-g"><BallMini n={st.g} /></em> : null}
         {st?.as ? <em className="pm-as"><BootMini n={st.as} /></em> : null}
         {st?.rc ? <em className="pm-card red" /> : st?.yc ? <em className="pm-card" /> : null}
       </span>
-      <span className="pm-n">{p.no != null && !noPic ? <span className="pm-no">{p.no}</span> : null}{shortName(p.n, lang)}</span>
+      <span className="pm-n">{shortName(p.n, lang)}</span>
     </button>
   );
 }
@@ -3491,11 +3499,13 @@ function TeamHalf({ T, side, P }) {
   return keys.map((r, i) => {
     const list = rows[r].sort((x, y) => x.c - y.c);
     // ঘরের দল নিচে (গোলরক্ষক একদম নিচে), অতিথি দল ওপরে; মুখোমুখি দেখাতে এক দিকের সারি উল্টো
-    const y = side === "h" ? 94 - (i / Math.max(1, n - 1)) * 40 : 6 + (i / Math.max(1, n - 1)) * 40;
+    // প্রতিটা অর্ধে সারিগুলো সমান দূরে; মাঝরেখার কাছে ফাঁকা রাখা যাতে দুই দলের খেলোয়াড় একে অপরের ওপর না পড়ে
+    const y = side === "h" ? 93 - (i / Math.max(1, n - 1)) * 36 : 5 + (i / Math.max(1, n - 1)) * 36;
+    const w = Math.min(25, 100 / list.length - 1);
     return list.map((p, j) => {
       const x = ((j + 0.5) / list.length) * 100;
       // API-Football-এ কলাম ১ = দলের বাঁ দিক; ঘরের দল ওপরের দিকে খেলে, তাই বাঁ দিক পর্দার বাঁয়ে, অতিথির উল্টো
-      return <div key={p.id || p.n} className="pm-wrap" style={{ left: `${side === "h" ? x : 100 - x}%`, top: `${y}%` }}><PitchMan p={p} st={P?.[p.id]} side={side} /></div>;
+      return <div key={p.id || p.n} className="pm-wrap" style={{ left: `${side === "h" ? x : 100 - x}%`, top: `${y}%`, width: `${w}%` }}><PitchMan p={p} st={P?.[p.id]} side={side} /></div>;
     });
   });
 }
@@ -3516,7 +3526,7 @@ function MatchLineups({ L, m, lang }) {
         <button key={p.id || p.n} className={"lu-p" + (s?.min ? " played" : "")} onClick={() => p.id && nav.openPlayer(10000000 + p.id)}>
           <span className="lu-no">{p.no ?? ""}</span><span className="lu-n">{bnPlayer(p.n, lang)}</span>
           {s?.g ? <span className="lu-ev"><BallMini n={s.g} /></span> : null}
-          {s?.r ? <em className={"pm-r " + rateCls(s.r)}>{s.r.toFixed(1)}</em> : null}
+          {s?.r ? <em className={"pm-r " + rateCls(s.r)}>{rateTxt(s.r, lang)}</em> : null}
         </button>
       ); })}
     </div>
@@ -3524,21 +3534,23 @@ function MatchLineups({ L, m, lang }) {
   return (
     <>
       {bestP && (
-        <div className="lu-best"><span className={"pm-r big " + rateCls(best[1].r)}>{best[1].r.toFixed(1)}</span>
+        <div className="lu-best"><span className={"pm-r big " + rateCls(best[1].r)}>{rateTxt(best[1].r, lang)}</span>
           <span><small className="muted">{bn ? "ম্যাচ সেরা" : "Player of the match"}</small><b>{bnPlayer(bestP.n, lang)}</b></span></div>
       )}
       {grid ? (
-        <div className="pitch">
-          <div className="pitch-lines" aria-hidden="true"><i className="half" /><i className="circle" /><i className="pbox pb-t" /><i className="pbox pb-b" /></div>
-          <span className="pitch-f pf-t">{teamShort(m.away, lang)} · {a.f}</span>
-          <span className="pitch-f pf-b">{teamShort(m.home, lang)} · {h.f}</span>
-          <TeamHalf T={a} side="a" P={P} />
-          <TeamHalf T={h} side="h" P={P} />
+        <div className="pitch-card">
+          <div className="pitch-team"><Crest team={m.away} size={20} /><b>{teamShort(m.away, lang)}</b><span>{num(a.f || "", lang)}</span></div>
+          <div className="pitch">
+            <div className="pitch-lines" aria-hidden="true"><i className="half" /><i className="circle" /><i className="spot" /><i className="pbox pb-t" /><i className="pbox pb-b" /><i className="gbox gb-t" /><i className="gbox gb-b" /></div>
+            <TeamHalf T={a} side="a" P={P} />
+            <TeamHalf T={h} side="h" P={P} />
+          </div>
+          <div className="pitch-team"><Crest team={m.home} size={20} /><b>{teamShort(m.home, lang)}</b><span>{num(h.f || "", lang)}</span></div>
         </div>
       ) : (
         <div className="lu-cols">{[["h", h], ["a", a]].map(([sd, T]) => (
           <div key={sd} className="lu-subs"><div className="lu-h"><b>{teamShort(sd === "h" ? m.home : m.away, lang)}</b><small className="muted">{T.f}</small></div>
-            {T.xi.map((p) => <button key={p.id || p.n} className="lu-p played" onClick={() => p.id && nav.openPlayer(10000000 + p.id)}><span className="lu-no">{p.no}</span><span className="lu-n">{bnPlayer(p.n, lang)}</span>{P[p.id]?.r ? <em className={"pm-r " + rateCls(P[p.id].r)}>{P[p.id].r.toFixed(1)}</em> : null}</button>)}
+            {T.xi.map((p) => <button key={p.id || p.n} className="lu-p played" onClick={() => p.id && nav.openPlayer(10000000 + p.id)}><span className="lu-no">{p.no}</span><span className="lu-n">{bnPlayer(p.n, lang)}</span>{P[p.id]?.r ? <em className={"pm-r " + rateCls(P[p.id].r)}>{rateTxt(P[p.id].r, lang)}</em> : null}</button>)}
           </div>))}</div>
       )}
       <div className="sec-h" style={{ margin: "14px 0 6px" }}><h2>{bn ? "বদলি খেলোয়াড়" : "Substitutes"}</h2></div>
