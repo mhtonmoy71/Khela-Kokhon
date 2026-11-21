@@ -331,6 +331,9 @@ img { display: block; }
 @media (prefers-reduced-motion: reduce) { .cg-body, .cg-chev { transition: none; } }
 /* ── ম্যাচ সেন্টার ── */
 .mc { margin-top: 14px; }
+.ms-goals { display: grid; grid-template-columns: 1fr 22px 1fr; gap: 6px; align-items: start; margin: 2px 4px 0; font-size: 12.5px; color: var(--muted); line-height: 1.5; }
+.ms-goals .h { text-align: right; } .ms-goals b { color: var(--text); font-weight: 600; }
+.ms-goals .ball-mini { justify-self: center; margin-top: 3px; opacity: .7; }
 .mc-seg { margin-bottom: 10px; display: flex; }
 .mc-seg button { flex: 1; min-width: 0; }
 .mc-body { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 6px 0; }
@@ -3028,13 +3031,48 @@ function MatchCenter({ L, m }) {
   );
 }
 
+// স্কোরের নিচে গোলদাতা (FotMob-এর মতো): একই খেলোয়াড়ের সব গোল এক সারিতে
+function Scorers({ L, lang }) {
+  const bn = lang === "bn";
+  const goals = (L?.events || []).filter((e) => e.t === "Goal" && !/Missed/i.test(e.d || ""));
+  if (!goals.length) return null;
+  const side = (sd) => {
+    const by = new Map();
+    for (const e of goals.filter((g) => g.s === sd)) {
+      const k = e.p || "?";
+      const tag = /Own/i.test(e.d || "") ? (bn ? " (আত্মঘাতী)" : " (OG)") : /Penalty/i.test(e.d || "") ? (bn ? " (পেনাল্টি)" : " (P)") : "";
+      (by.get(k) || by.set(k, []).get(k)).push(minuteTxt(e.m ?? 0, e.x, lang) + tag);
+    }
+    return [...by].map(([n, ms]) => <div key={n}><b>{lastName(n)}</b> {ms.join(", ")}</div>);
+  };
+  return (
+    <div className="ms-goals">
+      <div className="h">{side("h")}</div>
+      <BallMini n={1} />
+      <div className="a">{side("a")}</div>
+    </div>
+  );
+}
+
 // ম্যাচের পাতা খোলা থাকলে লাইভ বিস্তারিত আনা, খেলা চললে প্রতি মিনিটে নতুন করে
 function useMatchLive(m) {
   const [L, setL] = useState(null);
   useEffect(() => {
     if (!m?.id) return;
     let alive = true;
-    const pull = () => { if (document.visibilityState === "visible") getLiveFull(m.id).then((r) => alive && setL(r)).catch(() => {}); };
+    let asked = false;
+    const pull = () => {
+      if (document.visibilityState !== "visible") return;
+      getLiveFull(m.id).then((r) => {
+        if (!alive) return;
+        setL(r);
+        // শেষ হওয়া পুরনো ম্যাচের বিস্তারিত না থাকলে একবার আনিয়ে নেওয়া (সার্ভার জমিয়ে রাখে)
+        if (!DEMO && !asked && !r?.events && m.status === "FINISHED" && Date.now() - Date.parse(m.utc_date) > 2 * 3600000) {
+          asked = true;
+          fetch(`/api/live?match=${m.id}`).then((x) => x.json()).then((d) => alive && d?.row && setL(d.row)).catch(() => {});
+        }
+      }).catch(() => {});
+    };
     pull();
     const t0 = Date.parse(m.utc_date), near = Date.now() > t0 - 90 * 60000 && Date.now() < t0 + 4 * 3600000;
     const i = near ? setInterval(pull, 60000) : null;
@@ -3091,6 +3129,7 @@ function MatchSheet({ m: m0, user, pred, onClose, onSave, onLogin, toast }) {
           <button className="ms-team" onClick={() => m.away_id && nav.openTeam(m.away_id)}><Crest team={m.away} size={60} /><span>{teamName(m.away, lang)}</span></button>
         </div>
         {open && <div className="ms-cd">{t("startsIn")} {countdown(new Date(m.utc_date) - now, lang)} · {t("bdTime")}</div>}
+        <Scorers L={L} lang={lang} />
         {L && <MatchCenter L={L} m={m} />}
 
         <FanVote m={m} />
