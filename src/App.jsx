@@ -6000,6 +6000,8 @@ const COMP_WORDS = {
   CDR: ["কোপা দেল রে", "কোপা দেল রেই", "copa del rey"],
   CCC: ["কনকাকাফ", "কনকাকাফ চ্যাম্পিয়ন্স কাপ", "concacaf", "concacaf champions cup"],
   ACL: ["এএফসি চ্যাম্পিয়ন্স লিগ", "এশিয়ান চ্যাম্পিয়ন্স লিগ", "এএফসি", "afc champions league", "acl"],
+  UEL: ["ইউরোপা লিগ", "ইউরোপা", "europa league", "europa", "uel"],
+  BPL: ["বাংলাদেশ প্রিমিয়ার লিগ", "বিপিএল ফুটবল", "বাংলাদেশ লিগ", "বাংলাদেশের লিগ", "bangladesh premier league", "bangladesh league", "bpl"],
 };
 
 const W = {
@@ -6072,10 +6074,11 @@ const poss = (name, lang) => (lang !== "bn" ? `${name}'s`
   : name + "ের");
 
 // ════════ খেলোয়াড়ের প্রশ্ন ════════
-const COMP_ORDER = ["CL", "PL", "PD", "BL1", "SA", "FL1", "SPL", "MLS", "UECL", "UNL", "EURO", "FAC", "EFL", "CDR", "CCC", "ACL"];
+const COMP_ORDER = ["CL", "PL", "PD", "BL1", "SA", "FL1", "BPL", "SPL", "MLS", "UEL", "UECL", "UNL", "EURO", "FAC", "EFL", "CDR", "CCC", "ACL"];
 const COMP_LABEL = { CL: ["চ্যাম্পিয়ন্স লিগ", "Champions League"], PL: ["প্রিমিয়ার লিগ", "Premier League"], PD: ["লা লিগা", "La Liga"], BL1: ["বুন্দেসলিগা", "Bundesliga"], SA: ["সিরি আ", "Serie A"], FL1: ["লিগ ওয়ান", "Ligue 1"], SPL: ["সৌদি প্রো লিগ", "Saudi Pro League"], MLS: ["এমএলএস", "MLS"],
   UECL: ["কনফারেন্স লিগ", "Conference League"], UNL: ["নেশনস লিগ", "Nations League"], EURO: ["ইউরো", "Euro"], FAC: ["এফএ কাপ", "FA Cup"],
-  EFL: ["কারাবাও কাপ", "Carabao Cup"], CDR: ["কোপা দেল রে", "Copa del Rey"], CCC: ["কনকাকাফ চ্যাম্পিয়ন্স কাপ", "CONCACAF Champions Cup"], ACL: ["এএফসি চ্যাম্পিয়ন্স লিগ", "AFC Champions League"] };
+  EFL: ["কারাবাও কাপ", "Carabao Cup"], CDR: ["কোপা দেল রে", "Copa del Rey"], CCC: ["কনকাকাফ চ্যাম্পিয়ন্স কাপ", "CONCACAF Champions Cup"], ACL: ["এএফসি চ্যাম্পিয়ন্স লিগ", "AFC Champions League"],
+  UEL: ["ইউরোপা লিগ", "Europa League"], BPL: ["বাংলাদেশ প্রিমিয়ার লিগ", "Bangladesh Premier League"] };
 const compLabel = (code, lang) => (COMP_LABEL[code] || [code, code])[lang === "bn" ? 0 : 1];
 // একটা দল/খেলোয়াড় যে প্রতিযোগিতাগুলোয় আছে, নাম ধরে: "লা লিগা ও চ্যাম্পিয়ন্স লিগ" (লিগ আগে, ইউসিএল পরে)
 const compList = (codes, lang) => {
