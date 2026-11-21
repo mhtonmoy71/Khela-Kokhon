@@ -71,6 +71,15 @@ img { display: block; }
 .mid .sc { font-family: Inter, sans-serif; font-size: 16px; font-weight: 800; letter-spacing: .5px; }
 .mid .st { font-size: 10.5px; color: var(--muted); margin-top: 2px; }
 .mid .lv { color: var(--red); font-weight: 700; }
+.lv.lv-pill { display: inline-block; background: #16a34a; color: #fff; border-radius: 999px; padding: 0 7px; font: 700 11.5px Inter, 'Hind Siliguri', sans-serif; line-height: 18px; }
+.live-tg { display: inline-flex; align-items: center; gap: 6px; height: 30px; padding: 0 12px; border-radius: 999px; border: 1px solid var(--line); background: var(--card); color: var(--muted); font: 700 13px 'Hind Siliguri', sans-serif; cursor: pointer; }
+.live-tg i { width: 8px; height: 8px; border-radius: 50%; background: var(--muted); }
+.live-tg b { font-family: Inter, 'Hind Siliguri', sans-serif; font-size: 12px; }
+.live-tg.has i { background: #ef4444; animation: lvp 1.6s ease-in-out infinite; }
+.live-tg.on { background: #16a34a; border-color: #16a34a; color: #fff; }
+.live-tg.on i { background: #fff; }
+@keyframes lvp { 50% { opacity: .35; } }
+.ds-off { opacity: .45; }
 .pred-tag { display: block; margin-top: 3px; font-size: 10px; color: var(--green); font-weight: 600; }
 .dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--red); margin-right: 4px; animation: blink 1s infinite alternate; vertical-align: middle; }
 @keyframes blink { from { opacity: .3 } to { opacity: 1 } }
@@ -2594,7 +2603,7 @@ const minuteTxt = (mi, x, lang) => `${num(mi, lang)}${x ? "+" + num(x, lang) : "
 function StatusText({ m }) {
   const { t, lang } = useT();
   if (m.status === "PAUSED") return <span className="lv">{t("ht")}</span>;
-  if (isLive(m) && m.minute != null) return <span className="lv"><i className="dot" />{minuteTxt(m.minute, m.minute_x, lang)}</span>;
+  if (isLive(m) && m.minute != null) return <span className="lv lv-pill">{minuteTxt(m.minute, m.minute_x, lang)}</span>;
   if (isLive(m)) return <span className="lv"><i className="dot" />{t("live")}</span>;
   if (isDone(m)) return <>{t("ft")}</>;
   if (m.status === "POSTPONED") return <>{t("postponed")}</>;
@@ -3785,10 +3794,33 @@ function HomeSide({ comps, comp, user }) {
   );
 }
 
+// এই মুহূর্তে চলা সব খেলা (সব লিগ মিলিয়ে); প্রতি মিনিটে নতুন করে
+function useLiveNow() {
+  const [list, setList] = useState(null);
+  useEffect(() => {
+    let alive = true;
+    const pull = () => {
+      if (document.visibilityState !== "visible") return;
+      const now = Date.now();
+      getMatchesRange(new Date(now - 4 * 3600000).toISOString(), new Date(now + 5 * 60000).toISOString())
+        .then((r) => withLive(r.filter((m) => m.status !== "FINISHED" || isLive(m))))
+        .then((r) => alive && setList(r.filter(isLive))).catch(() => alive && setList([]));
+    };
+    pull();
+    const i = setInterval(pull, 60000);
+    document.addEventListener("visibilitychange", pull);
+    return () => { alive = false; clearInterval(i); document.removeEventListener("visibilitychange", pull); };
+  }, []);
+  return list;
+}
+
 function Matches({ user, myTeams, comps, preds, onOpen, goProfile }) {
   const { t, lang } = useT();
   const [follow] = useFollowLg();
-  const [day, setDay] = useState(dayKey(new Date()));
+  const [day, setDay0] = useState(dayKey(new Date()));
+  const [liveOn, setLiveOn] = useState(false);
+  const liveNow = useLiveNow();
+  const setDay = (d) => { setLiveOn(false); setDay0(d); };
   const [comp, setComp] = useState("ALL");
   const nav = useNav();
   const fav = myTeams?.fav || [];
@@ -3827,7 +3859,7 @@ function Matches({ user, myTeams, comps, preds, onOpen, goProfile }) {
       )}
 
       {!wide && <div className="sec dl-teaser-wrap"><DailyTeaser user={user} /></div>}
-      <DateStrip day={day} setDay={setDay} />
+      <div className={liveOn ? "ds-off" : undefined}><DateStrip day={day} setDay={setDay} /></div>
       <div className="chips">
         <button className={"chip" + (comp === "ALL" ? " on" : "")} onClick={() => setComp("ALL")}>{t("all")}</button>
         {orderComps(comps, follow).map((c) => (
@@ -3838,10 +3870,20 @@ function Matches({ user, myTeams, comps, preds, onOpen, goProfile }) {
       </div>
       <div className="sec" style={{ marginTop: 14 }}>
         <div className="sec-h">
-          <h2>{dayLabel(day, lang)}</h2>
-          {comp !== "ALL" && <button className="link" onClick={() => nav.openLeague(comp)}>{lang === "bn" ? "টেবিল দেখুন" : "Table"} →</button>}
+          <h2>{liveOn ? (lang === "bn" ? "এখন চলছে" : "Live now") : dayLabel(day, lang)}</h2>
+          <span style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            {comp !== "ALL" && !liveOn && <button className="link" onClick={() => nav.openLeague(comp)}>{lang === "bn" ? "টেবিল" : "Table"} →</button>}
+            <button className={"live-tg" + (liveOn ? " on" : "") + (liveNow?.length ? " has" : "")} aria-pressed={liveOn} onClick={() => setLiveOn((x) => !x)}>
+              <i />{lang === "bn" ? "লাইভ" : "Live"}{liveNow?.length ? <b>{num(liveNow.length, lang)}</b> : null}
+            </button>
+          </span>
         </div>
-        <DayMatches day={day} setDay={setDay} comp={comp} preds={preds} onOpen={onOpen} />
+        {liveOn ? (() => {
+          const shown = (liveNow || []).filter((m) => comp === "ALL" || m.competition_code === comp);
+          return liveNow === null ? <div className="card"><div className="spin" /></div>
+            : shown.length ? <CompGroups matches={shown} preds={preds} onOpen={onOpen} />
+            : <div className="card empty">{lang === "bn" ? "এই মুহূর্তে কোনো খেলা চলছে না" : "No matches live right now"}</div>;
+        })() : <DayMatches day={day} setDay={setDay} comp={comp} preds={preds} onOpen={onOpen} />}
       </div>
     </div>
     {wide && <HomeSide comps={comps} comp={comp} user={user} />}
