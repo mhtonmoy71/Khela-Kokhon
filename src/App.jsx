@@ -1554,8 +1554,8 @@ async function makeCard(m, { lang = "bn", teamName, compName, L, pred }) {
 
   const done = isDone(m) || isLive(m);
   if (done && m.home_score != null) {
-    ctx.font = `800 96px Inter, sans-serif`; ctx.fillStyle = "#fff";
-    ctx.fillText(`${m.home_score} - ${m.away_score}`, CARD_W / 2, cy);
+    ctx.font = bn ? `700 104px ${CARD_FONT}` : `800 96px Inter, sans-serif`; ctx.fillStyle = "#fff";
+    ctx.fillText(`${num(m.home_score, lang)} - ${num(m.away_score, lang)}`, CARD_W / 2, cy);
     ctx.font = `600 36px ${CARD_FONT}`; ctx.fillStyle = "#7dffb8";
     ctx.fillText(isLive(m) ? (bn ? "লাইভ" : "LIVE") : (bn ? "খেলা শেষ" : "Full time"), CARD_W / 2, cy + 80);
   } else {
@@ -1593,7 +1593,7 @@ async function makeCard(m, { lang = "bn", teamName, compName, L, pred }) {
     ctx.textAlign = "center"; ctx.fillStyle = "#fcd34d"; ctx.font = `600 38px ${CARD_FONT}`;
     ctx.fillText(bn ? "আমার প্রেডিকশন" : "My prediction", CARD_W / 2, py + 56);
     const sc = bn ? `${num(pred.home, "bn")} - ${num(pred.away, "bn")}` : `${pred.home} - ${pred.away}`;
-    ctx.fillStyle = "#fff"; ctx.font = `800 96px Inter, ${CARD_FONT}`; ctx.fillText(sc, CARD_W / 2, py + 140);
+    ctx.fillStyle = "#fff"; ctx.font = bn ? `700 100px ${CARD_FONT}` : `800 96px Inter, sans-serif`; ctx.fillText(sc, CARD_W / 2, py + 140);
     let foot;
     if (pred.points != null) foot = pred.points > 0 ? (bn ? `ঠিক হয়েছে · +${num(pred.points, "bn")} পয়েন্ট` : `Nailed it · +${pred.points} pts`) : (bn ? "এবার মেলেনি" : "Not this time");
     else if (pred.pen_pick && pred.home === pred.away) foot = bn ? `টাইব্রেকারে জিতবে ${teamName(pred.pen_pick === 1 ? m.home : m.away)}` : `${teamName(pred.pen_pick === 1 ? m.home : m.away)} win on pens`;
@@ -8048,7 +8048,7 @@ function Team({ id, teamsById, preds, onOpen, isFav, onToggleFav }) {
         </div>
         {team && onToggleFav && (
           <button className={"fav-btn" + (isFav ? " on" : "")} onClick={() => onToggleFav(id)}>
-            <span>{isFav ? "★" : "☆"}</span>{isFav ? (bn ? "প্রিয় দল" : "Favourite") : (bn ? "প্রিয়" : "Favourite")}
+            <span>{isFav ? "★" : "☆"}</span>{isFav ? (bn ? "প্রিয় দল" : "Favourite") : (bn ? "প্রিয় দলে যোগ করুন" : "Add to favourites")}
           </button>
         )}
       </div>
