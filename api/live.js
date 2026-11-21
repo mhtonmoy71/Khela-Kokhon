@@ -322,6 +322,43 @@ function pushNotes(m, prev, s) {
   return out;
 }
 
+// ── খেলা শেষ হলেই পয়েন্ট টেবিল (ডাটাবেসের standings) ম্যাচের ফল থেকে নতুন করে হিসাব ──
+// আগে শুধু রাতে একবার আপডেট হতো। এক টেবিলের লিগগুলোই (গ্রুপের প্রতিযোগিতা আর নকআউট কাপ বাদ)।
+const TABLE_LEAGUES = ["PL", "PD", "BL1", "SA", "FL1", "CL", "UEL", "UECL", "BPL", "SPL", "MLS"];
+export async function refreshStandings(codes) {
+  const out = {};
+  for (const code of codes.filter((c) => TABLE_LEAGUES.includes(c))) {
+    try {
+      const [last] = await sb(`matches?select=season&competition_code=eq.${code}&order=season.desc&limit=1`);
+      if (!last?.season) continue;
+      let ms = await sb(`matches?select=id,home_id,away_id,home_score,away_score,status,utc_date,stage&competition_code=eq.${code}&season=eq.${last.season}&order=utc_date&limit=2000`);
+      if (["CL", "UEL", "UECL"].includes(code)) ms = ms.filter((m) => /LEAGUE_STAGE|league/i.test(m.stage || ""));
+      if (!ms.length) continue;
+      const prev = await sb(`standings?select=team_id,position&competition_code=eq.${code}`);
+      const prevPos = Object.fromEntries(prev.map((r) => [r.team_id, r.position]));
+      const T = new Map();
+      const get = (id) => { if (!T.has(id)) T.set(id, { team_id: id, played: 0, won: 0, draw: 0, lost: 0, gf: 0, ga: 0, points: 0, res: [] }); return T.get(id); };
+      for (const m of ms) { if (m.home_id) get(m.home_id); if (m.away_id) get(m.away_id); }
+      for (const m of ms.filter((x) => x.status === "FINISHED" && x.home_score != null && x.away_score != null && x.home_id && x.away_id)) {
+        for (const [id, f, a] of [[m.home_id, m.home_score, m.away_score], [m.away_id, m.away_score, m.home_score]]) {
+          const r = get(id), k = f > a ? "W" : f < a ? "L" : "D";
+          r.played++; r.gf += f; r.ga += a; r[k === "W" ? "won" : k === "L" ? "lost" : "draw"]++; r.points += k === "W" ? 3 : k === "D" ? 1 : 0; r.res.push(k);
+        }
+      }
+      // সমান হলে আগের টেবিলের ক্রম রাখা (হেড-টু-হেডের মতো নিয়ম আগের টেবিলে থাকে)
+      const rows = [...T.values()].sort((x, y) => y.points - x.points || (y.gf - y.ga) - (x.gf - x.ga) || y.gf - x.gf || (prevPos[x.team_id] ?? 99) - (prevPos[y.team_id] ?? 99));
+      const now = new Date().toISOString();
+      await sb(`standings?competition_code=eq.${code}`, { method: "DELETE", prefer: "return=minimal" });
+      await sb("standings", { method: "POST", prefer: "return=minimal", body: rows.map((r, i) => ({
+        competition_code: code, team_id: r.team_id, position: i + 1, played: r.played, won: r.won, draw: r.draw, lost: r.lost,
+        gf: r.gf, ga: r.ga, gd: r.gf - r.ga, points: r.points, form: r.res.slice(-5).join(",") || null, updated_at: now,
+      })) });
+      out[code] = rows.length;
+    } catch (e) { out[code] = "error: " + String(e.message || e).slice(0, 80); }
+  }
+  return out;
+}
+
 export async function runLive() {
   if (!process.env.APIF_KEY) throw new Error("APIF_KEY সেট করা নেই");
   calls = 0;
@@ -405,6 +442,9 @@ export async function runLive() {
   for (const x of fixUp) await sb(`matches?id=eq.${x.id}`, { method: "PATCH", body: { status: x.status, home_score: x.home_score, away_score: x.away_score, ...(pen && x.pen ? { pen_home: x.pen[0], pen_away: x.pen[1] } : {}), updated_at: new Date().toISOString() }, prefer: "return=minimal" });
   if (fixUp.some((x) => x.status === "FINISHED")) await sb("rpc/score_predictions", { method: "POST", body: {} }).catch(() => {});
   const pushed = await sendPushes(notes).catch(() => 0);
+  // খেলা শেষ হওয়া লিগের পয়েন্ট টেবিল সাথে সাথে
+  const doneCodes = [...new Set(fixUp.filter((x) => x.status === "FINISHED").map((x) => win.find((m) => m.id === x.id)?.competition_code).filter(Boolean))];
+  if (doneCodes.length) await refreshStandings(doneCodes).catch(() => {});
   return { calls, window: win.length, mapped: Object.values(byId).filter((r) => r?.af_id).length, updated: out.length, notes: notes.length, pushed };
 }
 
@@ -711,7 +751,7 @@ export default async function handler(req, res) {
     try {
       const d = await leagueInfo(code, kind);
       if (!d) return res.status(404).json({ ok: false });
-      res.setHeader("Cache-Control", `public, s-maxage=${kind === "seasons" ? 2592000 : kind === "players" ? 21600 : 600}, max-age=${kind === "table" ? 120 : 3600}`);
+      res.setHeader("Cache-Control", `public, s-maxage=${kind === "seasons" ? 2592000 : kind === "players" ? 21600 : 120}, max-age=${kind === "table" ? 120 : 3600}`);
       return res.status(200).json(d);
     } catch (e) { return res.status(500).json({ ok: false, error: String(e.message || e).slice(0, 200) }); }
   }
@@ -792,7 +832,9 @@ export default async function handler(req, res) {
   const auth = req.headers?.authorization || "";
   if (secret && auth !== `Bearer ${secret}` && (req.query || {}).secret !== secret) return res.status(401).json({ ok: false, error: "unauthorized" });
   try {
-    const result = q0.mode === "leagues" ? await syncAfLeagues(q0.only ? String(q0.only).toUpperCase().split(",") : null) : await runLive();
+    const result = q0.mode === "leagues" ? await syncAfLeagues(q0.only ? String(q0.only).toUpperCase().split(",") : null)
+      : q0.mode === "tables" ? { mode: "tables", ...(await refreshStandings(q0.only ? String(q0.only).toUpperCase().split(",") : TABLE_LEAGUES)) }
+      : await runLive();
     if (result.calls) await sb("sync_log", { method: "POST", body: { mode: q0.mode === "leagues" ? "leagues" : "live", ok: true, detail: JSON.stringify(result) }, prefer: "return=minimal" }).catch(() => {});
     return res.status(200).json({ ok: true, ...result });
   } catch (e) {
