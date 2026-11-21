@@ -345,6 +345,14 @@ img { display: block; }
 @media (prefers-reduced-motion: reduce) { .cg-body, .cg-chev { transition: none; } }
 /* ── ম্যাচ সেন্টার ── */
 .mc { margin-top: 14px; }
+.mp-pen { margin-top: 4px; font-size: 11.5px; font-weight: 700; color: #b45309; }
+.pen-pick { margin: 4px 12px 10px; padding: 10px 12px; border-radius: 14px; background: color-mix(in srgb, #f59e0b 10%, var(--card2)); }
+.pen-q { font-size: 13px; font-weight: 600; line-height: 1.45; }
+.pen-bonus { display: inline-block; background: #f59e0b; color: #fff; border-radius: 999px; padding: 0 8px; font: 800 11.5px Inter, 'Hind Siliguri', sans-serif; margin-left: 4px; }
+.pen-opts { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px; }
+.pen-opt { display: flex; align-items: center; justify-content: center; gap: 6px; min-height: 40px; padding: 6px 8px; border-radius: 12px; border: 1.5px solid var(--line); background: var(--card); color: inherit; font: 600 13px 'Hind Siliguri', sans-serif; cursor: pointer; }
+.pen-opt.on { border-color: #f59e0b; background: color-mix(in srgb, #f59e0b 16%, var(--card)); }
+
 .cm-list { display: flex; flex-direction: column; gap: 10px; }
 .cm { background: var(--card); border-radius: 18px; padding: 12px 14px 14px; }
 .cm-goal { background: linear-gradient(180deg, color-mix(in srgb, #3b82f6 16%, var(--card)) 0, var(--card) 70px); }
@@ -1408,6 +1416,8 @@ const LIVE = ["IN_PLAY", "PAUSED", "LIVE"];
 const isLive = (m) => LIVE.includes(m.status);
 const isDone = (m) => m.status === "FINISHED";
 const isOff = (m) => ["POSTPONED", "CANCELLED", "SUSPENDED"].includes(m.status);
+// নকআউট ম্যাচ (টাইব্রেকার হতে পারে): লিগ/গ্রুপ পর্ব নয় এমন রাউন্ড
+const isKnockout = (m) => (DEMO && typeof window !== "undefined" && window.__kkKO) || !!m?.stage && !/regular|league stage|league phase|group|^league [a-d]|^league - |REGULAR_SEASON|LEAGUE_STAGE|GROUP_STAGE/i.test(m.stage);
 const canPredict = (m) => !isOff(m) && new Date(m.utc_date) > new Date();
 
 // "শনিবার, ২১ নভেম্বর দিবাগত রাত ২:০০" — মাঝরাতের পরের খেলা আগের দিনের নামে
@@ -1762,11 +1772,11 @@ function getAllPlayers() {
   if (!allPlayersP) {
     try {
       const j = JSON.parse(localStorage.getItem("kk_players") || "null");
-      if (j && j.v === 3 && Date.now() - j.t < 86400000 && Array.isArray(j.data)) allPlayersP = Promise.resolve(j.data);
+      if (j && j.v === 4 && Date.now() - j.t < 86400000 && Array.isArray(j.data)) allPlayersP = Promise.resolve(j.data);
     } catch { /* ignore */ }
     // ছয় লিগ (football-data) + API-Football-এর লিগগুলো (সৌদি, এমএলএস…), একসাথে
-    const afSq = fetch("/api/live?squads=3").then((r) => (r.ok ? r.json() : [])).then((d) => (Array.isArray(d) ? d : [])).catch(() => []);
-    allPlayersP ||= Promise.all([extra({ type: "players" }), afSq]).then(([a, b]) => [...a, ...b]).then((data) => { try { localStorage.setItem("kk_players", JSON.stringify({ t: Date.now(), v: 3, data })); } catch { /* ignore */ } return data; })
+    const afSq = fetch("/api/live?squads=4").then((r) => (r.ok ? r.json() : [])).then((d) => (Array.isArray(d) ? d : [])).catch(() => []);
+    allPlayersP ||= Promise.all([extra({ type: "players" }), afSq]).then(([a, b]) => [...a, ...b]).then((data) => { try { localStorage.setItem("kk_players", JSON.stringify({ t: Date.now(), v: 4, data })); } catch { /* ignore */ } return data; })
       .catch((e) => { allPlayersP = null; throw e; });
   }
   return allPlayersP;
@@ -1864,13 +1874,15 @@ async function saveMyTeams(user, { fav, rival }) {
 // ═════════ প্রেডিকশন ═════════
 async function getMyPredictions(user) {
   if (DEMO) return ls.get("preds", {});
-  const rows = ok(await sb.from("predictions").select("match_id, home, away, points").eq("user_id", user.id));
+  const rows = ok(await sb.from("predictions").select("*").eq("user_id", user.id));
   return Object.fromEntries(rows.map((r) => [r.match_id, r]));
 }
 
-async function savePrediction(user, matchId, home, away) {
-  if (DEMO) { const p = ls.get("preds", {}); p[matchId] = { match_id: matchId, home, away, points: null }; ls.set("preds", p); return p[matchId]; }
-  return ok(await sb.from("predictions").upsert({ user_id: user.id, match_id: matchId, home, away }, { onConflict: "user_id,match_id" }).select("match_id, home, away, points").single());
+// penPick: নকআউটে ড্র দিলে টাইব্রেকারে কে জিতবে (১ ঘরের দল, ২ অতিথি); না দিলে ঘরটা পাঠানোই হয় না
+async function savePrediction(user, matchId, home, away, penPick) {
+  if (DEMO) { const p = ls.get("preds", {}); p[matchId] = { match_id: matchId, home, away, pen_pick: penPick ?? null, points: null }; ls.set("preds", p); return p[matchId]; }
+  const row = { user_id: user.id, match_id: matchId, home, away, ...(penPick !== undefined ? { pen_pick: home === away ? penPick : null } : {}) };
+  return ok(await sb.from("predictions").upsert(row, { onConflict: "user_id,match_id" }).select("*").single());
 }
 
 // comp না দিলে সব লিগ মিলিয়ে; দিলে শুধু সেই লিগের ম্যাচের পয়েন্ট
@@ -2147,7 +2159,7 @@ const TEAM_NAMES = {
 const teamName = (team, lang) =>
   !team ? (lang === "bn" ? "নির্ধারিত হয়নি" : "TBD")
     : TEAM_NAMES[team.id] ? TEAM_NAMES[team.id][lang === "bn" ? 1 : 0]
-    : lang === "bn" ? team.name_bn || team.short_en || team.name_en : team.short_en || team.name_en;
+    : lang === "bn" ? team.name_bn || (team.id >= 10000000 && team.short_en ? NAT_BN[team.short_en] || trName(team.short_en.replace(/\b(FC|SC|CF|AFC|CD|SD|UD|AC|SAD|SFC|FK|SK|BK)\b\.?/g, "").trim()) : null) || team.short_en || team.name_en : team.short_en || team.name_en;
 // খোঁজার জন্য দলের সব নাম
 const teamAliases = (t) => [t.name_bn, t.name_en, t.short_en, ...(TEAM_NAMES[t.id] || []), ...(TEAM_SHORT[t.id] || [])];
 // ম্যাচের সারিতে জায়গা কম: লম্বা নামের প্রচলিত ছোট রূপ (FotMob-এর মতো)। দলের পাতা, শিট, সার্চে পুরো নাম থাকে।
@@ -3547,7 +3559,8 @@ function MatchPage({ id, m: mInit, user, pred, onSave, onLogin, toast }) {
   const now = useNow(1000);
   const [h, setH] = useState(pred?.home ?? 0);
   const [a, setA] = useState(pred?.away ?? 0);
-  useEffect(() => { if (pred) { setH(pred.home); setA(pred.away); } }, [pred?.home, pred?.away]);
+  const [pen, setPen] = useState(pred?.pen_pick ?? null);
+  useEffect(() => { if (pred) { setH(pred.home); setA(pred.away); setPen(pred.pen_pick ?? null); } }, [pred?.home, pred?.away, pred?.pen_pick]);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
   const [making, setMaking] = useState(false);
@@ -3557,11 +3570,13 @@ function MatchPage({ id, m: mInit, user, pred, onSave, onLogin, toast }) {
   if (gone) return <div className="card empty" style={{ marginTop: 16 }}>{bn ? "ম্যাচটা খুঁজে পাওয়া গেল না" : "Match not found"}</div>;
   if (!m) return <Loading />;
   const open = canPredict(m);
+  const ko = isKnockout(m);
   const showScore = (isLive(m) || isDone(m)) && m.home_score != null;
 
   async function save() {
     setBusy(true); setErr("");
-    try { await onSave(m, h, a); toast(pred ? (bn ? "প্রেডিকশন বদলানো হয়েছে ✓" : "Prediction updated ✓") : (bn ? "প্রেডিকশন জমা হয়েছে ✓" : "Prediction submitted ✓")); }
+    if (ko && h === a && !pen) { setErr(bn ? "ড্র দিলে টাইব্রেকারে কে জিতবে, সেটাও বেছে নিন" : "Pick who wins the shootout"); setBusy(false); return; }
+    try { await onSave(m, h, a, ko ? (h === a ? pen : null) : undefined); toast(pred ? (bn ? "প্রেডিকশন বদলানো হয়েছে ✓" : "Prediction updated ✓") : (bn ? "প্রেডিকশন জমা হয়েছে ✓" : "Prediction submitted ✓")); }
     catch (e) { setErr(e?.message || t("error")); }
     setBusy(false);
   }
@@ -3599,6 +3614,7 @@ function MatchPage({ id, m: mInit, user, pred, onSave, onLogin, toast }) {
               ? <div className="ms-score">{num(m.home_score, lang)} - {num(m.away_score, lang)}</div>
               : <div className="ms-time">{timeLabel(m.utc_date, lang)}</div>}
             <div className={"ms-date" + (isDone(m) ? " mp-ft" : "")}>{showScore ? <LiveClock m={m} L={L} lang={lang} /> : dayLabel(dayKey(m.utc_date), lang, { short: true })}</div>
+            {m.pen_home != null && m.pen_away != null && <div className="mp-pen">{bn ? `টাইব্রেকারে ${num(m.pen_home, lang)}–${num(m.pen_away, lang)}` : `Pens ${m.pen_home}–${m.pen_away}`}</div>}
             {open && !isLive(m) && <div className="mp-cd">{clockDown(new Date(m.utc_date) - now, lang)}</div>}
           </div>
           <button className="ms-team" onClick={() => m.away_id && nav.openTeam(m.away_id)}><Crest team={m.away} size={42} /><span>{teamName(m.away, lang)}</span></button>
@@ -3628,10 +3644,18 @@ function MatchPage({ id, m: mInit, user, pred, onSave, onLogin, toast }) {
                 <div className="dash">–</div>
                 <div className="pick-side"><small className="muted">{teamName(m.away, lang)}</small><Stepper v={a} set={setA} /></div>
               </div>
+              {ko && h === a && (
+                <div className="pen-pick">
+                  <div className="pen-q">{bn ? "৯০+৩০ মিনিটে নিষ্পত্তি না হলে টাইব্রেকারে কে জিতবে?" : "If it's still level after extra time, who wins the shootout?"} <span className="pen-bonus">+{num(5, lang)}</span></div>
+                  <div className="pen-opts">
+                    {[[1, m.home], [2, m.away]].map(([k, t]) => <button key={k} className={"pen-opt" + (pen === k ? " on" : "")} onClick={() => setPen(k)}><Crest team={t} size={20} />{teamName(t, lang)}</button>)}
+                  </div>
+                </div>
+              )}
               <div className="pick-out">{h > a ? (lang === "bn" ? `${teamName(m.home, lang)} জিতবে` : `${teamName(m.home, lang)} win`) : h < a ? (lang === "bn" ? `${teamName(m.away, lang)} জিতবে` : `${teamName(m.away, lang)} win`) : (lang === "bn" ? "ড্র হবে" : "Draw")}</div>
               <div style={{ padding: "0 12px 12px" }}>
                 {err && <div className="err">{err}</div>}
-                {pred && !(pred.home !== h || pred.away !== a) ? (
+                {pred && !(pred.home !== h || pred.away !== a) && (!ko || h !== a || (pred.pen_pick ?? null) === pen) ? (
                   <div className="pick-done">
                     <span className="pick-ok">✓</span>
                     <span><b>{lang === "bn" ? "প্রেডিকশন দেওয়া আছে" : "Prediction locked in"}</b><small className="muted">{lang === "bn" ? "খেলা শুরুর আগ পর্যন্ত স্কোর বদলে আবার দিতে পারবেন" : "Change the score any time before kickoff"}</small></span>
@@ -5933,6 +5957,14 @@ const COMP_WORDS = {
   FL1: ["লিগ আঁ", "লিগ ওয়ান", "ligue 1", "ligue un"],
   SPL: ["সৌদি প্রো লিগ", "সৌদি লিগ", "সৌদি", "saudi pro league", "saudi league", "roshn"],
   MLS: ["এমএলএস", "মেজর লিগ সকার", "আমেরিকান লিগ", "mls", "major league soccer"],
+  UECL: ["কনফারেন্স লিগ", "কনফারেন্স", "conference league", "uecl"],
+  UNL: ["নেশনস লিগ", "নেশন্স লিগ", "nations league", "unl"],
+  EURO: ["ইউরো", "ইউরোপিয়ান চ্যাম্পিয়নশিপ", "euro", "euros", "european championship"],
+  FAC: ["এফএ কাপ", "এফএকাপ", "fa cup"],
+  EFL: ["কারাবাও কাপ", "লিগ কাপ", "ইএফএল কাপ", "carabao cup", "efl cup", "league cup"],
+  CDR: ["কোপা দেল রে", "কোপা দেল রেই", "copa del rey"],
+  CCC: ["কনকাকাফ", "কনকাকাফ চ্যাম্পিয়ন্স কাপ", "concacaf", "concacaf champions cup"],
+  ACL: ["এএফসি চ্যাম্পিয়ন্স লিগ", "এশিয়ান চ্যাম্পিয়ন্স লিগ", "এএফসি", "afc champions league", "acl"],
 };
 
 const W = {
@@ -6005,8 +6037,10 @@ const poss = (name, lang) => (lang !== "bn" ? `${name}'s`
   : name + "ের");
 
 // ════════ খেলোয়াড়ের প্রশ্ন ════════
-const COMP_ORDER = ["CL", "PL", "PD", "BL1", "SA", "FL1", "SPL", "MLS"];
-const COMP_LABEL = { CL: ["চ্যাম্পিয়ন্স লিগ", "Champions League"], PL: ["প্রিমিয়ার লিগ", "Premier League"], PD: ["লা লিগা", "La Liga"], BL1: ["বুন্দেসলিগা", "Bundesliga"], SA: ["সিরি আ", "Serie A"], FL1: ["লিগ ওয়ান", "Ligue 1"], SPL: ["সৌদি প্রো লিগ", "Saudi Pro League"], MLS: ["এমএলএস", "MLS"] };
+const COMP_ORDER = ["CL", "PL", "PD", "BL1", "SA", "FL1", "SPL", "MLS", "UECL", "UNL", "EURO", "FAC", "EFL", "CDR", "CCC", "ACL"];
+const COMP_LABEL = { CL: ["চ্যাম্পিয়ন্স লিগ", "Champions League"], PL: ["প্রিমিয়ার লিগ", "Premier League"], PD: ["লা লিগা", "La Liga"], BL1: ["বুন্দেসলিগা", "Bundesliga"], SA: ["সিরি আ", "Serie A"], FL1: ["লিগ ওয়ান", "Ligue 1"], SPL: ["সৌদি প্রো লিগ", "Saudi Pro League"], MLS: ["এমএলএস", "MLS"],
+  UECL: ["কনফারেন্স লিগ", "Conference League"], UNL: ["নেশনস লিগ", "Nations League"], EURO: ["ইউরো", "Euro"], FAC: ["এফএ কাপ", "FA Cup"],
+  EFL: ["কারাবাও কাপ", "Carabao Cup"], CDR: ["কোপা দেল রে", "Copa del Rey"], CCC: ["কনকাকাফ চ্যাম্পিয়ন্স কাপ", "CONCACAF Champions Cup"], ACL: ["এএফসি চ্যাম্পিয়ন্স লিগ", "AFC Champions League"] };
 const compLabel = (code, lang) => (COMP_LABEL[code] || [code, code])[lang === "bn" ? 0 : 1];
 // একটা দল/খেলোয়াড় যে প্রতিযোগিতাগুলোয় আছে, নাম ধরে: "লা লিগা ও চ্যাম্পিয়ন্স লিগ" (লিগ আগে, ইউসিএল পরে)
 const compList = (codes, lang) => {
@@ -8133,8 +8167,8 @@ export default function App() {
     setProfile(p); setEditing(false);
   }
 
-  async function onSavePrediction(m, h, a) {
-    const p = await savePrediction(user, m.id, h, a);
+  async function onSavePrediction(m, h, a, penPick) {
+    const p = await savePrediction(user, m.id, h, a, penPick);
     setPreds((x) => ({ ...x, [m.id]: p }));
   }
 
