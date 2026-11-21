@@ -437,7 +437,8 @@ const tRow = (r, code) => ({
 const pRow = (r, key) => {
   const x = r.statistics?.[0] || {};
   const v = key === "goals" ? x.goals?.total : key === "assists" ? x.goals?.assists : key === "yellow" ? x.cards?.yellow : x.cards?.red;
-  return { id: POFF + r.player.id, name: dec(r.player.name), photo: r.player.photo, team: { af: x.team?.id, name: dec(x.team?.name), logo: x.team?.logo }, apps: x.games?.appearences ?? null, v: v ?? 0 };
+  const full = r.player.firstname && r.player.lastname ? `${dec(r.player.firstname).split(" ")[0]} ${dec(r.player.lastname)}` : null;
+  return { id: POFF + r.player.id, name: dec(r.player.name), full, photo: r.player.photo, team: { af: x.team?.id, name: dec(x.team?.name), logo: x.team?.logo }, apps: x.games?.appearences ?? null, v: v ?? 0 };
 };
 async function leagueInfo(code, kind) {
   const lid = afLeagueId(code);

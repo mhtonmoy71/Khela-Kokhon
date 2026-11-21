@@ -2613,6 +2613,81 @@ const PLAYER_BN = {
 };
 const playerName = (name, lang) => (lang === "bn" && PLAYER_BN[name]) || name;
 
+// ── API-Football-এর নাম ("E. Haaland", "Cristiano Ronaldo") বাংলায়:
+//    ১) হাতে লেখা বানান ২) আমাদের বাংলা নামের তালিকা (পুরো নাম, বা আদ্যক্ষর + পদবি মিলিয়ে) ৩) উচ্চারণ ধরে আনুমানিক রূপান্তর
+const AF_NAME_BN = {"L. Messi": "লিওনেল মেসি", "Lionel Messi": "লিওনেল মেসি", "Cristiano Ronaldo": "ক্রিস্তিয়ানো রোনালদো", "E. Mbappé": "এমবাপে", "K. Mbappé": "কিলিয়ান এমবাপে", "Son Heung-Min": "সন হিউং-মিন", "J. Bellingham": "বেলিংহাম", "A. Lacazette": "লাকাজেত", "A. Kanté": "কান্তে", "S. Mané": "সাদিও মানে", "João Félix": "জোয়াও ফেলিক্স", "Rúben Neves": "রুবেন নেভেস", "R. De Paul": "দি পল", "R. Bentancur": "বেন্তানকুর", "I. Toney": "টনি", "O. Watkins": "ওয়াটকিন্স", "M. Reus": "রয়েস", "M. Thuram": "থুরাম", "M. Politano": "পলিতানো", "M. Retegui": "রেতেগি", "S. Milinković-Savić": "মিলিনকোভিচ-সাভিচ", "M. Škriniar": "স্ক্রিনিয়ার", "M. Kudus": "কুদুস", "M. Gibbs-White": "গিবস-হোয়াইট", "J.  McGinn": "ম্যাকগিন", "J. McGinn": "ম্যাকগিন", "Gabriel Martinelli": "মার্তিনেল্লি", "Aymeric Laporte": "লাপোর্ত", "Y. Carrasco": "কারাস্কো", "Y. En-Nesyri": "এন-নেসিরি", "T. Reijnders": "রেইন্ডার্স", "J. Ramsey": "র‍্যামসি", "T. Weah": "টিমোথি উইয়াহ", "S. Bergwijn": "বার্গওয়াইন", "D. Kamada": "কামাদা", "C. De Ketelaere": "দে কেতেলায়েরে", "Talisca": "তালিসকা", "Trincão": "ত্রিনকাও", "Guilherme": "গিলহের্মে", "Thiago": "থিয়াগো", "Bernardo": "বের্নার্দো", "Emerson": "এমারসন", "Wesley": "ওয়েসলি", "Yuri": "ইউরি", "Evander": "ইভান্দার", "Rômulo": "রোমুলো", "A. Brown": "ব্রাউন", "C. Tolisso": "তোলিসো", "M. Guendouzi": "গেন্দুজি", "M. Zaccagni": "জাক্কাগনি", "J. Díaz": "লুইস দিয়াস", "M. Cash": "ক্যাশ", "E. Ampadu": "আমপাদু", "K. Dewsbury-Hall": "ডিউসবেরি-হল", "P. Aaronson": "অ্যারনসন", "M. Demiral": "দেমিরাল", "Danilo Pereira": "দানিলো পেরেইরা", "Carlos Soler": "কার্লোস সোলের", "José Gayà": "হোসে গায়া", "Marcos Alonso": "মার্কোস আলোনসো", "Iñigo Vicente": "ইনিগো ভিসেন্তে", "Yeremy Pino": "ইয়েরেমি পিনো", "D. Bouanga": "বোয়াঙ্গা", "Javier Hernandez": "হাভিয়ের এরনান্দেজ", "J. Rodríguez": "হামেস রদ্রিগেজ", "Gonzalo Villar": "গনসালো ভিয়ার"};
+// ইংরেজি হরফের নাম → বাংলা উচ্চারণ (আনুমানিক; বানানের তালিকায় না থাকলে)
+const TR_C = [
+  ["sch", "শ"], ["tch", "চ"], ["sh", "শ"], ["ch", "চ"], ["th", "থ"], ["ph", "ফ"], ["kh", "খ"], ["gh", "গ"], ["dh", "ধ"], ["bh", "ভ"],
+  ["ck", "ক"], ["qu", "ক"], ["dj", "জ"], ["dz", "জ"], ["ts", "ৎস"], ["tz", "ৎস"], ["ny", "নি"], ["ñ", "নি"], ["ll", "ল"], ["tt", "ট"], ["ss", "স"], ["ff", "ফ"], ["pp", "প"], ["mm", "ম"], ["nn", "ন"], ["rr", "র"], ["bb", "ব"], ["dd", "ড"], ["gg", "গ"], ["zz", "জ"], ["cc", "ক"],
+  ["b", "ব"], ["c", "ক"], ["d", "ড"], ["f", "ফ"], ["g", "গ"], ["h", "হ"], ["j", "জ"], ["k", "ক"], ["l", "ল"], ["m", "ম"], ["n", "ন"], ["p", "প"],
+  ["q", "ক"], ["r", "র"], ["s", "স"], ["t", "ট"], ["v", "ভ"], ["w", "ও"], ["x", "ক্স"], ["z", "জ"], ["ç", "স"],
+];
+const TR_V = [ // [লাতিন, স্বাধীন রূপ, কার]
+  ["aa", "আ", "া"], ["ow", "আউ", "াউ"], ["ee", "ই", "ী"], ["oo", "উ", "ু"], ["ou", "উ", "ু"], ["ai", "আই", "াই"], ["ay", "আই", "াই"], ["ei", "েই", "েই"], ["ey", "এই", "েই"],
+  ["au", "আউ", "াউ"], ["ie", "ই", "ি"], ["ea", "ই", "ী"], ["oe", "ও", "ো"], ["ue", "ুয়ে", "ুয়ে"], ["ui", "ুই", "ুই"], ["io", "িও", "িও"], ["ia", "িয়া", "িয়া"],
+  ["a", "আ", "া"], ["e", "এ", "ে"], ["i", "ই", "ি"], ["o", "ও", "ো"], ["u", "উ", "ু"], ["y", "ই", "ি"],
+];
+function trWord(w0) {
+  const romance = /[aoáéíóúãõç]$|[áéíóúãõçñ]|ez$|es$/i.test(w0);
+  const accE = /[éè]$/i.test(w0);
+  w0 = w0.replace(/[čć]/gi, "ch").replace(/š/gi, "sh").replace(/ž/gi, "z");
+  if (/^mc/i.test(w0)) return "ম্যাক" + trWord(w0.slice(2));
+  if (/^n'/i.test(w0)) return "এন" + trWord(w0.slice(2));
+  let w = w0.normalize("NFD").replace(/[̀-ͯ]/g, (m, i) => "").toLowerCase().replace(/ø/g, "o").replace(/æ/g, "ae").replace(/ß/g, "ss").replace(/[^a-zñç]/g, "");
+  w = w0.toLowerCase().includes("ñ") ? w.replace(/n(?=[aeiou])/, (m) => m) : w;
+  let out = "", prevCons = false, i = 0;
+  while (i < w.length) {
+    // স্বরধ্বনি
+    const v = TR_V.find(([l]) => w.startsWith(l, i) && !(l === "y" && /[aeiou]/.test(w[i + 1] || "")));
+    if (v) {
+      const atEnd = i + v[0].length >= w.length;
+      if (prevCons) out += v[2]; else out += (out && v[0][0] === "a" ? "য়া" : out && v[0][0] === "o" ? "য়ো" : out && v[0][0] === "e" ? "য়ে" : v[1]);
+      // শেষের নীরব e (ইংরেজি): Rice → রাইস
+      if (atEnd && v[0] === "e" && !accE && !romance && w.length > 3 && prevCons && /[aiou]/.test(w.slice(0, -2))) out = out.slice(0, -1);
+      i += v[0].length; prevCons = false; continue;
+    }
+    // ব্যঞ্জনধ্বনি (c, g নরম হলে)
+    let c = TR_C.find(([l]) => w.startsWith(l, i));
+    if (!c) { i++; continue; }
+    let b = c[1];
+    if (romance && b === "ট") b = "ত";
+    if (romance && b === "ড") b = "দ";
+    if (c[0] === "c" && /[ei]/.test(w[i + 1] || "")) b = "স";
+    if (c[0] === "y" ) b = "ই";
+    if (c[0] === "w" && prevCons) b = "ও";
+    if (c[0] === "w" && /[aeiou]/.test(w[i + 1] || "")) { out += prevCons ? "্ও" : "ও"; i += 1; prevCons = false; // Watkins → ওয়াটকিন্স
+      const v2 = TR_V.find(([l]) => w.startsWith(l, i)); if (v2) { out += "য়" + v2[2]; i += v2[0].length; } continue; }
+    if (prevCons && b !== "্" ) out += "্";
+    out += b; i += c[0].length; prevCons = !b.endsWith("ি") && !/[ঃং]$/.test(b);
+  }
+  return out.replace(/্$/, "");
+}
+const trName = (n) => (n || "").replace(/^[A-Z]\.\s*/, "").split(/[\s-]+/).filter(Boolean).map(trWord).join(" ");
+const asciiLow = (x) => (x || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+let PB_IDX = null;
+const pbIndex = () => {
+  if (PB_IDX) return PB_IDX;
+  PB_IDX = {};
+  for (const [k, v] of Object.entries(PLAYER_BN)) {
+    const w = k.split(/\s+/);
+    if (w.length >= 2) { const key = asciiLow(w[0])[0] + "|" + asciiLow(w[w.length - 1]); PB_IDX[key] = PB_IDX[key] && PB_IDX[key] !== v ? "?" : v; }
+    PB_IDX["*|" + asciiLow(k)] = v;
+  }
+  return PB_IDX;
+};
+function bnPlayer(name, lang, full) {
+  if (lang !== "bn" || !name) return name;
+  if (AF_NAME_BN[name]) return AF_NAME_BN[name];
+  if (full && PLAYER_BN[full]) return PLAYER_BN[full];
+  if (PLAYER_BN[name]) return PLAYER_BN[name];
+  const I = pbIndex();
+  const m = /^([A-Za-z])\.\s+(.+)$/.exec(name.trim());
+  const hit = m ? I[m[1].toLowerCase() + "|" + asciiLow(m[2].split(/\s+/).pop())] : I["*|" + asciiLow(name)] || (full && I["*|" + asciiLow(full)]);
+  if (hit && hit !== "?") return hit;
+  return trName(name) || name;
+}
+
 // ── লোগো: চলমান ঘড়ি, ভেতরে "খ" আর "?" (v1-এর লোগো) — বাংলাদেশ সময়ে চলে ──
 function Logo({ size = 30, onClick }) {
   const [now, setNow] = useState(Date.now());
@@ -3053,14 +3128,14 @@ function MatchEvents({ L, m, lang }) {
     if (goal) { if (e.s === "h") h++; else if (e.s === "a") a++; }
     const sp = subs.get(e);
     const main = sp ? sp.in : e.p;
-    const sub = sp ? (bn ? `মাঠ ছাড়লেন ${sp.off}` : `Off: ${sp.off}`)
-      : e.t === "Goal" && e.a && !/Own|Missed/i.test(e.d || "") ? (bn ? `অ্যাসিস্ট: ${e.a}` : `Assist: ${e.a}`)
+    const sub = sp ? (bn ? `মাঠ ছাড়লেন ${bnPlayer(sp.off, lang)}` : `Off: ${sp.off}`)
+      : e.t === "Goal" && e.a && !/Own|Missed/i.test(e.d || "") ? (bn ? `অ্যাসিস্ট: ${bnPlayer(e.a, lang)}` : `Assist: ${e.a}`)
       : EV_BN[e.d] && (bn ? EV_BN[e.d] : e.d !== "Normal Goal" ? e.d : null);
     rows.push(
       <div key={rows.length} className={"ev " + (e.s === "a" ? "ev-a" : "ev-h") + (goal ? " goal" : "")}>
         <span className="ev-min">{minuteTxt(e.m ?? 0, e.x, lang)}</span>
         <EvIcon e={e} />
-        <span className="ev-txt"><b>{main || "—"}</b>{sub ? <small className="muted">{e.t === "Var" ? "VAR · " : ""}{sub}</small> : null}</span>
+        <span className="ev-txt"><b>{main ? bnPlayer(main, lang) : "—"}</b>{sub ? <small className="muted">{e.t === "Var" ? "VAR · " : ""}{sub}</small> : null}</span>
         {goal ? <span className="ev-sc">{num(h, lang)} - {num(a, lang)}</span> : <span />}
       </div>
     );
@@ -3104,8 +3179,11 @@ const BallMini = ({ n }) => (
 );
 const rateCls = (r) => (r >= 7.5 ? "r-hi" : r >= 6.5 ? "r-ok" : "r-lo");
 const unEnt = (s) => (s || "").replace(/&(amp|apos|quot|#39);/g, (_, k) => ({ amp: "&", apos: "'", quot: '"', "#39": "'" })[k]);
+// মাঠ আর গোলদাতার সারির জন্য ছোট নাম (বাংলায় পদবি)
+const shortName = (n, lang) => { if (lang !== "bn") return lastName(n); const b = bnPlayer(unEnt(n), lang); const w = b.split(" "); return w.length > 1 && !/^(দি|দে|ডি|ভান|আল|এল|বেন)$/.test(w[w.length - 2]) ? w[w.length - 1] : w.slice(-2).join(" "); };
 const lastName = (n0) => { const n = unEnt(n0); const p = (n || "").split(" "); return p.length > 1 && /\.$/.test(p[0]) ? p.slice(1).join(" ") : p[p.length - 1] || n; };
 function PitchMan({ p, st, side }) {
+  const { lang } = useT();
   const [noPic, setNoPic] = useState(false);
   const nav = useNav();
   return (
@@ -3116,7 +3194,7 @@ function PitchMan({ p, st, side }) {
         {st?.g ? <em className="pm-g"><BallMini n={st.g} /></em> : null}
         {st?.rc ? <em className="pm-card red" /> : st?.yc ? <em className="pm-card" /> : null}
       </span>
-      <span className="pm-n">{p.no != null && !noPic ? <span className="pm-no">{p.no}</span> : null}{lastName(p.n)}</span>
+      <span className="pm-n">{p.no != null && !noPic ? <span className="pm-no">{p.no}</span> : null}{shortName(p.n, lang)}</span>
     </button>
   );
 }
@@ -3151,7 +3229,7 @@ function MatchLineups({ L, m, lang }) {
       <div className="lu-h"><Crest team={side === "h" ? m.home : m.away} size={18} /><b>{teamShort(side === "h" ? m.home : m.away, lang)}</b>{T.coach && <small className="muted">{bn ? "কোচ" : "Coach"}: {T.coach}</small>}</div>
       {T.sub.map((p) => { const s = P[p.id]; return (
         <button key={p.id || p.n} className={"lu-p" + (s?.min ? " played" : "")} onClick={() => p.id && nav.openPlayer(10000000 + p.id)}>
-          <span className="lu-no">{p.no ?? ""}</span><span className="lu-n">{p.n}</span>
+          <span className="lu-no">{p.no ?? ""}</span><span className="lu-n">{bnPlayer(p.n, lang)}</span>
           {s?.g ? <span className="lu-ev"><BallMini n={s.g} /></span> : null}
           {s?.r ? <em className={"pm-r " + rateCls(s.r)}>{s.r.toFixed(1)}</em> : null}
         </button>
@@ -3162,7 +3240,7 @@ function MatchLineups({ L, m, lang }) {
     <>
       {bestP && (
         <div className="lu-best"><span className={"pm-r big " + rateCls(best[1].r)}>{best[1].r.toFixed(1)}</span>
-          <span><small className="muted">{bn ? "ম্যাচ সেরা" : "Player of the match"}</small><b>{bestP.n}</b></span></div>
+          <span><small className="muted">{bn ? "ম্যাচ সেরা" : "Player of the match"}</small><b>{bnPlayer(bestP.n, lang)}</b></span></div>
       )}
       {grid ? (
         <div className="pitch">
@@ -3175,7 +3253,7 @@ function MatchLineups({ L, m, lang }) {
       ) : (
         <div className="lu-cols">{[["h", h], ["a", a]].map(([sd, T]) => (
           <div key={sd} className="lu-subs"><div className="lu-h"><b>{teamShort(sd === "h" ? m.home : m.away, lang)}</b><small className="muted">{T.f}</small></div>
-            {T.xi.map((p) => <button key={p.id || p.n} className="lu-p played" onClick={() => p.id && nav.openPlayer(10000000 + p.id)}><span className="lu-no">{p.no}</span><span className="lu-n">{p.n}</span>{P[p.id]?.r ? <em className={"pm-r " + rateCls(P[p.id].r)}>{P[p.id].r.toFixed(1)}</em> : null}</button>)}
+            {T.xi.map((p) => <button key={p.id || p.n} className="lu-p played" onClick={() => p.id && nav.openPlayer(10000000 + p.id)}><span className="lu-no">{p.no}</span><span className="lu-n">{bnPlayer(p.n, lang)}</span>{P[p.id]?.r ? <em className={"pm-r " + rateCls(P[p.id].r)}>{P[p.id].r.toFixed(1)}</em> : null}</button>)}
           </div>))}</div>
       )}
       <div className="sec-h" style={{ margin: "14px 0 6px" }}><h2>{bn ? "বদলি খেলোয়াড়" : "Substitutes"}</h2></div>
@@ -3216,7 +3294,7 @@ function Scorers({ L, lang }) {
       const tag = /Own/i.test(e.d || "") ? (bn ? " (আত্মঘাতী)" : " (OG)") : /Penalty/i.test(e.d || "") ? (bn ? " (পেনাল্টি)" : " (P)") : "";
       (by.get(k) || by.set(k, []).get(k)).push(minuteTxt(e.m ?? 0, e.x, lang) + tag);
     }
-    return [...by].map(([n, ms]) => <div key={n}><b>{lastName(n)}</b> {ms.join(", ")}</div>);
+    return [...by].map(([n, ms]) => <div key={n}><b>{shortName(n, lang)}</b> {ms.join(", ")}</div>);
   };
   return (
     <div className="ms-goals">
@@ -6884,7 +6962,7 @@ function LeaderCard({ title, list, lang, unit, fmt }) {
       {(all ? list : list.slice(0, 3)).map((r, i) => (
         <button key={r.id || r.af || i} className="ldr-r" onClick={() => r.id && r.id >= 10000000 && !r.af ? nav.openPlayer(r.id) : r.onOpen?.()}>
           <span className="ldr-n muted">{num(i + 1, lang)}</span>
-          {r.photo !== undefined ? <PhotoDot src={r.photo} name={r.name} /> : <Crest team={r.crestTeam} size={26} />}
+          {r.photo !== undefined ? <PhotoDot src={r.photo} name={r.label || r.name} /> : <Crest team={r.crestTeam} size={26} />}
           <span className="ldr-nm"><b>{r.label || r.name}</b>{r.sub && <small className="muted">{r.sub}</small>}</span>
           <span className={"ldr-v" + (i === 0 ? " top" : "")}>{fmt ? fmt(r.v) : num(r.v, lang)}{unit ? <small> {unit}</small> : null}</span>
         </button>
@@ -6904,17 +6982,19 @@ function League({ code, comps, preds, onOpen, teamsById }) {
   const c = comps.find((x) => x.code === code) || { code, name_bn: code, name_en: code };
   const [tab, setTab] = useState("table");
   const tbl = useLgInfo(code, "table");
-  const pl = useLgInfo(code, "players", tab === "players");
+  const pl = useLgInfo(code, "players", tab === "stats");
   const ss = useLgInfo(code, "seasons", tab === "seasons");
   const [games, setGames] = useState(null);
   useEffect(() => { if (tab === "matches" && games === null) Promise.all([getCompUpcoming(code, 15), getCompRecent(code, 15)]).then(([up, past]) => setGames({ up, past })).catch(() => setGames({ up: [], past: [] })); }, [tab]);
   useEffect(() => { document.title = `${compName(c, lang)} · খেলা কখন?`; return () => { document.title = "খেলা কখন?"; }; }, [code, lang]);
   const seTxt = (se) => (se ? (bn ? `${num(se, "bn")}–${num(String((se + 1) % 100).padStart(2, "0"), "bn")}` : `${se}/${String((se + 1) % 100).padStart(2, "0")}`) : "");
-  const tabs = [["table", bn ? "টেবিল" : "Table"], ["matches", bn ? "ম্যাচ" : "Matches"], ["players", bn ? "খেলোয়াড়" : "Players"], ["teams", bn ? "দল" : "Teams"], ...(code === "CL" ? [] : [["seasons", bn ? "মৌসুম" : "Seasons"]])];
+  const tabs = [["table", bn ? "টেবিল" : "Table"], ["matches", bn ? "ম্যাচ" : "Matches"], ["stats", bn ? "পরিসংখ্যান" : "Stats"], ...(code === "CL" ? [] : [["seasons", bn ? "মৌসুম" : "Seasons"]])];
+  const [sub, setSub] = useState("players");
   const allRows = tbl && tbl.groups ? tbl.groups.flat() : [];
   const teamItem = (r, v) => { const ours = r.id ? teamsById?.[r.id] : findTeam(teamsById, r.name); return { af: r.af, name: r.name, label: ours ? teamName(ours, lang) || r.name : r.name, crestTeam: ours?.crest ? ours : { short_en: r.name, crest: r.logo }, v, onOpen: ours ? () => nav.openTeam(ours.id) : null }; };
   const top = (f, asc) => allRows.filter((r) => r.all?.p).map((r) => teamItem(r, f(r))).sort((a, b) => (asc ? a.v - b.v : b.v - a.v));
-  const pItems = (list) => (list || []).map((r) => ({ ...r, label: playerName(r.name, lang), sub: r.team?.name }));
+  const tName = (t) => { const ours = t?.af && (teamsById?.[10000000 + t.af] || findTeam(teamsById, t.name)); return ours ? teamName(ours, lang) || t.name : t?.name; };
+  const pItems = (list) => (list || []).map((r) => ({ ...r, label: bnPlayer(r.name, lang, r.full), sub: tName(r.team) }));
   const dec1 = (v) => num(v.toFixed(1), lang);
   return (
     <div className="lg-page">
@@ -6936,7 +7016,8 @@ function League({ code, comps, preds, onOpen, teamsById }) {
             {games.past.length ? <div className="card"><DatedRows list={games.past} preds={preds} onOpen={onOpen} /></div> : <div className="card empty">{bn ? "কোনো ফল নেই" : "No results"}</div>}
           </>
         ))}
-        {tab === "players" && (pl === null ? <Loading /> : !pl ? <div className="card empty">{bn ? "খেলোয়াড়ের পরিসংখ্যান এখন পাওয়া যাচ্ছে না" : "Player stats unavailable"}</div> : (
+        {tab === "stats" && <div className="seg lgt-seg" style={{ marginBottom: 12 }}>{[["players", bn ? "খেলোয়াড়" : "Players"], ["teams", bn ? "দল" : "Teams"]].map(([k, l]) => <button key={k} className={sub === k ? "on" : ""} onClick={() => setSub(k)}>{l}</button>)}</div>}
+        {tab === "stats" && sub === "players" && (pl === null ? <Loading /> : !pl ? <div className="card empty">{bn ? "খেলোয়াড়ের পরিসংখ্যান এখন পাওয়া যাচ্ছে না" : "Player stats unavailable"}</div> : (
           <div className="ldr-grid">
             <LeaderCard title={bn ? "গোল" : "Goals"} list={pItems(pl.goals)} lang={lang} />
             <LeaderCard title={bn ? "অ্যাসিস্ট" : "Assists"} list={pItems(pl.assists)} lang={lang} />
@@ -6944,7 +7025,7 @@ function League({ code, comps, preds, onOpen, teamsById }) {
             <LeaderCard title={bn ? "লাল কার্ড" : "Red cards"} list={pItems(pl.red)} lang={lang} />
           </div>
         ))}
-        {tab === "teams" && (tbl === null ? <Loading /> : !allRows.length ? <div className="card empty">{bn ? "দলের পরিসংখ্যান এখন পাওয়া যাচ্ছে না" : "Team stats unavailable"}</div> : (
+        {tab === "stats" && sub === "teams" && (tbl === null ? <Loading /> : !allRows.length ? <div className="card empty">{bn ? "দলের পরিসংখ্যান এখন পাওয়া যাচ্ছে না" : "Team stats unavailable"}</div> : (
           <div className="ldr-grid">
             <LeaderCard title={bn ? "সবচেয়ে বেশি গোল" : "Most goals"} list={top((r) => r.all.gf || 0)} lang={lang} />
             <LeaderCard title={bn ? "ম্যাচপ্রতি গোল" : "Goals per match"} list={top((r) => (r.all.gf || 0) / r.all.p)} lang={lang} fmt={dec1} />
@@ -7173,7 +7254,7 @@ function AfPlayer({ id, comps, teamsById }) {
   const [career, setCareer] = useState(null);
   const [lg, setLg] = useState("all");
   useEffect(() => { let a = true; setP(null); getAfPlayer(id).then((d) => a && setP(d)).catch(() => a && setP(false)); return () => { a = false; }; }, [id]);
-  useEffect(() => { if (p?.name) document.title = `${playerName(afFullName(p), lang)} · খেলা কখন?`; return () => { document.title = "খেলা কখন?"; }; }, [p?.name, lang]);
+  useEffect(() => { if (p?.name) document.title = `${bnPlayer(p.name, lang, afFullName(p))} · খেলা কখন?`; return () => { document.title = "খেলা কখন?"; }; }, [p?.name, lang]);
   // ম্যাচ আর ক্যারিয়ার শুধু সেই ট্যাব খুললে আনা
   useEffect(() => {
     if (tab === "mt" && games === null && p?.teams) fetch(`/api/live?pmatches=${id}&teams=${p.teams.join(",")}`).then((r) => r.json()).then((d) => setGames(Array.isArray(d) ? d : [])).catch(() => setGames([]));
@@ -7219,7 +7300,7 @@ function AfPlayer({ id, comps, teamsById }) {
             ? <img className="afp-ph" src={p.photo} alt="" width="64" height="64" onError={() => setBadPic(true)} />
             : <span className="afp-ph afp-ph-fb">{p.number != null ? num(p.number, lang) : (p.name || "?").slice(0, 1)}</span>}
           <div style={{ minWidth: 0 }}>
-            <h1>{playerName(afFullName(p), lang)}{p.injured && <span className="pl-inj">{bn ? "ইনজুরিতে" : "Injured"}</span>}</h1>
+            <h1>{bnPlayer(p.name, lang, afFullName(p))}{p.injured && <span className="pl-inj">{bn ? "ইনজুরিতে" : "Injured"}</span>}</h1>
             {p.team && (teamLink
               ? <button className="afp-team" onClick={() => nav.openTeam(teamLink.id)}><Crest team={teamLink.crest ? teamLink : { ...teamLink, crest: p.team.logo }} size={16} />{teamName(teamLink, lang) || p.team.name}</button>
               : <span className="afp-team"><Crest team={{ crest: p.team.logo, short_en: p.team.name }} size={16} />{p.team.name}</span>)}
