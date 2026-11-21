@@ -213,7 +213,8 @@ async function allPlayers(req, res) {
 async function crest(req, res) {
   let url;
   try { url = new URL(String(req.query.u || "")); } catch { return res.status(400).send("bad url"); }
-  if (url.protocol !== "https:" || url.hostname !== "crests.football-data.org") return res.status(400).send("not allowed");
+  // শুধু দলের লোগো আর খেলোয়াড়ের ছবির দুই উৎস (শেয়ার-কার্ডের ছবি আর অন্য কাজে নিজের ঠিকানা দিয়ে)
+  if (url.protocol !== "https:" || !["crests.football-data.org", "media.api-sports.io"].includes(url.hostname)) return res.status(400).send("not allowed");
   const r = await fetch(url.toString()).catch(() => null);
   if (!r || !r.ok) return res.status(404).send("not found");
   const type = r.headers.get("content-type") || (url.pathname.endsWith(".svg") ? "image/svg+xml" : "image/png");
