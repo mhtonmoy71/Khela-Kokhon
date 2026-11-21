@@ -6646,6 +6646,54 @@ function findPlayer(q, scorers, teams) {
   return best?.r || null;
 }
 
+// ── খেলোয়াড়ের পুরো মৌসুম (ক্লাব + জাতীয় দল, সব প্রতিযোগিতা) API-Football থেকে ──
+const pfCache = {};
+async function playerSeasonFull(pid) {
+  if (DEMO || !pid) return null;
+  if (pfCache[pid] !== undefined) return pfCache[pid];
+  try {
+    let af = pid >= 10000000 ? pid - 10000000 : 0;
+    if (!af) { const r = await fetch(`/api/live?resolve=${pid}`).then((x) => x.json()); af = r?.id ? (r.id >= 10000000 ? r.id - 10000000 : r.id) : 0; }
+    if (!af) return (pfCache[pid] = null);
+    const d = await fetch(`/api/live?player=${10000000 + af}`).then((x) => (x.ok ? x.json() : null));
+    return (pfCache[pid] = d?.comps?.length ? d : null);
+  } catch { return null; }
+}
+const LG_BN = [[/world cup - qual/i, "বিশ্বকাপ বাছাই"], [/club world cup/i, "ক্লাব বিশ্বকাপ"], [/world cup/i, "বিশ্বকাপ"], [/friendl/i, "প্রীতি ম্যাচ"], [/super ?cup|supercopa|supercoppa/i, "সুপার কাপ"], [/euro.*qual/i, "ইউরো বাছাই"]];
+const lgLabel = (c, lang) => (c.code ? compLabel(c.code, lang) : lang === "bn" ? (LG_BN.find(([re]) => re.test(c.league || ""))?.[1] || c.league) : c.league);
+function playerFullAnswer(d, r, comp, teams, lang) {
+  const bn = lang === "bn";
+  const n = (x) => num(x ?? 0, lang);
+  const ourTeam = (t) => (t?.id && teams.find((x) => x.id === t.id)) || teams.find((x) => norm(x.name_en || "") === norm(t?.name || "") || norm(x.short_en || "") === norm(t?.name || "")) || { short_en: t?.name, crest: t?.logo };
+  const tName = (t) => teamName(ourTeam(t), lang) || t?.name;
+  const comps = d.comps.filter((c) => (c.apps || 0) > 0 || (c.goals || 0) > 0);
+  const name = pName(r, lang);
+  if (comp) {
+    const c = comps.find((x) => x.code === comp);
+    if (!c) return null;
+    return {
+      text: bn ? `${name} (${tName(c.team)}), এই মৌসুমে ${lgLabel(c, lang)}: ${n(c.goals)} গোল, ${n(c.assists)} অ্যাসিস্ট, ${n(c.apps)} ম্যাচে${c.rating ? `, গড় রেটিং ${num(c.rating, lang)}` : ""}।`
+        : `${name} (${tName(c.team)}) this season in the ${lgLabel(c, lang)}: ${c.goals ?? 0} goals, ${c.assists ?? 0} assists in ${c.apps ?? 0} matches${c.rating ? `, average rating ${c.rating}` : ""}.`,
+      matches: [], players: [{ ...r, team: ourTeam(c.team), code: comp, goals: c.goals ?? 0 }],
+    };
+  }
+  // দল ধরে ভাগ: আগে ক্লাব, তারপর জাতীয় দল
+  const groups = new Map();
+  for (const c of comps) { const k = c.team?.af || c.team?.name; if (!groups.has(k)) groups.set(k, { team: c.team, list: [] }); groups.get(k).list.push(c); }
+  const ordered = [...groups.values()].sort((a, b) => (b.team?.af === d.team?.af) - (a.team?.af === d.team?.af));
+  const G = comps.reduce((t, c) => t + (c.goals || 0), 0), A = comps.reduce((t, c) => t + (c.assists || 0), 0), M = comps.reduce((t, c) => t + (c.apps || 0), 0);
+  const who = ordered.map((g) => tName(g.team)).join(" · ");
+  const head = bn ? `${name} (${who}), এই মৌসুমে সব মিলিয়ে ${n(G)} গোল, ${n(A)} অ্যাসিস্ট, ${n(M)} ম্যাচে।` : `${name} (${who}): ${G} goals and ${A} assists in ${M} matches this season, all competitions.`;
+  const lines = ordered.map((g) => `${tName(g.team)}: ` + g.list.map((c) => bn
+    ? `${lgLabel(c, lang)} ${n(c.goals)} গোল${c.assists ? `, ${n(c.assists)} অ্যাসিস্ট` : ""} (${n(c.apps)} ম্যাচ)`
+    : `${lgLabel(c, lang)} ${c.goals ?? 0} goals${c.assists ? `, ${c.assists} assists` : ""} (${c.apps ?? 0} apps)`).join(" · "));
+  return {
+    text: [head, ...lines].join("\n"),
+    matches: [],
+    players: comps.sort((a, b) => (b.goals || 0) - (a.goals || 0)).slice(0, 6).map((c) => ({ ...r, player_id: r.player_id, team: ourTeam(c.team), code: c.code || null, label: lgLabel(c, lang), goals: c.goals ?? 0 })),
+  };
+}
+
 async function answerPlayer(q, teams, lang) {
   const bn = lang === "bn";
   const wantTop = has(q, ["সর্বোচ্চ গোলদাতা", "টপ স্কোরার", "সবচেয়ে বেশি গোল", "গোলদাতার তালিকা", "top scorer", "top scorers", "golden boot"]);
@@ -6716,6 +6764,10 @@ async function answerPlayer(q, teams, lang) {
     const list = await getTeamMatches([r.team_id], { upcoming: true, limit: 3 });
     if (list.length) return { text: (bn ? `${name} খেলেন ${r.team ? teamName(r.team, lang) : club}-এ${posName ? ` (${posName})` : ""}। ` : `${name} plays for ${r.team ? teamName(r.team, lang) : club}${posName ? ` (${posName})` : ""}. `) + describe(list[0], r.team_id, false, lang), matches: list, players: [await pRow()] };
   }
+
+  // পুরো মৌসুম (ক্লাব + জাতীয় দল, সব প্রতিযোগিতা) পাওয়া গেলে সেটাই, নইলে আগের হিসাব
+  const full = await playerSeasonFull(r.player_id);
+  if (full) { const ans = playerFullAnswer(full, r, comp, teams, lang); if (ans) return { ...ans, text: ans.text + note }; }
 
   if (comp) {
     const x = rows.find((y) => y.competition_code === comp);
@@ -7488,9 +7540,9 @@ function AskPage({ teams, preds, onOpen, chat, setChat }) {
               {m.players?.length > 0 && (
                 <div className="card" style={{ marginTop: 8 }}>
                   {m.players.map((x) => (
-                    <button key={x.player_id + x.code} className="ask-pl" onClick={() => nav.openPlayer(x.player_id)}>
+                    <button key={x.player_id + (x.code || x.label)} className="ask-pl" onClick={() => nav.openPlayer(x.player_id)}>
                       <Crest team={x.team} size={26} />
-                      <span className="ask-pl-n"><b>{pName(x, lang)}</b><small className="muted">{x.code ? compLabel(x.code, lang) : x.team ? teamName(x.team, lang) : ""}</small></span>
+                      <span className="ask-pl-n"><b>{pName(x, lang)}</b><small className="muted">{x.label || (x.code ? compLabel(x.code, lang) : x.team ? teamName(x.team, lang) : "")}</small></span>
                       <span className="ask-pl-g">{x.goals == null ? "—" : num(x.goals, lang)}<small>{lang === "bn" ? "গোল" : "goals"}</small></span>
                     </button>
                   ))}
