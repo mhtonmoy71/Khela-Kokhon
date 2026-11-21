@@ -6879,7 +6879,12 @@ async function getAfPlayer(id) {
   if (!r.ok) throw new Error("player");
   return r.json();
 }
-function AfPlayer({ id, comps }) {
+// "E. Haaland" → "Erling Haaland" (পুরো নাম থাকলে বাংলা নামের তালিকায় মেলে)
+const afFullName = (p) => (p.first && p.last ? `${p.first.split(" ")[0]} ${p.last}` : p.name);
+const nrm = (x) => (x || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/\b(fc|cf|afc|sc|ac)\b/g, "").replace(/[^a-z0-9]+/g, " ").trim();
+// API-Football-এর দলের নাম → আমাদের দলের তালিকার দল (বড় ছয় লিগের জন্য, যাতে দলের পাতায় যাওয়া যায়)
+const findTeam = (teamsById, name) => { const n = nrm(name); if (!n) return null; return Object.values(teamsById || {}).find((t) => nrm(t.short_en) === n || nrm(t.name_en) === n || nrm(t.name_en).startsWith(n + " ")) || null; };
+function AfPlayer({ id, comps, teamsById }) {
   const { lang } = useT();
   const bn = lang === "bn";
   const wide = useWide();
@@ -6909,6 +6914,7 @@ function AfPlayer({ id, comps }) {
     [bn ? "জার্সি" : "Shirt", p.number != null ? num(p.number, lang) : null],
   ].filter(([, v]) => v);
   const compOf = (code) => comps.find((c) => c.code === code);
+  const teamLink = p.team ? (p.team.id ? teamsById?.[p.team.id] || { id: p.team.id, short_en: p.team.name, crest: p.team.logo } : findTeam(teamsById, p.team.name)) : null;
   return (
     <>
       {back}
@@ -6917,11 +6923,11 @@ function AfPlayer({ id, comps }) {
           ? <div className="pl-photo-wrap"><img className="pl-photo" src={p.photo} alt={p.name} width="112" height="112" decoding="async" onError={() => setBadPic(true)} />{p.number != null && <span className="pl-shirt">{num(p.number, lang)}</span>}</div>
           : <div className="pl-avatar">{p.number != null ? num(p.number, lang) : (p.name || "?").slice(0, 1)}</div>}
         <div className="th-name">
-          <h1>{playerName(p.name, lang)}</h1>
+          <h1>{playerName(afFullName(p), lang)}</h1>
           {p.injured && <div className="pl-inj">{bn ? "ইনজুরিতে" : "Injured"}</div>}
         </div>
-        {p.team && (p.team.id
-          ? <button className="chip" onClick={() => nav.openTeam(p.team.id)}><Crest team={{ crest: p.team.logo, short_en: p.team.name }} size={18} />{p.team.name}</button>
+        {p.team && (teamLink
+          ? <button className="chip" onClick={() => nav.openTeam(teamLink.id)}><Crest team={teamLink.crest ? teamLink : { ...teamLink, crest: p.team.logo }} size={18} />{teamName(teamLink, lang) || p.team.name}</button>
           : <span className="chip"><Crest team={{ crest: p.team.logo, short_en: p.team.name }} size={18} />{p.team.name}</span>)}
       </div>
       <div className={wide ? "pg-grid" : undefined}>
@@ -6942,7 +6948,7 @@ function AfPlayer({ id, comps }) {
                   const cc = c.code && compOf(c.code);
                   return (
                     <button className="scr afp" key={i} onClick={() => cc && nav.openLeague(c.code)} disabled={!cc}>
-                      <span>{cc ? <CompIcon c={cc} size={18} /> : c.logo ? <img src={c.logo} alt="" width="18" height="18" style={{ objectFit: "contain" }} /> : null}</span>
+                      <span>{cc ? <CompIcon c={cc} size={18} /> : c.logo ? <img src={c.logo} alt="" width="18" height="18" style={{ objectFit: "contain" }} onError={(e) => { e.currentTarget.style.visibility = "hidden"; }} /> : null}</span>
                       <span className="pl"><b>{cc ? compName(cc, lang) : c.league}</b>{c.team?.name && <span className="muted" style={{ fontSize: 12 }}>{c.team.name}</span>}</span>
                       <span>{num(c.apps, lang)}</span>
                       <span className="pts">{num(gk ? c.saves || 0 : c.goals, lang)}</span>
@@ -7540,7 +7546,7 @@ export default function App() {
         ) : view?.kind === "quiz" ? (
           <QuizPage code={view.code} user={user} goProfile={() => go("profile")} toast={toast} />
         ) : view?.kind === "player" ? (
-          view.id >= 10000000 ? <AfPlayer key={view.id} id={view.id} comps={comps} /> : <Player key={view.id} id={view.id} teamsById={teamsById} comps={comps} />
+          view.id >= 10000000 ? <AfPlayer key={view.id} id={view.id} comps={comps} teamsById={teamsById} /> : <Player key={view.id} id={view.id} teamsById={teamsById} comps={comps} />
         ) : view?.kind === "match" ? (
           <MatchPage key={view.id} id={view.id} m={view.m} user={user} pred={preds[view.id]} toast={toast} onSave={onSavePrediction} onLogin={() => go("profile")} />
         ) : tab === "matches" ? (
