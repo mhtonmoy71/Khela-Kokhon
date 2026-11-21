@@ -345,6 +345,17 @@ img { display: block; }
 @media (prefers-reduced-motion: reduce) { .cg-body, .cg-chev { transition: none; } }
 /* ── ম্যাচ সেন্টার ── */
 .mc { margin-top: 14px; }
+.so-box { margin: 6px 12px 10px; padding: 10px 12px; border-radius: 14px; background: color-mix(in srgb, #f59e0b 10%, var(--card2)); }
+.so-card { background: linear-gradient(180deg, color-mix(in srgb, #f59e0b 14%, var(--card)) 0, var(--card) 70px); }
+.so-h-row { display: flex; flex-direction: column; gap: 2px; margin-bottom: 8px; }
+.so-h-row b { font-size: 16px; } .so-h-row span { font-size: 13px; color: var(--muted); }
+.so-list { display: flex; flex-direction: column; gap: 4px; }
+.so-r { display: grid; grid-template-columns: 1fr 18px 44px; align-items: center; gap: 8px; font-size: 13.5px; }
+.so-a { grid-template-columns: 44px 18px 1fr; }
+.so-a .so-n { order: 3; } .so-a .sball { order: 2; } .so-a .so-sc { order: 1; }
+.so-h .so-n { text-align: right; }
+.so-sc { font: 700 12px Inter, 'Hind Siliguri', sans-serif; color: var(--muted); text-align: center; }
+
 .mp-pen { margin-top: 4px; font-size: 11.5px; font-weight: 700; color: #b45309; }
 .pen-pick { margin: 4px 12px 10px; padding: 10px 12px; border-radius: 14px; background: color-mix(in srgb, #f59e0b 10%, var(--card2)); }
 .pen-q { font-size: 13px; font-weight: 600; line-height: 1.45; }
@@ -3181,10 +3192,31 @@ function subPairs(L) {
   return out;
 }
 
+// টাইব্রেকারের শট (উৎস এগুলোকে "Goal" বলে, মন্তব্যে "Penalty Shootout") — নিয়মিত গোল থেকে আলাদা
+const isSO = (e) => /shootout/i.test(e?.c || "");
+function Shootout({ L, m, lang, card }) {
+  const bn = lang === "bn";
+  const so = (L.events || []).filter(isSO);
+  if (!so.length) return null;
+  let h = 0, a = 0;
+  const rows = so.map((e, i) => {
+    const ok = !/Missed/i.test(e.d || "");
+    if (ok) { if (e.s === "a") a++; else h++; }
+    return (
+      <div key={i} className={"so-r " + (e.s === "a" ? "so-a" : "so-h")}>
+        <span className="so-n">{bnPlayer(e.p, lang)}</span>
+        <SoccerBall size={16} miss={!ok} />
+        <span className="so-sc">{num(h, lang)}–{num(a, lang)}</span>
+      </div>
+    );
+  });
+  const head = <div className="so-h-row"><b>{bn ? "টাইব্রেকার" : "Penalty shootout"}</b><span>{teamName(m.home, lang)} {num(m.pen_home ?? h, lang)}–{num(m.pen_away ?? a, lang)} {teamName(m.away, lang)}</span></div>;
+  return card ? <div className="cm so-card">{head}<div className="so-list">{rows}</div></div> : <div className="so-box">{head}<div className="so-list">{rows}</div></div>;
+}
 function MatchEvents({ L, m, lang }) {
   const bn = lang === "bn";
   const subs = useMemo(() => subPairs(L), [L]);
-  const ev = [...(L.events || [])].sort((x, y) => (x.m ?? 0) - (y.m ?? 0) || (x.x ?? 0) - (y.x ?? 0));
+  const ev = [...(L.events || [])].filter((e) => !isSO(e)).sort((x, y) => (x.m ?? 0) - (y.m ?? 0) || (x.x ?? 0) - (y.x ?? 0));
   if (!ev.length) return <div className="mc-empty muted">{bn ? "এখনো কোনো ঘটনা নেই" : "No events yet"}</div>;
   // গোলের পর চলমান স্কোর
   let h = 0, a = 0;
@@ -3209,7 +3241,7 @@ function MatchEvents({ L, m, lang }) {
     );
   }
   if (AF_DONE.includes(L.status)) rows.push(<div key="ft" className="ev-sep"><span>{bn ? "খেলা শেষ" : "Full time"} · {num(m.home_score ?? h, lang)} - {num(m.away_score ?? a, lang)}</span></div>);
-  return <div className="ev-list">{rows}</div>;
+  return <div className="ev-list">{rows}<Shootout L={L} m={m} lang={lang} /></div>;
 }
 
 const STAT_ORDER = [
@@ -3389,7 +3421,7 @@ function MatchCenter({ L, m }) {
 // স্কোরের নিচে গোলদাতা (FotMob-এর মতো): একই খেলোয়াড়ের সব গোল এক সারিতে
 function Scorers({ L, lang }) {
   const bn = lang === "bn";
-  const goals = (L?.events || []).filter((e) => e.t === "Goal" && !/Missed/i.test(e.d || ""));
+  const goals = (L?.events || []).filter((e) => e.t === "Goal" && !/Missed/i.test(e.d || "") && !isSO(e));
   if (!goals.length) return null;
   const side = (sd) => {
     const by = new Map();
@@ -3426,7 +3458,7 @@ function MatchCommentary({ L, m, lang }) {
   const bn = lang === "bn";
   const subs = useMemo(() => subPairs(L), [L]);
   const noOf = useMemo(() => { const o = {}; for (const T of [L.lineups?.h, L.lineups?.a]) for (const p of [...(T?.xi || []), ...(T?.sub || [])]) o[p.id] = p.no; return o; }, [L]);
-  const ev = [...(L.events || [])].sort((x, y) => (x.m ?? 0) - (y.m ?? 0) || (x.x ?? 0) - (y.x ?? 0));
+  const ev = [...(L.events || [])].filter((e) => !isSO(e)).sort((x, y) => (x.m ?? 0) - (y.m ?? 0) || (x.x ?? 0) - (y.x ?? 0));
   if (!ev.length) return <div className="card empty">{bn ? "খেলা শুরু হলে এখানে প্রতিটা মুহূর্ত আসবে" : "Moments appear here once the match starts"}</div>;
   const tn = (sd) => teamName(sd === "h" ? m.home : m.away, lang);
   const team = (sd) => (sd === "h" ? m.home : m.away);
@@ -3484,6 +3516,7 @@ function MatchCommentary({ L, m, lang }) {
       cards.push(<div key={cards.length} className="cm"><div className="cm-h"><span className="cm-min">{mt}</span><b>VAR</b></div><p className="cm-txt">{bn ? EV_BN[d] || d : d}{e.p ? ` · ${bnPlayer(e.p, lang)}` : ""}</p></div>);
     }
   }
+  if ((L.events || []).some(isSO)) cards.push(<Shootout key="so" L={L} m={m} lang={lang} card />);
   if (AF_DONE.includes(L.status)) cards.push(<div key="ft" className="cm cm-mark"><b>{bn ? "খেলা শেষ" : "Full time"}</b><span>{teamName(m.home, lang)} {num(m.home_score ?? h, lang)}–{num(m.away_score ?? a, lang)} {teamName(m.away, lang)}</span></div>);
   return <div className="cm-list">{cards.filter(Boolean).reverse()}</div>;
 }
