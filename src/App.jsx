@@ -595,7 +595,8 @@ img { display: block; }
 .ask-input { border-top: 0; }
 .follow-h { padding: 14px 16px; }
 .row { position: relative; }
-.row.has-badge { padding-left: 50px; }
+.row.has-badge { padding-left: 50px; padding-right: 14px; }
+.rbadge.live { background: #16a34a; color: #fff; border-radius: 999px; font-family: Inter, 'Hind Siliguri', sans-serif; }
 .row.has-badge .mid .st { display: none; }
 .mid .st { white-space: nowrap; }
 .rbadge { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); width: 32px; padding: 3px 0; border-radius: 8px; background: var(--card2);
@@ -2612,14 +2613,15 @@ function StatusText({ m }) {
 }
 
 // ── ম্যাচের সারি ──
-function MatchRow({ m, pred, onOpen, badge, plain, sub }) {
+function MatchRow({ m, pred, onOpen, badge: badge0, plain, sub }) {
   const allFavs = useContext(FavCtx);
   const favs = plain ? [] : allFavs; // "ফলো করা" কার্ডে সবই প্রিয় দল, তাই আলাদা চিহ্ন লাগে না
-  const { lang } = useT();
+  const { t, lang } = useT();
+  const badge = badge0 === undefined ? rowBadge(m, t, lang) : badge0;
   const showScore = (isLive(m) || isDone(m)) && m.home_score != null;
   const hw = isDone(m) && m.home_score > m.away_score, aw = isDone(m) && m.away_score > m.home_score;
   return (
-    <button className={"row" + (favs.includes(m.home_id) || favs.includes(m.away_id) ? " my" : "") + (badge ? " has-badge" : "")} onClick={() => onOpen?.(m)}>
+    <button className={"row has-badge" + (favs.includes(m.home_id) || favs.includes(m.away_id) ? " my" : "")} onClick={() => onOpen?.(m)}>
       {badge}
       <div className={"side home" + (hw ? " win" : "")}>
         <span>{favs.includes(m.home_id) && <i className="fav-star">★</i>}{teamShort(m.home, lang)}</span>
@@ -2631,7 +2633,7 @@ function MatchRow({ m, pred, onOpen, badge, plain, sub }) {
         ) : (
           <div className="t" style={isOff(m) ? { textDecoration: "line-through", opacity: 0.6 } : null}>{timeLabel(m.utc_date, lang)}</div>
         )}
-        <div className="st">{sub || <StatusText m={m} />}</div>
+        {sub ? <div className="st">{sub}</div> : null}
         {pred && (
           <span className="pred-tag">
             <TargetIcon width={11} height={11} style={{ verticalAlign: -1 }} /> {num(pred.home, lang)}-{num(pred.away, lang)}
@@ -3639,8 +3641,14 @@ function DayMatches({ day, setDay, comp = "ALL", preds, onOpen }) {
 // ── ফলো করা দলের খেলা: একটা কার্ড, ভাঁজ করা যায় ──
 // বাম পাশের ছোট চিহ্ন: শেষ / লাইভ / অন্য দিনের তারিখ। আজকের খেলায় কিছু না।
 // শুধু শেষ হওয়া খেলায় বাঁয়ে ছোট "শেষ"
-function rowBadge(m, t) {
-  return isDone(m) ? <span className="rbadge">{t("ft")}</span> : null;
+// সারির বাঁ পাশে অবস্থা (FotMob-এর মতো): চলমান হলে সবুজে মিনিট, বিরতি, শেষ, স্থগিত
+function rowBadge(m, t, lang = "bn") {
+  if (m.status === "PAUSED") return <span className="rbadge live">{lang === "bn" ? "বিরতি" : "HT"}</span>;
+  if (isLive(m)) return <span className="rbadge live">{m.minute != null ? minuteTxt(m.minute, m.minute_x, lang).replace("'", "") : (lang === "bn" ? "লাইভ" : "LIVE")}</span>;
+  if (isDone(m)) return <span className="rbadge">{t("ft")}</span>;
+  if (m.status === "POSTPONED") return <span className="rbadge">{lang === "bn" ? "স্থগিত" : "PP"}</span>;
+  if (m.status === "CANCELLED") return <span className="rbadge">{lang === "bn" ? "বাতিল" : "C"}</span>;
+  return null;
 }
 // সামনের খেলার দিন, সময়ের নিচে ছোট করে (আজ / রবি, ২২ নভে)
 function rowSub(m, lang) {
@@ -3664,7 +3672,7 @@ function Following({ list, preds, onOpen }) {
         <b>{t("following")}</b>
         <ChevronIcon className={"chev" + (open ? " up" : "")} />
       </button>
-      {open && list.map((m) => <MatchRow key={m.id} m={m} pred={preds[m.id]} onOpen={onOpen} plain badge={rowBadge(m, t)} sub={rowSub(m, lang)} />)}
+      {open && list.map((m) => <MatchRow key={m.id} m={m} pred={preds[m.id]} onOpen={onOpen} plain badge={rowBadge(m, t, lang)} sub={rowSub(m, lang)} />)}
     </div>
   );
 }
