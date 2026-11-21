@@ -707,6 +707,11 @@ button.pm { background: none; border: 0; padding: 0; cursor: pointer; font: inhe
 .ko-m { font-size: 13px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; text-align: center; max-width: 64px; line-height: 1.25; }
 .ko-m.d { font-size: 11px; font-weight: 600; color: var(--muted); }
 .ko-note { font-size: 12px; line-height: 1.5; margin: 12px 2px 0; }
+.bell-btn { display: grid; place-items: center; color: var(--text); }
+.bell-btn.on { color: var(--green); }
+.team-bell { width: 36px; height: 36px; border-radius: 50%; border: 1.5px solid var(--line); background: var(--card); margin-top: 10px; }
+.team-hero.row .team-bell { margin: 0 0 0 auto; }
+.team-hero.row .team-bell + .fav-btn { margin-left: 8px; }
 .fav-btn { display: inline-flex; align-items: center; gap: 7px; margin-top: 10px; height: 36px; padding: 0 16px; border-radius: 18px; border: 1.5px solid var(--line); background: var(--card); font-weight: 700; font-size: 13.5px; color: var(--text); }
 .fav-btn span { color: var(--amber); font-size: 17px; }
 .fav-btn.on { border-color: var(--amber); background: rgba(245,158,11,.12); }
@@ -3905,6 +3910,8 @@ function MatchPage({ id, m: mInit, user, pred, onSave, onLogin, toast }) {
   const L = useMatchLive(m0);
   const m = useMemo(() => (m0 ? mergeLive(m0, L) : null), [m0, L]);
   const stageList = useStage(m0);
+  const favTeamIds = useContext(FavCtx) || [];
+  const pfMap = usePushFollows(user);
   const nav = useNav();
   const now = useNow(1000);
   const [h, setH] = useState(pred?.home ?? 0);
@@ -3952,6 +3959,7 @@ function MatchPage({ id, m: mInit, user, pred, onSave, onLogin, toast }) {
           <button className="ms-comp" onClick={() => m.competition && nav.openLeague(m.competition.code)}>
             <CompIcon c={m.competition} size={18} /><span>{compName(m.competition, lang)}{isKnockout(m) ? ` · ${isBo3(m) ? (bn ? "রাউন্ড ওয়ান" : "Round One") : stageLabel(m.stage, lang)}` : m.matchday ? ` · ${t("matchday")} ${num(m.matchday, lang)}` : ""}</span>
           </button>
+          {!isDone(m) && !isOff(m) && <BellBtn user={user} kind="match" id={m.id} base={[m.home_id, m.away_id].some((t) => (pfMap["team:" + t] !== undefined ? pfMap["team:" + t] : favTeamIds.includes(t)))} onLogin={onLogin} toast={toast} className="ms-share" />}
           <button className="ms-share" disabled={making} aria-label={bn ? "শেয়ার" : "Share"} onClick={async () => {
             setMaking(true);
             try { await shareCard(m, { lang, teamName: (tm) => teamName(tm, lang), compName: compName(m.competition, lang), L, pred: pred || null }, toast); }
@@ -6232,6 +6240,91 @@ const b64u = (s) => { const p = "=".repeat((4 - (s.length % 4)) % 4); const r = 
 const pushOk = () => typeof window !== "undefined" && "serviceWorker" in navigator && "PushManager" in window && "Notification" in window;
 const isIOS = () => /iPhone|iPad|iPod/i.test(navigator.userAgent || "");
 const standalone = () => window.matchMedia?.("(display-mode: standalone)").matches || navigator.standalone === true;
+// ── 🔔 ম্যাচ বা দলের নোটিফিকেশন (প্রিয় দল ছাড়াও) ──
+// এই ফোনে নোটিফিকেশন চালু করা (অনুমতি + ঠিকানা জমা)। ফেরত: "ok" | "blocked" | "dismissed" | "unsupported" | "error"
+async function enablePush(user) {
+  if (!pushOk() || DEMO) return "unsupported";
+  try {
+    if (Notification.permission === "denied") return "blocked";
+    const perm = Notification.permission === "granted" ? "granted" : await Notification.requestPermission();
+    if (perm === "denied") return "blocked";
+    if (perm !== "granted") return "dismissed";
+    const reg = await navigator.serviceWorker.ready;
+    const sub = (await reg.pushManager.getSubscription()) || (await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64u(VAPID_PUBLIC) }));
+    const j = sub.toJSON();
+    const { error } = await sb.from("push_subs").upsert({ user_id: user.id, endpoint: j.endpoint, p256dh: j.keys.p256dh, auth: j.keys.auth }, { onConflict: "endpoint" });
+    return error ? "error" : "ok";
+  } catch { return "error"; }
+}
+const pfStore = { uid: null, map: null, subs: new Set(), loading: null };
+async function loadPushFollows(user) {
+  if (!user || DEMO) return {};
+  if (pfStore.uid === user.id && pfStore.map) return pfStore.map;
+  if (pfStore.loading && pfStore.uid === user.id) return pfStore.loading;
+  pfStore.uid = user.id;
+  pfStore.loading = sb.from("push_follow").select("kind,target_id,enabled").eq("user_id", user.id).then(({ data }) => {
+    pfStore.map = Object.fromEntries((data || []).map((r) => [r.kind + ":" + r.target_id, r.enabled]));
+    pfStore.subs.forEach((f) => f({ ...pfStore.map }));
+    return pfStore.map;
+  });
+  return pfStore.loading;
+}
+function usePushFollows(user) {
+  const [map, setMap] = useState(pfStore.uid === user?.id && pfStore.map ? pfStore.map : {});
+  useEffect(() => { pfStore.subs.add(setMap); if (user) loadPushFollows(user).then((m) => setMap({ ...m })); return () => pfStore.subs.delete(setMap); }, [user?.id]);
+  return map;
+}
+async function savePushFollow(user, kind, id, val) {
+  const k = kind + ":" + id;
+  pfStore.map = { ...(pfStore.map || {}) };
+  if (val === null) { delete pfStore.map[k]; await sb.from("push_follow").delete().eq("user_id", user.id).eq("kind", kind).eq("target_id", id); }
+  else { pfStore.map[k] = val; await sb.from("push_follow").upsert({ user_id: user.id, kind, target_id: id, enabled: val }, { onConflict: "user_id,kind,target_id" }); }
+  pfStore.subs.forEach((f) => f({ ...pfStore.map }));
+}
+const BellIcon = ({ on, size = 20 }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill={on ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.7 21a2 2 0 0 1-3.4 0" />
+    {!on && <path d="M3 3l18 18" opacity="0" />}
+  </svg>
+);
+// kind: "match" (দলের হিসাবে আগে থেকে চালু থাকতে পারে, তখন বন্ধও করা যায়) বা "team"
+function BellBtn({ user, kind, id, base = false, onLogin, toast, className = "" }) {
+  const { lang } = useT();
+  const bn = lang === "bn";
+  const map = usePushFollows(user);
+  const [busy, setBusy] = useState(false);
+  const k = kind + ":" + id;
+  const on = map[k] !== undefined ? map[k] : base;
+  async function click() {
+    if (!user) { toast?.(bn ? "নোটিফিকেশন পেতে আগে লগিন করুন" : "Log in to get notifications"); onLogin?.(); return; }
+    setBusy(true);
+    try {
+      if (!on) {
+        const r = await enablePush(user);
+        if (r !== "ok") {
+          toast?.(r === "blocked" ? (bn ? "ব্রাউজারে এই সাইটের নোটিফিকেশন বন্ধ। প্রোফাইল → নোটিফিকেশনে কীভাবে খুলবেন দেখুন" : "Notifications are blocked. See Profile → Notifications")
+            : r === "dismissed" ? (bn ? "অনুমতির বার্তায় “Allow” চাপুন" : "Tap “Allow” when asked")
+            : r === "unsupported" ? (bn ? "এই ব্রাউজারে নোটিফিকেশন চলে না" : "This browser doesn't support notifications")
+            : (bn ? "চালু করা গেল না, একটু পরে আবার চেষ্টা করুন" : "Couldn't turn on, try again later"));
+          setBusy(false); return;
+        }
+      }
+      const next = !on;
+      // ম্যাচ: দলের হিসাবের সমান হলে আলাদা করে রাখার দরকার নেই
+      await savePushFollow(user, kind, id, next === base ? null : next);
+      toast?.(next ? (kind === "match" ? (bn ? "এই ম্যাচের নোটিফিকেশন চালু" : "Match alerts on") : (bn ? "এই দলের সব খেলার নোটিফিকেশন চালু" : "Team alerts on"))
+        : (kind === "match" ? (bn ? "এই ম্যাচের নোটিফিকেশন বন্ধ" : "Match alerts off") : (bn ? "এই দলের নোটিফিকেশন বন্ধ" : "Team alerts off")));
+    } catch { toast?.(bn ? "নোটিফিকেশন এখনো চালু হয়নি, শিগগিরই আসছে" : "Notifications aren't live yet"); }
+    setBusy(false);
+  }
+  return (
+    <button className={"bell-btn" + (on ? " on" : "") + (className ? " " + className : "")} disabled={busy} onClick={click}
+      aria-pressed={on} aria-label={on ? (bn ? "নোটিফিকেশন বন্ধ করুন" : "Turn off alerts") : (bn ? "নোটিফিকেশন চালু করুন" : "Turn on alerts")}>
+      {busy ? <span className="spin sm" /> : <BellIcon on={on} />}
+    </button>
+  );
+}
+
 function PushCard({ user, hasFav, toast, bn }) {
   const [row, setRow] = useState(undefined); // undefined = দেখা হচ্ছে, null = বন্ধ
   const [busy, setBusy] = useState(false);
@@ -8351,7 +8444,7 @@ function Player({ id, teamsById, comps }) {
   );
 }
 
-function Team({ id, teamsById, preds, onOpen, isFav, onToggleFav }) {
+function Team({ id, teamsById, preds, onOpen, isFav, onToggleFav, user, toast, onLogin }) {
   const { lang } = useT();
   const nav = useNav();
   const bn = lang === "bn";
@@ -8410,6 +8503,7 @@ function Team({ id, teamsById, preds, onOpen, isFav, onToggleFav }) {
           <h1>{teamName(team, lang)}</h1>
           {team && bn && <div className="muted" style={{ fontSize: 13 }}>{teamName(team, "en")}</div>}
         </div>
+        {team && <BellBtn user={user} kind="team" id={id} base={!!isFav} toast={toast} onLogin={onLogin} className="team-bell" />}
         {team && onToggleFav && (
           <button className={"fav-btn" + (isFav ? " on" : "")} onClick={() => onToggleFav(id)}>
             <span>{isFav ? "★" : "☆"}</span>{isFav ? (bn ? "প্রিয় দল" : "Favourite") : (bn ? "প্রিয় দলে যোগ করুন" : "Add to favourites")}
@@ -8803,7 +8897,7 @@ export default function App() {
         ) : view?.kind === "league" ? (
           <League key={view.code} code={view.code} comps={comps} preds={preds} onOpen={openMatch} teamsById={teamsById} />
         ) : view?.kind === "team" ? (
-          <Team key={view.id} id={view.id} teamsById={teamsById} preds={preds} onOpen={openMatch} isFav={myTeams.fav.includes(view.id)} onToggleFav={toggleFav} />
+          <Team key={view.id} id={view.id} teamsById={teamsById} preds={preds} onOpen={openMatch} isFav={myTeams.fav.includes(view.id)} onToggleFav={toggleFav} user={user} toast={toast} onLogin={() => go("profile")} />
         ) : view?.kind === "page" ? (
           <InfoPage key={view.id} id={view.id} user={user} goProfile={() => go("profile")} />
         ) : view?.kind === "daily" ? (
