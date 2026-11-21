@@ -6659,13 +6659,13 @@ async function playerSeasonFull(pid) {
     return (pfCache[pid] = d?.comps?.length ? d : null);
   } catch { return null; }
 }
-const LG_BN = [[/world cup - qual/i, "বিশ্বকাপ বাছাই"], [/club world cup/i, "ক্লাব বিশ্বকাপ"], [/world cup/i, "বিশ্বকাপ"], [/friendl/i, "প্রীতি ম্যাচ"], [/super ?cup|supercopa|supercoppa/i, "সুপার কাপ"], [/euro.*qual/i, "ইউরো বাছাই"]];
+const LG_BN = [[/world cup - qual/i, "বিশ্বকাপ বাছাই"], [/club world cup/i, "ক্লাব বিশ্বকাপ"], [/world cup/i, "বিশ্বকাপ"], [/friendl/i, "প্রীতি ম্যাচ"], [/super ?cup|supercopa|supercoppa/i, "সুপার কাপ"], [/euro.*qual/i, "ইউরো বাছাই"], [/leagues cup/i, "লিগস কাপ"], [/copa am[eé]rica/i, "কোপা আমেরিকা"], [/africa cup|afcon/i, "আফ্রিকান নেশনস কাপ"], [/asian cup/i, "এশিয়ান কাপ"], [/king'?s cup|copa del rey/i, "কোপা দেল রে"], [/fa cup/i, "এফএ কাপ"], [/league cup|efl cup/i, "কারাবাও কাপ"], [/saff/i, "সাফ চ্যাম্পিয়নশিপ"]];
 const lgLabel = (c, lang) => (c.code ? compLabel(c.code, lang) : lang === "bn" ? (LG_BN.find(([re]) => re.test(c.league || ""))?.[1] || c.league) : c.league);
 function playerFullAnswer(d, r, comp, teams, lang) {
   const bn = lang === "bn";
   const n = (x) => num(x ?? 0, lang);
   const ourTeam = (t) => (t?.id && teams.find((x) => x.id === t.id)) || teams.find((x) => norm(x.name_en || "") === norm(t?.name || "") || norm(x.short_en || "") === norm(t?.name || "")) || { short_en: t?.name, crest: t?.logo };
-  const tName = (t) => teamName(ourTeam(t), lang) || t?.name;
+  const tName = (t) => { const o = ourTeam(t); return o?.id ? teamName(o, lang) : natName(t?.name, lang) || t?.name; };
   const comps = d.comps.filter((c) => (c.apps || 0) > 0 || (c.goals || 0) > 0);
   const name = pName(r, lang);
   if (comp) {
