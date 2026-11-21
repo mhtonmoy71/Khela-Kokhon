@@ -2834,7 +2834,7 @@ function Crest({ team, size = 22 }) {
 }
 
 // ডেটা সোর্সের পুরনো লোগোর বদলে নতুন লোগো (সাইটের নিজের ফাইল, public/leagues)
-const EMBLEM_FIX = { CL: "/leagues/CL.png", PL: "/leagues/PL.png", PD: "/leagues/PD.png", BL1: "/leagues/BL1.png", SA: "/leagues/SA.png", FL1: "/leagues/FL1.png", BPL: "/leagues/BPL.svg" };
+const EMBLEM_FIX = { CL: "/leagues/CL.png", PL: "/leagues/PL.png", PD: "/leagues/PD.png", BL1: "/leagues/BL1.png", SA: "/leagues/SA.png", FL1: "/leagues/FL1.png", BPL: "/leagues/BPL.svg", BFC: "/leagues/BFC.svg" };
 function CompIcon({ c, size = 18 }) {
   const [bad, setBad] = useState(false);
   const src = (c && EMBLEM_FIX[c.code]) || c?.emblem;
