@@ -361,7 +361,10 @@ img { display: block; }
 .cm-ph img, .cm-ph i { width: 46px; height: 46px; border-radius: 50%; object-fit: cover; object-position: 50% 15%; background: var(--card); display: grid; place-items: center; font-style: normal; font-weight: 700; color: var(--muted); }
 .cm-ph em { position: absolute; right: -4px; bottom: -4px; background: #fff; border-radius: 50%; padding: 1px; display: grid; }
 .cm-txt { margin: 10px 2px 0; font-size: 14px; line-height: 1.5; }
-.cm-sub-h { margin: 12px 2px 6px; font-weight: 700; font-size: 14px; }
+.cm-sub-h { margin: 12px 2px 6px; font-weight: 700; font-size: 14px; display: flex; align-items: center; gap: 6px; }
+.boot { flex: none; filter: drop-shadow(0 0 .5px rgba(0,0,0,.3)); }
+.ev-boot { vertical-align: -2px; margin-right: 4px; }
+.pm-as { bottom: -6px; left: -12px; font-size: 10px; }
 .cm-subs { display: flex; flex-direction: column; gap: 6px; }
 .cm-in, .cm-out { display: flex; align-items: center; gap: 8px; }
 .cm-arr { width: 22px; height: 22px; flex: none; border-radius: 50%; color: #fff; display: grid; place-items: center; font-weight: 800; font-size: 13px; }
@@ -3188,7 +3191,7 @@ function MatchEvents({ L, m, lang }) {
       <div key={rows.length} className={"ev " + (e.s === "a" ? "ev-a" : "ev-h") + (goal ? " goal" : "")}>
         <span className="ev-min">{minuteTxt(e.m ?? 0, e.x, lang)}</span>
         <EvIcon e={e} />
-        <span className="ev-txt"><b>{main ? bnPlayer(main, lang) : "—"}</b>{sub ? <small className="muted">{e.t === "Var" ? "VAR · " : ""}{sub}</small> : null}</span>
+        <span className="ev-txt"><b>{main ? bnPlayer(main, lang) : "—"}</b>{sub ? <small className="muted">{e.t === "Goal" && e.a && !/Own|Missed/i.test(e.d || "") ? <BootIcon size={12} className="ev-boot" /> : null}{e.t === "Var" ? "VAR · " : ""}{sub}</small> : null}</span>
         {goal ? <span className="ev-sc">{num(h, lang)} - {num(a, lang)}</span> : <span />}
       </div>
     );
@@ -3247,6 +3250,21 @@ function SoccerBall({ size = 16, own, miss, className = "" }) {
     </svg>
   );
 }
+// অ্যাসিস্টের আইকন: ফুটবল বুট (পাশ থেকে, তলায় স্টাড)
+const BootIcon = ({ size = 16, className = "" }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true" className={"boot " + className}>
+    <circle cx="12" cy="12" r="11.5" fill="#fff" />
+    <g transform="translate(-1.6 -1.4) scale(1.13)">
+    <path d="M3.4 14.6c0-.9.6-1.7 1.5-1.9l5-1.1 3.3-4.4c.4-.5 1-.7 1.6-.5l1.3.4c.5.2.8.7.7 1.2l-.5 2.1 4.2 1.4c1 .3 1.6 1.3 1.6 2.3v.9H3.4z" fill="#1f2937" />
+    <rect x="3.2" y="15.6" width="18.6" height="1.6" rx=".8" fill="#1f2937" />
+    <path d="M5.2 17.2v1.5M9 17.2v1.5M15 17.2v1.5M19 17.2v1.5" stroke="#1f2937" strokeWidth="1.4" strokeLinecap="round" />
+    <path d="M11.2 11.1l1.6.6M12.3 9.7l1.6.6M13.3 8.4l1.4.5" stroke="#fff" strokeWidth=".9" strokeLinecap="round" />
+    </g>
+  </svg>
+);
+const BootMini = ({ n, size = 12 }) => (
+  <span className="ball-mini"><BootIcon size={size} />{n > 1 ? <b>×{n}</b> : null}</span>
+);
 const BallMini = ({ n, size = 12 }) => (
   <span className="ball-mini"><SoccerBall size={size} />{n > 1 ? <b>×{n}</b> : null}</span>
 );
@@ -3265,6 +3283,7 @@ function PitchMan({ p, st, side }) {
         {st?.r ? <em className={"pm-r " + rateCls(st.r)}>{st.r.toFixed(1)}</em> : null}
         {st?.cap ? <em className="pm-c">C</em> : null}
         {st?.g ? <em className="pm-g"><BallMini n={st.g} /></em> : null}
+        {st?.as ? <em className="pm-as"><BootMini n={st.as} /></em> : null}
         {st?.rc ? <em className="pm-card red" /> : st?.yc ? <em className="pm-card" /> : null}
       </span>
       <span className="pm-n">{p.no != null && !noPic ? <span className="pm-no">{p.no}</span> : null}{shortName(p.n, lang)}</span>
@@ -3420,8 +3439,8 @@ function MatchCommentary({ L, m, lang }) {
           <p className="cm-txt">{line}</p>
           {e.a && !own && (
             <>
-              <div className="cm-sub-h">{bn ? "অ্যাসিস্ট" : "Assist"}</div>
-              <CmPlayer id={e.aid} name={e.a} team={team(sd)} no={noOf[e.aid]} lang={lang} />
+              <div className="cm-sub-h"><BootIcon size={16} /> {bn ? "অ্যাসিস্ট" : "Assist"}</div>
+              <CmPlayer id={e.aid} name={e.a} team={team(sd)} no={noOf[e.aid]} lang={lang} badge={<BootIcon size={18} />} />
             </>
           )}
         </div>
@@ -7518,7 +7537,7 @@ function AfPlayer({ id, comps, teamsById }) {
                     {g.res && <span className={"pmr-res r" + g.res}>{RES[g.res]} {num(g.gf, lang)}-{num(g.ga, lang)}</span>}
                     <span className="pmr-me">
                       {g.goals > 0 && <BallMini n={g.goals} />}
-                      {g.assists > 0 && <span className="pmr-a">{bn ? "অ্যা" : "A"}{g.assists > 1 ? "×" + num(g.assists, lang) : ""}</span>}
+                      {g.assists > 0 && <BootMini n={g.assists} />}
                       {g.rc ? <i className="pmr-card red" /> : g.yc ? <i className="pmr-card" /> : null}
                       {g.bench ? <small className="muted">{bn ? "বেঞ্চে" : "Bench"}</small> : g.min != null && <small className="muted">{num(g.min, lang)}'</small>}
                       {g.rating ? <em className={"pm-r " + rateCls(g.rating)}>{num(g.rating.toFixed(1), lang)}</em> : null}
