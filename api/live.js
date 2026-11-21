@@ -29,6 +29,8 @@ export const AF_LEAGUES = {
   ACL: { id: 17, en: "AFC Champions League Elite", bn: "এএফসি চ্যাম্পিয়ন্স লিগ", sort: 16, squads: true },
   UEL: { id: 3, en: "Europa League", bn: "ইউরোপা লিগ", sort: 9 },
   // বাংলাদেশ প্রিমিয়ার লিগ: আইডি দেশ ধরে খুঁজে নেওয়া হয় (country + নাম)
+  // বাংলাদেশ ফেডারেশন কাপ
+  BFC: { id: 811, en: "Federation Cup", bn: "ফেডারেশন কাপ", sort: 8, squads: true },
   BPL: { id: null, find: { country: "Bangladesh", name: /premier/i }, en: "Bangladesh Football League", bn: "বাংলাদেশ ফুটবল লিগ", sort: 7, squads: true, ownTable: true },
 };
 export const MOFF = 100000000, TOFF = 10000000, POFF = 10000000;
