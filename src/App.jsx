@@ -329,6 +329,77 @@ img { display: block; }
 .cg.shut .cg-body > div { visibility: hidden; transition: visibility 0s .22s; }
 .cg.shut .cg-h { border-bottom-color: transparent; }
 @media (prefers-reduced-motion: reduce) { .cg-body, .cg-chev { transition: none; } }
+/* ── ম্যাচ সেন্টার ── */
+.mc { margin-top: 14px; }
+.mc-seg { margin-bottom: 10px; display: flex; }
+.mc-seg button { flex: 1; min-width: 0; }
+.mc-body { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 6px 0; }
+.mc-empty { padding: 18px 16px; text-align: center; font-size: 13.5px; }
+.ev-list { display: flex; flex-direction: column; }
+.ev { display: grid; grid-template-columns: 46px 22px minmax(0, 1fr) auto; align-items: center; gap: 8px; padding: 9px 14px; font-size: 14px; }
+.ev-a { grid-template-columns: auto minmax(0, 1fr) 22px 46px; }
+.ev-a .ev-min { order: 4; text-align: right; } .ev-a .ev-ic, .ev-a .ev-var { order: 3; } .ev-a .ev-txt { order: 2; text-align: right; } .ev-a .ev-sc { order: 1; }
+.ev-min { font-family: Inter, 'Hind Siliguri', sans-serif; font-weight: 700; font-size: 12.5px; color: var(--muted); }
+.ev-ic { display: block; margin: 0 auto; }
+.ev-var { font: 800 9px Inter, sans-serif; color: var(--muted); border: 1.5px solid var(--muted); border-radius: 4px; padding: 1px 2px; text-align: center; }
+.ev-txt { min-width: 0; display: flex; flex-direction: column; line-height: 1.3; }
+.ev-txt b { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ev-txt small { font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ev.goal .ev-txt b { font-weight: 800; }
+.ev-sc { font: 800 13px Inter, 'Hind Siliguri', sans-serif; background: var(--greenDim); color: var(--brand); border-radius: 999px; padding: 2px 9px; }
+.ev-sep { display: flex; align-items: center; gap: 10px; padding: 6px 14px; color: var(--muted); font-size: 12px; font-weight: 600; }
+.ev-sep::before, .ev-sep::after { content: ""; flex: 1; height: 1px; background: var(--line); }
+.st-list { padding: 6px 14px; }
+.st-row { padding: 8px 0; }
+.st-top { display: grid; grid-template-columns: 56px 1fr 56px; align-items: center; font-size: 13px; text-align: center; color: var(--muted); }
+.st-top b { color: var(--text); font-family: Inter, 'Hind Siliguri', sans-serif; font-size: 14px; }
+.st-top b:first-child { text-align: left; } .st-top b:last-child { text-align: right; }
+.st-top b.hi { color: var(--brand); }
+.st-bars { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 5px; }
+.st-bars span { height: 6px; border-radius: 4px; background: var(--card2); overflow: hidden; display: flex; }
+.st-bars span:first-child { justify-content: flex-end; }
+.st-bars i { display: block; height: 100%; border-radius: 4px; background: var(--muted); opacity: .45; transition: width .4s; }
+.st-bars i.lead { background: var(--brand); opacity: 1; }
+.st-split { display: flex; gap: 3px; height: 8px; margin-top: 5px; }
+.st-split i { display: block; height: 100%; border-radius: 4px; transition: width .4s; }
+.st-split i.h { background: var(--brand); } .st-split i.a { background: #64748b; }
+.pitch { position: relative; margin: 6px 10px; aspect-ratio: 68 / 100; max-height: 640px; border-radius: 12px; overflow: hidden; background: repeating-linear-gradient(180deg, #2f8f4e 0 10%, #2a8447 10% 20%); }
+.pitch-lines i { position: absolute; border: 1.5px solid rgba(255,255,255,.45); }
+.pitch-lines .half { left: 0; right: 0; top: 50%; border-width: 1.5px 0 0; }
+.pitch-lines .circle { left: 50%; top: 50%; width: 22%; aspect-ratio: 1; border-radius: 50%; transform: translate(-50%, -50%); }
+.pitch-lines .pbox { left: 22%; right: 22%; height: 13%; }
+.pitch-lines .pb-t { top: 0; border-top: 0; } .pitch-lines .pb-b { bottom: 0; border-bottom: 0; }
+.pitch-f { position: absolute; left: 8px; font-size: 11px; font-weight: 700; color: rgba(255,255,255,.85); }
+.pitch-f.pf-t { top: 6px; } .pitch-f.pf-b { bottom: 6px; }
+.pm-wrap { position: absolute; transform: translate(-50%, -50%); width: 19%; display: flex; justify-content: center; }
+.pm { display: flex; flex-direction: column; align-items: center; gap: 3px; min-width: 0; max-width: 100%; }
+.pm-shirt { position: relative; width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; font: 800 12px Inter, sans-serif; color: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.35); }
+.pm-h .pm-shirt { background: var(--brand); border: 2px solid #fff; }
+.pm-a .pm-shirt { background: #1e293b; border: 2px solid #e2e8f0; }
+.pm-n { font-size: 11px; font-weight: 600; color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,.6); max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pm-shirt em { position: absolute; font-style: normal; }
+.pm-r { font: 800 10px Inter, sans-serif; color: #fff; border-radius: 5px; padding: 1px 4px; font-style: normal; }
+.pm-shirt .pm-r { top: -7px; right: -16px; }
+.pm-r.r-hi { background: #16a34a; } .pm-r.r-ok { background: #d97706; } .pm-r.r-lo { background: #dc2626; }
+.pm-r.big { font-size: 16px; padding: 4px 8px; border-radius: 8px; }
+.pm-c { top: -6px; left: -8px; background: #facc15; color: #111; font: 800 9px Inter, sans-serif; width: 14px; height: 14px; border-radius: 50%; display: grid; place-items: center; }
+.pm-g { bottom: -6px; right: -10px; font-size: 10px; }
+.pm-card { bottom: -4px; left: -6px; width: 8px; height: 11px; border-radius: 2px; background: #facc15; }
+.pm-card.red { background: #ef4444; }
+.lu-best { display: flex; align-items: center; gap: 12px; padding: 10px 14px; }
+.lu-best span:last-child { display: flex; flex-direction: column; }
+.lu-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 0; }
+.lu-subs { padding: 4px 10px 8px; min-width: 0; }
+.lu-cols .lu-subs + .lu-subs { border-left: 1px solid var(--line); }
+.lu-h { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; padding: 6px 0; font-size: 13px; }
+.lu-h small { width: 100%; font-size: 11.5px; }
+.lu-p { display: flex; align-items: center; gap: 6px; padding: 5px 0; font-size: 12.5px; color: var(--muted); }
+.lu-p.played { color: var(--text); }
+.lu-no { width: 18px; text-align: right; font: 700 11px Inter, sans-serif; color: var(--muted); flex: none; }
+.lu-n { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lu-ev { font-size: 11px; }
+.ball-mini { display: inline-flex; align-items: center; gap: 1px; } .ball-mini svg { display: block; } .ball-mini b { font: 800 9px Inter, sans-serif; color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,.6); }
+.lu-ev .ball-mini b { color: var(--text); text-shadow: none; }
 .comp-go { margin-left: auto; color: var(--muted); font-size: 18px; line-height: 1; }
 .hero-top { color: inherit; text-align: left; }
 .hero-team { color: inherit; }
@@ -1404,6 +1475,34 @@ async function getMatchesOnDay(key) {
   return ok(await sb.from("matches").select(MATCH_SELECT).gte("utc_date", from).lt("utc_date", to).order("utc_date"));
 }
 
+// ── লাইভ বিস্তারিত (API-Football → match_live): মিনিট, স্কোর, ঘটনা, লাইনআপ, পরিসংখ্যান ──
+const AF_PLAY = ["1H", "2H", "ET", "BT", "P", "LIVE", "INT", "SUSP"];
+const AF_DONE = ["FT", "AET", "PEN"];
+// match_live পুরনো হয়ে গেলে (সিঙ্ক থেমে গেলে) সেটার ওপর ভরসা নয়; শেষ হওয়া ম্যাচের ফল অবশ্য থাকে
+const liveFresh = (L) => L && L.status && (AF_DONE.includes(L.status) || Date.now() - Date.parse(L.updated_at || 0) < 10 * 60000);
+// football-data-এর ম্যাচের ওপর API-Football-এর নতুন তথ্য বসানো (স্কোর, অবস্থা, মিনিট)
+function mergeLive(m, L) {
+  if (!liveFresh(L) || m.status === "FINISHED" && !AF_DONE.includes(L.status)) return m;
+  const st = AF_PLAY.includes(L.status) ? "IN_PLAY" : L.status === "HT" ? "PAUSED" : AF_DONE.includes(L.status) ? "FINISHED" : null;
+  if (!st) return m;
+  return { ...m, status: st, home_score: L.home_goals ?? m.home_score, away_score: L.away_goals ?? m.away_score, minute: st === "IN_PLAY" ? L.elapsed : null, minute_x: L.extra || null, af_status: L.status };
+}
+async function getLiveFor(ids) {
+  if (DEMO || !ids.length) return {};
+  const { data, error } = await sb.from("match_live").select("match_id,status,elapsed,extra,home_goals,away_goals,updated_at").in("match_id", ids);
+  if (error) return {};
+  return Object.fromEntries((data || []).map((r) => [r.match_id, r]));
+}
+async function getLiveFull(id) {
+  if (DEMO) return (typeof window !== "undefined" && window.__kkLive) || null; // ডেমোতে পরীক্ষার জন্য
+  const { data, error } = await sb.from("match_live").select("*").eq("match_id", id).maybeSingle();
+  return error ? null : data;
+}
+async function withLive(list) {
+  const L = await getLiveFor(list.map((m) => m.id)).catch(() => ({}));
+  return list.map((m) => mergeLive(m, L[m.id]));
+}
+
 // নির্দিষ্ট দলগুলোর সামনের (বা আগের) ম্যাচ
 async function getTeamMatches(teamIds, { upcoming = true, limit = 10 } = {}) {
   if (!teamIds.length) return [];
@@ -2447,9 +2546,11 @@ function CompIcon({ c, size = 18 }) {
 }
 
 // ── স্ট্যাটাস লেখা ──
+const minuteTxt = (mi, x, lang) => `${num(mi, lang)}${x ? "+" + num(x, lang) : ""}'`;
 function StatusText({ m }) {
-  const { t } = useT();
+  const { t, lang } = useT();
   if (m.status === "PAUSED") return <span className="lv">{t("ht")}</span>;
+  if (isLive(m) && m.minute != null) return <span className="lv"><i className="dot" />{minuteTxt(m.minute, m.minute_x, lang)}</span>;
   if (isLive(m)) return <span className="lv"><i className="dot" />{t("live")}</span>;
   if (isDone(m)) return <>{t("ft")}</>;
   if (m.status === "POSTPONED") return <>{t("postponed")}</>;
@@ -2712,8 +2813,239 @@ function FanVote({ m }) {
   );
 }
 
-function MatchSheet({ m, user, pred, onClose, onSave, onLogin, toast }) {
+// ════════════════ ম্যাচ সেন্টার: ঘটনা, লাইনআপ, পরিসংখ্যান (API-Football) ════════════════
+const EvIcon = ({ e }) => {
+  const d = e.d || "";
+  if (e.t === "Goal") {
+    const miss = /Missed/i.test(d), own = /Own/i.test(d);
+    return (
+      <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" className={"ev-ic" + (miss ? " miss" : "")}>
+        <circle cx="12" cy="12" r="10" fill={own ? "#ef4444" : "var(--text)"} />
+        <path d="M12 7.2l3.6 2.6-1.4 4.3H9.8L8.4 9.8z" fill="var(--card)" />
+        <path d="M12 2.5v4.7M15.6 9.8l4.3-1.5M14.2 14.1l2.7 3.8M9.8 14.1l-2.7 3.8M8.4 9.8L4.1 8.3" stroke="var(--card)" strokeWidth="1.3" />
+        {miss && <path d="M4 4l16 16" stroke="#ef4444" strokeWidth="2.4" strokeLinecap="round" />}
+      </svg>
+    );
+  }
+  if (e.t === "Card") {
+    const red = /Red/i.test(d), second = /Second/i.test(d);
+    return (
+      <svg width="16" height="18" viewBox="0 0 16 18" aria-hidden="true" className="ev-ic">
+        {second && <rect x="1" y="1" width="9" height="13" rx="1.5" fill="#facc15" />}
+        <rect x={second ? 5 : 3} y={second ? 4 : 2} width="9" height="13" rx="1.5" fill={red || second ? "#ef4444" : "#facc15"} />
+      </svg>
+    );
+  }
+  if (e.t === "subst") return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className="ev-ic">
+      <path d="M7 4v13M3.5 13.5L7 17l3.5-3.5" stroke="#ef4444" /><path d="M17 20V7M13.5 10.5L17 7l3.5 3.5" stroke="#16a34a" />
+    </svg>
+  );
+  return <span className="ev-var">VAR</span>;
+};
+
+const EV_BN = {
+  "Own Goal": "আত্মঘাতী গোল", Penalty: "পেনাল্টি থেকে", "Missed Penalty": "পেনাল্টি মিস",
+  "Yellow Card": "হলুদ কার্ড", "Red Card": "লাল কার্ড", "Second Yellow card": "দ্বিতীয় হলুদ, লাল কার্ড",
+  "Goal cancelled": "গোল বাতিল", "Penalty confirmed": "পেনাল্টি নিশ্চিত", "Penalty cancelled": "পেনাল্টি বাতিল",
+  "Goal Disallowed - offside": "অফসাইডে গোল বাতিল", "Card upgrade": "কার্ড বদল", "Goal confirmed": "গোল বহাল",
+};
+
+// বদলি: কে নামলেন, কে উঠলেন (মাঠে থাকা খেলোয়াড়ের তালিকা ধরে, যাতে উৎসের ক্রম যা-ই হোক ঠিক থাকে)
+function subPairs(L) {
+  const on = new Set([...(L.lineups?.h?.xi || []), ...(L.lineups?.a?.xi || [])].map((p) => p.id));
+  const out = new Map();
+  [...(L.events || [])].sort((x, y) => (x.m ?? 0) + (x.x ?? 0) / 100 - ((y.m ?? 0) + (y.x ?? 0) / 100)).forEach((e) => {
+    if (e.t !== "subst") return;
+    let offP = { n: e.p, id: e.pid }, inP = { n: e.a, id: e.aid };
+    if (!on.has(offP.id) && on.has(inP.id)) [offP, inP] = [inP, offP];
+    on.delete(offP.id); on.add(inP.id);
+    out.set(e, { off: offP.n, in: inP.n });
+  });
+  return out;
+}
+
+function MatchEvents({ L, m, lang }) {
+  const bn = lang === "bn";
+  const subs = useMemo(() => subPairs(L), [L]);
+  const ev = [...(L.events || [])].sort((x, y) => (x.m ?? 0) - (y.m ?? 0) || (x.x ?? 0) - (y.x ?? 0));
+  if (!ev.length) return <div className="mc-empty muted">{bn ? "এখনো কোনো ঘটনা নেই" : "No events yet"}</div>;
+  // গোলের পর চলমান স্কোর
+  let h = 0, a = 0;
+  const rows = [];
+  let htShown = false;
+  for (const e of ev) {
+    if (!htShown && (e.m ?? 0) > 45) { rows.push(<div key="ht" className="ev-sep"><span>{bn ? "বিরতি" : "Half time"}</span></div>); htShown = true; }
+    const goal = e.t === "Goal" && !/Missed/i.test(e.d || "");
+    if (goal) { if (e.s === "h") h++; else if (e.s === "a") a++; }
+    const sp = subs.get(e);
+    const main = sp ? sp.in : e.p;
+    const sub = sp ? (bn ? `উঠলেন ${sp.off}` : `Off: ${sp.off}`)
+      : e.t === "Goal" && e.a && !/Own|Missed/i.test(e.d || "") ? (bn ? `অ্যাসিস্ট: ${e.a}` : `Assist: ${e.a}`)
+      : EV_BN[e.d] && (bn ? EV_BN[e.d] : e.d !== "Normal Goal" ? e.d : null);
+    rows.push(
+      <div key={rows.length} className={"ev " + (e.s === "a" ? "ev-a" : "ev-h") + (goal ? " goal" : "")}>
+        <span className="ev-min">{minuteTxt(e.m ?? 0, e.x, lang)}</span>
+        <EvIcon e={e} />
+        <span className="ev-txt"><b>{main || "—"}</b>{sub ? <small className="muted">{e.t === "Var" ? "VAR · " : ""}{sub}</small> : null}</span>
+        {goal ? <span className="ev-sc">{num(h, lang)} - {num(a, lang)}</span> : <span />}
+      </div>
+    );
+  }
+  if (AF_DONE.includes(L.status)) rows.push(<div key="ft" className="ev-sep"><span>{bn ? "খেলা শেষ" : "Full time"} · {num(m.home_score ?? h, lang)} - {num(m.away_score ?? a, lang)}</span></div>);
+  return <div className="ev-list">{rows}</div>;
+}
+
+const STAT_ORDER = [
+  ["Ball Possession", "বল দখল"], ["expected_goals", "এক্সপেক্টেড গোল (xG)"], ["Total Shots", "মোট শট"], ["Shots on Goal", "লক্ষ্যে শট"],
+  ["Shots insidebox", "বক্সের ভেতর থেকে শট"], ["Corner Kicks", "কর্নার"], ["Goalkeeper Saves", "গোলরক্ষকের সেভ"], ["Total passes", "মোট পাস"],
+  ["Passes %", "পাসের নির্ভুলতা"], ["Fouls", "ফাউল"], ["Offsides", "অফসাইড"], ["Yellow Cards", "হলুদ কার্ড"], ["Red Cards", "লাল কার্ড"],
+];
+const statNum = (v) => (v == null ? 0 : parseFloat(String(v).replace("%", "")) || 0);
+function MatchStats({ L, lang }) {
+  const bn = lang === "bn";
+  const S = L.stats || [];
+  const rows = STAT_ORDER.map(([k, b]) => [S.find((x) => x.k === k), bn ? b : k === "expected_goals" ? "Expected goals (xG)" : k]).filter(([x]) => x && (x.h != null || x.a != null));
+  if (!rows.length) return <div className="mc-empty muted">{bn ? "পরিসংখ্যান এখনো আসেনি" : "No stats yet"}</div>;
+  const show = (v) => (v == null ? num(0, lang) : num(String(v), lang));
+  return (
+    <div className="st-list">
+      {rows.map(([x, label]) => {
+        const h = statNum(x.h), a = statNum(x.a), t = h + a || 1;
+        const pos = x.k === "Ball Possession";
+        return (
+          <div key={x.k} className="st-row">
+            <div className="st-top"><b className={h > a ? "hi" : ""}>{show(x.h)}</b><span>{label}</span><b className={a > h ? "hi" : ""}>{show(x.a)}</b></div>
+            {pos
+              ? <div className="st-split"><i className="h" style={{ width: `${(h / t) * 100}%` }} /><i className="a" style={{ width: `${(a / t) * 100}%` }} /></div>
+              : <div className="st-bars"><span><i className={"h" + (h >= a ? " lead" : "")} style={{ width: `${(h / t) * 100}%` }} /></span><span><i className={"a" + (a >= h ? " lead" : "")} style={{ width: `${(a / t) * 100}%` }} /></span></div>}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+const BallMini = ({ n }) => (
+  <span className="ball-mini"><svg width="11" height="11" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="11" fill="#fff" stroke="#111" strokeWidth="1.5" /><path d="M12 7.2l3.6 2.6-1.4 4.3H9.8L8.4 9.8z" fill="#111" /></svg>{n > 1 ? <b>×{n}</b> : null}</span>
+);
+const rateCls = (r) => (r >= 7.5 ? "r-hi" : r >= 6.5 ? "r-ok" : "r-lo");
+const lastName = (n) => { const p = (n || "").split(" "); return p.length > 1 && /\.$/.test(p[0]) ? p.slice(1).join(" ") : p[p.length - 1] || n; };
+function PitchMan({ p, st, side }) {
+  return (
+    <div className={"pm pm-" + side}>
+      <span className="pm-shirt">{p.no ?? ""}
+        {st?.r ? <em className={"pm-r " + rateCls(st.r)}>{st.r.toFixed(1)}</em> : null}
+        {st?.cap ? <em className="pm-c">C</em> : null}
+        {st?.g ? <em className="pm-g"><BallMini n={st.g} /></em> : null}
+        {st?.rc ? <em className="pm-card red" /> : st?.yc ? <em className="pm-card" /> : null}
+      </span>
+      <span className="pm-n">{lastName(p.n)}</span>
+    </div>
+  );
+}
+function TeamHalf({ T, side, P }) {
+  const rows = {};
+  for (const p of T.xi) { const [r, c] = (p.g || "").split(":").map(Number); if (!r || !c) return null; (rows[r] ||= []).push({ ...p, c }); }
+  const keys = Object.keys(rows).map(Number).sort((x, y) => x - y);
+  const n = keys.length;
+  return keys.map((r, i) => {
+    const list = rows[r].sort((x, y) => x.c - y.c);
+    // ঘরের দল নিচে (গোলরক্ষক একদম নিচে), অতিথি দল ওপরে; মুখোমুখি দেখাতে এক দিকের সারি উল্টো
+    const y = side === "h" ? 91 - (i / Math.max(1, n - 1)) * 36 : 9 + (i / Math.max(1, n - 1)) * 36;
+    return list.map((p, j) => {
+      const x = ((j + 0.5) / list.length) * 100;
+      return <div key={p.id || p.n} className="pm-wrap" style={{ left: `${side === "h" ? 100 - x : x}%`, top: `${y}%` }}><PitchMan p={p} st={P?.[p.id]} side={side} /></div>;
+    });
+  });
+}
+function MatchLineups({ L, m, lang }) {
+  const bn = lang === "bn";
+  const { h, a } = L.lineups || {};
+  if (!h?.xi?.length || !a?.xi?.length) return <div className="mc-empty muted">{bn ? "লাইনআপ সাধারণত খেলা শুরুর প্রায় এক ঘণ্টা আগে আসে" : "Lineups usually arrive about an hour before kickoff"}</div>;
+  const P = L.players || {};
+  const grid = h.xi.every((p) => p.g) && a.xi.every((p) => p.g);
+  const best = Object.entries(P).filter(([, s]) => s.r).sort((x, y) => y[1].r - x[1].r)[0];
+  const allP = [...h.xi, ...h.sub, ...a.xi, ...a.sub];
+  const bestP = best && AF_DONE.includes(L.status) ? allP.find((p) => String(p.id) === best[0]) : null;
+  const subList = (T, side) => (
+    <div className="lu-subs">
+      <div className="lu-h"><Crest team={side === "h" ? m.home : m.away} size={18} /><b>{teamShort(side === "h" ? m.home : m.away, lang)}</b>{T.coach && <small className="muted">{bn ? "কোচ" : "Coach"}: {T.coach}</small>}</div>
+      {T.sub.map((p) => { const s = P[p.id]; return (
+        <div key={p.id || p.n} className={"lu-p" + (s?.min ? " played" : "")}>
+          <span className="lu-no">{p.no ?? ""}</span><span className="lu-n">{p.n}</span>
+          {s?.g ? <span className="lu-ev"><BallMini n={s.g} /></span> : null}
+          {s?.r ? <em className={"pm-r " + rateCls(s.r)}>{s.r.toFixed(1)}</em> : null}
+        </div>
+      ); })}
+    </div>
+  );
+  return (
+    <>
+      {bestP && (
+        <div className="lu-best"><span className={"pm-r big " + rateCls(best[1].r)}>{best[1].r.toFixed(1)}</span>
+          <span><small className="muted">{bn ? "ম্যাচ সেরা" : "Player of the match"}</small><b>{bestP.n}</b></span></div>
+      )}
+      {grid ? (
+        <div className="pitch">
+          <div className="pitch-lines" aria-hidden="true"><i className="half" /><i className="circle" /><i className="pbox pb-t" /><i className="pbox pb-b" /></div>
+          <span className="pitch-f pf-t">{teamShort(m.away, lang)} · {a.f}</span>
+          <span className="pitch-f pf-b">{teamShort(m.home, lang)} · {h.f}</span>
+          <TeamHalf T={a} side="a" P={P} />
+          <TeamHalf T={h} side="h" P={P} />
+        </div>
+      ) : (
+        <div className="lu-cols">{[["h", h], ["a", a]].map(([sd, T]) => (
+          <div key={sd} className="lu-subs"><div className="lu-h"><b>{teamShort(sd === "h" ? m.home : m.away, lang)}</b><small className="muted">{T.f}</small></div>
+            {T.xi.map((p) => <div key={p.id || p.n} className="lu-p"><span className="lu-no">{p.no}</span><span className="lu-n">{p.n}</span>{P[p.id]?.r ? <em className={"pm-r " + rateCls(P[p.id].r)}>{P[p.id].r.toFixed(1)}</em> : null}</div>)}
+          </div>))}</div>
+      )}
+      <div className="sec-h" style={{ margin: "14px 0 6px" }}><h2>{bn ? "বদলি খেলোয়াড়" : "Substitutes"}</h2></div>
+      <div className="lu-cols">{subList(h, "h")}{subList(a, "a")}</div>
+    </>
+  );
+}
+
+function MatchCenter({ L, m }) {
+  const { lang } = useT();
+  const bn = lang === "bn";
+  const hasEv = (L.events || []).length > 0, hasLu = !!(L.lineups?.h?.xi?.length), hasSt = !!(L.stats || []).length;
+  const tabs = [hasEv || isLive(m) || isDone(m) ? ["ev", bn ? "ঘটনা" : "Events"] : null, hasLu ? ["lu", bn ? "লাইনআপ" : "Lineups"] : null, hasSt ? ["st", bn ? "পরিসংখ্যান" : "Stats"] : null].filter(Boolean);
+  const [tab, setTab] = useState(null);
+  if (!tabs.length) return null;
+  const cur = tabs.some(([k]) => k === tab) ? tab : tabs[0][0];
+  return (
+    <div className="mc">
+      {tabs.length > 1 && <div className="seg mc-seg">{tabs.map(([k, l]) => <button key={k} className={cur === k ? "on" : ""} onClick={() => setTab(k)}>{l}</button>)}</div>}
+      <div className="mc-body">
+        {cur === "ev" && <MatchEvents L={L} m={m} lang={lang} />}
+        {cur === "lu" && <MatchLineups L={L} m={m} lang={lang} />}
+        {cur === "st" && <MatchStats L={L} lang={lang} />}
+      </div>
+    </div>
+  );
+}
+
+// ম্যাচের পাতা খোলা থাকলে লাইভ বিস্তারিত আনা, খেলা চললে প্রতি মিনিটে নতুন করে
+function useMatchLive(m) {
+  const [L, setL] = useState(null);
+  useEffect(() => {
+    if (!m?.id) return;
+    let alive = true;
+    const pull = () => { if (document.visibilityState === "visible") getLiveFull(m.id).then((r) => alive && setL(r)).catch(() => {}); };
+    pull();
+    const t0 = Date.parse(m.utc_date), near = Date.now() > t0 - 90 * 60000 && Date.now() < t0 + 4 * 3600000;
+    const i = near ? setInterval(pull, 60000) : null;
+    document.addEventListener("visibilitychange", pull);
+    return () => { alive = false; if (i) clearInterval(i); document.removeEventListener("visibilitychange", pull); };
+  }, [m?.id]);
+  return L;
+}
+
+function MatchSheet({ m: m0, user, pred, onClose, onSave, onLogin, toast }) {
   const { t, lang } = useT();
+  const L = useMatchLive(m0);
+  const m = useMemo(() => mergeLive(m0, L), [m0, L]);
   const nav = useNav();
   const now = useNow(1000 * 20);
   const [h, setH] = useState(pred?.home ?? 0);
@@ -2757,6 +3089,7 @@ function MatchSheet({ m, user, pred, onClose, onSave, onLogin, toast }) {
           <button className="ms-team" onClick={() => m.away_id && nav.openTeam(m.away_id)}><Crest team={m.away} size={60} /><span>{teamName(m.away, lang)}</span></button>
         </div>
         {open && <div className="ms-cd">{t("startsIn")} {countdown(new Date(m.utc_date) - now, lang)} · {t("bdTime")}</div>}
+        {L && <MatchCenter L={L} m={m} />}
 
         <FanVote m={m} />
 
@@ -3065,7 +3398,7 @@ function DayMatches({ day, setDay, comp = "ALL", preds, onOpen }) {
   useEffect(() => {
     let live = true;
     setList(null); setNext(null);
-    getMatchesOnDay(day).then((r) => {
+    getMatchesOnDay(day).then(withLive).then((r) => {
       if (!live) return;
       setList(r);
       if (!r.length) getNextMatchTime(dayRangeUTC(day)[1]).then((n) => live && setNext(n)).catch(() => {});
@@ -3083,7 +3416,7 @@ function DayMatches({ day, setDay, comp = "ALL", preds, onOpen }) {
   useEffect(() => {
     if (!busy) return;
     let alive = true;
-    const pull = () => { if (document.visibilityState === "visible") getMatchesOnDay(day).then((r) => alive && setList(r)).catch(() => {}); };
+    const pull = () => { if (document.visibilityState === "visible") getMatchesOnDay(day).then(withLive).then((r) => alive && setList(r)).catch(() => {}); };
     const i = setInterval(pull, 60000);
     document.addEventListener("visibilitychange", pull);
     return () => { alive = false; clearInterval(i); document.removeEventListener("visibilitychange", pull); };
