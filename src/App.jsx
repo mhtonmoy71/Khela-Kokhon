@@ -650,6 +650,9 @@ button.pm { background: none; border: 0; padding: 0; cursor: pointer; font: inhe
 .tgl.on { background: var(--green); }
 .tgl.on i { transform: translateX(20px); }
 .tgl:disabled { opacity: .6; }
+.dr-h { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 11.5px; padding: 8px 14px 0; }
+.dr-c { display: inline-flex; align-items: center; gap: 5px; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.dr-c img { flex-shrink: 0; }
 .fav-btn { display: inline-flex; align-items: center; gap: 7px; margin-top: 10px; height: 36px; padding: 0 16px; border-radius: 18px; border: 1.5px solid var(--line); background: var(--card); font-weight: 700; font-size: 13.5px; color: var(--text); }
 .fav-btn span { color: var(--amber); font-size: 17px; }
 .fav-btn.on { border-color: var(--amber); background: rgba(245,158,11,.12); }
@@ -7289,11 +7292,14 @@ function zone(code, pos, total) {
 
 function Loading() { return <div className="card"><div className="spin" /></div>; }
 
-function DatedRows({ list, preds, onOpen }) {
+function DatedRows({ list, preds, onOpen, comp }) {
   const { lang } = useT();
   return list.map((m) => (
     <div key={m.id}>
-      <div className="muted" style={{ fontSize: 11.5, padding: "8px 14px 0" }}>{dayLabel(dayKey(m.utc_date), lang, { short: true })}</div>
+      <div className="muted dr-h">
+        <span>{dayLabel(dayKey(m.utc_date), lang, { short: true })}</span>
+        {comp && m.competition_code && <span className="dr-c"><CompIcon c={m.competition || { code: m.competition_code }} size={13} />{compLabel(m.competition_code, lang)}</span>}
+      </div>
       <MatchRow m={m} pred={preds[m.id]} onOpen={onOpen} />
     </div>
   ));
@@ -8070,7 +8076,7 @@ function Team({ id, teamsById, preds, onOpen, isFav, onToggleFav }) {
         <>
           <div className="sec">
             <div className="sec-h"><h2>{bn ? "পরের ম্যাচ" : "Next match"}</h2></div>
-            {up === null ? <Loading /> : next ? <div className="card"><DatedRows list={[next]} preds={preds} onOpen={onOpen} /></div> : <div className="card empty">{bn ? "সামনে কোনো খেলা সূচিতে নেই" : "No upcoming fixtures"}</div>}
+            {up === null ? <Loading /> : next ? <div className="card"><DatedRows list={[next]} preds={preds} onOpen={onOpen} comp /></div> : <div className="card empty">{bn ? "সামনে কোনো খেলা সূচিতে নেই" : "No upcoming fixtures"}</div>}
           </div>
           {form.length > 0 && (
             <div className="sec">
@@ -8102,7 +8108,7 @@ function Team({ id, teamsById, preds, onOpen, isFav, onToggleFav }) {
           ))}
           <div className="sec">
             <div className="sec-h"><h2>{bn ? "সাম্প্রতিক ফল" : "Recent results"}</h2>{(past || []).length > 3 && <button className="link" onClick={() => setTab("matches")}>{bn ? "সব ম্যাচ" : "All matches"}</button>}</div>
-            {past === null ? <Loading /> : past.length ? <div className="card"><DatedRows list={past.slice(0, 3)} preds={preds} onOpen={onOpen} /></div> : <div className="card empty">{bn ? "কোনো ফল নেই" : "No results"}</div>}
+            {past === null ? <Loading /> : past.length ? <div className="card"><DatedRows list={past.slice(0, 3)} preds={preds} onOpen={onOpen} comp /></div> : <div className="card empty">{bn ? "কোনো ফল নেই" : "No results"}</div>}
           </div>
           {infoRows.length > 0 && (
             <div className="sec">
@@ -8123,11 +8129,11 @@ function Team({ id, teamsById, preds, onOpen, isFav, onToggleFav }) {
           )}
           <div className="sec">
             <div className="sec-h"><h2>{bn ? "সামনের খেলা" : "Upcoming"}</h2></div>
-            {up === null ? <Loading /> : byComp(up).length ? <div className="card"><DatedRows list={byComp(up)} preds={preds} onOpen={onOpen} /></div> : <div className="card empty">{bn ? "সামনে কোনো খেলা সূচিতে নেই" : "No upcoming fixtures"}</div>}
+            {up === null ? <Loading /> : byComp(up).length ? <div className="card"><DatedRows list={byComp(up)} preds={preds} onOpen={onOpen} comp /></div> : <div className="card empty">{bn ? "সামনে কোনো খেলা সূচিতে নেই" : "No upcoming fixtures"}</div>}
           </div>
           <div className="sec">
             <div className="sec-h"><h2>{bn ? "ফল" : "Results"}</h2></div>
-            {past === null ? <Loading /> : byComp(past).length ? <div className="card"><DatedRows list={byComp(past)} preds={preds} onOpen={onOpen} /></div> : <div className="card empty">{bn ? "কোনো ফল নেই" : "No results"}</div>}
+            {past === null ? <Loading /> : byComp(past).length ? <div className="card"><DatedRows list={byComp(past)} preds={preds} onOpen={onOpen} comp /></div> : <div className="card empty">{bn ? "কোনো ফল নেই" : "No results"}</div>}
           </div>
         </>
       )}
