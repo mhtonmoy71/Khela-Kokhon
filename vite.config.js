@@ -21,12 +21,12 @@ export default defineConfig({
           { src: "/icon-192x192.png", sizes: "192x192", type: "image/png", purpose: "any maskable" },
           { src: "/icon-512x512.png", sizes: "512x512", type: "image/png", purpose: "any maskable" },
           // নোটিফিকেশনের ছোট আইকনের জন্য: শুধু সাদা, পেছন স্বচ্ছ
-          { src: "/icon-mono-512.png?v=3", sizes: "512x512", type: "image/png", purpose: "monochrome" },
+          { src: "/icon-mono-512.png?v=4", sizes: "512x512", type: "image/png", purpose: "monochrome" },
         ],
       },
       workbox: {
         navigateFallbackDenylist: [/^\/api\//],
-        importScripts: ["/push-sw.js?v=5"],
+        importScripts: ["/push-sw.js?v=6"],
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/crests\.football-data\.org\/.*/i,
