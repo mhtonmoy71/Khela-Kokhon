@@ -709,9 +709,10 @@ button.pm { background: none; border: 0; padding: 0; cursor: pointer; font: inhe
 .ko-note { font-size: 12px; line-height: 1.5; margin: 12px 2px 0; }
 .bell-btn { display: grid; place-items: center; color: var(--text); }
 .bell-btn.on { color: var(--green); }
-.team-bell { width: 36px; height: 36px; border-radius: 50%; border: 1.5px solid var(--line); background: var(--card); margin-top: 10px; }
-.team-hero.row .team-bell { margin: 0 0 0 auto; }
-.team-hero.row .team-bell + .fav-btn { margin-left: 8px; }
+.team-acts { display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 10px; }
+.team-acts .fav-btn { margin: 0; }
+.team-hero.row .team-acts { margin: 0 0 0 auto; }
+.team-bell { width: 36px; height: 36px; border-radius: 50%; border: 1.5px solid var(--line); background: var(--card); flex-shrink: 0; }
 .fav-btn { display: inline-flex; align-items: center; gap: 7px; margin-top: 10px; height: 36px; padding: 0 16px; border-radius: 18px; border: 1.5px solid var(--line); background: var(--card); font-weight: 700; font-size: 13.5px; color: var(--text); }
 .fav-btn span { color: var(--amber); font-size: 17px; }
 .fav-btn.on { border-color: var(--amber); background: rgba(245,158,11,.12); }
@@ -8503,11 +8504,15 @@ function Team({ id, teamsById, preds, onOpen, isFav, onToggleFav, user, toast, o
           <h1>{teamName(team, lang)}</h1>
           {team && bn && <div className="muted" style={{ fontSize: 13 }}>{teamName(team, "en")}</div>}
         </div>
-        {team && <BellBtn user={user} kind="team" id={id} base={!!isFav} toast={toast} onLogin={onLogin} className="team-bell" />}
-        {team && onToggleFav && (
+        {team && (
+          <div className="team-acts">
+            <BellBtn user={user} kind="team" id={id} base={!!isFav} toast={toast} onLogin={onLogin} className="team-bell" />
+        {onToggleFav && (
           <button className={"fav-btn" + (isFav ? " on" : "")} onClick={() => onToggleFav(id)}>
             <span>{isFav ? "★" : "☆"}</span>{isFav ? (bn ? "প্রিয় দল" : "Favourite") : (bn ? "প্রিয় দলে যোগ করুন" : "Add to favourites")}
           </button>
+        )}
+          </div>
         )}
       </div>
       {pos?.length > 0 && (
