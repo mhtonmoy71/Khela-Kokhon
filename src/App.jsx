@@ -784,6 +784,11 @@ button.scr { width: 100%; }
 .lg-list { display: grid; gap: 10px; }
 .lg-card { display: flex; align-items: center; gap: 14px; width: 100%; padding: 14px; text-align: left; background: var(--card); border: 1px solid var(--line); border-radius: 14px; }
 .lg-card:active { background: var(--card2); }
+.lg-card.on { border-color: color-mix(in srgb, var(--brand) 45%, var(--line)); }
+.lg-open { flex: 1; min-width: 0; display: flex; align-items: center; gap: 14px; background: none; border: 0; padding: 0; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+.lg-fol { flex: none; height: 32px; padding: 0 14px; border-radius: 999px; border: 1px solid var(--brand); background: none; color: var(--brand); font: 600 13px 'Hind Siliguri', sans-serif; cursor: pointer; }
+.lg-fol.on { background: var(--brand); color: #fff; }
+.lg-tip { font-size: 12.5px; margin: -4px 0 10px; }
 .lg-ic { width: 48px; height: 48px; flex: none; border-radius: 50%; background: #fff; display: grid; place-items: center; box-shadow: 0 0 0 1px var(--line); }
 .lg-ic:empty::after { content: attr(data-c); font-family: Inter, sans-serif; font-weight: 800; font-size: 13px; color: #064e3b; }
 .lg-nm { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
@@ -1858,6 +1863,7 @@ async function getH2H(matchId, homeId, awayId) {
     aggregates: { numberOfMatches: 5, totalGoals: 14, homeTeam: { id: homeId, wins: 2, draws: 1, losses: 2 }, awayTeam: { id: awayId, wins: 2, draws: 1, losses: 2 } },
     matches: [0, 1, 2, 3, 4].map((i) => ({ id: i, utcDate: `202${5 - (i >> 1)}-0${(i % 9) + 1}-12T19:00:00Z`, competition: { code: "PD" }, homeTeam: { id: i % 2 ? awayId : homeId }, awayTeam: { id: i % 2 ? homeId : awayId }, score: { home: i % 3, away: (i + 1) % 3 } })),
   };
+  if (matchId >= 100000000) { const r = await fetch(`/api/live?h2h=${matchId}`); if (!r.ok) throw new Error("h2h"); return r.json(); }
   return extra({ type: "h2h", match: matchId });
 }
 
@@ -2632,6 +2638,19 @@ function MatchRow({ m, pred, onOpen, badge, plain, sub }) {
   );
 }
 
+// ── ফলো করা লিগ: ম্যাচ ট্যাবে আগে দেখায় (ফোনে মনে থাকে) ──
+const lgSubs = new Set();
+const getFollowLg = () => { const v = ls.get("follow_lg", []); return Array.isArray(v) ? v : []; };
+function useFollowLg() {
+  const [v, setV] = useState(getFollowLg);
+  useEffect(() => { lgSubs.add(setV); return () => lgSubs.delete(setV); }, []);
+  const toggle = (code) => { const cur = getFollowLg(); const n = cur.includes(code) ? cur.filter((x) => x !== code) : [...cur, code]; ls.set("follow_lg", n); lgSubs.forEach((f) => f(n)); return !cur.includes(code); };
+  return [v, toggle];
+}
+// ফলো করা লিগ আগে (যে ক্রমে ফলো করেছেন), তারপর বাকিগুলো স্বাভাবিক ক্রমে
+const lgRank = (follow, c) => { const i = follow.indexOf(c?.code); return i >= 0 ? i - 1000 : (c?.sort ?? 99); };
+const orderComps = (comps, follow) => [...comps].sort((a, b) => lgRank(follow, a) - lgRank(follow, b));
+
 // ── প্রতিযোগিতা অনুযায়ী ভাগ করা তালিকা ──
 function CompGroups({ matches, preds = {}, onOpen }) {
   const { lang } = useT();
@@ -2640,6 +2659,7 @@ function CompGroups({ matches, preds = {}, onOpen }) {
   // কোন লিগ ভাঁজ করা (ব্যবহারকারীর পছন্দ মনে থাকে)
   const [shut, setShut] = useState(() => { const v = ls.get("cg_shut", []); return Array.isArray(v) ? v : []; });
   const toggle = (k) => setShut((x) => { const n = x.includes(k) ? x.filter((y) => y !== k) : [...x, k]; ls.set("cg_shut", n); return n; });
+  const [follow] = useFollowLg();
   const groups = [];
   const idx = {};
   for (const m of matches) {
@@ -2647,7 +2667,7 @@ function CompGroups({ matches, preds = {}, onOpen }) {
     if (!(k in idx)) { idx[k] = groups.length; groups.push({ c: m.competition, list: [] }); }
     groups[idx[k]].list.push(m);
   }
-  groups.sort((a, b) => (a.c?.sort ?? 99) - (b.c?.sort ?? 99));
+  groups.sort((a, b) => lgRank(follow, a.c) - lgRank(follow, b.c));
   return (
     <div className="groups">
       {groups.map((g) => {
@@ -3767,6 +3787,7 @@ function HomeSide({ comps, comp, user }) {
 
 function Matches({ user, myTeams, comps, preds, onOpen, goProfile }) {
   const { t, lang } = useT();
+  const [follow] = useFollowLg();
   const [day, setDay] = useState(dayKey(new Date()));
   const [comp, setComp] = useState("ALL");
   const nav = useNav();
@@ -3809,7 +3830,7 @@ function Matches({ user, myTeams, comps, preds, onOpen, goProfile }) {
       <DateStrip day={day} setDay={setDay} />
       <div className="chips">
         <button className={"chip" + (comp === "ALL" ? " on" : "")} onClick={() => setComp("ALL")}>{t("all")}</button>
-        {comps.map((c) => (
+        {orderComps(comps, follow).map((c) => (
           <button key={c.code} className={"chip" + (comp === c.code ? " on" : "")} onClick={() => setComp(c.code)}>
             <CompIcon c={c} size={16} />{compName(c, lang)}
           </button>
@@ -3829,24 +3850,35 @@ function Matches({ user, myTeams, comps, preds, onOpen, goProfile }) {
 }
 
 // ── সব লিগ এক জায়গায় ──
-function Leagues({ comps }) {
+function Leagues({ comps, toast }) {
   const { t, lang } = useT();
+  const bn = lang === "bn";
   const nav = useNav();
+  const [follow, toggle] = useFollowLg();
+  const list = orderComps(comps, follow);
   return (
     <div className="sec">
       <div className="sec-h"><h2 style={{ fontSize: 19 }}>{t("leagues")}</h2></div>
+      <div className="muted lg-tip">{bn ? "যে লিগ ফলো করবেন, ম্যাচ ট্যাবে সেগুলোর খেলা আগে দেখাবে" : "Followed leagues appear first on the Matches tab"}</div>
       {!comps.length ? <Loading /> : (
         <div className="lg-list">
-          {comps.map((c) => (
-            <button key={c.code} className="lg-card" onClick={() => nav.openLeague(c.code)}>
-              <span className="lg-ic" data-c={c.code}><CompIcon c={c} size={30} /></span>
-              <span className="lg-nm">
-                <b>{compName(c, lang)}</b>
-                <small className="muted">{lang === "bn" ? "টেবিল · ম্যাচ · গোলদাতা" : "Table · Matches · Scorers"}</small>
-              </span>
-              <span className="comp-go">›</span>
-            </button>
-          ))}
+          {list.map((c) => {
+            const on = follow.includes(c.code);
+            return (
+              <div key={c.code} className={"lg-card" + (on ? " on" : "")}>
+                <button className="lg-open" onClick={() => nav.openLeague(c.code)}>
+                  <span className="lg-ic" data-c={c.code}><CompIcon c={c} size={30} /></span>
+                  <span className="lg-nm">
+                    <b>{compName(c, lang)}</b>
+                    <small className="muted">{bn ? "টেবিল · ম্যাচ · গোলদাতা" : "Table · Matches · Scorers"}</small>
+                  </span>
+                </button>
+                <button className={"lg-fol" + (on ? " on" : "")} aria-pressed={on} onClick={() => { const now = toggle(c.code); toast?.(now ? (bn ? `${compName(c, lang)} ফলো করছেন` : `Following ${compName(c, lang)}`) : (bn ? "ফলো বাদ দেওয়া হয়েছে" : "Unfollowed")); }}>
+                  {on ? (bn ? "ফলো করছেন" : "Following") : (bn ? "ফলো" : "Follow")}
+                </button>
+              </div>
+            );
+          })}
         </div>
       )}
     </div>
@@ -7183,7 +7215,8 @@ export default function App() {
   const nav = {
     openLeague: (code) => openView(`/league/${code}`, { kind: "league", code }),
     openTeam: (id) => openView(`/team/${id}`, { kind: "team", id }),
-    openPlayer: (id) => openView(`/player/${id}`, { kind: "player", id }),
+    // API-Football-এর লিগের খেলোয়াড়ের (আইডি ১ কোটি+) পাতা এখনো নেই
+    openPlayer: (id) => { if (id >= 10000000) return; openView(`/player/${id}`, { kind: "player", id }); },
     openPage: (id) => openView(PAGE_URL[id], { kind: "page", id }),
     // কুইজ: /quiz (শুরুর পাতা) বা /quiz/কোড; replace = ইতিহাসে নতুন ধাপ না যোগ করে
     openFriends: () => { setPredTab((p) => ({ tab: "friends", league: null, key: p.key + 1 })); go("predict"); },
@@ -7360,7 +7393,7 @@ export default function App() {
         ) : tab === "matches" ? (
           <Matches key={homeKey} user={user} myTeams={myTeams} comps={comps} preds={preds} onOpen={openMatch} goProfile={() => go("profile")} />
         ) : tab === "leagues" ? (
-          <Leagues comps={comps} />
+          <Leagues comps={comps} toast={toast} />
         ) : tab === "ask" ? (
           <AskPage teams={Object.values(teamsById)} preds={preds} onOpen={openMatch} chat={askChat} setChat={setAskChat} />
         ) : tab === "predict" ? (
