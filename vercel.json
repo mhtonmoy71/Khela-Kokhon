@@ -28,5 +28,10 @@
       "main": true,
       "claude/*": false
     }
+  },
+  "functions": {
+    "api/live.js": {
+      "maxDuration": 60
+    }
   }
 }
