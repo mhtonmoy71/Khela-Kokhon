@@ -286,9 +286,12 @@ async function sendPushes(notes) {
   const todo = notes.filter((n) => ok.has(n.mid + "|" + n.ev));
   if (!todo.length) return 0;
   const teamIds = [...new Set(todo.flatMap((n) => [n.hid, n.aid]).filter(Boolean))];
+  const matchIds = [...new Set(todo.map((n) => n.mid))];
   const fans = await sb(`user_teams?select=user_id,team_id&kind=eq.fav&team_id=in.(${teamIds.join(",")})`);
-  if (!fans.length) return 0;
-  const users = [...new Set(fans.map((f) => f.user_id))];
+  // 🔔 দিয়ে বেছে নেওয়া দল আর ম্যাচ (টেবিল না থাকলে শুধু প্রিয় দল)
+  const follows = await sb(`push_follow?select=user_id,kind,target_id,enabled&or=(and(kind.eq.team,target_id.in.(${teamIds.join(",")})),and(kind.eq.match,target_id.in.(${matchIds.join(",")})))`).catch(() => []);
+  const users = [...new Set([...fans.map((f) => f.user_id), ...follows.filter((f) => f.enabled).map((f) => f.user_id)])];
+  if (!users.length) return 0;
   const subs = await sb(`push_subs?select=id,user_id,endpoint,p256dh,auth,prefs&user_id=in.(${users.join(",")})`);
   if (!subs.length) return 0;
   const { default: webpush } = await import("web-push");
@@ -297,7 +300,18 @@ async function sendPushes(notes) {
   let sent = 0;
   const jobs = [];
   for (const n of todo) {
-    const who = new Set(fans.filter((f) => f.team_id === n.hid || f.team_id === n.aid).map((f) => f.user_id));
+    const who = new Set([
+      ...fans.filter((f) => f.team_id === n.hid || f.team_id === n.aid).map((f) => f.user_id),
+      ...follows.filter((f) => f.enabled && f.kind === "team" && (f.target_id === n.hid || f.target_id === n.aid)).map((f) => f.user_id),
+      ...follows.filter((f) => f.enabled && f.kind === "match" && f.target_id === n.mid).map((f) => f.user_id),
+    ]);
+    // দলের 🔔 বন্ধ (প্রিয় দল হলেও): বাদ, যদি না এই ম্যাচ আলাদা করে চালু থাকে বা অন্য দলটার খবর চান
+    const matchOn = new Set(follows.filter((f) => f.kind === "match" && f.target_id === n.mid && f.enabled).map((f) => f.user_id));
+    const wantsTeam = (u, t) => fans.some((f) => f.user_id === u && f.team_id === t) && !follows.some((f) => f.user_id === u && f.kind === "team" && f.target_id === t && !f.enabled)
+      || follows.some((f) => f.user_id === u && f.kind === "team" && f.target_id === t && f.enabled);
+    for (const u of [...who]) if (!matchOn.has(u) && !wantsTeam(u, n.hid) && !wantsTeam(u, n.aid)) who.delete(u);
+    // এই ম্যাচের 🔔 বন্ধ করা থাকলে প্রিয় দলের হলেও নয়
+    for (const f of follows) if (f.kind === "match" && f.target_id === n.mid && !f.enabled) who.delete(f.user_id);
     for (const sub of subs.filter((x) => who.has(x.user_id) && (x.prefs?.[n.kind] ?? true))) {
       jobs.push(webpush.sendNotification({ endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } },
         JSON.stringify({ title: n.title, body: n.body, url: `/match/${n.mid}`, tag: `m${n.mid}-${n.kind}` }), { TTL: n.kind === "goal" ? 600 : 1800, urgency: "high" })
