@@ -361,8 +361,10 @@ img { display: block; }
 .mp .ms-date.mp-ft { display: inline-block; background: var(--card2); color: var(--muted); border-radius: 999px; padding: 1px 10px; font-weight: 600; }
 .mp .ms-date .lv { color: #16a34a; }
 .mp .ms-date .lv .dot { background: #16a34a; }
-.mp .ms-goals { grid-template-columns: 1fr 96px 1fr; gap: 6px; margin: 10px 0 0; padding-top: 10px; border-top: 1px dashed var(--line); font-size: 12px; line-height: 1.6; }
-.mp .ms-goals .h, .mp .ms-goals .a { text-align: center; }
+.mp .ms-goals { grid-template-columns: 1fr 1fr; gap: 6px; margin: 10px 0 0; padding-top: 10px; border-top: 1px dashed var(--line); font-size: 12px; line-height: 1.6; }
+.mp .ms-goals .h { text-align: right; padding-right: 14px; } .mp .ms-goals .a { text-align: left; padding-left: 14px; }
+.ms-goals .sball { vertical-align: -2px; }
+.sball { flex: none; filter: drop-shadow(0 0 .5px rgba(0,0,0,.25)); }
 .mp .ms-goals b { font-weight: 600; }
 .mp .ms-goals span { color: var(--muted); }
 .mp .ms-goals .ball-mini { justify-self: center; opacity: .5; margin-top: 2px; }
@@ -3100,14 +3102,7 @@ const EvIcon = ({ e }) => {
   const d = e.d || "";
   if (e.t === "Goal") {
     const miss = /Missed/i.test(d), own = /Own/i.test(d);
-    return (
-      <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" className={"ev-ic" + (miss ? " miss" : "")}>
-        <circle cx="12" cy="12" r="10" fill={own ? "#ef4444" : "var(--text)"} />
-        <path d="M12 7.2l3.6 2.6-1.4 4.3H9.8L8.4 9.8z" fill="var(--card)" />
-        <path d="M12 2.5v4.7M15.6 9.8l4.3-1.5M14.2 14.1l2.7 3.8M9.8 14.1l-2.7 3.8M8.4 9.8L4.1 8.3" stroke="var(--card)" strokeWidth="1.3" />
-        {miss && <path d="M4 4l16 16" stroke="#ef4444" strokeWidth="2.4" strokeLinecap="round" />}
-      </svg>
-    );
+    return <SoccerBall size={19} own={own} miss={miss} className="ev-ic" />;
   }
   if (e.t === "Card") {
     const red = /Red/i.test(d), second = /Second/i.test(d);
@@ -3208,8 +3203,28 @@ function MatchStats({ L, lang }) {
   );
 }
 
-const BallMini = ({ n }) => (
-  <span className="ball-mini"><svg width="11" height="11" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="11" fill="#fff" stroke="#111" strokeWidth="1.5" /><path d="M12 7.2l3.6 2.6-1.4 4.3H9.8L8.4 9.8z" fill="#111" /></svg>{n > 1 ? <b>×{n}</b> : null}</span>
+// ── ফুটবলের আইকন (সাদা-কালো, পঞ্চভুজ): গোলদাতা, ঘটনা, লাইনআপে ──
+const BALL_RIM = ["12.00,4.40 9.15,2.33 10.24,-1.03 13.76,-1.03 14.85,2.33","19.23,9.65 20.32,6.30 23.84,6.30 24.93,9.65 22.08,11.72","16.47,18.15 19.99,18.15 21.08,21.50 18.23,23.58 15.38,21.50","7.53,18.15 8.62,21.50 5.77,23.58 2.92,21.50 4.01,18.15","4.77,9.65 1.92,11.72 -0.93,9.65 0.16,6.30 3.68,6.30"];
+let ballSeq = 0;
+function SoccerBall({ size = 16, own, miss, className = "" }) {
+  const id = useMemo(() => "sb" + ++ballSeq, []);
+  const ink = own ? "#dc2626" : "#1f2937";
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true" className={"sball " + className}>
+      <defs><clipPath id={id}><circle cx="12" cy="12" r="10.4" /></clipPath></defs>
+      <circle cx="12" cy="12" r="10.4" fill="#fff" />
+      <g clipPath={`url(#${id})`} fill={ink}>
+        {BALL_RIM.map((pt, i) => <polygon key={i} points={pt} />)}
+      </g>
+      <path d="M12.00 8.60L12.00 3.80 M15.23 10.95L19.80 9.47 M14.00 14.75L16.82 18.63 M10.00 14.75L7.18 18.63 M8.77 10.95L4.20 9.47" stroke={ink} strokeWidth="1.1" />
+      <polygon points="12.00,8.60 15.23,10.95 14.00,14.75 10.00,14.75 8.77,10.95" fill={ink} />
+      <circle cx="12" cy="12" r="10.4" fill="none" stroke={ink} strokeWidth="1.4" />
+      {miss && <path d="M4 4l16 16" stroke="#dc2626" strokeWidth="2.6" strokeLinecap="round" />}
+    </svg>
+  );
+}
+const BallMini = ({ n, size = 12 }) => (
+  <span className="ball-mini"><SoccerBall size={size} />{n > 1 ? <b>×{n}</b> : null}</span>
 );
 const rateCls = (r) => (r >= 7.5 ? "r-hi" : r >= 6.5 ? "r-ok" : "r-lo");
 const unEnt = (s) => (s || "").replace(/&(amp|apos|quot|#39);/g, (_, k) => ({ amp: "&", apos: "'", quot: '"', "#39": "'" })[k]);
@@ -3328,12 +3343,13 @@ function Scorers({ L, lang }) {
       const tag = /Own/i.test(e.d || "") ? (bn ? " (আত্মঘাতী)" : " (OG)") : /Penalty/i.test(e.d || "") ? (bn ? " (পেনাল্টি)" : " (P)") : "";
       (by.get(k) || by.set(k, []).get(k)).push(minuteTxt(e.m ?? 0, e.x, lang) + tag);
     }
-    return [...by].map(([n, ms]) => <div key={n}><b>{shortName(n, lang)}</b> <span>{ms.join(", ")}</span></div>);
+    return [...by].map(([n, ms]) => sd === "h"
+      ? <div key={n}><b>{shortName(n, lang)}</b> <span>{ms.join(", ")}</span> <SoccerBall size={13} /></div>
+      : <div key={n}><SoccerBall size={13} /> <b>{shortName(n, lang)}</b> <span>{ms.join(", ")}</span></div>);
   };
   return (
     <div className="ms-goals">
       <div className="h">{side("h")}</div>
-      <BallMini n={1} />
       <div className="a">{side("a")}</div>
     </div>
   );
