@@ -331,6 +331,22 @@ img { display: block; }
 @media (prefers-reduced-motion: reduce) { .cg-body, .cg-chev { transition: none; } }
 /* ── ম্যাচ সেন্টার ── */
 .mc { margin-top: 14px; }
+.mp { padding-top: 4px; }
+.mp-head { padding: 4px 0 8px; }
+.mp-back { flex: none; width: 36px; height: 36px; border-radius: 50%; border: 1px solid var(--line); background: var(--card); color: var(--text); display: grid; place-items: center; cursor: pointer; }
+.mp-head .ms-top .ms-comp { flex: 1; min-width: 0; }
+.mp-cd { margin-top: 4px; font: 600 12px Inter, 'Hind Siliguri', sans-serif; color: var(--muted); }
+.mp-tabs { position: sticky; top: calc(64px + env(safe-area-inset-top)); z-index: 5; display: flex; gap: 2px; overflow-x: auto; scrollbar-width: none; margin: 4px -16px 12px; padding: 0 12px; background: var(--bg); border-bottom: 1px solid var(--line); }
+.mp-tabs::-webkit-scrollbar { display: none; }
+.mp-tabs button { flex: none; padding: 12px 12px 10px; background: none; border: 0; border-bottom: 3px solid transparent; color: var(--muted); font: 600 14.5px 'Hind Siliguri', sans-serif; cursor: pointer; white-space: nowrap; }
+.mp-tabs button.on { color: var(--text); border-bottom-color: var(--brand); }
+.mp-body { min-height: 50vh; }
+.mp-info > div { display: flex; align-items: center; gap: 10px; padding: 12px 14px; font-size: 14px; border-top: 1px solid var(--line); }
+.mp-info > div:first-child { border-top: 0; }
+.mp-info svg { color: var(--muted); flex: none; }
+.tbl.tbl-me { background: var(--greenDim); }
+.pm-shirt img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; object-position: 50% 15%; background: #e5e7eb; }
+.pm-no { font: 700 10px Inter, sans-serif; opacity: .85; margin-right: 3px; }
 .ms-goals { display: grid; grid-template-columns: 1fr 22px 1fr; gap: 6px; align-items: start; margin: 2px 4px 0; font-size: 12.5px; color: var(--muted); line-height: 1.5; }
 .ms-goals .h { text-align: right; } .ms-goals b { color: var(--text); font-weight: 600; }
 .ms-goals .ball-mini { justify-self: center; margin-top: 3px; opacity: .7; }
@@ -376,7 +392,7 @@ img { display: block; }
 .pitch-f.pf-t { top: 6px; } .pitch-f.pf-b { bottom: 6px; }
 .pm-wrap { position: absolute; transform: translate(-50%, -50%); width: 19%; display: flex; justify-content: center; }
 .pm { display: flex; flex-direction: column; align-items: center; gap: 3px; min-width: 0; max-width: 100%; }
-.pm-shirt { position: relative; width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; font: 800 12px Inter, sans-serif; color: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.35); }
+.pm-shirt { position: relative; width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; font: 800 12px Inter, sans-serif; color: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.35); }
 .pm-h .pm-shirt { background: var(--brand); border: 2px solid #fff; }
 .pm-a .pm-shirt { background: #1e293b; border: 2px solid #e2e8f0; }
 .pm-n { font-size: 11px; font-weight: 600; color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,.6); max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -2936,15 +2952,16 @@ const rateCls = (r) => (r >= 7.5 ? "r-hi" : r >= 6.5 ? "r-ok" : "r-lo");
 const unEnt = (s) => (s || "").replace(/&(amp|apos|quot|#39);/g, (_, k) => ({ amp: "&", apos: "'", quot: '"', "#39": "'" })[k]);
 const lastName = (n0) => { const n = unEnt(n0); const p = (n || "").split(" "); return p.length > 1 && /\.$/.test(p[0]) ? p.slice(1).join(" ") : p[p.length - 1] || n; };
 function PitchMan({ p, st, side }) {
+  const [noPic, setNoPic] = useState(false);
   return (
     <div className={"pm pm-" + side}>
-      <span className="pm-shirt">{p.no ?? ""}
+      <span className="pm-shirt">{p.id && !noPic ? <img src={`https://media.api-sports.io/football/players/${p.id}.png`} alt="" loading="lazy" onError={() => setNoPic(true)} /> : (p.no ?? "")}
         {st?.r ? <em className={"pm-r " + rateCls(st.r)}>{st.r.toFixed(1)}</em> : null}
         {st?.cap ? <em className="pm-c">C</em> : null}
         {st?.g ? <em className="pm-g"><BallMini n={st.g} /></em> : null}
         {st?.rc ? <em className="pm-card red" /> : st?.yc ? <em className="pm-card" /> : null}
       </span>
-      <span className="pm-n">{lastName(p.n)}</span>
+      <span className="pm-n">{p.no != null && !noPic ? <span className="pm-no">{p.no}</span> : null}{lastName(p.n)}</span>
     </div>
   );
 }
@@ -3082,39 +3099,90 @@ function useMatchLive(m) {
   return L;
 }
 
-function MatchSheet({ m: m0, user, pred, onClose, onSave, onLogin, toast }) {
+// ── ম্যাচের পুরো পাতা (/match/আইডি): উপরে স্কোর, নিচে ট্যাব — সংক্ষেপ, লাইনআপ, টেবিল, পরিসংখ্যান, মুখোমুখি ──
+function MatchTable({ m, lang }) {
+  const nav = useNav();
+  const bn = lang === "bn";
+  const code = m.competition_code;
+  const [table, setTable] = useState(null);
+  useEffect(() => { let a = true; getStandings(code).then((r) => a && setTable(r)).catch(() => a && setTable([])); return () => { a = false; }; }, [code]);
+  if (table === null) return <Loading />;
+  if (!table.length) return <div className="card empty">{bn ? "এই প্রতিযোগিতার টেবিল এখনো আসেনি" : "No table yet"}</div>;
+  const mine = (id) => id === m.home_id || id === m.away_id;
+  return (
+    <div className="card">
+      <div className="tbl tbl-h">
+        <span>#</span><span>{bn ? "দল" : "Team"}</span><span>{bn ? "খে" : "P"}</span><span>{bn ? "জ" : "W"}</span><span>{bn ? "ড্র" : "D"}</span><span>{bn ? "হা" : "L"}</span><span>+/-</span><span>{bn ? "প" : "Pts"}</span>
+      </div>
+      {table.map((r) => (
+        <button key={r.team_id} className={"tbl " + zone(code, r.position, table.length) + (mine(r.team_id) ? " tbl-me" : "")} onClick={() => nav.openTeam(r.team_id)}>
+          <span className="pos">{num(r.position, lang)}</span>
+          <span className="tm"><Crest team={r.team} size={20} /><b>{teamName(r.team, lang)}</b></span>
+          <span>{num(r.played, lang)}</span><span>{num(r.won, lang)}</span><span>{num(r.draw, lang)}</span><span>{num(r.lost, lang)}</span>
+          <span>{r.gd > 0 ? "+" : ""}{num(r.gd, lang)}</span>
+          <span className="pts">{num(r.points, lang)}</span>
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function MatchPage({ id, m: mInit, user, pred, onSave, onLogin, toast }) {
   const { t, lang } = useT();
+  const bn = lang === "bn";
+  const [m0, setM0] = useState(mInit && mInit.id === id ? mInit : null);
+  const [gone, setGone] = useState(false);
+  useEffect(() => {
+    if (m0) return;
+    getMatchesByIds([id]).then((r) => (r[0] ? setM0(r[0]) : setGone(true))).catch(() => setGone(true));
+  }, [id]);
   const L = useMatchLive(m0);
-  const m = useMemo(() => mergeLive(m0, L), [m0, L]);
+  const m = useMemo(() => (m0 ? mergeLive(m0, L) : null), [m0, L]);
   const nav = useNav();
   const now = useNow(1000 * 20);
   const [h, setH] = useState(pred?.home ?? 0);
   const [a, setA] = useState(pred?.away ?? 0);
+  useEffect(() => { if (pred) { setH(pred.home); setA(pred.away); } }, [pred?.home, pred?.away]);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
   const [making, setMaking] = useState(false);
+  const [tab, setTab] = useState("ov");
+  useEffect(() => { if (m) document.title = `${teamName(m.home, lang)} বনাম ${teamName(m.away, lang)} · খেলা কখন?`; return () => { document.title = "খেলা কখন?"; }; }, [m?.id, lang]);
+
+  if (gone) return <div className="card empty" style={{ marginTop: 16 }}>{bn ? "ম্যাচটা খুঁজে পাওয়া গেল না" : "Match not found"}</div>;
+  if (!m) return <Loading />;
   const open = canPredict(m);
   const showScore = (isLive(m) || isDone(m)) && m.home_score != null;
 
   async function save() {
     setBusy(true); setErr("");
-    try { await onSave(m, h, a); toast(pred ? (lang === "bn" ? "প্রেডিকশন বদলানো হয়েছে ✓" : "Prediction updated ✓") : (lang === "bn" ? "প্রেডিকশন জমা হয়েছে ✓" : "Prediction submitted ✓")); onClose(); }
+    try { await onSave(m, h, a); toast(pred ? (bn ? "প্রেডিকশন বদলানো হয়েছে ✓" : "Prediction updated ✓") : (bn ? "প্রেডিকশন জমা হয়েছে ✓" : "Prediction submitted ✓")); }
     catch (e) { setErr(e?.message || t("error")); }
     setBusy(false);
   }
+  const back = () => (window.history.state?.inApp ? window.history.back() : nav.go("matches"));
+
+  const tabs = [
+    ["ov", bn ? "সংক্ষেপ" : "Overview"],
+    ["lu", bn ? "লাইনআপ" : "Lineups"],
+    ["tb", bn ? "টেবিল" : "Table"],
+    ["st", bn ? "পরিসংখ্যান" : "Stats"],
+    ["h2h", bn ? "মুখোমুখি" : "H2H"],
+  ];
+  const hasEv = (L?.events || []).length > 0;
 
   return (
-    <div className="veil" onClick={onClose}>
-      <div className="sheet" onClick={(e) => e.stopPropagation()}>
-        <div className="grab" />
+    <div className="mp">
+      <div className="mp-head">
         <div className="ms-top">
+          <button className="mp-back" onClick={back} aria-label={bn ? "পেছনে" : "Back"}><ChevronIcon style={{ transform: "rotate(-90deg)" }} /></button>
           <button className="ms-comp" onClick={() => m.competition && nav.openLeague(m.competition.code)}>
             <CompIcon c={m.competition} size={18} /><span>{compName(m.competition, lang)}{m.matchday ? ` · ${t("matchday")} ${num(m.matchday, lang)}` : ""}</span>
           </button>
-          <button className="ms-share" disabled={making} aria-label={lang === "bn" ? "শেয়ার" : "Share"} onClick={async () => {
+          <button className="ms-share" disabled={making} aria-label={bn ? "শেয়ার" : "Share"} onClick={async () => {
             setMaking(true);
             try { await shareCard(m, { lang, teamName: (tm) => teamName(tm, lang), compName: compName(m.competition, lang) }, toast); }
-            catch { toast(lang === "bn" ? "ছবি বানানো গেল না" : "Couldn't make the image"); }
+            catch { toast(bn ? "ছবি বানানো গেল না" : "Couldn't make the image"); }
             setMaking(false);
           }}>{making ? <span className="spin sm" /> : <ShareIcon />}</button>
         </div>
@@ -3125,15 +3193,23 @@ function MatchSheet({ m: m0, user, pred, onClose, onSave, onLogin, toast }) {
               ? <div className="ms-score">{num(m.home_score, lang)} - {num(m.away_score, lang)}</div>
               : <div className="ms-time">{timeLabel(m.utc_date, lang)}</div>}
             <div className="ms-date">{showScore ? <StatusText m={m} /> : dayLabel(dayKey(m.utc_date), lang, { short: true })}</div>
+            {open && <div className="mp-cd">{countdown(new Date(m.utc_date) - now, lang)}</div>}
           </div>
           <button className="ms-team" onClick={() => m.away_id && nav.openTeam(m.away_id)}><Crest team={m.away} size={60} /><span>{teamName(m.away, lang)}</span></button>
         </div>
-        {open && <div className="ms-cd">{t("startsIn")} {countdown(new Date(m.utc_date) - now, lang)} · {t("bdTime")}</div>}
         <Scorers L={L} lang={lang} />
-        {L && <MatchCenter L={L} m={m} />}
+      </div>
 
-        <FanVote m={m} />
+      <div className="mp-tabs" role="tablist">
+        {tabs.map(([k, l]) => <button key={k} role="tab" aria-selected={tab === k} className={tab === k ? "on" : ""} onClick={() => setTab(k)}>{l}</button>)}
+      </div>
 
+      <div className="mp-body">
+        {tab === "ov" && (
+          <>
+            {hasEv && <div className="sec" style={{ margin: "0 0 14px" }}><div className="sec-h"><h2>{bn ? "ঘটনা" : "Events"}</h2></div><div className="mc-body"><MatchEvents L={L} m={m} lang={lang} /></div></div>}
+            {open && <div className="ms-cd">{t("startsIn")} {countdown(new Date(m.utc_date) - now, lang)} · {t("bdTime")}</div>}
+            <FanVote m={m} />
         <div className="sec" style={{ margin: "16px 0 0" }}>
           <div className="sec-h"><h2>{t("yourPick")}</h2>
             {pred?.points != null && <span className={"ptbadge p" + pred.points}>+{num(pred.points, lang)} {t("pts")}</span>}</div>
@@ -3169,9 +3245,21 @@ function MatchSheet({ m: m0, user, pred, onClose, onSave, onLogin, toast }) {
             </div>
           )}
         </div>
-
-        <H2H m={m} />
-
+            <div className="sec" style={{ margin: "16px 0 0" }}>
+              <div className="sec-h"><h2>{bn ? "ম্যাচের তথ্য" : "Match info"}</h2></div>
+              <div className="card mp-info">
+                <div><CalIcon width={16} height={16} /><span>{dayLabel(dayKey(m.utc_date), lang)} · {timeLabel(m.utc_date, lang)} <small className="muted">({t("bdTime")})</small></span></div>
+                <div><TrophyIcon width={16} height={16} /><span>{compName(m.competition, lang)}{m.matchday ? ` · ${t("matchday")} ${num(m.matchday, lang)}` : ""}</span></div>
+              </div>
+            </div>
+          </>
+        )}
+        {tab === "lu" && (L?.lineups?.h?.xi?.length ? <div className="mc-body"><MatchLineups L={L} m={m} lang={lang} /></div>
+          : <div className="card empty">{bn ? "লাইনআপ সাধারণত খেলা শুরুর প্রায় এক ঘণ্টা আগে আসে" : "Lineups usually arrive about an hour before kickoff"}</div>)}
+        {tab === "tb" && <MatchTable m={m} lang={lang} />}
+        {tab === "st" && ((L?.stats || []).length ? <div className="mc-body"><MatchStats L={L} lang={lang} /></div>
+          : <div className="card empty">{bn ? "খেলা শুরু হলে পরিসংখ্যান দেখা যাবে" : "Stats appear once the match starts"}</div>)}
+        {tab === "h2h" && <H2H m={m} />}
       </div>
     </div>
   );
@@ -6950,6 +7038,7 @@ const viewFromPath = () => {
   if (kind === "league" && id) return { kind: "league", code: id.toUpperCase() };
   if (kind === "team" && /^\d+$/.test(id || "")) return { kind: "team", id: +id };
   if (kind === "player" && /^\d+$/.test(id || "")) return { kind: "player", id: +id };
+  if (kind === "match" && /^\d+$/.test(id || "")) return { kind: "match", id: +id };
   // স্পোর্টস কুইজ: /quiz/daily (দৈনিক চ্যালেঞ্জ), /quiz/play (একা বা বন্ধুদের সাথে), /quiz/play/কোড (কুইজ রুম)
   // পুরনো লিংক /daily আর /quiz/কোড-ও চলে; শুধু /quiz হলে শেষবার যে ভাগে ছিলেন
   const isCode = (x) => x && /^[A-Za-z0-9]{4,8}$/.test(x);
@@ -7048,8 +7137,8 @@ export default function App() {
   }, []);
   // লিগ/দলের পাতা খোলা (ম্যাচের শিট খোলা থাকলে সেটা বন্ধ করে)
   const openView = (path, v) => {
-    if (window.history.state?.sheet) window.history.replaceState({}, "", path);
-    else window.history.pushState({}, "", path);
+    if (window.history.state?.sheet) window.history.replaceState({ inApp: 1 }, "", path);
+    else window.history.pushState({ inApp: 1 }, "", path);
     setSheet(null); setSearching(false); setEditing(false); setView(v); window.scrollTo(0, 0);
   };
   const nav = {
@@ -7079,7 +7168,8 @@ export default function App() {
     if (g) ls.set("game_last", g);
     if (g === "daily" || g === "quiz") ls.set("quiz_last", g);
   }, [view?.kind, tab]);
-  const openMatch = (m) => { window.history.pushState({ sheet: 1 }, ""); setSheet(m); };
+  // ম্যাচ এখন নিজের পাতায় (/match/আইডি), যাতে লিংক শেয়ার করা যায়
+  const openMatch = (m) => openView(`/match/${m.id}`, { kind: "match", id: m.id, m });
   const [searching, setSearching] = useState(false);
   const openSearch = () => { window.history.pushState({ sheet: 1 }, ""); setSearching(true); };
   const closeSearch = () => { if (window.history.state?.sheet) window.history.back(); else setSearching(false); };
@@ -7226,6 +7316,8 @@ export default function App() {
           <QuizPage code={view.code} user={user} goProfile={() => go("profile")} toast={toast} />
         ) : view?.kind === "player" ? (
           <Player key={view.id} id={view.id} teamsById={teamsById} comps={comps} />
+        ) : view?.kind === "match" ? (
+          <MatchPage key={view.id} id={view.id} m={view.m} user={user} pred={preds[view.id]} toast={toast} onSave={onSavePrediction} onLogin={() => go("profile")} />
         ) : tab === "matches" ? (
           <Matches key={homeKey} user={user} myTeams={myTeams} comps={comps} preds={preds} onOpen={openMatch} goProfile={() => go("profile")} />
         ) : tab === "leagues" ? (
@@ -7245,15 +7337,6 @@ export default function App() {
 
       {!onboarding && <Nav tab={tab} go={go} />}
       {searching && <SearchSheet comps={comps} teams={Object.values(teamsById)} onClose={closeSearch} />}
-      {sheet && (
-        <MatchSheet
-          key={sheet.id}
-          m={sheet} user={user} pred={preds[sheet.id]} toast={toast}
-          onClose={closeMatch}
-          onSave={onSavePrediction}
-          onLogin={() => { setSheet(null); go("profile"); }}
-        />
-      )}
       {toastMsg && <div className="toast">{toastMsg}</div>}
     </FavCtx.Provider>
     </NavCtx.Provider>
