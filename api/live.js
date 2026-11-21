@@ -308,10 +308,10 @@ export async function runLive() {
       const wm = want.find((x) => x.id === mid);
       // সব লিগের ম্যাচের অবস্থা আর স্কোর এখান থেকেই (football-data-র ফ্রি স্তর খেলা চলা বা শেষ হওয়া দেরিতে জানায়)
       // শুধু শুরু হয়ে গেলে লেখা হয়; শুরুর আগের অবস্থা football-data-ই রাখে
+      const { pen: penSc, ...sNoPen } = s;
       const ast = AF_STATUS(s.status);
       if (wm && (AF_LEAGUES[wm.competition_code] || ["IN_PLAY", "PAUSED", "FINISHED"].includes(ast)) && (ast !== wm.status || true))
         fixUp.push({ id: mid, status: ast, home_score: s.home_goals, away_score: s.away_goals, pen: penSc });
-      const { pen: penSc, ...sNoPen } = s;
       rows.push({
         match_id: mid, ...sNoPen,
         final_seen_at: FINAL.includes(s.status) ? (prev?.final_seen_at || new Date().toISOString()) : null,
