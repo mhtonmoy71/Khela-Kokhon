@@ -359,6 +359,7 @@ img { display: block; }
 .mp-pen { margin-top: 4px; font-size: 11.5px; font-weight: 700; color: #b45309; }
 .pen-pick { margin: 4px 12px 10px; padding: 10px 12px; border-radius: 14px; background: color-mix(in srgb, #f59e0b 10%, var(--card2)); }
 .pen-q { font-size: 13px; font-weight: 600; line-height: 1.45; }
+.pen-rule { font-size: 12px; margin-top: 4px; }
 .pen-bonus { display: inline-block; background: #f59e0b; color: #fff; border-radius: 999px; padding: 0 8px; font: 800 11.5px Inter, 'Hind Siliguri', sans-serif; margin-left: 4px; }
 .pen-opts { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px; }
 .pen-opt { display: flex; align-items: center; justify-content: center; gap: 6px; min-height: 40px; padding: 6px 8px; border-radius: 12px; border: 1.5px solid var(--line); background: var(--card); color: inherit; font: 600 13px 'Hind Siliguri', sans-serif; cursor: pointer; }
@@ -3679,7 +3680,8 @@ function MatchPage({ id, m: mInit, user, pred, onSave, onLogin, toast }) {
               </div>
               {ko && h === a && (
                 <div className="pen-pick">
-                  <div className="pen-q">{bn ? "৯০+৩০ মিনিটে নিষ্পত্তি না হলে টাইব্রেকারে কে জিতবে?" : "If it's still level after extra time, who wins the shootout?"} <span className="pen-bonus">+{num(5, lang)}</span></div>
+                  <div className="pen-q">{bn ? "৯০+৩০ মিনিটে নিষ্পত্তি না হলে টাইব্রেকারে কে জিতবে?" : "If it's still level after extra time, who wins the shootout?"} </div>
+                  <div className="pen-rule muted">{bn ? `স্কোর আর জয়ী দুটোই ঠিক হলে ${num(5, lang)}, শুধু টাইব্রেকারের জয়ী ঠিক হলে ${num(4, lang)} পয়েন্ট` : "Score and winner right: 5 · shootout winner right: 4"}</div>
                   <div className="pen-opts">
                     {[[1, m.home], [2, m.away]].map(([k, t]) => <button key={k} className={"pen-opt" + (pen === k ? " on" : "")} onClick={() => setPen(k)}><Crest team={t} size={20} />{teamName(t, lang)}</button>)}
                   </div>
