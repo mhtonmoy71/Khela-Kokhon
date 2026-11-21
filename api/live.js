@@ -29,14 +29,14 @@ export const AF_LEAGUES = {
   ACL: { id: 17, en: "AFC Champions League Elite", bn: "এএফসি চ্যাম্পিয়ন্স লিগ", sort: 16, squads: true },
   UEL: { id: 3, en: "Europa League", bn: "ইউরোপা লিগ", sort: 9 },
   // বাংলাদেশ প্রিমিয়ার লিগ: আইডি দেশ ধরে খুঁজে নেওয়া হয় (country + নাম)
-  BPL: { id: null, find: { country: "Bangladesh", name: /premier/i }, en: "Bangladesh Premier League", bn: "বাংলাদেশ প্রিমিয়ার লিগ", sort: 7, squads: true },
+  BPL: { id: null, find: { country: "Bangladesh", name: /premier/i }, en: "Bangladesh Football League", bn: "বাংলাদেশ ফুটবল লিগ", sort: 7, squads: true, ownTable: true },
 };
 export const MOFF = 100000000, TOFF = 10000000, POFF = 10000000;
 // বড় দলগুলোর বাংলা নাম (API-Football-এর নামের অংশ → বাংলা); বাকিগুলো ইংরেজিতে
 const AF_TEAMS_BN = [
-  ["Bashundhara", "বসুন্ধরা কিংস"], ["Abahani Chittagong", "চট্টগ্রাম আবাহনী"], ["Chittagong Abahani", "চট্টগ্রাম আবাহনী"], ["Abahani", "ঢাকা আবাহনী"],
+  ["Bashundhara", "বসুন্ধরা কিংস"], ["Abahani Chittagong", "চট্টগ্রাম আবাহনী"], ["Chittagong Abahani", "চট্টগ্রাম আবাহনী"], ["Chattogram Abahani", "চট্টগ্রাম আবাহনী"], ["Abahani", "ঢাকা আবাহনী"],
   ["Mohammedan", "মোহামেডান"], ["Fortis", "ফর্টিস এফসি"], ["Rahmatganj", "রহমতগঞ্জ"], ["Rahmatgonj", "রহমতগঞ্জ"], ["PWD", "পিডব্লিউডি"], ["Brothers Union", "ব্রাদার্স ইউনিয়ন"],
-  ["Police", "পুলিশ এফসি"], ["Fakirerpool", "ফকিরেরপুল"], ["Dhaka Wanderers", "ঢাকা ওয়ান্ডারার্স"], ["Sheikh Russel", "শেখ রাসেল"],
+  ["Police", "পুলিশ এফসি"], ["City Club", "সিটি ক্লাব"], ["Chattogram", "চট্টগ্রাম"], ["Fakirerpool", "ফকিরেরপুল"], ["Dhaka Wanderers", "ঢাকা ওয়ান্ডারার্স"], ["Sheikh Russel", "শেখ রাসেল"],
   ["Sheikh Jamal", "শেখ জামাল"], ["Arambagh", "আরামবাগ"], ["Muktijoddha", "মুক্তিযোদ্ধা"], ["Uttar Baridhara", "উত্তর বারিধারা"], ["Saif Sporting", "সাইফ স্পোর্টিং"],
   ["Al-Hilal", "আল হিলাল"], ["Al-Nassr", "আল নাসর"], ["Al-Ittihad", "আল ইত্তিহাদ"], ["Al-Ahli", "আল আহলি"],
   ["Al-Qadisiyah", "আল কাদসিয়া"], ["Al-Ettifaq", "আল ইত্তিফাক"], ["Al-Shabab", "আল শাবাব"], ["Al-Taawoun", "আল তাউন"],
@@ -119,7 +119,8 @@ export async function syncAfLeagues(only) {
       })));
       // টেবিল: এমএলএস-এর দুই কনফারেন্স মিলিয়ে পয়েন্ট অনুযায়ী একটা তালিকা
       const [st] = await af(`/standings?league=${L.id}&season=${season}`);
-      const rowsAll = (st?.league?.standings || []).flat().filter((r) => r.team?.id);
+      let rowsAll = (st?.league?.standings || []).flat().filter((r) => r.team?.id);
+      if (L.ownTable && staleTable(rowsAll, fx)) rowsAll = tableFromFixtures(fx);
       const seen = new Set();
       const rows = rowsAll.filter((r) => !seen.has(r.team.id) && seen.add(r.team.id))
         .sort((a, b) => b.points - a.points || b.goalsDiff - a.goalsDiff || (b.all?.goals?.for || 0) - (a.all?.goals?.for || 0));
@@ -514,6 +515,33 @@ async function currentSeason(lid) {
   const [lg] = await af(`/leagues?id=${lid}&current=true`);
   return { season: lg?.seasons?.find((x) => x.current)?.year || null, country: lg?.country?.name || null, logo: lg?.league?.logo || null };
 }
+// API-এর টেবিল অনেক সময় গত মৌসুমের থেকে যায় (যেমন বাংলাদেশ লিগ)। তখন ম্যাচের ফল থেকে টেবিল বানাই।
+const FT_SHORT = ["FT", "AET", "PEN"];
+function tableFromFixtures(fx) {
+  const T = new Map();
+  const blank = () => ({ played: 0, win: 0, draw: 0, lose: 0, goals: { for: 0, against: 0 } });
+  const get = (t) => { if (!T.has(t.id)) T.set(t.id, { team: { id: t.id, name: t.name, logo: t.logo }, all: blank(), home: blank(), away: blank(), points: 0, goalsDiff: 0, res: [] }); return T.get(t.id); };
+  const done = fx.filter((f) => FT_SHORT.includes(f.fixture?.status?.short)).sort((a, b) => a.fixture.timestamp - b.fixture.timestamp);
+  for (const f of fx) for (const t of [f.teams?.home, f.teams?.away]) if (t?.id) get(t);
+  for (const f of done) {
+    const h = f.goals?.home ?? 0, a = f.goals?.away ?? 0;
+    for (const [t, side, gf, ga] of [[f.teams.home, "home", h, a], [f.teams.away, "away", a, h]]) {
+      const r = get(t), k = gf > ga ? "win" : gf < ga ? "lose" : "draw";
+      for (const b of [r.all, r[side]]) { b.played++; b[k]++; b.goals.for += gf; b.goals.against += ga; }
+      r.points += k === "win" ? 3 : k === "draw" ? 1 : 0; r.goalsDiff += gf - ga; r.res.push(k === "win" ? "W" : k === "draw" ? "D" : "L");
+    }
+  }
+  const rows = [...T.values()].sort((x, y) => y.points - x.points || y.goalsDiff - x.goalsDiff || y.all.goals.for - x.all.goals.for || x.team.name.localeCompare(y.team.name));
+  return rows.map((r, i) => ({ ...r, rank: i + 1, form: r.res.slice(-5).reverse().join("") || null }));
+}
+// API-এর টেবিলের ম্যাচসংখ্যা ফিক্সচারের সাথে না মিললে বা দল আলাদা হলে সেটা পুরনো
+function staleTable(rows, fx) {
+  if (!rows.length) return true;
+  const ids = new Set(fx.flatMap((f) => [f.teams?.home?.id, f.teams?.away?.id]));
+  if (rows.some((r) => !ids.has(r.team?.id))) return true;
+  const played = rows.reduce((n, r) => n + (r.all?.played || 0), 0);
+  return played !== 2 * fx.filter((f) => FT_SHORT.includes(f.fixture?.status?.short)).length;
+}
 const tRow = (r, code) => ({
   rank: r.rank, af: r.team?.id, id: AF_LEAGUES[code] ? TOFF + r.team.id : null, name: dec(r.team?.name), logo: r.team?.logo,
   pts: r.points, gd: r.goalsDiff, form: r.form || null, desc: r.description || null, group: r.group || null,
@@ -534,7 +562,12 @@ async function leagueInfo(code, kind) {
   const se = cur.season;
   if (kind === "table") {
     const [st] = await af(`/standings?league=${lid}&season=${se}`);
-    return { season: se, country: cur.country, groups: (st?.league?.standings || []).map((g) => g.map((r) => tRow(r, code))) };
+    let groups = st?.league?.standings || [];
+    if (AF_LEAGUES[code]?.ownTable) {
+      const fx = await af(`/fixtures?league=${lid}&season=${se}&timezone=UTC`);
+      if (staleTable(groups.flat(), fx)) groups = [tableFromFixtures(fx)];
+    }
+    return { season: se, country: cur.country, groups: groups.map((g) => g.map((r) => tRow(r, code))) };
   }
   if (kind === "players") {
     const [g, a, y, rd] = await Promise.all(["topscorers", "topassists", "topyellowcards", "topredcards"].map((k) => af(`/players/${k}?league=${lid}&season=${se}`).catch(() => [])));
