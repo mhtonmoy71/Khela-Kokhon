@@ -558,6 +558,10 @@ button.pm { background: none; border: 0; padding: 0; cursor: pointer; font: inhe
 .lgt { overflow: hidden; }
 .lgt-group { padding: 10px 12px 2px; font-weight: 700; font-size: 13px; }
 .lgt-row { display: grid; align-items: center; gap: 4px; padding: 9px 10px 9px 8px; font-size: 13px; text-align: center; border-left: 3px solid transparent; }
+.lgt-tm { display: flex; align-items: center; min-width: 0; }
+.lgt-tm > .tm { min-width: 0; }
+.lgt-live { display: inline-block; flex-shrink: 0; width: 7px; height: 7px; border-radius: 50%; background: #e11d48; margin-left: 6px; animation: lgtp 1.4s ease-in-out infinite; }
+@keyframes lgtp { 50% { opacity: .35; } }
 .lgt-row.me { background: var(--greenDim); }
 .lgt-row.me b { font-weight: 800; }
 .lgt-row.m-short { grid-template-columns: 24px minmax(0, 1fr) 28px 36px 32px; }
@@ -3635,7 +3639,14 @@ function MatchTable({ m, lang }) {
   const bn = lang === "bn";
   const code = m.competition_code;
   const [table, setTable] = useState(null);
-  useEffect(() => { let a = true; getStandings(code).then((r) => a && setTable(r)).catch(() => a && setTable([])); return () => { a = false; }; }, [code]);
+  // খেলা চলার সময় টেবিল প্রতি মিনিটে নতুন (গোল হলেই পয়েন্ট বদলায়)
+  useEffect(() => {
+    let a = true;
+    const load = (first) => getStandings(code).then((r) => a && setTable(r)).catch(() => a && first && setTable([]));
+    load(true);
+    const iv = setInterval(() => { if (!document.hidden) load(false); }, 60000);
+    return () => { a = false; clearInterval(iv); };
+  }, [code]);
   if (table === null) return <Loading />;
   if (!table.length) return <div className="card empty">{bn ? "এই প্রতিযোগিতার টেবিল এখনো আসেনি" : "No table yet"}</div>;
   const mine = (id) => id === m.home_id || id === m.away_id;
@@ -7308,15 +7319,19 @@ function DatedRows({ list, preds, onOpen, comp }) {
 // ═════════ লিগের পাতা ═════════
 // মোবাইলে টেবিল/ম্যাচ/গোলদাতা ট্যাবে; বড় স্ক্রিনে সব একসাথে (বাঁয়ে টেবিল, ডানে বাকিটা)
 // ── লিগের পাতা (FotMob-এর মতো): টেবিল · ম্যাচ · খেলোয়াড় · দল · মৌসুম ──
-const lgCache = {};
+const lgCache = {}, lgAt = {};
 function useLgInfo(code, kind, on = true) {
   const k = code + ":" + kind;
   const [d, setD] = useState(lgCache[k] ?? null);
   useEffect(() => {
-    if (!on || lgCache[k] !== undefined || DEMO) { if (DEMO) setD(false); return; }
+    if (DEMO) { setD(false); return; }
+    if (!on) return;
     let a = true;
-    fetch(`/api/live?lg=${code}&kind=${kind}`).then((r) => (r.ok ? r.json() : false)).then((x) => { lgCache[k] = x; a && setD(x); }).catch(() => a && setD(false));
-    return () => { a = false; };
+    const load = () => fetch(`/api/live?lg=${code}&kind=${kind}`).then((r) => (r.ok ? r.json() : false)).then((x) => { if (x || lgCache[k] === undefined) { lgCache[k] = x; lgAt[k] = Date.now(); } a && setD(lgCache[k]); }).catch(() => a && lgCache[k] === undefined && setD(false));
+    // টেবিল রিয়েল টাইম: পাতা খোলা থাকলে প্রতি মিনিটে নতুন করে (গোল হলেই পয়েন্ট বদলায়)
+    if (lgCache[k] === undefined || (kind === "table" && Date.now() - (lgAt[k] || 0) > 30000)) load(); else setD(lgCache[k]);
+    const iv = kind === "table" ? setInterval(() => { if (!document.hidden) load(); }, 60000) : null;
+    return () => { a = false; if (iv) clearInterval(iv); };
   }, [k, on]);
   return d;
 }
@@ -7369,7 +7384,7 @@ function LgTable({ code, teamsById, lang, fallback, hl }) {
           {rowsOf(g).map((r) => (
             <div key={r.af} className={"lgt-row m-" + mode + " " + (venue === "all" ? zoneOf(r.desc) || "" : "") + (hl && (r.id === hl || findTeam(teamsById, r.name)?.id === hl) ? " me" : "")}>
               <span className="pos">{num(r.rank, lang)}</span>
-              <TeamCell r={r} teamsById={teamsById} lang={lang} />
+              <span className="lgt-tm"><TeamCell r={r} teamsById={teamsById} lang={lang} />{r.live && <i className="lgt-live" title={bn ? "খেলা চলছে" : "Playing now"} />}</span>
               <span>{num(r.all.p ?? 0, lang)}</span>
               {mode === "full" && <><span>{num(r.all.w ?? 0, lang)}</span><span>{num(r.all.d ?? 0, lang)}</span><span>{num(r.all.l ?? 0, lang)}</span><span className="muted">{num(r.all.gf ?? 0, lang)}-{num(r.all.ga ?? 0, lang)}</span></>}
               {mode === "form" ? <span className="lgt-form">{(r.form || "").slice(-5).split("").map((f, i) => <i key={i} className={"f-" + (FORM[f]?.[1] || "x")}>{bn ? FORM[f]?.[0] || f : f}</i>)}</span>
@@ -7379,6 +7394,7 @@ function LgTable({ code, teamsById, lang, fallback, hl }) {
           ))}
         </div>
       ))}
+      {d.live && <div className="lgt-legend"><span><i className="lgt-live" style={{ marginLeft: 0 }} />{bn ? "খেলা চলছে · এখনকার স্কোর ধরে পয়েন্ট" : "Playing now · points as it stands"}</span></div>}
       {venue === "all" && descs.length > 0 && (
         <div className="lgt-legend">{[...new Map(descs.map((x) => [zoneBn(x, bn), x])).entries()].map(([label, x]) => <span key={label}><i className={zoneOf(x)} />{label}</span>)}</div>
       )}

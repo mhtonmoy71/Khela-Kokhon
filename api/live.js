@@ -339,7 +339,8 @@ export async function refreshStandings(codes) {
       const T = new Map();
       const get = (id) => { if (!T.has(id)) T.set(id, { team_id: id, played: 0, won: 0, draw: 0, lost: 0, gf: 0, ga: 0, points: 0, res: [] }); return T.get(id); };
       for (const m of ms) { if (m.home_id) get(m.home_id); if (m.away_id) get(m.away_id); }
-      for (const m of ms.filter((x) => x.status === "FINISHED" && x.home_score != null && x.away_score != null && x.home_id && x.away_id)) {
+      // চলমান ম্যাচ এখনকার স্কোর ধরে (গোল হলেই টেবিল বদলায়)
+      for (const m of ms.filter((x) => ["FINISHED", "IN_PLAY", "PAUSED"].includes(x.status) && x.home_score != null && x.away_score != null && x.home_id && x.away_id)) {
         for (const [id, f, a] of [[m.home_id, m.home_score, m.away_score], [m.away_id, m.away_score, m.home_score]]) {
           const r = get(id), k = f > a ? "W" : f < a ? "L" : "D";
           r.played++; r.gf += f; r.ga += a; r[k === "W" ? "won" : k === "L" ? "lost" : "draw"]++; r.points += k === "W" ? 3 : k === "D" ? 1 : 0; r.res.push(k);
@@ -443,7 +444,7 @@ export async function runLive() {
   if (fixUp.some((x) => x.status === "FINISHED")) await sb("rpc/score_predictions", { method: "POST", body: {} }).catch(() => {});
   const pushed = await sendPushes(notes).catch(() => 0);
   // খেলা শেষ হওয়া লিগের পয়েন্ট টেবিল সাথে সাথে
-  const doneCodes = [...new Set(fixUp.filter((x) => x.status === "FINISHED").map((x) => win.find((m) => m.id === x.id)?.competition_code).filter(Boolean))];
+  const doneCodes = [...new Set(fixUp.map((x) => win.find((m) => m.id === x.id)?.competition_code).filter(Boolean))];
   if (doneCodes.length) await refreshStandings(doneCodes).catch(() => {});
   return { calls, window: win.length, mapped: Object.values(byId).filter((r) => r?.af_id).length, updated: out.length, notes: notes.length, pushed };
 }
@@ -674,6 +675,41 @@ const pRow = (r, key) => {
   const full = r.player.firstname && r.player.lastname ? `${dec(r.player.firstname).split(" ")[0]} ${dec(r.player.lastname)}` : null;
   return { id: POFF + r.player.id, name: dec(r.player.name), full, photo: r.player.photo, team: { af: x.team?.id, name: dec(x.team?.name), logo: x.team?.logo }, apps: x.games?.appearences ?? null, v: v ?? 0 };
 };
+
+// ── লিগের পাতার টেবিল আমাদের নিজের ফল থেকে (রিয়েল টাইম: চলমান ম্যাচ এখনকার স্কোর ধরে) ──
+// API-এর টেবিল থেকে শুধু অবস্থানের রং (চ্যাম্পিয়ন্স লিগ, অবনমন ইত্যাদি) নেওয়া হয়, অবস্থান ধরে।
+const OWN_LG = ["PL", "PD", "BL1", "SA", "FL1", "CL", "UEL", "UECL", "SPL", "BPL"];
+async function ownLeagueTable(code, afGroups) {
+  const [last] = await sb(`matches?select=season&competition_code=eq.${code}&order=season.desc&limit=1`);
+  if (!last?.season) return null;
+  const TS = "id,name_en,short_en,crest";
+  let ms = await sb(`matches?select=id,home_id,away_id,home_score,away_score,status,utc_date,stage,home:teams!matches_home_fk(${TS}),away:teams!matches_away_fk(${TS})&competition_code=eq.${code}&season=eq.${last.season}&order=utc_date&limit=2000`);
+  if (["CL", "UEL", "UECL"].includes(code)) ms = ms.filter((m) => /LEAGUE_STAGE|league/i.test(m.stage || ""));
+  if (!ms.length) return null;
+  const prev = await sb(`standings?select=team_id,position&competition_code=eq.${code}`).catch(() => []);
+  const prevPos = Object.fromEntries(prev.map((r) => [r.team_id, r.position]));
+  const blank = () => ({ p: 0, w: 0, d: 0, l: 0, gf: 0, ga: 0 });
+  const T = new Map();
+  const get = (t) => { if (!T.has(t.id)) T.set(t.id, { t, all: blank(), home: blank(), away: blank(), pts: 0, res: [], live: false }); return T.get(t.id); };
+  for (const m of ms) { if (m.home?.id) get(m.home); if (m.away?.id) get(m.away); }
+  for (const m of ms) {
+    if (!["FINISHED", "IN_PLAY", "PAUSED"].includes(m.status) || m.home_score == null || m.away_score == null || !m.home?.id || !m.away?.id) continue;
+    const live = m.status !== "FINISHED";
+    for (const [t, side, f, a] of [[m.home, "home", m.home_score, m.away_score], [m.away, "away", m.away_score, m.home_score]]) {
+      const r = get(t), k = f > a ? "w" : f < a ? "l" : "d";
+      for (const b of [r.all, r[side]]) { b.p++; b[k]++; b.gf += f; b.ga += a; }
+      r.pts += k === "w" ? 3 : k === "d" ? 1 : 0; r.res.push(k.toUpperCase()); if (live) r.live = true;
+    }
+  }
+  const rows = [...T.values()].sort((x, y) => y.pts - x.pts || (y.all.gf - y.all.ga) - (x.all.gf - x.all.ga) || y.all.gf - x.all.gf || (prevPos[x.t.id] ?? 99) - (prevPos[y.t.id] ?? 99));
+  const descAt = {};
+  for (const r of (afGroups || []).flat()) if (r.rank && r.description) descAt[r.rank] = r.description;
+  return [rows.map((r, i) => ({
+    rank: i + 1, af: r.t.id, id: r.t.id, name: r.t.short_en || r.t.name_en, logo: r.t.crest, pts: r.pts, gd: r.all.gf - r.all.ga,
+    form: r.res.slice(-5).reverse().join("") || null, desc: descAt[i + 1] || null, group: null, live: r.live,
+    all: r.all, home: r.home, away: r.away,
+  }))];
+}
 async function leagueInfo(code, kind) {
   const lid = await afLeagueId(code);
   if (!lid) return null;
@@ -686,6 +722,10 @@ async function leagueInfo(code, kind) {
       const fx = await af(`/fixtures?league=${lid}&season=${se}&timezone=UTC`);
       if (AF_LEAGUES[code].ownTable === "groups") { if (!groups.length) groups = groupTablesFromFixtures(fx); }
       else if (staleTable(groups.flat(), fx)) groups = [tableFromFixtures(fx)];
+    }
+    if (OWN_LG.includes(code)) {
+      const own = await ownLeagueTable(code, groups).catch(() => null);
+      if (own?.[0]?.length) return { season: se, country: cur.country, live: own[0].some((r) => r.live), groups: own };
     }
     return { season: se, country: cur.country, groups: groups.map((g) => g.map((r) => tRow(r, code))) };
   }
@@ -751,7 +791,7 @@ export default async function handler(req, res) {
     try {
       const d = await leagueInfo(code, kind);
       if (!d) return res.status(404).json({ ok: false });
-      res.setHeader("Cache-Control", `public, s-maxage=${kind === "seasons" ? 2592000 : kind === "players" ? 21600 : 120}, max-age=${kind === "table" ? 120 : 3600}`);
+      res.setHeader("Cache-Control", `public, s-maxage=${kind === "seasons" ? 2592000 : kind === "players" ? 21600 : 30}, max-age=${kind === "table" ? 20 : 3600}`);
       return res.status(200).json(d);
     } catch (e) { return res.status(500).json({ ok: false, error: String(e.message || e).slice(0, 200) }); }
   }
