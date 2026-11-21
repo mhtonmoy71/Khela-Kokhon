@@ -371,16 +371,25 @@ async function playerMatchesAf(afId, teamIds) {
 }
 
 // ক্যারিয়ার: প্রতিটা মৌসুমে কোন দলে, আর সেই মৌসুমের ম্যাচ, গোল, অ্যাসিস্ট, রেটিং (সব মৌসুম একসাথে আনা; ৭ দিন জমা)
+let careerPartial = false;
 async function playerCareerAf(afId) {
+  careerPartial = false;
   const teams = await af(`/players/teams?player=${afId}`);
   const rows = [];
   for (const t of teams) for (const se of t.seasons || []) rows.push({ season: se, team: { af: t.team?.id, name: dec(t.team?.name), logo: t.team?.logo } });
   rows.sort((a, b) => b.season - a.season);
   const recent = [...new Set(rows.map((r) => r.season))].slice(0, 25);
-  const stats = await Promise.all(recent.map((se) => af(`/players?id=${afId}&season=${se}`).then((r) => [se, r[0]?.statistics || []]).catch(() => [se, []])));
-  const by = Object.fromEntries(stats);
+  // একসাথে বেশি অনুরোধে API সীমা ছাড়ায়, তাই ৬টা করে; ব্যর্থ হলে একবার আবার
+  const one = (se) => af(`/players?id=${afId}&season=${se}`).then((r) => [se, r[0]?.statistics || []]);
+  const by = {};
+  let failed = 0;
+  for (let i = 0; i < recent.length; i += 6) {
+    for (const [se, st] of await Promise.all(recent.slice(i, i + 6).map((se) => one(se).catch(() => one(se)).catch(() => { failed++; return [se, null]; })))) by[se] = st;
+  }
+  careerPartial = failed > 0;
   return rows.map((r) => {
     const st = (by[r.season] || []).filter((x) => x.team?.id === r.team.af);
+    if (by[r.season] === null) return { ...r, apps: null };
     if (!st.length) return { ...r, apps: null };
     const sum = (f) => st.reduce((t, x) => t + (f(x) || 0), 0);
     const mins = sum((x) => x.games?.minutes);
@@ -433,7 +442,9 @@ export default async function handler(req, res) {
         const teams = String(q0.teams || "").split(",").map((x) => parseInt(x, 10)).filter(Boolean).slice(0, 2);
         d = teams.length ? await playerMatchesAf(id - POFF, teams) : [];
       }
-      res.setHeader("Cache-Control", `public, s-maxage=${q0.pcareer ? 604800 : 21600}, max-age=${q0.pcareer ? 86400 : 1800}`);
+      // কোনো মৌসুম আনা না গেলে বেশিক্ষণ জমা রাখা নয়, যাতে পরের বার পুরোটা আসে
+      const long = q0.pcareer && !careerPartial;
+      res.setHeader("Cache-Control", `public, s-maxage=${long ? 604800 : q0.pcareer ? 600 : 21600}, max-age=${long ? 86400 : 600}`);
       return res.status(200).json(d);
     } catch (e) { return res.status(500).json({ ok: false, error: String(e.message || e).slice(0, 200) }); }
   }
