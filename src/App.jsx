@@ -7185,7 +7185,7 @@ function LgTable({ code, teamsById, lang, fallback }) {
       </div>
       {d.groups.map((g, gi) => (
         <div key={gi} className="card lgt" style={{ marginBottom: 10 }}>
-          {d.groups.length > 1 && g[0]?.group && <div className="lgt-group">{g[0].group}</div>}
+          {d.groups.length > 1 && g[0]?.group && <div className="lgt-group">{bn ? g[0].group.replace(/^Group\s*/i, "গ্রুপ ") : g[0].group}</div>}
           <div className={"lgt-row lgt-h m-" + mode}>
             <span>#</span><span>{bn ? "দল" : "Team"}</span><span>{bn ? "খে" : "P"}</span>
             {mode === "full" && <><span>{bn ? "জ" : "W"}</span><span>{bn ? "ড্র" : "D"}</span><span>{bn ? "হা" : "L"}</span><span>{bn ? "গোল" : "Goals"}</span></>}
