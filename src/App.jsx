@@ -679,6 +679,16 @@ button.pm { background: none; border: 0; padding: 0; cursor: pointer; font: inhe
 .lgx-rm { color: #e11d48 !important; }
 .lgx-add { color: var(--green); border-color: var(--green); font-weight: 600; }
 .lgx-tip { font-size: 12px; margin: 8px 4px 0; }
+.mp-leg { font-size: 11.5px; font-weight: 600; color: var(--muted); margin-bottom: 2px; }
+.mp-tie { font-size: 12px; font-weight: 600; color: var(--muted); margin-top: 4px; white-space: nowrap; }
+.ko-h { font-size: 14px; font-weight: 700; margin: 2px 2px 10px; }
+.ko-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
+.ko-tie { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 4px; padding: 10px 8px; border-radius: 14px; background: var(--card); border: 1.5px solid transparent; color: var(--text); }
+.ko-tie.on { border-color: var(--green); }
+.ko-t { display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 11.5px; }
+.ko-t.out { opacity: .4; }
+.ko-m { font-size: 13px; font-weight: 700; white-space: nowrap; display: inline-flex; align-items: center; }
+.ko-note { font-size: 12px; line-height: 1.5; margin: 12px 2px 0; }
 .fav-btn { display: inline-flex; align-items: center; gap: 7px; margin-top: 10px; height: 36px; padding: 0 16px; border-radius: 18px; border: 1.5px solid var(--line); background: var(--card); font-weight: 700; font-size: 13.5px; color: var(--text); }
 .fav-btn span { color: var(--amber); font-size: 17px; }
 .fav-btn.on { border-color: var(--amber); background: rgba(245,158,11,.12); }
@@ -3701,6 +3711,125 @@ function MatchTable({ m, lang }) {
   );
 }
 
+// ═════════ নকআউট: দুই লেগ, এমএলএসের ৩ ম্যাচের সিরিজ, রাউন্ডের সব জোড়া ═════════
+// এমএলএস কাপ রাউন্ড ওয়ান: ৩ ম্যাচের সিরিজ (ঘরে-বাইরে-ঘরে), ড্র হলে সাথে সাথে টাইব্রেকার, আগে ২ জয় যার সে ওঠে
+// রাউন্ডের নাম বাংলায় (football-data আর API-Football দুই ধরনের নামই)
+const STAGE_BN = [[/wild.?card/i, "ওয়াইল্ড কার্ড"], [/round of 32|last.?32/i, "শেষ ৩২"], [/round of 16|last.?16|round one/i, "শেষ ষোলো"], [/quarter/i, "কোয়ার্টার ফাইনাল"],
+  [/conference semi/i, "কনফারেন্স সেমিফাইনাল"], [/conference final/i, "কনফারেন্স ফাইনাল"], [/semi/i, "সেমিফাইনাল"], [/play.?off/i, "প্লে-অফ"], [/^final$|^FINAL$/i, "ফাইনাল"]];
+const stageLabel = (st, lang) => {
+  if (!st) return "";
+  if (lang === "bn") { const hit = STAGE_BN.find(([re]) => re.test(st)); if (hit) return hit[1]; }
+  return st.replace(/_/g, " ").toLowerCase().replace(/(^|\s)\S/g, (c) => c.toUpperCase());
+};
+const isBo3 = (m) => m?.competition_code === "MLS" && /round of 16|round one/i.test(m?.stage || "");
+async function getStageMatches(m) {
+  if (DEMO || !m?.stage) return [];
+  return ok(await sb.from("matches").select(MATCH_SELECT).eq("competition_code", m.competition_code).eq("season", m.season).eq("stage", m.stage).order("utc_date"));
+}
+// একটা জোড়ার সব ম্যাচ থেকে: সিরিজের জয় বা মোট গোল
+const pairKey = (x) => [x.home_id, x.away_id].sort((a, b) => a - b).join("-");
+function tieOf(list, a, b, bo3) {
+  const games = list.filter((x) => (x.home_id === a && x.away_id === b) || (x.home_id === b && x.away_id === a)).sort((x, y) => x.utc_date.localeCompare(y.utc_date));
+  const out = { games, a, b, wa: 0, wb: 0, ga: 0, gb: 0, played: 0 };
+  for (const g of games) {
+    if (!(isDone(g) || isLive(g)) || g.home_score == null) continue;
+    const sa = g.home_id === a ? g.home_score : g.away_score, sb_ = g.home_id === a ? g.away_score : g.home_score;
+    out.ga += sa; out.gb += sb_;
+    if (!isDone(g)) continue;
+    out.played++;
+    let w = sa > sb_ ? "a" : sb_ > sa ? "b" : null;
+    if (!w && g.pen_home != null && g.pen_away != null && g.pen_home !== g.pen_away) {
+      const pa = g.home_id === a ? g.pen_home : g.pen_away, pb = g.home_id === a ? g.pen_away : g.pen_home;
+      w = pa > pb ? "a" : "b";
+    }
+    if (w === "a") out.wa++; else if (w === "b") out.wb++;
+  }
+  out.bo3 = bo3;
+  out.done = bo3 ? out.wa >= 2 || out.wb >= 2 : games.length > 0 && games.every(isDone);
+  out.winner = bo3 ? (out.wa >= 2 ? a : out.wb >= 2 ? b : null) : null;
+  return out;
+}
+const ORD_BN = ["প্রথম", "দ্বিতীয়", "তৃতীয়"], ORD_EN = ["1st", "2nd", "3rd"];
+function useStage(m) {
+  const [list, setList] = useState(null);
+  const key = m && isKnockout(m) ? `${m.competition_code}|${m.season}|${m.stage}` : null;
+  useEffect(() => {
+    if (!key) { setList(null); return; }
+    let a = true;
+    const load = () => getStageMatches(m).then((r) => a && setList(r)).catch(() => a && setList([]));
+    load();
+    const iv = setInterval(() => { if (!document.hidden) load(); }, 60000);
+    return () => { a = false; clearInterval(iv); };
+  }, [key]);
+  return list;
+}
+// ম্যাচের ওপরে ছোট লেখা: "সিরিজের ম্যাচ ১" / "প্রথম লেগ", আর নিচে সিরিজ বা মোট স্কোর
+function TieLine({ m, list, lang, where }) {
+  const bn = lang === "bn";
+  if (!list?.length || !m.home_id) return null;
+  const bo3 = isBo3(m);
+  const T = tieOf(list, m.home_id, m.away_id, bo3);
+  const i = T.games.findIndex((x) => x.id === m.id);
+  if (i < 0 || (!bo3 && T.games.length < 2)) return null;
+  if (where === "top") {
+    const label = bo3 ? (bn ? `সিরিজের ম্যাচ ${num(i + 1, lang)}` : `Game ${i + 1} of 3`) : (bn ? `${ORD_BN[i] || num(i + 1, lang)} লেগ` : `${ORD_EN[i] || i + 1} leg`);
+    return <div className="mp-leg">{label}</div>;
+  }
+  const H = teamShort(m.home, lang), A = teamShort(m.away, lang);
+  if (bo3) {
+    const wH = T.wa, wA = T.wb;
+    if (!T.played) return <div className="mp-tie">{bn ? "৩ ম্যাচের সিরিজ · আগে ২ জয় যার, সে পরের রাউন্ডে" : "Best of 3 · first to 2 wins"}</div>;
+    const lead = T.winner ? (bn ? `${teamShort(T.winner === m.home_id ? m.home : m.away, lang)} পরের রাউন্ডে` : `${teamShort(T.winner === m.home_id ? m.home : m.away, lang)} advance`) : null;
+    return <div className="mp-tie">{bn ? "সিরিজ" : "Series"} · {H} {num(wH, lang)}–{num(wA, lang)} {A}{lead ? ` · ${lead}` : ""}</div>;
+  }
+  if (i === 0) return null;
+  return <div className="mp-tie">{bn ? "দুই লেগ মিলিয়ে" : "Aggregate"} · {H} {num(T.ga, lang)}–{num(T.gb, lang)} {A}</div>;
+}
+// নকআউট ট্যাব: এই রাউন্ডের সব জোড়া
+function KnockoutTab({ m, list, lang, onOpen }) {
+  const bn = lang === "bn";
+  if (list === null) return <Loading />;
+  const bo3 = isBo3(m);
+  const seen = new Map();
+  for (const x of list) if (x.home_id && x.away_id && !seen.has(pairKey(x))) seen.set(pairKey(x), x);
+  const ties = [...seen.values()].map((first) => ({ first, T: tieOf(list, first.home_id, first.away_id, bo3) }));
+  if (!ties.length) return <div className="card empty">{bn ? "এই রাউন্ডের তথ্য এখনো আসেনি" : "No round data yet"}</div>;
+  const cur = pairKey(m);
+  return (
+    <>
+      <div className="ko-h">{bo3 ? (bn ? "রাউন্ড ওয়ান" : "Round One") : stageLabel(m.stage, lang)}{bo3 ? <span className="muted">{bn ? " · ৩ ম্যাচের সিরিজ" : " · best of 3"}</span> : null}</div>
+      <div className="ko-grid">
+        {ties.map(({ first, T }) => {
+          const tA = first.home, tB = first.away;
+          const next = T.games.find((g) => !isDone(g)) || T.games[T.games.length - 1];
+          const live = T.games.some(isLive);
+          const mid = bo3 ? (T.played || live ? `${num(T.wa, lang)} – ${num(T.wb, lang)}` : dayLabel(dayKey(next.utc_date), lang, { short: true }))
+            : (T.games.some((g) => isDone(g) || isLive(g)) ? `${num(T.ga, lang)} – ${num(T.gb, lang)}` : dayLabel(dayKey(next.utc_date), lang, { short: true }));
+          const winA = bo3 ? T.winner === T.a : T.done && T.ga > T.gb, winB = bo3 ? T.winner === T.b : T.done && T.gb > T.ga;
+          return (
+            <button key={pairKey(first)} className={"ko-tie" + (pairKey(first) === cur ? " on" : "")} onClick={() => onOpen?.(next)}>
+              <span className={"ko-t" + (winB ? " out" : "")}><Crest team={tA} size={22} /><b>{tA?.tla || teamShort(tA, lang)}</b></span>
+              <span className="ko-m">{live && <i className="lv-dot" />}{mid}</span>
+              <span className={"ko-t" + (winA ? " out" : "")}><Crest team={tB} size={22} /><b>{tB?.tla || teamShort(tB, lang)}</b></span>
+            </button>
+          );
+        })}
+      </div>
+      {bo3 && <div className="muted ko-note">{bn ? "প্রতি ম্যাচে ড্র হলে অতিরিক্ত সময় নেই, সাথে সাথে টাইব্রেকার। আগে ২ ম্যাচ যে জেতে, সে পরের রাউন্ডে।" : "No extra time: a draw goes straight to penalties. First to 2 wins advances."}</div>}
+    </>
+  );
+}
+// বিরতির পর দ্বিতীয়ার্ধ কখন: শুরু + ৪৫ + প্রথমার্ধের যোগ করা সময় + ১৫ মিনিট (আনুমানিক)
+function HtCountdown({ m, L, lang }) {
+  const now = useNow(1000);
+  if (m.status !== "PAUSED" || !/HT/.test(L?.status || "HT")) return null;
+  const start = Date.parse(m.utc_date) + (45 + (L?.extra || 2) + 1) * 60000;
+  const left = start + 15 * 60000 - now;
+  if (left <= 0 || left > 20 * 60000) return null;
+  const mm = Math.floor(left / 60000), ss = Math.floor((left % 60000) / 1000);
+  return <div className="mp-cd">{lang === "bn" ? `দ্বিতীয়ার্ধ শুরু ${pad2(mm, lang)}:${pad2(ss, lang)} পর` : `${pad2(mm, lang)}:${pad2(ss, lang)} until second half`}</div>;
+}
+
 function MatchPage({ id, m: mInit, user, pred, onSave, onLogin, toast }) {
   const { t, lang } = useT();
   const bn = lang === "bn";
@@ -3712,6 +3841,7 @@ function MatchPage({ id, m: mInit, user, pred, onSave, onLogin, toast }) {
   }, [id]);
   const L = useMatchLive(m0);
   const m = useMemo(() => (m0 ? mergeLive(m0, L) : null), [m0, L]);
+  const stageList = useStage(m0);
   const nav = useNav();
   const now = useNow(1000);
   const [h, setH] = useState(pred?.home ?? 0);
@@ -3746,6 +3876,7 @@ function MatchPage({ id, m: mInit, user, pred, onSave, onLogin, toast }) {
     ["tb", bn ? "টেবিল" : "Table"],
     ["st", bn ? "পরিসংখ্যান" : "Stats"],
     ["h2h", bn ? "মুখোমুখি" : "H2H"],
+    ...(isKnockout(m) ? [["ko", bn ? "নকআউট" : "Knockout"]] : []),
   ];
   const hasEv = (L?.events || []).length > 0;
 
@@ -3767,10 +3898,13 @@ function MatchPage({ id, m: mInit, user, pred, onSave, onLogin, toast }) {
         <div className="ms-teams">
           <button className="ms-team" onClick={() => m.home_id && nav.openTeam(m.home_id)}><Crest team={m.home} size={42} /><span>{teamName(m.home, lang)}</span></button>
           <div className="ms-mid">
+            <TieLine m={m} list={stageList} lang={lang} where="top" />
             {showScore
               ? <div className="ms-score">{num(m.home_score, lang)} - {num(m.away_score, lang)}</div>
               : <div className="ms-time">{timeLabel(m.utc_date, lang)}</div>}
             <div className={"ms-date" + (isDone(m) ? " mp-ft" : "")}>{showScore ? <LiveClock m={m} L={L} lang={lang} /> : dayLabel(dayKey(m.utc_date), lang, { short: true })}</div>
+            <HtCountdown m={m} L={L} lang={lang} />
+            <TieLine m={m} list={stageList} lang={lang} />
             {m.pen_home != null && m.pen_away != null && <div className="mp-pen">{bn ? `টাইব্রেকারে ${num(m.pen_home, lang)}–${num(m.pen_away, lang)}` : `Pens ${m.pen_home}–${m.pen_away}`}</div>}
             {open && !isLive(m) && <div className="mp-cd">{clockDown(new Date(m.utc_date) - now, lang)}</div>}
           </div>
@@ -3855,6 +3989,7 @@ function MatchPage({ id, m: mInit, user, pred, onSave, onLogin, toast }) {
         {tab === "st" && ((L?.stats || []).length ? <div className="mc-body"><MatchStats L={L} lang={lang} /></div>
           : <div className="card empty">{bn ? "খেলা শুরু হলে পরিসংখ্যান দেখা যাবে" : "Stats appear once the match starts"}</div>)}
         {tab === "h2h" && <H2H m={m} />}
+        {tab === "ko" && <KnockoutTab m={m} list={stageList} lang={lang} onOpen={(x) => x && x.id !== m.id && nav.openMatch?.(x)} />}
       </div>
     </div>
   );
