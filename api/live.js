@@ -333,6 +333,8 @@ export async function refreshStandings(codes) {
       if (!last?.season) continue;
       let ms = await sb(`matches?select=id,home_id,away_id,home_score,away_score,status,utc_date,stage&competition_code=eq.${code}&season=eq.${last.season}&order=utc_date&limit=2000`);
       if (["CL", "UEL", "UECL"].includes(code)) ms = ms.filter((m) => /LEAGUE_STAGE|league/i.test(m.stage || ""));
+      // টেবিলে শুধু নিয়মিত মৌসুম (এমএলএসের প্লে-অফের মতো নকআউট ম্যাচ বাদ)
+      if (ms.some((m) => /regular.?season/i.test(m.stage || ""))) ms = ms.filter((m) => /regular.?season/i.test(m.stage || ""));
       if (!ms.length) continue;
       const prev = await sb(`standings?select=team_id,position&competition_code=eq.${code}`);
       const prevPos = Object.fromEntries(prev.map((r) => [r.team_id, r.position]));
@@ -685,6 +687,7 @@ async function ownLeagueTable(code, afGroups) {
   const TS = "id,name_en,short_en,crest";
   let ms = await sb(`matches?select=id,home_id,away_id,home_score,away_score,status,utc_date,stage,home:teams!matches_home_fk(${TS}),away:teams!matches_away_fk(${TS})&competition_code=eq.${code}&season=eq.${last.season}&order=utc_date&limit=2000`);
   if (["CL", "UEL", "UECL"].includes(code)) ms = ms.filter((m) => /LEAGUE_STAGE|league/i.test(m.stage || ""));
+  if (ms.some((m) => /regular.?season/i.test(m.stage || ""))) ms = ms.filter((m) => /regular.?season/i.test(m.stage || ""));
   if (!ms.length) return null;
   const prev = await sb(`standings?select=team_id,position&competition_code=eq.${code}`).catch(() => []);
   const prevPos = Object.fromEntries(prev.map((r) => [r.team_id, r.position]));
