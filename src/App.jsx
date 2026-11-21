@@ -3073,6 +3073,22 @@ function DayMatches({ day, setDay, comp = "ALL", preds, onOpen }) {
     return () => { live = false; };
   }, [day]);
 
+  // খেলা চলার সময় পাতা খোলা থাকলে চুপচাপ নতুন স্কোর আনা (প্রতি মিনিটে, আর অ্যাপে ফিরে এলেই)
+  const busy = (list || []).some((m) => {
+    if (isLive(m)) return true;
+    if (m.status === "FINISHED" || m.status === "POSTPONED" || m.status === "CANCELLED") return false;
+    const t0 = Date.parse(m.utc_date), n = Date.now();
+    return t0 - n < 15 * 60000 && n - t0 < 3 * 3600000;
+  });
+  useEffect(() => {
+    if (!busy) return;
+    let alive = true;
+    const pull = () => { if (document.visibilityState === "visible") getMatchesOnDay(day).then((r) => alive && setList(r)).catch(() => {}); };
+    const i = setInterval(pull, 60000);
+    document.addEventListener("visibilitychange", pull);
+    return () => { alive = false; clearInterval(i); document.removeEventListener("visibilitychange", pull); };
+  }, [busy, day]);
+
   const shown = (list || []).filter((m) => comp === "ALL" || m.competition_code === comp);
   if (list === null) return <div className="card"><div className="spin" /></div>;
   if (shown.length) return <CompGroups matches={shown} preds={preds} onOpen={onOpen} />;
