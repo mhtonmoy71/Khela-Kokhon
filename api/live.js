@@ -34,7 +34,9 @@ const AF_TEAMS_BN = [
 const afBn = (name) => AF_TEAMS_BN.find(([k]) => (name || "").toLowerCase().startsWith(k.toLowerCase()))?.[1] || null;
 const AF_STATUS = (st) => (["NS", "TBD"].includes(st) ? "TIMED" : st === "HT" ? "PAUSED" : ["FT", "AET", "PEN"].includes(st) ? "FINISHED"
   : st === "PST" ? "POSTPONED" : ["CANC", "ABD", "AWD", "WO"].includes(st) ? "CANCELLED" : "IN_PLAY");
-const afTeamRow = (t) => ({ id: TOFF + t.id, name_en: dec(t.name), short_en: dec(t.name), tla: null, name_bn: afBn(t.name), crest: t.logo || null, updated_at: new Date().toISOString() });
+// লোগো না এলে দেখানোর তিন অক্ষর: "Al-Hilal" → HIL, "Inter Miami" → INT
+const afTla = (n) => { const w = (dec(n) || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").split(/[\s-]+/).filter((x) => x && !/^(al|fc|sc|cf|cd|ac|club|de|the)$/i.test(x)); return (w[0] || n || "?").replace(/[^A-Za-z0-9]/g, "").slice(0, 3).toUpperCase() || null; };
+const afTeamRow = (t) => ({ id: TOFF + t.id, name_en: dec(t.name), short_en: dec(t.name), tla: afTla(t.name), name_bn: afBn(t.name), crest: t.logo || null, updated_at: new Date().toISOString() });
 
 async function upsertRows(table, rows, conflict = "id") {
   for (let i = 0; i < rows.length; i += 500)
