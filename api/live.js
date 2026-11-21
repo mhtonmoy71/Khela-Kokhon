@@ -421,8 +421,64 @@ async function resolveFd(fdId) {
   return null;
 }
 
+// ── লিগের পাতা: টেবিল (সব/ঘরে/বাইরে, ফর্ম), খেলোয়াড়ের শীর্ষ তালিকা, আগের মৌসুমের চ্যাম্পিয়ন ──
+const afLeagueId = (code) => LEAGUE[code] || AF_LEAGUES[code]?.id || null;
+async function currentSeason(lid) {
+  const [lg] = await af(`/leagues?id=${lid}&current=true`);
+  return { season: lg?.seasons?.find((x) => x.current)?.year || null, country: lg?.country?.name || null, logo: lg?.league?.logo || null };
+}
+const tRow = (r, code) => ({
+  rank: r.rank, af: r.team?.id, id: AF_LEAGUES[code] ? TOFF + r.team.id : null, name: dec(r.team?.name), logo: r.team?.logo,
+  pts: r.points, gd: r.goalsDiff, form: r.form || null, desc: r.description || null, group: r.group || null,
+  all: { p: r.all?.played, w: r.all?.win, d: r.all?.draw, l: r.all?.lose, gf: r.all?.goals?.for, ga: r.all?.goals?.against },
+  home: { p: r.home?.played, w: r.home?.win, d: r.home?.draw, l: r.home?.lose, gf: r.home?.goals?.for, ga: r.home?.goals?.against },
+  away: { p: r.away?.played, w: r.away?.win, d: r.away?.draw, l: r.away?.lose, gf: r.away?.goals?.for, ga: r.away?.goals?.against },
+});
+const pRow = (r, key) => {
+  const x = r.statistics?.[0] || {};
+  const v = key === "goals" ? x.goals?.total : key === "assists" ? x.goals?.assists : key === "yellow" ? x.cards?.yellow : x.cards?.red;
+  return { id: POFF + r.player.id, name: dec(r.player.name), photo: r.player.photo, team: { af: x.team?.id, name: dec(x.team?.name), logo: x.team?.logo }, apps: x.games?.appearences ?? null, v: v ?? 0 };
+};
+async function leagueInfo(code, kind) {
+  const lid = afLeagueId(code);
+  if (!lid) return null;
+  const cur = await currentSeason(lid);
+  const se = cur.season;
+  if (kind === "table") {
+    const [st] = await af(`/standings?league=${lid}&season=${se}`);
+    return { season: se, country: cur.country, groups: (st?.league?.standings || []).map((g) => g.map((r) => tRow(r, code))) };
+  }
+  if (kind === "players") {
+    const [g, a, y, rd] = await Promise.all(["topscorers", "topassists", "topyellowcards", "topredcards"].map((k) => af(`/players/${k}?league=${lid}&season=${se}`).catch(() => [])));
+    return { season: se, goals: g.map((r) => pRow(r, "goals")), assists: a.map((r) => pRow(r, "assists")), yellow: y.map((r) => pRow(r, "yellow")), red: rd.map((r) => pRow(r, "red")) };
+  }
+  if (kind === "seasons") {
+    if (code === "CL") return { season: se, list: [] };      // নকআউট প্রতিযোগিতা: টেবিলের প্রথম মানে চ্যাম্পিয়ন নয়
+    const yrs = Array.from({ length: 6 }, (_, i) => se - 1 - i);
+    const list = [];
+    for (const y of yrs) {
+      try {
+        const [st] = await af(`/standings?league=${lid}&season=${y}`);
+        const g = st?.league?.standings?.[0] || [];
+        if (g.length) list.push({ season: y, first: tRow(g[0], code), second: g[1] ? tRow(g[1], code) : null });
+      } catch { /* সেই মৌসুম বাদ */ }
+    }
+    return { season: se, list };
+  }
+  return null;
+}
+
 export default async function handler(req, res) {
   const q0 = req.query || {};
+  if (q0.lg) {
+    const code = String(q0.lg).toUpperCase(), kind = String(q0.kind || "table");
+    try {
+      const d = await leagueInfo(code, kind);
+      if (!d) return res.status(404).json({ ok: false });
+      res.setHeader("Cache-Control", `public, s-maxage=${kind === "seasons" ? 2592000 : kind === "players" ? 21600 : 600}, max-age=${kind === "table" ? 120 : 3600}`);
+      return res.status(200).json(d);
+    } catch (e) { return res.status(500).json({ ok: false, error: String(e.message || e).slice(0, 200) }); }
+  }
   if (q0.resolve) {
     const id = parseInt(q0.resolve, 10);
     if (!(id > 0 && id < POFF)) return res.status(400).json({ ok: false });
