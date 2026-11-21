@@ -6645,7 +6645,7 @@ function SearchSheet({ comps, teams, onClose }) {
               if (x.k === "c") { const c = comps.find((y) => y.code === x.id); return c && <button key={"c" + x.id} className="s-row" onClick={() => go(x, () => nav.openLeague(c.code))}><span className="s-ic" data-c={c.code}><CompIcon c={c} size={22} /></span><b>{compName(c, lang)}</b></button>; }
               if (x.k === "t") { const t = teams.find((y) => y.id === x.id); return t && <button key={"t" + x.id} className="s-row" onClick={() => go(x, () => nav.openTeam(t.id))}><Crest team={t} size={28} /><span className="s-txt"><b>{teamName(t, lang)}</b>{t.league && <small className="muted">{compLabel(t.league, lang)}</small>}</span></button>; }
               const t = teams.find((y) => y.id === x.team);
-              return <button key={"p" + x.id} className="s-row" onClick={() => go(x, () => nav.openPlayer(x.id))}><Avatar url={photoMemo[x.id]} name={x.name} team={t} size={36} /><span className="s-txt"><b>{playerName(x.name, lang)}</b><small className="muted">{t ? teamName(t, lang) : ""}</small></span></button>;
+              return <button key={"p" + x.id} className="s-row" onClick={() => go(x, () => nav.openPlayer(x.id))}><Avatar url={photoMemo[x.id]} name={x.name} team={t} size={36} /><span className="s-txt"><b>{x.id >= 10000000 ? bnPlayer(x.name, lang) : playerName(x.name, lang)}</b><small className="muted">{t ? teamName(t, lang) : ""}</small></span></button>;
             })}</div>
           </>
         )}
@@ -6674,7 +6674,7 @@ function SearchSheet({ comps, teams, onClose }) {
           <div className="card">{res.players.map((r) => (
             <button key={r.player_id} className="s-row" onClick={() => go({ k: "p", id: r.player_id, name: r.player_name, team: r.team_id }, () => nav.openPlayer(r.player_id))}>
               <Avatar url={photoMemo[r.player_id]} name={r.player_name} team={r.team} size={36} />
-              <span className="s-txt"><b>{playerName(r.player_name, lang)}</b><small className="muted">{[r.team ? teamName(r.team, lang) : "", posLabel(r.position, lang) || ""].filter(Boolean).join(" · ")}</small></span>
+              <span className="s-txt"><b>{r.player_id >= 10000000 ? bnPlayer(r.player_name, lang) : playerName(r.player_name, lang)}</b><small className="muted">{[r.team ? teamName(r.team, lang) : "", posLabel(r.position, lang) || ""].filter(Boolean).join(" · ")}</small></span>
             </button>
           ))}</div>
         
