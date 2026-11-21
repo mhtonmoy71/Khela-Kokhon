@@ -331,14 +331,32 @@ img { display: block; }
 @media (prefers-reduced-motion: reduce) { .cg-body, .cg-chev { transition: none; } }
 /* ── ম্যাচ সেন্টার ── */
 .mc { margin-top: 14px; }
-.mp { padding-top: 4px; }
-.mp-head { padding: 4px 0 8px; }
-.mp-back { flex: none; width: 36px; height: 36px; border-radius: 50%; border: 1px solid var(--line); background: var(--card); color: var(--text); display: grid; place-items: center; cursor: pointer; }
+.mp { padding-top: 2px; }
+.mp .ms-top { padding: 0 0 2px; gap: 8px; }
+.mp .ms-comp { font-size: 12.5px; }
+.mp .ms-share, .mp .mp-back { width: 32px; height: 32px; }
+.mp .ms-share svg { width: 15px; height: 15px; }
+.mp .ms-teams { padding: 8px 0 2px; gap: 6px; }
+.mp .ms-team { gap: 5px; font-size: 13.5px; font-weight: 600; }
+.mp .ms-mid { min-width: 84px; }
+.mp .ms-score { font-size: 26px; letter-spacing: .5px; }
+.mp .ms-time { font-size: 21px; }
+.mp .ms-date { font-size: 12px; margin-top: 2px; }
+.mp .ms-goals { font-size: 11.5px; margin-top: 4px; }
+.mp .sec { margin-top: 12px !important; }
+.mp .sec-h h2 { font-size: 14px; }
+.mp .ev { padding: 5px 12px; font-size: 13px; gap: 6px; grid-template-columns: 38px 18px minmax(0, 1fr) auto; }
+.mp .ev-a { grid-template-columns: auto minmax(0, 1fr) 18px 38px; }
+.mp .ev-txt small { font-size: 11px; }
+.mp .ev-sc { font-size: 12px; padding: 1px 7px; }
+.mp .ev-min { font-size: 11.5px; }
+.mp-head { padding: 2px 0 4px; }
+.mp-back { flex: none; width: 32px; height: 32px; border-radius: 50%; border: 1px solid var(--line); background: var(--card); color: var(--text); display: grid; place-items: center; cursor: pointer; }
 .mp-head .ms-top .ms-comp { flex: 1; min-width: 0; }
 .mp-cd { margin-top: 4px; font: 600 12px Inter, 'Hind Siliguri', sans-serif; color: var(--muted); }
-.mp-tabs { position: sticky; top: calc(64px + env(safe-area-inset-top)); z-index: 5; display: flex; gap: 2px; overflow-x: auto; scrollbar-width: none; margin: 4px -16px 12px; padding: 0 12px; background: var(--bg); border-bottom: 1px solid var(--line); }
+.mp-tabs { position: sticky; top: calc(64px + env(safe-area-inset-top)); z-index: 5; display: flex; gap: 2px; overflow-x: auto; scrollbar-width: none; margin: 2px -16px 10px; padding: 0 10px; background: var(--bg); border-bottom: 1px solid var(--line); }
 .mp-tabs::-webkit-scrollbar { display: none; }
-.mp-tabs button { flex: none; padding: 12px 12px 10px; background: none; border: 0; border-bottom: 3px solid transparent; color: var(--muted); font: 600 14.5px 'Hind Siliguri', sans-serif; cursor: pointer; white-space: nowrap; }
+.mp-tabs button { flex: none; padding: 9px 10px 7px; background: none; border: 0; border-bottom: 2.5px solid transparent; color: var(--muted); font: 600 13.5px 'Hind Siliguri', sans-serif; cursor: pointer; white-space: nowrap; }
 .mp-tabs button.on { color: var(--text); border-bottom-color: var(--brand); }
 .mp-body { min-height: 50vh; }
 .mp-info > div { display: flex; align-items: center; gap: 10px; padding: 12px 14px; font-size: 14px; border-top: 1px solid var(--line); }
@@ -3187,7 +3205,7 @@ function MatchPage({ id, m: mInit, user, pred, onSave, onLogin, toast }) {
           }}>{making ? <span className="spin sm" /> : <ShareIcon />}</button>
         </div>
         <div className="ms-teams">
-          <button className="ms-team" onClick={() => m.home_id && nav.openTeam(m.home_id)}><Crest team={m.home} size={60} /><span>{teamName(m.home, lang)}</span></button>
+          <button className="ms-team" onClick={() => m.home_id && nav.openTeam(m.home_id)}><Crest team={m.home} size={42} /><span>{teamName(m.home, lang)}</span></button>
           <div className="ms-mid">
             {showScore
               ? <div className="ms-score">{num(m.home_score, lang)} - {num(m.away_score, lang)}</div>
@@ -3195,7 +3213,7 @@ function MatchPage({ id, m: mInit, user, pred, onSave, onLogin, toast }) {
             <div className="ms-date">{showScore ? <StatusText m={m} /> : dayLabel(dayKey(m.utc_date), lang, { short: true })}</div>
             {open && <div className="mp-cd">{countdown(new Date(m.utc_date) - now, lang)}</div>}
           </div>
-          <button className="ms-team" onClick={() => m.away_id && nav.openTeam(m.away_id)}><Crest team={m.away} size={60} /><span>{teamName(m.away, lang)}</span></button>
+          <button className="ms-team" onClick={() => m.away_id && nav.openTeam(m.away_id)}><Crest team={m.away} size={42} /><span>{teamName(m.away, lang)}</span></button>
         </div>
         <Scorers L={L} lang={lang} />
       </div>
@@ -3207,7 +3225,7 @@ function MatchPage({ id, m: mInit, user, pred, onSave, onLogin, toast }) {
       <div className="mp-body">
         {tab === "ov" && (
           <>
-            {hasEv && <div className="sec" style={{ margin: "0 0 14px" }}><div className="sec-h"><h2>{bn ? "ঘটনা" : "Events"}</h2></div><div className="mc-body"><MatchEvents L={L} m={m} lang={lang} /></div></div>}
+            {hasEv && <div className="mc-body" style={{ marginBottom: 12 }}><MatchEvents L={L} m={m} lang={lang} /></div>}
             {open && <div className="ms-cd">{t("startsIn")} {countdown(new Date(m.utc_date) - now, lang)} · {t("bdTime")}</div>}
             <FanVote m={m} />
         <div className="sec" style={{ margin: "16px 0 0" }}>
