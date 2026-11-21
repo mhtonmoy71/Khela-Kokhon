@@ -443,7 +443,7 @@ img { display: block; }
 .lu-p { display: flex; align-items: center; gap: 6px; padding: 5px 0; font-size: 12.5px; color: var(--muted); width: 100%; background: none; border: 0; font-family: inherit; text-align: left; cursor: pointer; }
 button.pm { background: none; border: 0; padding: 0; cursor: pointer; font: inherit; color: inherit; }
 .afp-page { padding-top: 2px; }
-.afp-head { margin: 0 -16px; padding: 10px 16px 16px; background: linear-gradient(135deg, #065f46, #0b3b2e); color: #fff; }
+.afp-head { margin: 0; padding: 10px 16px 16px; background: linear-gradient(135deg, #065f46, #0b3b2e); color: #fff; }
 .afp-back { width: 32px; height: 32px; border-radius: 50%; border: 0; background: rgba(255,255,255,.14); color: #fff; display: grid; place-items: center; cursor: pointer; }
 .afp-id { display: flex; align-items: center; gap: 14px; margin-top: 10px; }
 .afp-ph { width: 64px; height: 64px; border-radius: 50%; object-fit: cover; object-position: 50% 15%; background: #fff; flex: none; border: 2px solid rgba(255,255,255,.7); }
@@ -452,7 +452,7 @@ button.pm { background: none; border: 0; padding: 0; cursor: pointer; font: inhe
 .afp-id .pl-inj { margin: 0; font-size: 11px; }
 .afp-team { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px 3px 4px; border-radius: 999px; border: 0; background: rgba(255,255,255,.16); color: #fff; font: 600 12.5px 'Hind Siliguri', sans-serif; cursor: pointer; }
 .afp-team img, .afp-team .crest-fb { background: #fff; border-radius: 50%; }
-.afp-tabs { margin-top: 0; }
+.mp-tabs.afp-tabs { margin: 0 0 10px; padding: 0 8px; }
 .pmr { display: block; width: 100%; padding: 10px 14px; background: none; border: 0; border-top: 1px solid var(--line); color: inherit; font: inherit; text-align: left; cursor: pointer; }
 .pmr:first-child { border-top: 0; }
 .pmr:disabled { cursor: default; }
