@@ -211,19 +211,24 @@ img { display: block; }
 @keyframes rot { to { transform: rotate(360deg) } }
 
 /* ── ফুটার ── */
-.foot { margin-top: 32px; background: #0b1311; color: #e9f2ee; border-radius: 22px 22px 0 0; padding: 28px 20px 24px; }
+.foot { margin-top: 32px; background: #0b1311; color: #e9f2ee; border-radius: 22px 22px 0 0; padding: 22px 18px 18px; }
 .foot-in { max-width: 1100px; margin: 0 auto; }
-.foot-brand { display: flex; align-items: center; gap: 12px; font-size: 24px; }
+@media (min-width: 900px) {
+  .foot-in { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr); column-gap: 48px; align-items: start; }
+  .foot-cols { margin-top: 4px; }
+  .foot-bottom { grid-column: 1 / -1; }
+}
+.foot-brand { display: flex; align-items: center; gap: 10px; font-size: 20px; }
 .foot-brand b span { color: #f59e0b; }
-.foot-tag { margin-top: 10px; font-size: 17px; font-weight: 600; color: #00e676; }
-.foot-desc { font-size: 14px; line-height: 1.75; color: #a9bbb4; margin: 14px 0 18px; }
+.foot-tag { margin-top: 6px; font-size: 14.5px; font-weight: 600; color: #00e676; }
+.foot-desc { font-size: 13px; line-height: 1.6; color: #a9bbb4; margin: 8px 0 12px; max-width: 560px; }
 .foot-social { display: flex; gap: 10px; }
-.foot-social a { width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; background: #1a2622; color: #e9f2ee; }
-.foot-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 26px 16px; margin: 26px 0 22px; }
-.foot-cols h4 { font-size: 15px; font-weight: 700; margin-bottom: 10px; color: #fff; }
-.foot-cols a, .foot-cols button { display: block; text-align: left; padding: 6px 0; font-size: 14.5px; color: #c4d3cd; text-decoration: none; overflow-wrap: anywhere; }
+.foot-social a { width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; background: #1a2622; color: #e9f2ee; }
+.foot-cols { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px 12px; margin: 18px 0 14px; }
+.foot-cols h4 { font-size: 13.5px; font-weight: 700; margin-bottom: 6px; color: #fff; }
+.foot-cols a, .foot-cols button { display: block; text-align: left; padding: 4px 0; font-size: 13px; color: #c4d3cd; text-decoration: none; overflow-wrap: anywhere; }
 .foot-cols a:hover, .foot-cols button:hover { color: #00e676; }
-.foot-bottom { border-top: 1px solid rgba(255,255,255,.08); padding-top: 16px; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 6px; font-size: 12px; color: #8ea39b; font-family: Inter, "Hind Siliguri", sans-serif; }
+.foot-bottom { border-top: 1px solid rgba(255,255,255,.08); padding-top: 12px; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 6px; font-size: 12px; color: #8ea39b; font-family: Inter, "Hind Siliguri", sans-serif; }
 .foot-bottom a { color: #c4d3cd; font-weight: 600; text-decoration: none; }
 .foot-bottom a:hover { color: #00e676; }
 /* ফুটারের আলাদা পাতা */
@@ -4032,28 +4037,30 @@ function Footer({ comps = [] }) {
   const bn = lang === "bn";
   const nav = useNav();
   const cols = [
-    [bn ? "খেলা কখন?" : "Khela Kokhon", [[bn ? "আমাদের কথা" : "About us", () => nav.openPage("about")], [bn ? "কীভাবে কাজ করে" : "How it works", () => nav.openPage("how")], [bn ? "প্রতিষ্ঠাতা" : "Founder", () => nav.openPage("founder")], [bn ? "যোগাযোগ" : "Contact", () => nav.openPage("contact")], [bn ? "গোপনীয়তা নীতি" : "Privacy policy", () => nav.openPage("privacy")]]],
-    [bn ? "লিগ" : "Leagues", comps.map((c) => [compName(c, lang), () => nav.openLeague(c.code)])],
+    [bn ? "খেলা কখন?" : "Khela Kokhon", [[bn ? "আমাদের কথা" : "About us", () => nav.openPage("about")], [bn ? "কীভাবে কাজ করে" : "How it works", () => nav.openPage("how")], [bn ? "প্রতিষ্ঠাতা" : "Founder", () => nav.openPage("founder")], [bn ? "যোগাযোগ" : "Contact", () => nav.openPage("contact")], [bn ? "গোপনীয়তা" : "Privacy", () => nav.openPage("privacy")]]],
+    // সব লিগ নয়, জনপ্রিয় কয়েকটা, বাকিগুলো "সব লিগ" পাতায়
+    [bn ? "লিগ" : "Leagues", [...["CL", "PL", "PD", "BPL"].map((code) => comps.find((c) => c.code === code)).filter(Boolean).map((c) => [compName(c, lang), () => nav.openLeague(c.code)]),
+      [bn ? "সব লিগ →" : "All leagues →", () => nav.go("leagues")]]],
     [bn ? "ফিচার" : "Features", [
       [bn ? "ম্যাচের সূচি" : "Fixtures", () => nav.go("matches")],
-      [bn ? "প্রেডিকশন ও লিডারবোর্ড" : "Predictions & leaderboard", () => nav.go("predict")],
+      [bn ? "প্রেডিকশন" : "Predictions", () => nav.go("predict")],
       [bn ? "বন্ধুদের লিগ" : "Friends' leagues", () => nav.openFriends()],
       [bn ? "দৈনিক চ্যালেঞ্জ" : "Daily challenge", () => nav.openDaily()],
-      [bn ? "স্পোর্টস কুইজ" : "Sports quiz", () => nav.openQuiz()],
+      [bn ? "কুইজ" : "Quiz", () => nav.openQuiz()],
       [bn ? "জিজ্ঞেস করুন" : "Ask", () => nav.go("ask")],
-      [bn ? "দল ও খেলোয়াড় খুঁজুন" : "Search teams & players", () => nav.openSearch()],
-      [bn ? "প্রোফাইল" : "Profile", () => nav.go("profile")],
     ]],
   ];
   return (
     <footer className="foot">
       <div className="foot-in">
-        <div className="foot-brand"><Logo size={44} /><b>খেলা কখন<span>?</span></b></div>
+        <div className="foot-about">
+        <div className="foot-brand"><Logo size={36} /><b>খেলা কখন<span>?</span></b></div>
         <div className="foot-tag">{bn ? "ম্যাচের ঘড়ি আপনার হাতে" : "The match clock in your hands"}</div>
-        <p className="foot-desc">{bn ? "ইউরোপের বড় পাঁচ লিগ আর চ্যাম্পিয়ন্স লিগের সূচি, ফল, টেবিল আর গোলদাতা, সব বাংলাদেশ সময়ে। প্রিয় দলের খেলা, প্রেডিকশন, বন্ধুদের লিগ, লাইভ স্পোর্টস কুইজ আর বাংলায় যেকোনো প্রশ্নের উত্তর, এক জায়গায়।" : "Fixtures, results, tables and top scorers for Europe's top five leagues and the Champions League, all in Bangladesh time. Your teams, predictions, friends' leagues, a live sports quiz and answers to any question in Bangla, in one place."}</p>
+        <p className="foot-desc">{bn ? "১৯টা প্রতিযোগিতার লাইভ স্কোর, সূচি আর টেবিল, বাংলাদেশ সময়ে। সাথে প্রেডিকশন, বন্ধুদের লিগ আর কুইজ।" : "Live scores, fixtures and tables for 19 competitions, in Bangladesh time. Plus predictions, friends' leagues and quizzes."}</p>
         <div className="foot-social">
           <a href="https://www.facebook.com/khelakokhon" target="_blank" rel="noopener noreferrer" aria-label="Facebook"><FbIcon /></a>
           <a href="mailto:khelakokhon@gmail.com" aria-label="Email"><MailIcon /></a>
+        </div>
         </div>
         <div className="foot-cols">
           {cols.map(([h, links]) => (
