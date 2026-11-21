@@ -475,7 +475,8 @@ button.pm { background: none; border: 0; padding: 0; cursor: pointer; font: inhe
 .lg-hero h1 { font-size: 22px; margin: 0; line-height: 1.2; }
 .lg-hero small { opacity: .8; font-size: 12.5px; }
 .lgt-bar { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
-.lgt-seg { flex: 1; min-width: 150px; }
+.seg.lgt-seg { flex: 1; min-width: 150px; display: flex; }
+.seg.lgt-seg button { flex: 1; min-width: 0; padding-left: 4px; padding-right: 4px; }
 .lgt { overflow: hidden; }
 .lgt-group { padding: 10px 12px 2px; font-weight: 700; font-size: 13px; }
 .lgt-row { display: grid; align-items: center; gap: 4px; padding: 9px 10px 9px 8px; font-size: 13px; text-align: center; border-left: 3px solid transparent; }
