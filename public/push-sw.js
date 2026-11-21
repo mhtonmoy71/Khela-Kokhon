@@ -3,7 +3,7 @@ self.addEventListener("push", (e) => {
   let d = {};
   try { d = e.data ? e.data.json() : {}; } catch { d = { title: "খেলা কখন?", body: e.data && e.data.text() }; }
   e.waitUntil(self.registration.showNotification(d.title || "খেলা কখন?", {
-    body: d.body || "", tag: d.tag, renotify: true, icon: self.location.origin + "/icon-192x192.png", badge: self.location.origin + "/badge-96.png?v=3",
+    body: d.body || "", tag: d.tag, renotify: true, icon: self.location.origin + "/icon-192x192.png", badge: self.location.origin + "/badge-96.png?v=4",
     data: { url: d.url || "/" }, lang: "bn",
   }));
 });
