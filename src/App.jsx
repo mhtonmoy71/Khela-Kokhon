@@ -711,7 +711,7 @@ button.pm { background: none; border: 0; padding: 0; cursor: pointer; font: inhe
 .bell-btn.on { color: var(--green); }
 .team-acts { display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 10px; }
 .team-acts .fav-btn { margin: 0; }
-.team-hero.row .team-acts { margin: 0 0 0 auto; }
+@media (min-width: 1100px) { .team-hero.row .team-acts { margin: 0 0 0 auto; } }
 .team-bell { width: 36px; height: 36px; border-radius: 50%; border: 1.5px solid var(--line); background: var(--card); flex-shrink: 0; }
 .fav-btn { display: inline-flex; align-items: center; gap: 7px; margin-top: 10px; height: 36px; padding: 0 16px; border-radius: 18px; border: 1.5px solid var(--line); background: var(--card); font-weight: 700; font-size: 13.5px; color: var(--text); }
 .fav-btn span { color: var(--amber); font-size: 17px; }
