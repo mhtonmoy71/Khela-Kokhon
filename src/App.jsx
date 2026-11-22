@@ -237,6 +237,11 @@ img { display: block; }
 .info p { font-size: 15px; line-height: 1.8; color: var(--text); opacity: .9; }
 .founder { text-align: center; margin-bottom: 18px; }
 .founder-p { margin: 0 0 12px; }
+.about-secs { display: grid; gap: 10px; margin-top: 18px; }
+.about-sec { padding: 14px 16px; }
+.about-sec h2 { margin: 0 0 6px; font-size: 15.5px; }
+.about-sec p { margin: 0; font-size: 14px; line-height: 1.7; }
+@media (min-width: 900px) { .about-secs { grid-template-columns: 1fr 1fr; } }
 .founder-facts { margin-top: 18px; }
 .founder-facts .info-row { align-items: flex-start; gap: 16px; }
 .founder-facts .info-row b { text-align: right; font-weight: 600; line-height: 1.5; }
@@ -4231,8 +4236,9 @@ function InfoPage({ id, user, goProfile }) {
       {back}
       <div className="sec info">
         <h1>{A.whatH}</h1>
-        <p>{A.what}</p>
+        {[].concat(A.what).map((t, i) => <p key={i} className="founder-p">{t}</p>)}
         <div className="facts">{A.facts.map(([b, s]) => <div key={s}><b>{b}</b><span>{s}</span></div>)}</div>
+        {A.sections && <div className="about-secs">{A.sections.map(([h, t]) => <div key={h} className="card about-sec"><h2>{h}</h2><p>{t}</p></div>)}</div>}
         {!user && <button className="btn" style={{ marginTop: 18 }} onClick={goProfile}>{A.cta} →</button>}
       </div>
     </>
@@ -4265,8 +4271,20 @@ const DEV_PHOTO = "data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBA
 const ABOUT = {
   bn: {
     whatH: "খেলা কখন? সম্পর্কে",
-    what: "ইউরোপের বড় পাঁচ লিগ আর চ্যাম্পিয়ন্স লিগের সূচি, বাংলাদেশ সময়ে। রাত একটার খেলা, নাকি ভোর চারটার—আলাদা করে হিসাব কষতে হয় না। প্রিয় দল বেছে নিলে তাদের খেলা ম্যাচ পাতার একদম উপরে দেখা যায় কাউন্টডাউনসহ। সাথে আছে লিগ টেবিল, গোলদাতা, দল আর খেলোয়াড়ের পাতা, প্রেডিকশন, বন্ধুদের লিগ, লাইভ স্পোর্টস কুইজ আর বাংলায় প্রশ্ন করলেই উত্তর।",
-    facts: [["৬", "প্রতিযোগিতা"], ["১১১", "দল"], ["প্রতিদিন", "হালনাগাদ"]],
+    what: [
+      "খেলা কখন? বাংলাদেশের ফুটবলপ্রেমীদের জন্য বানানো একটি পূর্ণাঙ্গ ফুটবল প্ল্যাটফর্ম। ইউরোপের বড় লিগ থেকে দেশের মাঠ, প্রতিটি খেলার সূচি, লাইভ স্কোর আর বিশ্লেষণ এখানে পাওয়া যায় বাংলায়, বাংলাদেশ সময়ে।",
+      "রাত একটার খেলা নাকি ভোর চারটার, সময় মেলানোর ঝামেলা নেই। প্রিয় দল বেছে নিলে তাদের খেলা থাকে সবার আগে, আর প্রথম বাঁশি থেকে শেষ বাঁশি পর্যন্ত প্রতিটি মুহূর্তের খবর পৌঁছে যায় আপনার ফোনে।",
+    ],
+    facts: [["১৯", "প্রতিযোগিতা"], ["৯০০+", "দল"], ["প্রতি মিনিটে", "লাইভ হালনাগাদ"]],
+    sections: [
+      ["লাইভ ম্যাচ সেন্টার", "মিনিট ধরে লাইভ স্কোর, গোলদাতা, কার্ড, বদলি আর বাংলায় ধারাভাষ্য। মাঠের ছবিতে দুই দলের লাইনআপ ও খেলোয়াড়দের রেটিং, পূর্ণাঙ্গ পরিসংখ্যান আর মুখোমুখি লড়াইয়ের ইতিহাস। নকআউট পর্বে দুই লেগের মোট স্কোর আর পুরো রাউন্ডের চিত্র।"],
+      ["১৯টি প্রতিযোগিতা", "চ্যাম্পিয়ন্স লিগ, প্রিমিয়ার লিগ, লা লিগা, বুন্দেসলিগা, সিরি আ ও লিগ ওয়ান থেকে শুরু করে ইউরোপা লিগ, কনফারেন্স লিগ, নেশনস লিগ, এফএ কাপ, কোপা দেল রে, সৌদি প্রো লিগ, এমএলএস আর এএফসি চ্যাম্পিয়ন্স লিগ। দেশের ফুটবলে আছে বাংলাদেশ ফুটবল লিগ ও ফেডারেশন কাপ।"],
+      ["লিগ, দল ও খেলোয়াড়", "খেলা চলাকালেই বদলানো পয়েন্ট টেবিল, ঘরে-বাইরের হিসাব আর শেষ পাঁচ ম্যাচের ফর্ম। প্রতিটি দলের সূচি, ফল ও স্কোয়াড; প্রতিটি খেলোয়াড়ের মৌসুমের পরিসংখ্যান আর পুরো ক্যারিয়ার।"],
+      ["প্রেডিকশন গেম", "খেলা শুরুর আগে স্কোর আন্দাজ করুন। হুবহু মিললে ৩ পয়েন্ট, শুধু ফল মিললে ১; নকআউটে টাইব্রেকারের জয়ী ঠিক হলে ৪ বা ৫। খেলা চলাকালেই লিডারবোর্ডে বদলায় অবস্থান। নিজের লিগ খুলে বন্ধুদের সাথেও চলে লড়াই।"],
+      ["কুইজ ও দৈনিক চ্যালেঞ্জ", "প্রতিদিন পাঁচটি নতুন প্রশ্নে জ্ঞান ঝালিয়ে নিন, ধরে রাখুন স্ট্রিক, জিতে নিন ব্যাজ। বন্ধুদের সাথে লাইভ স্পোর্টস কুইজও খেলা যায়।"],
+      ["জিজ্ঞেস করুন", "বাংলায় প্রশ্ন করলেই উত্তর: পরের খেলা কবে, টেবিলে কততম, কে কত গোল করেছেন, ক্লাব আর জাতীয় দল মিলিয়ে।"],
+      ["নোটিফিকেশন", "প্রিয় দলের খেলা শুরু, প্রতিটি গোল আর খেলা শেষের খবর তাৎক্ষণিক। সাথে খেলার দিনের স্মরণ, প্রেডিকশন আর দৈনিক চ্যালেঞ্জের তাগিদ।"],
+    ],
     howH: "কীভাবে কাজ করে",
     steps: [
       ["রেজিস্ট্রেশন", "ইমেইল দিয়ে, অথবা এক চাপে Google দিয়ে।"],
@@ -4290,8 +4308,20 @@ const ABOUT = {
   },
   en: {
     whatH: "What is Khela Kokhon?",
-    what: "Fixtures for Europe's top five leagues and the Champions League, in Bangladesh time. No more working out whether a match is at 1 AM or 4 AM. Pick your teams and their matches sit at the top of the Matches page with a countdown. Plus tables, top scorers, team and player pages, predictions, friends' leagues, a live sports quiz and answers to any question in Bangla.",
-    facts: [["6", "competitions"], ["111", "teams"], ["Daily", "updates"]],
+    what: [
+      "Khela Kokhon is a complete football platform built for fans in Bangladesh. From Europe's biggest leagues to the game at home, every fixture, live score and analysis is here, in Bangla and in Bangladesh time.",
+      "No more working out whether a match is at 1 AM or 4 AM. Pick your teams and their matches come first, with every moment from kick-off to the final whistle delivered to your phone.",
+    ],
+    facts: [["19", "competitions"], ["900+", "teams"], ["Every minute", "live updates"]],
+    sections: [
+      ["Live match centre", "Minute-by-minute scores, scorers, cards, substitutions and commentary. Lineups on a pitch with player ratings, full stats and head-to-head history. In knockouts, two-leg aggregates and the whole round at a glance."],
+      ["19 competitions", "From the Champions League, Premier League, La Liga, Bundesliga, Serie A and Ligue 1 to the Europa League, Conference League, Nations League, FA Cup, Copa del Rey, Saudi Pro League, MLS and AFC Champions League. At home, the Bangladesh Football League and the Federation Cup."],
+      ["Leagues, teams and players", "Tables that update during matches, home and away splits and last-five form. Every team's fixtures, results and squad; every player's season stats and full career."],
+      ["Prediction game", "Predict the score before kick-off: 3 points for the exact score, 1 for the right result, 4 or 5 for calling a knockout shootout. Leaderboards move as matches play out, and you can start your own league with friends."],
+      ["Quiz and daily challenge", "Five new questions every day to sharpen your knowledge, keep your streak and earn badges. Or play a live sports quiz with friends."],
+      ["Ask", "Ask in Bangla and get an answer: when the next match is, where a team stands, how many goals a player has, club and country combined."],
+      ["Notifications", "Kick-off, every goal and full time for your teams, instantly. Plus match-day, prediction and daily-challenge reminders."],
+    ],
     howH: "How it works",
     steps: [
       ["Sign up", "With email, or with Google in one tap."],
