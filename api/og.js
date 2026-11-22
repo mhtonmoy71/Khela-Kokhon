@@ -6,7 +6,12 @@
 import { ImageResponse } from "@vercel/og";
 
 const SITE = "https://khelakokhon.com";
-const h = (type, props, ...children) => ({ type, props: { ...props, children: children.flat().filter((c) => c !== null && c !== undefined && c !== false) } });
+// ছবি-ইঞ্জিনের নিয়ম: একাধিক সন্তান থাকলে div-এ display:flex লাগে, তাই সব div-এ ধরে নেওয়া
+const h = (type, props, ...children) => {
+  const kids = children.flat().filter((c) => c !== null && c !== undefined && c !== false && c !== "");
+  const style = type === "div" ? { display: "flex", ...(props?.style || {}) } : props?.style;
+  return { type, props: { ...props, ...(style ? { style } : {}), children: kids.length === 1 ? kids[0] : kids } };
+};
 let fontCache = null;
 async function fonts() {
   if (fontCache) return fontCache;
