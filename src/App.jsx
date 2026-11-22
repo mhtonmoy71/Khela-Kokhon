@@ -485,7 +485,7 @@ img { display: block; }
 .ev-a .ev-min { order: 4; text-align: right; } .ev-a .ev-ic, .ev-a .ev-var { order: 3; } .ev-a .ev-txt { order: 2; text-align: right; } .ev-a .ev-sc { order: 1; }
 .ev-min { font-family: Inter, 'Hind Siliguri', sans-serif; font-weight: 700; font-size: 12.5px; color: var(--muted); }
 .ev-ic { display: block; margin: 0 auto; }
-.ev-var { font: 800 9px Inter, sans-serif; color: var(--muted); border: 1.5px solid var(--muted); border-radius: 4px; padding: 1px 2px; text-align: center; }
+.ev-var { color: var(--muted); }
 .ev-txt { min-width: 0; display: flex; flex-direction: column; line-height: 1.3; }
 .ev-txt b { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .ev-txt small { font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -3354,7 +3354,13 @@ const EvIcon = ({ e }) => {
       <path d="M7 4v13M3.5 13.5L7 17l3.5-3.5" stroke="#ef4444" /><path d="M17 20V7M13.5 10.5L17 7l3.5 3.5" stroke="#16a34a" />
     </svg>
   );
-  return <span className="ev-var">VAR</span>;
+  return (
+    <svg className="ev-ic ev-var" width="22" height="22" viewBox="0 0 24 24" aria-label="VAR">
+      <rect x="1.8" y="3.6" width="20.4" height="13.6" rx="2.6" fill="none" stroke="currentColor" strokeWidth="1.6" />
+      <text x="12" y="13.1" textAnchor="middle" fontFamily="Inter, sans-serif" fontWeight="800" fontSize="6.8" fill="currentColor" letterSpacing="-.2">VAR</text>
+      <path d="M12 17.2v3M8.2 20.6h7.6" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+    </svg>
+  );
 };
 
 const EV_BN = {
