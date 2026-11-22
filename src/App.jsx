@@ -428,7 +428,9 @@ img { display: block; }
 .mp .ms-goals { grid-template-columns: 1fr 1fr; gap: 6px; margin: 10px 0 0; padding-top: 10px; border-top: 1px dashed var(--line); font-size: 12px; line-height: 1.6; }
 .mp .ms-goals .h { text-align: right; padding-right: 14px; } .mp .ms-goals .a { text-align: left; padding-left: 14px; }
 .ms-goals .sball { vertical-align: -2px; }
-.sball { flex: none; filter: drop-shadow(0 0 .5px rgba(0,0,0,.25)); }
+.sball { flex: none; }
+.sball .sb-ring { stroke: #e5e7eb; }
+[data-theme="light"] .sball .sb-ring { stroke: #1f2937; }
 .mp .ms-goals b { font-weight: 600; }
 .mp .ms-goals span { color: var(--muted); }
 .mp .ms-goals .ball-mini { justify-self: center; opacity: .5; margin-top: 2px; }
@@ -3459,21 +3461,22 @@ function MatchStats({ L, lang }) {
 }
 
 // ── ফুটবলের আইকন (সাদা-কালো, পঞ্চভুজ): গোলদাতা, ঘটনা, লাইনআপে ──
-const BALL_RIM = ["12.00,4.40 9.15,2.33 10.24,-1.03 13.76,-1.03 14.85,2.33","19.23,9.65 20.32,6.30 23.84,6.30 24.93,9.65 22.08,11.72","16.47,18.15 19.99,18.15 21.08,21.50 18.23,23.58 15.38,21.50","7.53,18.15 8.62,21.50 5.77,23.58 2.92,21.50 4.01,18.15","4.77,9.65 1.92,11.72 -0.93,9.65 0.16,6.30 3.68,6.30"];
+const BALL_RIM = ["12.00,5.00 7.82,1.96 9.41,-2.96 14.59,-2.96 16.18,1.96", "18.66,9.84 20.26,4.92 25.43,4.92 27.03,9.84 22.84,12.88", "16.11,17.66 21.29,17.66 22.89,22.58 18.70,25.62 14.52,22.58", "7.89,17.66 9.48,22.58 5.30,25.62 1.11,22.58 2.71,17.66", "5.34,9.84 1.16,12.88 -3.03,9.84 -1.43,4.92 3.74,4.92"];
 let ballSeq = 0;
 function SoccerBall({ size = 16, own, miss, className = "" }) {
   const id = useMemo(() => "sb" + ++ballSeq, []);
   const ink = own ? "#dc2626" : "#1f2937";
+  // সাদা বল, ভেতরে কালো প্যাচ; প্যাচ কিনারা ছোঁয় না আর বাইরে আলাদা দাগ, তাই ডার্ক মোডেও গোল বলই দেখায়
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true" className={"sball " + className}>
-      <defs><clipPath id={id}><circle cx="12" cy="12" r="10.4" /></clipPath></defs>
-      <circle cx="12" cy="12" r="10.4" fill="#fff" />
+      <defs><clipPath id={id}><circle cx="12" cy="12" r="10.2" /></clipPath></defs>
+      <circle cx="12" cy="12" r="11.2" fill="#fff" />
       <g clipPath={`url(#${id})`} fill={ink}>
         {BALL_RIM.map((pt, i) => <polygon key={i} points={pt} />)}
       </g>
-      <path d="M12.00 8.60L12.00 3.80 M15.23 10.95L19.80 9.47 M14.00 14.75L16.82 18.63 M10.00 14.75L7.18 18.63 M8.77 10.95L4.20 9.47" stroke={ink} strokeWidth="1.1" />
-      <polygon points="12.00,8.60 15.23,10.95 14.00,14.75 10.00,14.75 8.77,10.95" fill={ink} />
-      <circle cx="12" cy="12" r="10.4" fill="none" stroke={ink} strokeWidth="1.4" />
+      <path d="M12.00 8.10L12.00 4.60 M15.71 10.79L19.04 9.71 M14.29 15.16L16.35 17.99 M9.71 15.16L7.65 17.99 M8.29 10.79L4.96 9.71" stroke={ink} strokeWidth="1.4" />
+      <polygon points="12.00,8.10 15.71,10.79 14.29,15.16 9.71,15.16 8.29,10.79" fill={ink} />
+      <circle className="sb-ring" cx="12" cy="12" r="10.9" fill="none" strokeWidth="1.1" />
       {miss && <path d="M4 4l16 16" stroke="#dc2626" strokeWidth="2.6" strokeLinecap="round" />}
     </svg>
   );
