@@ -384,6 +384,95 @@ export async function refreshStandings(codes) {
   return out;
 }
 
+// ── মনে করিয়ে দেওয়ার নোটিফিকেশন (প্রতি ৫ মিনিটে দেখা হয়, প্রতিটা একবারই যায়) ──
+//  • খেলার দিন (দুপুর ১২টার পর): আজ/আজ রাতে প্রিয় দলের খেলা
+//  • প্রেডিকশন: খেলা শুরুর প্রায় ১ ঘণ্টা আগে, এখনো প্রেডিকশন না দিলে
+//  • দৈনিক চ্যালেঞ্জ (রাত ৮টার পর): আজ এখনো অংশ না নিলে, স্ট্রিক থাকলে সেটা মনে করিয়ে
+const BD = 6 * 3600000;
+const bdParts = (t) => { const d = new Date(Date.parse(t) + BD); return { h: d.getUTCHours(), mi: d.getUTCMinutes(), day: d.toISOString().slice(0, 10) }; };
+const bdPeriod = (h) => (h < 4 ? "রাত" : h < 6 ? "ভোর" : h < 12 ? "সকাল" : h < 15 ? "দুপুর" : h < 18 ? "বিকাল" : h < 20 ? "সন্ধ্যা" : "রাত");
+const bdTime = (t) => { const { h, mi } = bdParts(t); return `${bdPeriod(h)} ${bnN(h % 12 || 12)}:${bnN(String(mi).padStart(2, "0"))}`; };
+async function pushToUsers(items) {
+  if (!items.length || !process.env.VAPID_PRIVATE_KEY) return 0;
+  let claimed = [];
+  try { claimed = await sb("push_log?on_conflict=match_id,ev", { method: "POST", body: items.map((n) => ({ match_id: n.mid, ev: n.ev })), prefer: "resolution=ignore-duplicates,return=representation" }); } catch { return 0; }
+  const ok = new Set(claimed.map((r) => r.match_id + "|" + r.ev));
+  const todo = items.filter((n) => ok.has(n.mid + "|" + n.ev));
+  if (!todo.length) return 0;
+  const users = [...new Set(todo.map((n) => n.uid))];
+  const subs = await sb(`push_subs?select=id,user_id,endpoint,p256dh,auth,prefs&user_id=in.(${users.join(",")})`);
+  const { default: webpush } = await import("web-push");
+  webpush.setVapidDetails("https://khelakokhon.com", VAPID_PUBLIC, process.env.VAPID_PRIVATE_KEY);
+  let sent = 0; const dead = [];
+  await Promise.all(todo.flatMap((n) => subs.filter((x) => x.user_id === n.uid && (x.prefs?.[n.kind] ?? true)).map((x) =>
+    webpush.sendNotification({ endpoint: x.endpoint, keys: { p256dh: x.p256dh, auth: x.auth } }, JSON.stringify({ title: n.title, body: n.body, url: n.url, tag: n.tag }), { TTL: 3600 })
+      .then(() => { sent++; }, (e) => { if (e?.statusCode === 404 || e?.statusCode === 410) dead.push(x.id); }))));
+  if (dead.length) await sb(`push_subs?id=in.(${[...new Set(dead)].join(",")})`, { method: "DELETE", prefer: "return=minimal" }).catch(() => {});
+  return sent;
+}
+// কোন ম্যাচের খবর কারা চান: প্রিয় দল + 🔔 দল (বন্ধ করা দল বাদ), withMatch হলে ম্যাচের 🔔-ও
+async function matchAudience(ms, withMatch) {
+  const tids = [...new Set(ms.flatMap((m) => [m.home_id, m.away_id]).filter(Boolean))];
+  if (!tids.length) return new Map();
+  const fans = await sb(`user_teams?select=user_id,team_id&kind=eq.fav&team_id=in.(${tids.join(",")})`);
+  const fol = await sb(`push_follow?select=user_id,kind,target_id,enabled&or=(and(kind.eq.team,target_id.in.(${tids.join(",")})),and(kind.eq.match,target_id.in.(${ms.map((m) => m.id).join(",")})))`).catch(() => []);
+  const wants = (u, t) => fol.find((f) => f.user_id === u && f.kind === "team" && f.target_id === t)?.enabled ?? fans.some((f) => f.user_id === u && f.team_id === t);
+  const out = new Map();
+  for (const m of ms) {
+    const cand = new Set([...fans.filter((f) => f.team_id === m.home_id || f.team_id === m.away_id).map((f) => f.user_id), ...fol.filter((f) => f.kind === "team" && f.enabled && (f.target_id === m.home_id || f.target_id === m.away_id)).map((f) => f.user_id)]);
+    const who = new Set([...cand].filter((u) => wants(u, m.home_id) || wants(u, m.away_id)));
+    for (const f of fol.filter((f) => f.kind === "match" && f.target_id === m.id)) { if (f.enabled && withMatch) who.add(f.user_id); if (!f.enabled) who.delete(f.user_id); }
+    // ব্যবহারকারীর প্রিয় দল (নামের জন্য): যে দলের জন্য পাচ্ছেন
+    out.set(m.id, [...who].map((u) => ({ u, mine: wants(u, m.home_id) ? m.home_id : wants(u, m.away_id) ? m.away_id : null })));
+  }
+  return out;
+}
+export async function runReminders(force) {
+  if (!process.env.VAPID_PRIVATE_KEY) return { reminders: "no key" };
+  const subs = await sb("push_subs?select=user_id").catch(() => []);
+  if (!subs.length) return { reminders: 0 };
+  const now = Date.now(), { h: bh, day: today } = bdParts(new Date(now).toISOString());
+  const items = [];
+  const T = "name_en,short_en,name_bn";
+  const getMs = (from, to) => sb(`matches?select=id,utc_date,status,competition_code,home_id,away_id,home:teams!matches_home_fk(${T}),away:teams!matches_away_fk(${T}),competition:competitions(name_bn)&utc_date=gte.${new Date(from).toISOString()}&utc_date=lt.${new Date(to).toISOString()}&status=not.in.(POSTPONED,CANCELLED,FINISHED)`);
+  // ১) খেলার দিন: দুপুর ১২টা থেকে, এখন থেকে পরদিন সকাল ৮টা পর্যন্ত যত খেলা
+  if (bh >= 12 || force) {
+    const next8 = Date.parse(today + "T08:00:00Z") - BD + 24 * 3600000;
+    const ms = await getMs(now + 60 * 60000, next8);
+    const aud = await matchAudience(ms, false);
+    for (const m of ms) for (const { u, mine } of aud.get(m.id) || []) {
+      const myTeam = mine === m.away_id ? m.away : m.home;
+      const night = (() => { const { h } = bdParts(m.utc_date); return h >= 18 || h < 5; })();
+      items.push({ uid: u, mid: m.id, ev: "day:" + u, kind: "day", title: `${night ? "আজ রাতে" : "আজ"} ${tnm(myTeam)}-এর খেলা`, body: `${bdTime(m.utc_date)} · ${tnm(m.home)} বনাম ${tnm(m.away)}${m.competition?.name_bn ? ` · ${m.competition.name_bn}` : ""}`, url: `/match/${m.id}`, tag: `day${m.id}` });
+    }
+  }
+  // ২) প্রেডিকশন: শুরুর ৪০-৭০ মিনিট আগে, প্রেডিকশন না দিলে
+  {
+    const ms = await getMs(now + 40 * 60000, now + 70 * 60000);
+    if (ms.length) {
+      const aud = await matchAudience(ms, true);
+      const preds = await sb(`predictions?select=user_id,match_id&match_id=in.(${ms.map((m) => m.id).join(",")})`);
+      for (const m of ms) for (const { u } of aud.get(m.id) || []) {
+        if (preds.some((p) => p.user_id === u && p.match_id === m.id)) continue;
+        items.push({ uid: u, mid: m.id, ev: "pred:" + u, kind: "pred", title: "এখনো প্রেডিকশন দেননি", body: `${tnm(m.home)} বনাম ${tnm(m.away)} শুরু ১ ঘণ্টার মধ্যে। স্কোর আন্দাজ করে পয়েন্ট জিতুন`, url: `/match/${m.id}`, tag: `pred${m.id}` });
+      }
+    }
+  }
+  // ৩) দৈনিক চ্যালেঞ্জ: রাত ৮টা থেকে, আজ অংশ না নিলে
+  if (bh >= 20 || force) {
+    const users = [...new Set(subs.map((x) => x.user_id))];
+    const yest = new Date(Date.parse(today + "T00:00:00Z") - 24 * 3600000).toISOString().slice(0, 10);
+    const plays = await sb(`daily_plays?select=user_id,day,streak&day=in.(${today},${yest})&user_id=in.(${users.join(",")})`).catch(() => []);
+    for (const u of users) {
+      if (plays.some((p) => p.user_id === u && p.day === today)) continue;
+      const st = plays.find((p) => p.user_id === u && p.day === yest)?.streak || 0;
+      items.push({ uid: u, mid: 0, ev: `daily:${today}:${u}`, kind: "daily", title: "আজকের দৈনিক চ্যালেঞ্জ এখনো বাকি",
+        body: st >= 2 ? `আপনার ${bnN(st)} দিনের স্ট্রিক আজ রাতেই ভেঙে যাবে। ৫টা প্রশ্নে ধরে রাখুন` : "৫টা প্রশ্ন, ১ মিনিট। আজকের পয়েন্ট নিয়ে নিন", url: "/quiz/daily", tag: "daily" });
+    }
+  }
+  return { reminders: items.length, sent: await pushToUsers(items) };
+}
+
 export async function runLive() {
   if (!process.env.APIF_KEY) throw new Error("APIF_KEY সেট করা নেই");
   calls = 0;
@@ -911,7 +1000,10 @@ export default async function handler(req, res) {
     }
     const result = q0.mode === "leagues" ? await syncAfLeagues(q0.only ? String(q0.only).toUpperCase().split(",") : null)
       : q0.mode === "tables" ? { mode: "tables", ...(await refreshStandings(q0.only ? String(q0.only).toUpperCase().split(",") : TABLE_LEAGUES)) }
+      : q0.mode === "remind" ? { mode: "remind", ...(await runReminders(q0.force === "1")) }
       : await runLive();
+    // প্রতি ৫ মিনিটে একবার মনে করিয়ে দেওয়ার নোটিফিকেশন দেখা (প্রতি মিনিটের কাজের সাথে)
+    if (!q0.mode && new Date().getUTCMinutes() % 5 === 0) Object.assign(result, await runReminders(false).catch((e) => ({ reminders: "error: " + String(e.message || e).slice(0, 80) })));
     if (result.calls) await sb("sync_log", { method: "POST", body: { mode: q0.mode === "leagues" ? "leagues" : "live", ok: true, detail: JSON.stringify(result) }, prefer: "return=minimal" }).catch(() => {});
     return res.status(200).json({ ok: true, ...result });
   } catch (e) {

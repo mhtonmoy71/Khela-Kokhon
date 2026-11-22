@@ -6378,12 +6378,12 @@ function PushCard({ user, hasFav, toast, bn }) {
     setBusy(false);
   }
   async function pref(k) {
-    const prefs = { start: true, goal: true, end: true, ...(row.prefs || {}) };
+    const prefs = { start: true, goal: true, end: true, day: true, pred: true, daily: true, ...(row.prefs || {}) };
     prefs[k] = !prefs[k];
     setRow({ ...row, prefs });
     await sb.from("push_subs").update({ prefs }).eq("id", row.id);
   }
-  const P = { start: true, goal: true, end: true, ...(row?.prefs || {}) };
+  const P = { start: true, goal: true, end: true, day: true, pred: true, daily: true, ...(row?.prefs || {}) };
   return (
     <div className="sec">
       <div className="sec-h"><h2>{bn ? "নোটিফিকেশন" : "Notifications"}</h2></div>
@@ -6395,12 +6395,12 @@ function PushCard({ user, hasFav, toast, bn }) {
         ) : (
           <>
             <div className="push-top">
-              <div><b>{bn ? "প্রিয় দলের খেলার খবর" : "Your teams' match alerts"}</b><small className="muted">{bn ? "খেলা শুরু, প্রতিটা গোল আর খেলা শেষ, সাথে সাথে ফোনে" : "Kick-off, every goal and full time, instantly"}</small></div>
+              <div><b>{bn ? "প্রিয় দলের খেলার খবর" : "Your teams' match alerts"}</b><small className="muted">{bn ? "খেলা শুরু, প্রতিটা গোল, খেলা শেষ, আর দরকারি সময়ে মনে করিয়ে দেওয়া" : "Kick-off, goals, full time, plus timely reminders"}</small></div>
               <button className={"tgl" + (row ? " on" : "")} disabled={busy || row === undefined} onClick={row ? turnOff : turnOn} aria-pressed={!!row} aria-label={bn ? "নোটিফিকেশন" : "Notifications"}><i /></button>
             </div>
             {row && (
               <div className="push-prefs">
-                {[["start", bn ? "খেলা শুরু" : "Kick-off"], ["goal", bn ? "গোল" : "Goals"], ["end", bn ? "খেলা শেষ" : "Full time"]].map(([k, l]) => (
+                {[["start", bn ? "খেলা শুরু" : "Kick-off"], ["goal", bn ? "গোল" : "Goals"], ["end", bn ? "খেলা শেষ" : "Full time"], ["day", bn ? "আজ খেলা আছে" : "Match day"], ["pred", bn ? "প্রেডিকশন মনে করানো" : "Prediction reminder"], ["daily", bn ? "দৈনিক চ্যালেঞ্জ" : "Daily challenge"]].map(([k, l]) => (
                   <button key={k} className={"chip" + (P[k] ? " on" : "")} onClick={() => pref(k)}>{P[k] ? "✓ " : ""}{l}</button>
                 ))}
               </div>
