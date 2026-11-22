@@ -739,6 +739,16 @@ button.pm { background: none; border: 0; padding: 0; cursor: pointer; font: inhe
 .team-acts .fav-btn { margin: 0; }
 @media (min-width: 1100px) { .team-hero.row .team-acts { margin: 0 0 0 auto; } }
 .team-bell { width: 36px; height: 36px; border-radius: 50%; border: 1.5px solid var(--line); background: var(--card); flex-shrink: 0; }
+.del-acc-link { display: block; margin: 14px auto 0; background: none; border: 0; color: #dc2626; font-size: 13px; font-weight: 600; text-decoration: underline; }
+.del-acc { margin-top: 14px; padding: 16px; border: 1.5px solid color-mix(in srgb, #dc2626 45%, transparent); }
+.del-acc b { display: block; font-size: 15px; margin-bottom: 6px; }
+.del-acc p { font-size: 13px; line-height: 1.6; margin: 0 0 12px; }
+.del-acc label { display: block; font-size: 12.5px; margin-bottom: 6px; }
+.del-acc input { width: 100%; box-sizing: border-box; padding: 10px 12px; border-radius: 10px; border: 1.5px solid var(--line); background: var(--bg); color: var(--text); font: inherit; }
+.del-acc-btns { display: flex; gap: 8px; margin-top: 12px; }
+.del-acc-btns .btn { flex: 1; }
+.btn.danger { background: #dc2626; color: #fff; }
+.btn.danger:disabled { opacity: .45; }
 .fav-btn { display: inline-flex; align-items: center; gap: 7px; margin-top: 10px; height: 36px; padding: 0 16px; border-radius: 18px; border: 1.5px solid var(--line); background: var(--card); font-weight: 700; font-size: 13.5px; color: var(--text); }
 .fav-btn span { color: var(--amber); font-size: 17px; }
 .fav-btn.on { border-color: var(--amber); background: rgba(245,158,11,.12); }
@@ -4222,12 +4232,12 @@ function InfoPage({ id, user, goProfile }) {
          ["কেন রাখা হয়", "শুধু আপনার দল, প্রেডিকশন, পয়েন্ট আর লিডারবোর্ড দেখানোর জন্য। লিডারবোর্ড আর বন্ধুদের লিগে অন্যরা শুধু আপনার নাম ও ছবি দেখে, ইমেইল নয়।"],
          ["ফোনে কী জমা থাকে", "ভাষা, থিম, সাম্প্রতিক খোঁজ আর এমন কিছু পছন্দ আপনার ফোনের ব্রাউজারেই থাকে, আমাদের কাছে আসে না।"],
          ["কারও সাথে ভাগ করা হয় না", "আপনার তথ্য বিক্রি করা হয় না, বিজ্ঞাপনদাতা বা অন্য কাউকে দেওয়া হয় না। তথ্য নিরাপদে Supabase-এর সার্ভারে রাখা হয়।"],
-         ["তথ্য মুছে ফেলা", "অ্যাকাউন্ট আর সব তথ্য মুছে ফেলতে চাইলে khelakokhon@gmail.com-এ ইমেইল করুন, দ্রুত মুছে দেওয়া হবে।"]]
+         ["অ্যাকাউন্ট ও তথ্য মুছে ফেলা", "অ্যাপের ভেতর থেকেই মুছতে পারবেন: প্রোফাইল → একদম নিচে \"অ্যাকাউন্ট মুছুন\" → নিশ্চিত করতে \"মুছুন\" লিখে চাপুন। আপনার প্রোফাইল, প্রিয় দল, প্রেডিকশন, পয়েন্ট, লিগের সদস্যপদ, কুইজ ও দৈনিক চ্যালেঞ্জের রেকর্ড আর নোটিফিকেশন সাথে সাথে স্থায়ীভাবে মুছে যায়। লগিন করতে না পারলে khelakokhon@gmail.com-এ ইমেইল করুন, আমরা মুছে দেব।"]]
       : [["What we store", "If you sign in with Google or email, we keep your name, email and profile photo, plus your favourite teams, match predictions and friends' leagues. Nothing personal is collected if you use the site without signing in."],
          ["Why", "Only to show your teams, predictions, points and leaderboards. Others see just your name and photo on leaderboards, never your email."],
          ["On your device", "Language, theme, recent searches and similar preferences stay in your browser and are never sent to us."],
          ["No sharing", "Your data is never sold or given to advertisers or anyone else. It is stored securely on Supabase servers."],
-         ["Deleting your data", "To delete your account and all data, email khelakokhon@gmail.com and it will be removed promptly."]];
+         ["Deleting your account and data", "You can delete it in the app: Profile → \"Delete account\" at the bottom → type DELETE to confirm. Your profile, teams, predictions, points, league memberships, quiz and daily-challenge records and notifications are deleted permanently, right away. If you can't log in, email khelakokhon@gmail.com and we'll delete it for you."]];
     return (
       <>
         {back}
@@ -6433,6 +6443,39 @@ function BellBtn({ user, kind, id, base = false, onLogin, toast, className = "" 
   );
 }
 
+// ── অ্যাকাউন্ট মোছা (প্লে স্টোরের শর্ত): নিশ্চিত হতে "মুছুন" লিখতে হয় ──
+function DeleteAccount({ bn, toast }) {
+  const [open, setOpen] = useState(false);
+  const [txt, setTxt] = useState("");
+  const [busy, setBusy] = useState(false);
+  const word = bn ? "মুছুন" : "DELETE";
+  async function go() {
+    setBusy(true);
+    try {
+      const { data } = await sb.auth.getSession();
+      const r = await fetch("/api/account", { method: "POST", headers: { Authorization: "Bearer " + (data?.session?.access_token || "") } }).then((x) => x.json());
+      if (!r.ok) throw new Error(r.error || "x");
+      try { localStorage.clear(); } catch { /* ignore */ }
+      await signOut().catch(() => {});
+      toast(bn ? "আপনার অ্যাকাউন্ট আর সব তথ্য মুছে ফেলা হয়েছে" : "Your account and data have been deleted");
+      setTimeout(() => location.assign("/"), 1200);
+    } catch { toast(bn ? "মোছা গেল না। khelakokhon@gmail.com-এ লিখুন, আমরা মুছে দেব" : "Couldn't delete. Email khelakokhon@gmail.com and we'll do it"); setBusy(false); }
+  }
+  if (!open) return <button className="del-acc-link" onClick={() => setOpen(true)}>{bn ? "অ্যাকাউন্ট মুছুন" : "Delete account"}</button>;
+  return (
+    <div className="card del-acc">
+      <b>{bn ? "অ্যাকাউন্ট স্থায়ীভাবে মুছবেন?" : "Delete your account permanently?"}</b>
+      <p className="muted">{bn ? "আপনার প্রোফাইল, প্রিয় দল, সব প্রেডিকশন ও পয়েন্ট, বন্ধুদের লিগের সদস্যপদ, কুইজ আর দৈনিক চ্যালেঞ্জের রেকর্ড, ব্যাজ আর নোটিফিকেশন সব মুছে যাবে। এটা আর ফেরানো যাবে না।" : "Your profile, teams, predictions and points, league memberships, quiz and daily-challenge records, badges and notifications will all be deleted. This can't be undone."}</p>
+      <label className="muted">{bn ? `নিশ্চিত করতে লিখুন: ${word}` : `Type ${word} to confirm`}</label>
+      <input value={txt} onChange={(e) => setTxt(e.target.value)} placeholder={word} />
+      <div className="del-acc-btns">
+        <button className="btn ghost" onClick={() => { setOpen(false); setTxt(""); }} disabled={busy}>{bn ? "থাক" : "Cancel"}</button>
+        <button className="btn danger" onClick={go} disabled={busy || txt.trim() !== word}>{busy ? "…" : (bn ? "স্থায়ীভাবে মুছুন" : "Delete permanently")}</button>
+      </div>
+    </div>
+  );
+}
+
 function PushCard({ user, hasFav, toast, bn }) {
   const [row, setRow] = useState(undefined); // undefined = দেখা হচ্ছে, null = বন্ধ
   const [busy, setBusy] = useState(false);
@@ -6620,6 +6663,7 @@ function Profile({ user, profile, setProfile, toast, myTeams, teamsById, lang, s
       {settings}
       <div className="sec">
         <button className="btn ghost block" onClick={signOut}>{t("logout")}</button>
+        <DeleteAccount bn={bn} toast={toast} />
       </div>
     </>
   );
