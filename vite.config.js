@@ -11,7 +11,9 @@ export default defineConfig({
       manifest: {
         name: "খেলা কখন?",
         short_name: "খেলা কখন",
-        description: "ইউরোপের বড় লিগ আর চ্যাম্পিয়ন্স লিগের সূচি — বাংলাদেশ সময়ে",
+        description: "১৯টা প্রতিযোগিতার লাইভ স্কোর, সূচি, টেবিল, প্রেডিকশন আর কুইজ — বাংলাদেশ সময়ে",
+        id: "/",
+        categories: ["sports"],
         lang: "bn",
         start_url: "/",
         display: "standalone",
