@@ -46,6 +46,13 @@ if ("serviceWorker" in navigator && import.meta.env.PROD) {
   navigator.serviceWorker.addEventListener("controllerchange", onReady);
   addEventListener("load", () => {
     navigator.serviceWorker.register("/sw.js", { scope: "/" }).then((reg) => {
+      // পুরনো ধরনের service worker অপেক্ষায় বসে থাকলে চালু হতে বলা
+      const kick = (w) => w && w.postMessage({ type: "SKIP_WAITING" });
+      kick(reg.waiting);
+      reg.addEventListener("updatefound", () => {
+        const w = reg.installing;
+        w && w.addEventListener("statechange", () => { if (w.state === "installed" && navigator.serviceWorker.controller) kick(w); });
+      });
       const check = () => reg.update().catch(() => {});
       setInterval(check, 5 * 60 * 1000);
       document.addEventListener("visibilitychange", () => { if (!document.hidden) check(); });
