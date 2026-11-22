@@ -457,7 +457,7 @@ export async function runReminders(force) {
       const preds = await sb(`predictions?select=user_id,match_id&match_id=in.(${ms.map((m) => m.id).join(",")})`);
       for (const m of ms) for (const { u } of aud.get(m.id) || []) {
         if (preds.some((p) => p.user_id === u && p.match_id === m.id)) continue;
-        items.push({ uid: u, mid: m.id, ev: "pred:" + u, kind: "pred", title: "এখনো প্রেডিকশন দেননি", body: `${tnm(m.home)} বনাম ${tnm(m.away)} শুরু ১ ঘণ্টার মধ্যে। স্কোর আন্দাজ করে পয়েন্ট জিতুন`, url: `/match/${m.id}`, tag: `pred${m.id}` });
+        items.push({ uid: u, mid: m.id, ev: "pred:" + u, kind: "pred", title: "এখনো প্রেডিকশন দেননি", body: `${tnm(m.home)} বনাম ${tnm(m.away)} শুরু ১ ঘণ্টার মধ্যে। স্কোর প্রেডিক্ট করে পয়েন্ট জিতুন`, url: `/match/${m.id}`, tag: `pred${m.id}` });
       }
     }
   }
