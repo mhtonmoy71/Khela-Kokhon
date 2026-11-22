@@ -239,7 +239,7 @@ export function slim(f) {
     t: e.type, d: e.detail, p: dec(e.player?.name), pid: e.player?.id || null, a: dec(e.assist?.name), aid: e.assist?.id || null, c: e.comments || null,
   }));
   const lu = (l) => l && ({
-    f: l.formation || null, coach: dec(l.coach?.name),
+    f: l.formation || null, coach: dec(l.coach?.name), tid: l.team?.id || null,
     xi: (l.startXI || []).map(({ player: p }) => ({ id: p.id, n: dec(p.name), no: p.number, pos: p.pos, g: p.grid || null })),
     sub: (l.substitutes || []).map(({ player: p }) => ({ id: p.id, n: dec(p.name), no: p.number, pos: p.pos })),
   });
@@ -914,6 +914,30 @@ export default async function handler(req, res) {
       if (!d) return res.status(404).json({ ok: false });
       res.setHeader("Cache-Control", `public, s-maxage=${kind === "seasons" ? 2592000 : kind === "players" ? 21600 : 30}, max-age=${kind === "table" ? 20 : 3600}`);
       return res.status(200).json(d);
+    } catch (e) { return res.status(500).json({ ok: false, error: String(e.message || e).slice(0, 200) }); }
+  }
+  if (q0.tstats) {
+    // লাইনআপের জন্য দলের সব প্লেয়ারের বয়স, দেশ আর এই সিজনের গোল-অ্যাসিস্ট (API-Football /players, পাতা ধরে)
+    const t = parseInt(q0.tstats, 10), se = parseInt(q0.season, 10) || new Date().getUTCFullYear();
+    if (!(t > 0)) return res.status(400).json({ ok: false });
+    try {
+      const out = {};
+      let page = 1, total = 1;
+      do {
+        const r = await fetch(AF + `/players?team=${t}&season=${se}&page=${page}`, { headers: { "x-apisports-key": process.env.APIF_KEY } }).then((x) => x.json());
+        total = r?.paging?.total || 1;
+        for (const it of r?.response || []) {
+          const st = it.statistics || [];
+          out[it.player.id] = {
+            age: it.player.age ?? null, nat: it.player.nationality || null,
+            g: st.reduce((n, x) => n + (x.goals?.total || 0), 0), a: st.reduce((n, x) => n + (x.goals?.assists || 0), 0),
+            apps: st.reduce((n, x) => n + (x.games?.appearences || 0), 0),
+          };
+        }
+        page++;
+      } while (page <= Math.min(total, 4));
+      res.setHeader("Cache-Control", Object.keys(out).length ? "public, s-maxage=43200, max-age=3600" : "public, s-maxage=600, max-age=300");
+      return res.status(200).json(out);
     } catch (e) { return res.status(500).json({ ok: false, error: String(e.message || e).slice(0, 200) }); }
   }
   if (q0.team) {

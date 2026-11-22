@@ -505,6 +505,15 @@ img { display: block; }
 .st-split { display: flex; gap: 3px; height: 8px; margin-top: 5px; }
 .st-split i { display: block; height: 100%; border-radius: 4px; transition: width .4s; }
 .st-split i.h { background: var(--brand); } .st-split i.a { background: #64748b; }
+.lu-modes { display: flex; gap: 6px; padding: 10px 10px 2px; overflow-x: auto; scrollbar-width: none; background: rgba(0,0,0,.14); }
+.lu-modes button { flex-shrink: 0; padding: 6px 14px; border-radius: 999px; border: 0; background: rgba(255,255,255,.14); color: #fff; font-size: 12.5px; font-weight: 600; }
+.lu-modes button.on { background: #fff; color: #14532d; }
+.pitch-team .pm-r { font-style: normal; font-size: 11px; padding: 2px 6px; border-radius: 6px; }
+.pm-x { top: -5px; right: -16px; background: #fff; color: #111; font: 700 10px Inter, 'Hind Siliguri', sans-serif; padding: 1px 5px; border-radius: 6px; box-shadow: 0 1px 2px rgba(0,0,0,.25); }
+.pm-flag { right: -6px; bottom: -4px; width: 18px; height: 18px; border-radius: 50%; overflow: hidden; border: 1.5px solid #fff; background: #fff; box-shadow: 0 1px 2px rgba(0,0,0,.3); }
+.pm-flag img { width: 100%; height: 100%; object-fit: cover; border-radius: 0 !important; }
+.pm-ss { display: flex; gap: 4px; margin-top: 1px; }
+.pm-ss span { display: inline-flex; align-items: center; gap: 2px; background: rgba(255,255,255,.92); color: #111; border-radius: 999px; padding: 0 5px 0 2px; font: 700 9.5px Inter, 'Hind Siliguri', sans-serif; line-height: 15px; }
 .pitch-card { margin: 6px 0; border-radius: 16px; overflow: hidden; background: #1f7a43; }
 .pitch-team { display: flex; align-items: center; gap: 8px; padding: 9px 14px; color: #fff; font-size: 13px; background: rgba(0,0,0,.14); }
 .pitch-team b { font-weight: 700; }
@@ -3493,24 +3502,50 @@ const unEnt = (s) => (s || "").replace(/&(amp|apos|quot|#39);/g, (_, k) => ({ am
 // মাঠ আর গোলদাতার সারির জন্য ছোট নাম (বাংলায় পদবি)
 const shortName = (n, lang) => { if (lang !== "bn") return lastName(n); const b = bnPlayer(unEnt(n), lang); const w = b.split(" "); return w.length > 1 && !/^(দি|দে|ডি|ভান|আল|এল|বেন)$/.test(w[w.length - 2]) ? w[w.length - 1] : w.slice(-2).join(" "); };
 const lastName = (n0) => { const n = unEnt(n0); const p = (n || "").split(" "); return p.length > 1 && /\.$/.test(p[0]) ? p.slice(1).join(" ") : p[p.length - 1] || n; };
-function PitchMan({ p, st, side }) {
+// লাইনআপের প্লেয়ারদের বয়স, দেশ আর সিজনের গোল-অ্যাসিস্ট (দল ধরে, একবার এনে জমা)
+const tsCache = {};
+function useTeamStats(tid, season, on) {
+  const k = tid + ":" + season;
+  const [d, setD] = useState(tsCache[k] || null);
+  useEffect(() => {
+    if (!on || !tid || DEMO) return;
+    if (tsCache[k]) { setD(tsCache[k]); return; }
+    let a = true;
+    fetch(`/api/live?tstats=${tid}&season=${season}`).then((r) => (r.ok ? r.json() : {})).then((x) => { tsCache[k] = x || {}; a && setD(tsCache[k]); }).catch(() => a && setD({}));
+    return () => { a = false; };
+  }, [k, on]);
+  return d;
+}
+// দেশের নাম → পতাকার কোড (flagcdn)
+const NAT_ISO = { Spain: "es", France: "fr", Germany: "de", Italy: "it", England: "gb-eng", Scotland: "gb-sct", Wales: "gb-wls", "Northern Ireland": "gb-nir", Ireland: "ie", Portugal: "pt", Brazil: "br", Argentina: "ar", Netherlands: "nl", Belgium: "be", Croatia: "hr", Uruguay: "uy", Colombia: "co", Norway: "no", Denmark: "dk", Sweden: "se", Switzerland: "ch", Austria: "at", Poland: "pl", Serbia: "rs", Turkey: "tr", "Türkiye": "tr", Ukraine: "ua", Russia: "ru", "Czech Republic": "cz", Czechia: "cz", Slovakia: "sk", Slovenia: "si", Hungary: "hu", Romania: "ro", Greece: "gr", Bulgaria: "bg", Albania: "al", Kosovo: "xk", Georgia: "ge", Armenia: "am", Finland: "fi", Iceland: "is", Morocco: "ma", Algeria: "dz", Tunisia: "tn", Egypt: "eg", Senegal: "sn", Nigeria: "ng", Ghana: "gh", "Ivory Coast": "ci", "Côte d'Ivoire": "ci", Cameroon: "cm", Mali: "ml", "Guinea": "gn", "Burkina Faso": "bf", "DR Congo": "cd", "Congo DR": "cd", Gabon: "ga", "South Africa": "za", Japan: "jp", "South Korea": "kr", "Korea Republic": "kr", Australia: "au", "Saudi Arabia": "sa", Iran: "ir", Qatar: "qa", "United Arab Emirates": "ae", USA: "us", "United States": "us", Canada: "ca", Mexico: "mx", Chile: "cl", Peru: "pe", Ecuador: "ec", Paraguay: "py", Venezuela: "ve", Bolivia: "bo", "Costa Rica": "cr", Jamaica: "jm", Honduras: "hn", Panama: "pa", "Bosnia and Herzegovina": "ba", "North Macedonia": "mk", Montenegro: "me", Bangladesh: "bd", India: "in", Nepal: "np", Bhutan: "bt", "Sri Lanka": "lk", Pakistan: "pk", Uzbekistan: "uz", China: "cn", Israel: "il", "Cape Verde": "cv", "Cape Verde Islands": "cv", Zambia: "zm", Zimbabwe: "zw", Kenya: "ke", Angola: "ao", Mozambique: "mz", "New Zealand": "nz", Haiti: "ht", "Guinea-Bissau": "gw", "Equatorial Guinea": "gq", Benin: "bj", Togo: "tg", Luxembourg: "lu", Cyprus: "cy", Malta: "mt", Lithuania: "lt", Latvia: "lv", Estonia: "ee", Belarus: "by", Moldova: "md", Kazakhstan: "kz", Iraq: "iq", Jordan: "jo", Syria: "sy", Lebanon: "lb", Oman: "om", Bahrain: "bh", Kuwait: "kw", Libya: "ly", Sudan: "sd", Ethiopia: "et", Uganda: "ug", Tanzania: "tz", Rwanda: "rw", Comoros: "km", Madagascar: "mg", Mauritania: "mr", Gambia: "gm", "Sierra Leone": "sl", Liberia: "lr", Niger: "ne", Chad: "td", Burundi: "bi", Curacao: "cw", "Curaçao": "cw", Suriname: "sr", Guyana: "gy", "Trinidad and Tobago": "tt", "El Salvador": "sv", Guatemala: "gt", Nicaragua: "ni", Cuba: "cu", "Dominican Republic": "do", "Faroe Islands": "fo", Andorra: "ad", "San Marino": "sm", Liechtenstein: "li", Gibraltar: "gi", Azerbaijan: "az", Tajikistan: "tj", Kyrgyzstan: "kg", Turkmenistan: "tm", Afghanistan: "af", Thailand: "th", Vietnam: "vn", Indonesia: "id", Malaysia: "my", Philippines: "ph", Singapore: "sg", Myanmar: "mm" };
+const flagUrl = (nat) => (NAT_ISO[nat] ? `https://flagcdn.com/w40/${NAT_ISO[nat]}.png` : null);
+
+function PitchMan({ p, st, side, mode = "r", ts }) {
   const { lang } = useT();
   const [noPic, setNoPic] = useState(false);
   const nav = useNav();
   return (
     <button className={"pm pm-" + side} onClick={() => p.id && nav.openPlayer(10000000 + p.id)}>
       <span className="pm-shirt">{p.id && !noPic ? <img src={`https://media.api-sports.io/football/players/${p.id}.png`} alt="" loading="lazy" onError={() => setNoPic(true)} /> : (p.no ?? "")}
-        {st?.r ? <em className={"pm-r " + rateCls(st.r)}>{rateTxt(st.r, lang)}</em> : null}
+        {mode === "r" && st?.r ? <em className={"pm-r " + rateCls(st.r)}>{rateTxt(st.r, lang)}</em> : null}
+        {mode === "age" && ts?.age != null ? <em className="pm-x">{num(ts.age, lang)}</em> : null}
+        {mode === "nat" && flagUrl(ts?.nat) ? <em className="pm-flag"><img src={flagUrl(ts.nat)} alt={ts.nat} loading="lazy" /></em> : null}
         {st?.cap ? <em className="pm-c">C</em> : null}
         {st?.g ? <em className="pm-g"><BallMini n={st.g} /></em> : null}
         {st?.as ? <em className="pm-as"><BootMini n={st.as} /></em> : null}
         {st?.rc ? <em className="pm-card red" /> : st?.yc ? <em className="pm-card" /> : null}
       </span>
+      {mode === "s" && ts ? (
+        <span className="pm-ss">
+          <span><SoccerBall size={11} />{num(ts.g || 0, lang)}</span>
+          <span><BootIcon size={11} />{num(ts.a || 0, lang)}</span>
+        </span>
+      ) : null}
       <span className="pm-n">{shortName(p.n, lang)}</span>
     </button>
   );
 }
-function TeamHalf({ T, side, P }) {
+function TeamHalf({ T, side, P, mode, TS }) {
   const rows = {};
   for (const p of T.xi) { const [r, c] = (p.g || "").split(":").map(Number); if (!r || !c) return null; (rows[r] ||= []).push({ ...p, c }); }
   const keys = Object.keys(rows).map(Number).sort((x, y) => x - y);
@@ -3524,7 +3559,7 @@ function TeamHalf({ T, side, P }) {
     return list.map((p, j) => {
       const x = ((j + 0.5) / list.length) * 100;
       // API-Football-এ কলাম ১ = দলের বাঁ দিক; ঘরের দল ওপরের দিকে খেলে, তাই বাঁ দিক পর্দার বাঁয়ে, অতিথির উল্টো
-      return <div key={p.id || p.n} className="pm-wrap" style={{ left: `${side === "h" ? x : 100 - x}%`, top: `${y}%`, width: `${w}%` }}><PitchMan p={p} st={P?.[p.id]} side={side} /></div>;
+      return <div key={p.id || p.n} className="pm-wrap" style={{ left: `${side === "h" ? x : 100 - x}%`, top: `${y}%`, width: `${w}%` }}><PitchMan p={p} st={P?.[p.id]} side={side} mode={mode} ts={TS?.[p.id]} /></div>;
     });
   });
 }
@@ -3532,12 +3567,19 @@ function MatchLineups({ L, m, lang }) {
   const bn = lang === "bn";
   const nav = useNav();
   const { h, a } = L.lineups || {};
+  const [mode, setMode] = useState("r");
+  const tsH = useTeamStats(h?.tid, m.season, mode !== "r");
+  const tsA = useTeamStats(a?.tid, m.season, mode !== "r");
   if (!h?.xi?.length || !a?.xi?.length) return <div className="mc-empty muted">{bn ? "লাইনআপ সাধারণত খেলা শুরুর প্রায় এক ঘণ্টা আগে আসে" : "Lineups usually arrive about an hour before kickoff"}</div>;
   const P = L.players || {};
   const grid = h.xi.every((p) => p.g) && a.xi.every((p) => p.g);
   const best = Object.entries(P).filter(([, s]) => s.r).sort((x, y) => y[1].r - x[1].r)[0];
   const allP = [...h.xi, ...h.sub, ...a.xi, ...a.sub];
   const bestP = best && AF_DONE.includes(L.status) ? allP.find((p) => String(p.id) === best[0]) : null;
+  const hasTid = !!(h.tid && a.tid);
+  const avg = (T) => { const r = T.xi.map((p) => P[p.id]?.r).filter(Boolean); return r.length >= 8 ? r.reduce((x, y) => x + y, 0) / r.length : null; };
+  const avgH = avg(h), avgA = avg(a);
+  const modes = [["r", bn ? "রেটিং" : "Rating"], ["s", bn ? "সিজন" : "Season"], ["age", bn ? "বয়স" : "Age"], ["nat", bn ? "দেশ" : "Country"]];
   const subList = (T, side) => (
     <div className="lu-subs">
       <div className="lu-h"><Crest team={side === "h" ? m.home : m.away} size={18} /><b>{teamShort(side === "h" ? m.home : m.away, lang)}</b>{T.coach && <small className="muted">{bn ? "কোচ" : "Coach"}: {T.coach}</small>}</div>
@@ -3558,13 +3600,14 @@ function MatchLineups({ L, m, lang }) {
       )}
       {grid ? (
         <div className="pitch-card">
-          <div className="pitch-team"><Crest team={m.away} size={20} /><b>{teamShort(m.away, lang)}</b><span>{num(a.f || "", lang)}</span></div>
+          {hasTid && <div className="lu-modes">{modes.map(([k, l]) => <button key={k} className={mode === k ? "on" : ""} onClick={() => setMode(k)}>{l}</button>)}</div>}
+          <div className="pitch-team">{avgA ? <em className={"pm-r " + rateCls(avgA)}>{rateTxt(avgA, lang)}</em> : null}<Crest team={m.away} size={20} /><b>{teamShort(m.away, lang)}</b><span>{num(a.f || "", lang)}</span></div>
           <div className="pitch">
             <div className="pitch-lines" aria-hidden="true"><i className="half" /><i className="circle" /><i className="spot" /><i className="pbox pb-t" /><i className="pbox pb-b" /><i className="gbox gb-t" /><i className="gbox gb-b" /></div>
-            <TeamHalf T={a} side="a" P={P} />
-            <TeamHalf T={h} side="h" P={P} />
+            <TeamHalf T={a} side="a" P={P} mode={mode} TS={tsA} />
+            <TeamHalf T={h} side="h" P={P} mode={mode} TS={tsH} />
           </div>
-          <div className="pitch-team"><Crest team={m.home} size={20} /><b>{teamShort(m.home, lang)}</b><span>{num(h.f || "", lang)}</span></div>
+          <div className="pitch-team">{avgH ? <em className={"pm-r " + rateCls(avgH)}>{rateTxt(avgH, lang)}</em> : null}<Crest team={m.home} size={20} /><b>{teamShort(m.home, lang)}</b><span>{num(h.f || "", lang)}</span></div>
         </div>
       ) : (
         <div className="lu-cols">{[["h", h], ["a", a]].map(([sd, T]) => (
