@@ -1017,6 +1017,11 @@ export default async function handler(req, res) {
   const auth = req.headers?.authorization || "";
   if (secret && auth !== `Bearer ${secret}` && (req.query || {}).secret !== secret) return res.status(401).json({ ok: false, error: "unauthorized" });
   try {
+    if (q0.mode === "whosubs") {
+      // কোন অ্যাকাউন্টগুলো নোটিফিকেশন চালু করেছে (শুধু CRON_SECRET দিয়ে; অ্যাডমিন ঠিক করার জন্য)
+      const subs = await sb("push_subs?select=user_id,created_at");
+      return res.status(200).json({ ok: true, users: [...new Set(subs.map((x) => x.user_id))] });
+    }
     if (q0.mode === "pushtest") {
       // পরীক্ষা: নোটিফিকেশন চালু করা সবার ফোনে একটা বার্তা (শুধু CRON_SECRET দিয়ে)
       if (!process.env.VAPID_PRIVATE_KEY) return res.status(200).json({ ok: false, error: "VAPID_PRIVATE_KEY নেই" });
