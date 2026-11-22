@@ -44,6 +44,8 @@ if ("serviceWorker" in navigator && import.meta.env.PROD) {
   document.addEventListener("visibilitychange", () => { if (document.hidden) reloadNow(); });
 
   navigator.serviceWorker.addEventListener("controllerchange", onReady);
+  // service worker জানতে চায় এই পাতা নতুন কোডে কিনা (পুরনো কোডের পাতা উত্তর দেয় না, তাই সেগুলো রিলোড হয়)
+  navigator.serviceWorker.addEventListener("message", (e) => { if (e.data?.type === "KK_PING") e.source?.postMessage({ type: "KK_PONG" }); });
   addEventListener("load", () => {
     navigator.serviceWorker.register("/sw.js", { scope: "/" }).then((reg) => {
       // পুরনো ধরনের service worker অপেক্ষায় বসে থাকলে চালু হতে বলা

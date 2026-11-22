@@ -15,3 +15,18 @@ self.addEventListener("notificationclick", (e) => {
     return self.clients.openWindow(url);
   }));
 });
+
+// ── পুরনো সংস্করণে আটকে থাকা পাতা একবার নতুন করে খোলা ──
+// নতুন সংস্করণের পাতা "KK_PING"-এর উত্তর দেয় (main.jsx); উত্তর না দেওয়া পাতা মানে পুরনো কোড, সেগুলো রিলোড
+const kkAlive = new Set();
+self.addEventListener("message", (ev) => { if (ev.data && ev.data.type === "KK_PONG" && ev.source) kkAlive.add(ev.source.id); });
+self.addEventListener("activate", (e) => {
+  e.waitUntil((async () => {
+    await self.clients.claim();
+    const wins = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
+    if (!wins.length) return;
+    wins.forEach((c) => c.postMessage({ type: "KK_PING" }));
+    await new Promise((r) => setTimeout(r, 4000));
+    await Promise.all(wins.filter((c) => !kkAlive.has(c.id) && c.url.startsWith(self.location.origin)).map((c) => c.navigate(c.url).catch(() => {})));
+  })());
+});
