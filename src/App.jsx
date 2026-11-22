@@ -602,7 +602,7 @@ button.pm { background: none; border: 0; padding: 0; cursor: pointer; font: inhe
 .lgt-row.m-short { grid-template-columns: 24px minmax(0, 1fr) 28px 36px 32px; }
 .lgt-row.m-full { grid-template-columns: 22px minmax(0, 1fr) 24px 22px 22px 22px 46px 32px 30px; font-size: 12.5px; }
 .lgt-row.m-form { grid-template-columns: 24px minmax(0, 1fr) 26px 118px 30px; }
-.lgt-h { color: var(--muted); font-size: 11.5px; font-weight: 600; padding-top: 10px; padding-bottom: 6px; }
+.lgt-h { color: var(--muted); font-size: 10.5px; font-weight: 600; padding-top: 10px; padding-bottom: 6px; }
 .lgt-row .tm { display: flex; align-items: center; gap: 7px; min-width: 0; text-align: left; }
 .lgt-row .tm b { font-weight: 600; overflow: hidden; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; line-height: 1.2; }
 .lgt-h span:nth-child(2) { text-align: left; }
@@ -650,7 +650,8 @@ button.pm { background: none; border: 0; padding: 0; cursor: pointer; font: inhe
 .tbl { display: grid; grid-template-columns: 26px 1fr 26px 26px 26px 26px 34px 30px; align-items: center; gap: 2px; padding: 9px 10px 9px 8px; width: 100%; text-align: center;
   font-size: 13px; border-bottom: 1px solid var(--line); border-left: 3px solid transparent; }
 .tbl:last-child { border-bottom: 0; }
-.tbl-h { font-size: 11.5px; color: var(--muted); font-weight: 600; padding-top: 10px; padding-bottom: 8px; }
+.tbl-h { font-size: 10.5px; color: var(--muted); font-weight: 600; padding-top: 10px; padding-bottom: 8px; }
+.tbl-h span, .lgt-h span, .mt-h span { white-space: nowrap; overflow: visible; }
 .tbl .tm { display: flex; align-items: center; gap: 7px; text-align: left; min-width: 0; }
 .tbl .tm b { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .tbl .pos { color: var(--muted); font-weight: 600; }
@@ -3801,7 +3802,7 @@ function MatchTable({ m, lang }) {
   return (
     <div className="card">
       <div className="tbl tbl-h">
-        <span>#</span><span>{bn ? "দল" : "Team"}</span><span>{bn ? "খে" : "P"}</span><span>{bn ? "জ" : "W"}</span><span>{bn ? "ড্র" : "D"}</span><span>{bn ? "হা" : "L"}</span><span>+/-</span><span>{bn ? "প" : "Pts"}</span>
+        <span>#</span><span>{bn ? "দল" : "Team"}</span><span>{bn ? "ম্যাচ" : "P"}</span><span>{bn ? "জয়" : "W"}</span><span>{bn ? "ড্র" : "D"}</span><span>{bn ? "হার" : "L"}</span><span>+/-</span><span>{bn ? "পয়েন্ট" : "Pts"}</span>
       </div>
       {table.map((r) => (
         <button key={r.team_id} className={"tbl " + zone(code, r.position, table.length) + (mine(r.team_id) ? " tbl-me" : "")} onClick={() => nav.openTeam(r.team_id)}>
@@ -4556,7 +4557,7 @@ function SideLeague({ comps, code, setCode }) {
         </label>
         {table === null ? <div className="spin" /> : !table.length ? <div className="side-empty muted">{bn ? "টেবিল এখনো আসেনি" : "No table yet"}</div> : (
           <div className="mt">
-            <div className="mt-row mt-h muted"><span>#</span><span>{bn ? "দল" : "Team"}</span><span>{bn ? "খে" : "P"}</span><span>+/-</span><span>{bn ? "প" : "Pts"}</span></div>
+            <div className="mt-row mt-h muted"><span>#</span><span>{bn ? "দল" : "Team"}</span><span>{bn ? "ম্যাচ" : "P"}</span><span>+/-</span><span>{bn ? "পয়েন্ট" : "Pts"}</span></div>
             {table.slice(0, cl ? 8 : 6).map((r) => (
               <button key={r.team_id} className="mt-row" onClick={() => nav.openTeam(r.team_id)}>
                 <span className="muted">{num(r.position, lang)}</span>
@@ -7681,7 +7682,7 @@ function AskTable({ t, lang }) {
   let prev = 0;
   return (
     <div className="card ask-tbl" style={{ marginTop: 8 }}>
-      <div className="tbl tbl-h ask"><span>#</span><span>{bn ? "দল" : "Team"}</span><span>{bn ? "খে" : "P"}</span><span>+/-</span><span>{bn ? "প" : "Pts"}</span></div>
+      <div className="tbl tbl-h ask"><span>#</span><span>{bn ? "দল" : "Team"}</span><span>{bn ? "ম্যাচ" : "P"}</span><span>+/-</span><span>{bn ? "পয়েন্ট" : "Pts"}</span></div>
       {t.rows.map((r) => {
         const gapRow = prev > 0 && r.position > prev + 1; prev = r.position;
         return (
@@ -7913,10 +7914,10 @@ function LgTable({ code, teamsById, lang, fallback, hl }) {
         <div key={gi} className="card lgt" style={{ marginBottom: 10 }}>
           {d.groups.length > 1 && g[0]?.group && <div className="lgt-group">{bn ? g[0].group.replace(/^Group\s*/i, "গ্রুপ ") : g[0].group}</div>}
           <div className={"lgt-row lgt-h m-" + mode}>
-            <span>#</span><span>{bn ? "দল" : "Team"}</span><span>{bn ? "খে" : "P"}</span>
-            {mode === "full" && <><span>{bn ? "জ" : "W"}</span><span>{bn ? "ড্র" : "D"}</span><span>{bn ? "হা" : "L"}</span><span>{bn ? "গোল" : "Goals"}</span></>}
+            <span>#</span><span>{bn ? "দল" : "Team"}</span><span>{bn ? "ম্যাচ" : "P"}</span>
+            {mode === "full" && <><span>{bn ? "জয়" : "W"}</span><span>{bn ? "ড্র" : "D"}</span><span>{bn ? "হার" : "L"}</span><span>{bn ? "গোল" : "Goals"}</span></>}
             {mode === "form" ? <span className="lgt-form-h">{bn ? "শেষ ৫ ম্যাচ" : "Last 5"}</span> : <span>+/-</span>}
-            <span>{bn ? "প" : "Pts"}</span>
+            <span>{bn ? "পয়েন্ট" : "Pts"}</span>
           </div>
           {rowsOf(g).map((r) => (
             <div key={r.af} className={"lgt-row m-" + mode + " " + (venue === "all" ? zoneOf(r.desc) || "" : "") + (hl && (r.id === hl || findTeam(teamsById, r.name)?.id === hl) ? " me" : "")}>
@@ -8072,7 +8073,7 @@ function LeagueClassic({ code, comps, preds, onOpen, onlyTable }) {
     <>
       <div className="card">
         <div className="tbl tbl-h">
-          <span>#</span><span>{bn ? "দল" : "Team"}</span><span>{bn ? "খে" : "P"}</span><span>{bn ? "জ" : "W"}</span><span>{bn ? "ড্র" : "D"}</span><span>{bn ? "হা" : "L"}</span><span>+/-</span><span>{bn ? "প" : "Pts"}</span>
+          <span>#</span><span>{bn ? "দল" : "Team"}</span><span>{bn ? "ম্যাচ" : "P"}</span><span>{bn ? "জয়" : "W"}</span><span>{bn ? "ড্র" : "D"}</span><span>{bn ? "হার" : "L"}</span><span>+/-</span><span>{bn ? "পয়েন্ট" : "Pts"}</span>
         </div>
         {table.map((r) => (
           <button key={r.team_id} className={"tbl " + zone(code, r.position, table.length)} onClick={() => nav.openTeam(r.team_id)}>
