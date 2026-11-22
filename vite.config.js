@@ -7,6 +7,7 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: "autoUpdate",
+      injectRegister: false, // রেজিস্ট্রেশন main.jsx-এ: নিজে থেকে হালনাগাদ
       includeAssets: ["icon-192x192.png", "icon-512x512.png"],
       manifest: {
         name: "খেলা কখন?",
@@ -45,4 +46,6 @@ export default defineConfig({
     }),
   ],
   build: { outDir: "dist", sourcemap: false },
+  // কোন সংস্করণ চলছে (হালনাগাদ যাচাইয়ের জন্য)
+  define: { __BUILD__: JSON.stringify(new Date().toISOString()) },
 });
