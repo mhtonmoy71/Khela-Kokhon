@@ -43,9 +43,45 @@ function when(iso) {
   return { day, time };
 }
 
+// লিগ বা দলের পাতা শেয়ার করলে: বড় লোগো আর নাম
+const EMBLEM_FIX = { CL: "/leagues/CL.png", PL: "/leagues/PL.png", PD: "/leagues/PD.png", BL1: "/leagues/BL1.png", SA: "/leagues/SA.png", FL1: "/leagues/FL1.png", BPL: "/leagues/BPL.svg", BFC: "/leagues/BFC.svg" };
+async function sbGet(path) {
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const r = await fetch(`${process.env.SUPABASE_URL.replace(/\/$/, "")}/rest/v1/${path}`, { headers: { apikey: key, Authorization: `Bearer ${key}` } });
+  return r.ok ? r.json() : [];
+}
+async function entityCard(res, { name, img, sub }) {
+  const [f, pic, logo] = await Promise.all([fonts(), dataUri(img), dataUri(SITE + "/icon-192x192.png")]);
+  const el = h("div", { style: { width: 1200, height: 630, display: "flex", flexDirection: "column", background: "linear-gradient(135deg, #0a3d2f 0%, #064e3b 55%, #06201a 100%)", fontFamily: "Inter", padding: "44px 60px" } },
+    h("div", { style: { display: "flex", alignItems: "center" } },
+      logo ? h("img", { src: logo, width: 64, height: 64, style: { borderRadius: 32 } }) : null,
+      h("div", { style: { marginLeft: 16, fontSize: 34, fontWeight: 800, color: "#fff" } }, "Khela Kokhon")),
+    h("div", { style: { flex: 1, display: "flex", alignItems: "center", justifyContent: "center" } },
+      h("div", { style: { width: 250, height: 250, borderRadius: 125, background: "#fff", display: "flex", alignItems: "center", justifyContent: "center" } },
+        pic ? h("img", { src: pic, width: 170, height: 170, style: { objectFit: "contain" } }) : h("div", { style: { fontSize: 70, fontWeight: 800, color: "#064e3b" } }, name.slice(0, 3).toUpperCase())),
+      h("div", { style: { marginLeft: 56, display: "flex", flexDirection: "column", maxWidth: 640 } },
+        h("div", { style: { fontSize: 68, fontWeight: 800, color: "#fff", lineHeight: 1.05 } }, name),
+        h("div", { style: { marginTop: 18, fontSize: 32, fontWeight: 700, color: "#a7f3d0" } }, sub))),
+    h("div", { style: { display: "flex", justifyContent: "center", fontSize: 28, fontWeight: 700, color: "rgba(255,255,255,.75)" } }, "khelakokhon.com"));
+  const out = new ImageResponse(el, { width: 1200, height: 630, fonts: f });
+  res.setHeader("Content-Type", "image/png");
+  res.setHeader("Cache-Control", "public, s-maxage=86400, max-age=3600");
+  return res.status(200).send(Buffer.from(await out.arrayBuffer()));
+}
+
 export default async function handler(req, res) {
-  const id = parseInt((req.query || {}).match, 10);
+  const q = req.query || {};
+  const id = parseInt(q.match, 10);
   try {
+    if (q.league && /^[A-Za-z0-9]{2,6}$/.test(q.league)) {
+      const code = q.league.toUpperCase();
+      const [c] = await sbGet(`competitions?select=code,name_en,emblem&code=eq.${code}`);
+      if (c) return await entityCard(res, { name: c.name_en, img: EMBLEM_FIX[code] ? SITE + EMBLEM_FIX[code] : c.emblem, sub: "Live scores · Table · Fixtures" });
+    }
+    if (/^\d+$/.test(q.team || "")) {
+      const [t] = await sbGet(`teams?select=id,name_en,short_en,crest&id=eq.${q.team}`);
+      if (t) return await entityCard(res, { name: t.short_en || t.name_en, img: t.crest, sub: "Next match · Results · Squad" });
+    }
     const m = id > 0 ? await getMatch(id) : null;
     const [f, hc, ac, logo] = await Promise.all([fonts(), dataUri(m?.home?.crest), dataUri(m?.away?.crest), dataUri(SITE + "/icon-192x192.png")]);
     const played = m && ["IN_PLAY", "PAUSED", "FINISHED"].includes(m.status) && m.home_score != null;

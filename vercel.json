@@ -19,8 +19,20 @@
   ],
   "rewrites": [
     {
+      "source": "/sitemap.xml",
+      "destination": "/api/page?sitemap=1"
+    },
+    {
       "source": "/match/:id",
       "destination": "/api/page?m=:id"
+    },
+    {
+      "source": "/league/:code",
+      "destination": "/api/page?l=:code"
+    },
+    {
+      "source": "/team/:id",
+      "destination": "/api/page?t=:id"
     },
     {
       "source": "/((?!api/|\\.well-known/).*)",
