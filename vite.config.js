@@ -47,7 +47,11 @@ export default defineConfig({
       },
     }),
   ],
-  build: { outDir: "dist", sourcemap: false },
+  build: {
+    outDir: "dist", sourcemap: false,
+    // React আর Supabase আলাদা ফাইলে: এগুলো কালেভদ্রে বদলায়, তাই প্রতিবার আপডেটে ফোনে আবার নামাতে হয় না
+    rollupOptions: { output: { manualChunks: (id) => (id.includes("node_modules/react") || id.includes("node_modules/scheduler") ? "react" : id.includes("node_modules/@supabase") ? "supabase" : undefined) } },
+  },
   // কোন সংস্করণ চলছে (হালনাগাদ যাচাইয়ের জন্য)
   define: { __BUILD__: JSON.stringify(new Date().toISOString()) },
 });
