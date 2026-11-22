@@ -430,11 +430,45 @@ async function matchAudience(ms, withMatch) {
   }
   return out;
 }
+// ── সাইট চালানোর সতর্কবার্তা (শুধু অ্যাডমিনের ফোনে) ──
+// অ্যাডমিন: Vercel-এ ADMIN_UIDS (কমা দিয়ে) না থাকলে প্রতিষ্ঠাতার অ্যাকাউন্ট
+const ADMIN_UIDS = (process.env.ADMIN_UIDS || "b9593729-5ea4-44f4-9083-7cf4d19721ee").split(",").map((x) => x.trim()).filter(Boolean);
+export async function adminAlert(key, title, body, url = "/") {
+  return pushToUsers(ADMIN_UIDS.map((u) => ({ uid: u, mid: 0, ev: `alert:${key}:${u}`, kind: "alert", title, body, url, tag: "alert-" + key.split(":")[0] }))).catch(() => 0);
+}
+// API-Football-এর সাবস্ক্রিপশন: মেয়াদ শেষের ৭ দিন আগে থেকে প্রতিদিন, বন্ধ হলে সাথে সাথে, দিনের কল ৯০% পেরোলে
+async function checkApiFootball() {
+  const r = await fetch(AF + "/status", { headers: { "x-apisports-key": process.env.APIF_KEY } }).then((x) => x.json()).catch(() => null);
+  const st = r?.response; if (!st) return null;
+  const today = new Date(Date.now() + BD).toISOString().slice(0, 10);
+  const end = st.subscription?.end ? Date.parse(st.subscription.end) : null;
+  const days = end ? Math.ceil((end - Date.now()) / 86400000) : null;
+  const out = { plan: st.subscription?.plan, active: st.subscription?.active, days, used: st.requests?.current, limit: st.requests?.limit_day };
+  if (st.subscription && st.subscription.active === false) await adminAlert(`af-off:${today}`, "API-Football বন্ধ হয়ে গেছে", "সাবস্ক্রিপশন সক্রিয় নেই। লাইভ মিনিট, লাইনআপ আর গোলের নোটিফিকেশন থেমে আছে। dashboard.api-football.com থেকে নবায়ন করুন।");
+  else if (days != null && days <= 7) await adminAlert(`af-exp:${today}`, `API-Football-এর মেয়াদ শেষ ${bnN(Math.max(days, 0))} দিনে`, `নিজে থেকে নবায়ন হয় না। মেয়াদ শেষ হলে লাইভ মিনিট, লাইনআপ আর গোলের নোটিফিকেশন থেমে যাবে। dashboard.api-football.com থেকে নবায়ন করুন।`);
+  if (out.used && out.limit && out.used / out.limit > 0.9) await adminAlert(`af-quota:${today}`, "API-Football-এর আজকের কল প্রায় শেষ", `${bnN(out.used)} / ${bnN(out.limit)} কল ব্যবহার হয়েছে। শেষ হলে আজকের বাকি সময় লাইভ তথ্য আসবে না।`);
+  return out;
+}
+// লাইভ আপডেট থেমে আছে কিনা: খেলা চলছে অথচ ৬ মিনিটের বেশি কোনো ম্যাচের বিস্তারিত হালনাগাদ হয়নি
+export async function checkLiveStale() {
+  const now = Date.now();
+  const live = await sb(`matches?select=id&status=in.(IN_PLAY,PAUSED)&utc_date=gte.${new Date(now - 3 * 3600000).toISOString()}&limit=1`).catch(() => []);
+  if (!live.length) return { stale: false };
+  const [last] = await sb("match_live?select=updated_at&order=updated_at.desc&limit=1").catch(() => []);
+  const age = last?.updated_at ? (now - Date.parse(last.updated_at)) / 60000 : 999;
+  if (age > 6) {
+    const hour = new Date(now + BD).toISOString().slice(0, 13);
+    await adminAlert(`stale:${hour}`, "লাইভ আপডেট থেমে আছে", `খেলা চলছে, কিন্তু ${bnN(Math.round(age))} মিনিট ধরে লাইভ স্কোর হালনাগাদ হয়নি। Vercel-এর লগ বা API-Football দেখুন।`);
+  }
+  return { stale: age > 6, age: Math.round(age) };
+}
+
 export async function runReminders(force) {
   if (!process.env.VAPID_PRIVATE_KEY) return { reminders: "no key" };
   const subs = await sb("push_subs?select=user_id").catch(() => []);
   if (!subs.length) return { reminders: 0 };
   const now = Date.now(), { h: bh, day: today } = bdParts(new Date(now).toISOString());
+  if (bh === 10 || force) await checkApiFootball().catch(() => null);
   const items = [];
   const T = "name_en,short_en,name_bn";
   const getMs = (from, to) => sb(`matches?select=id,utc_date,status,competition_code,home_id,away_id,home:teams!matches_home_fk(${T}),away:teams!matches_away_fk(${T}),competition:competitions(name_bn)&utc_date=gte.${new Date(from).toISOString()}&utc_date=lt.${new Date(to).toISOString()}&status=not.in.(POSTPONED,CANCELLED,FINISHED)`);
@@ -1017,6 +1051,9 @@ export default async function handler(req, res) {
   const auth = req.headers?.authorization || "";
   if (secret && auth !== `Bearer ${secret}` && (req.query || {}).secret !== secret) return res.status(401).json({ ok: false, error: "unauthorized" });
   try {
+    if (q0.mode === "health") {
+      return res.status(200).json({ ok: true, apiFootball: await checkApiFootball().catch((e) => String(e)), live: await checkLiveStale().catch((e) => String(e)) });
+    }
     if (q0.mode === "whosubs") {
       // কোন অ্যাকাউন্টগুলো নোটিফিকেশন চালু করেছে (শুধু CRON_SECRET দিয়ে; অ্যাডমিন ঠিক করার জন্য)
       const subs = await sb("push_subs?select=user_id,created_at");
@@ -1042,6 +1079,8 @@ export default async function handler(req, res) {
     return res.status(200).json({ ok: true, ...result });
   } catch (e) {
     await sb("sync_log", { method: "POST", body: { mode: "live", ok: false, detail: String(e.message || e) }, prefer: "return=minimal" }).catch(() => {});
+    // একই ঘণ্টায় একবার: অ্যাডমিনের ফোনে জানানো
+    if (!q0.mode) await adminAlert(`live-error:${new Date(Date.now() + BD).toISOString().slice(0, 13)}`, "লাইভ আপডেটে ভুল হচ্ছে", String(e.message || e).slice(0, 140)).catch(() => {});
     return res.status(500).json({ ok: false, error: String(e.message || e) });
   }
 }

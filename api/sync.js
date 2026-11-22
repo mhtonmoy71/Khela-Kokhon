@@ -340,6 +340,8 @@ export default async function handler(req, res) {
   const mode = ["quick", "tables", "scorers"].includes(q.mode) ? q.mode : "full";
   try {
     const result = await runSync(mode);
+    // লাইভ আপডেট থেমে আছে কিনা আলাদা পথ থেকে দেখা (লাইভ কাজটাই বন্ধ হলে সে নিজে জানাতে পারে না)
+    if (mode === "quick") { try { const { checkLiveStale } = await import("./live.js"); result.live = await checkLiveStale(); } catch { /* ঐচ্ছিক */ } }
     await sb("sync_log", { body: { mode, ok: true, detail: JSON.stringify(result) }, prefer: "return=minimal" }).catch(() => {});
     return res.status(200).json({ ok: true, ...result });
   } catch (e) {
