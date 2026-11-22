@@ -601,6 +601,11 @@ button.pm { background: none; border: 0; padding: 0; cursor: pointer; font: inhe
 .lgt-row.me b { font-weight: 800; }
 .lgt-row.m-short { grid-template-columns: 24px minmax(0, 1fr) 28px 36px 32px; }
 .lgt-row.m-full { grid-template-columns: 22px minmax(0, 1fr) 24px 22px 22px 22px 46px 32px 30px; font-size: 12.5px; }
+/* ছোট ফোনে পূর্ণ টেবিল: "গোল" কলাম বাদ (+/- আছে), নামের জন্য ন্যূনতম জায়গা */
+@media (max-width: 440px) {
+  .lgt-row.m-full { grid-template-columns: 20px minmax(76px, 1fr) 26px 24px 20px 24px 30px 32px; gap: 3px; }
+  .lgt-row.m-full .c-gl { display: none; }
+}
 .lgt-row.m-form { grid-template-columns: 24px minmax(0, 1fr) 26px 118px 30px; }
 .lgt-h { color: var(--muted); font-size: 10.5px; font-weight: 600; padding-top: 10px; padding-bottom: 6px; }
 .lgt-row .tm { display: flex; align-items: center; gap: 7px; min-width: 0; text-align: left; }
@@ -7915,7 +7920,7 @@ function LgTable({ code, teamsById, lang, fallback, hl }) {
           {d.groups.length > 1 && g[0]?.group && <div className="lgt-group">{bn ? g[0].group.replace(/^Group\s*/i, "গ্রুপ ") : g[0].group}</div>}
           <div className={"lgt-row lgt-h m-" + mode}>
             <span>#</span><span>{bn ? "দল" : "Team"}</span><span>{bn ? "ম্যাচ" : "P"}</span>
-            {mode === "full" && <><span>{bn ? "জয়" : "W"}</span><span>{bn ? "ড্র" : "D"}</span><span>{bn ? "হার" : "L"}</span><span>{bn ? "গোল" : "Goals"}</span></>}
+            {mode === "full" && <><span>{bn ? "জয়" : "W"}</span><span>{bn ? "ড্র" : "D"}</span><span>{bn ? "হার" : "L"}</span><span className="c-gl">{bn ? "গোল" : "Goals"}</span></>}
             {mode === "form" ? <span className="lgt-form-h">{bn ? "শেষ ৫ ম্যাচ" : "Last 5"}</span> : <span>+/-</span>}
             <span>{bn ? "পয়েন্ট" : "Pts"}</span>
           </div>
@@ -7924,7 +7929,7 @@ function LgTable({ code, teamsById, lang, fallback, hl }) {
               <span className="pos">{num(r.rank, lang)}</span>
               <span className="lgt-tm"><TeamCell r={r} teamsById={teamsById} lang={lang} />{r.live && <i className="lgt-live" title={bn ? "খেলা চলছে" : "Playing now"} />}</span>
               <span>{num(r.all.p ?? 0, lang)}</span>
-              {mode === "full" && <><span>{num(r.all.w ?? 0, lang)}</span><span>{num(r.all.d ?? 0, lang)}</span><span>{num(r.all.l ?? 0, lang)}</span><span className="muted">{num(r.all.gf ?? 0, lang)}-{num(r.all.ga ?? 0, lang)}</span></>}
+              {mode === "full" && <><span>{num(r.all.w ?? 0, lang)}</span><span>{num(r.all.d ?? 0, lang)}</span><span>{num(r.all.l ?? 0, lang)}</span><span className="muted c-gl">{num(r.all.gf ?? 0, lang)}-{num(r.all.ga ?? 0, lang)}</span></>}
               {mode === "form" ? <span className="lgt-form">{(r.form || "").slice(-5).split("").map((f, i) => <i key={i} className={"f-" + (FORM[f]?.[1] || "x")}>{bn ? FORM[f]?.[0] || f : f}</i>)}</span>
                 : <span>{r.gd > 0 ? "+" : ""}{num(r.gd ?? 0, lang)}</span>}
               <span className="pts">{num(r.pts ?? 0, lang)}</span>
