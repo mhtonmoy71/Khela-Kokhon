@@ -177,7 +177,10 @@ async function sb(path, { method = "GET", body, prefer } = {}) {
     body: body === undefined ? undefined : JSON.stringify(body),
   });
   if (!r.ok) throw new Error(`supabase ${path.split("?")[0]} → ${r.status} ${await r.text().catch(() => "")}`.slice(0, 300));
-  return r.status === 204 || method !== "GET" ? null : r.json();
+  // লেখার অনুরোধেও return=representation চাইলে সারিগুলো ফেরত (নোটিফিকেশনের দাবি করা সারি লাগে)
+  if (r.status === 204) return null;
+  if (method !== "GET" && !/return=representation/.test(prefer || "")) return null;
+  return r.json();
 }
 
 let calls = 0;
@@ -282,7 +285,7 @@ async function sendPushes(notes) {
   try {
     claimed = await sb("push_log?on_conflict=match_id,ev", { method: "POST", body: notes.map((n) => ({ match_id: n.mid, ev: n.ev })), prefer: "resolution=ignore-duplicates,return=representation" });
   } catch { return 0; }
-  const ok = new Set(claimed.map((r) => r.match_id + "|" + r.ev));
+  const ok = new Set((claimed || []).map((r) => r.match_id + "|" + r.ev));
   const todo = notes.filter((n) => ok.has(n.mid + "|" + n.ev));
   if (!todo.length) return 0;
   const teamIds = [...new Set(todo.flatMap((n) => [n.hid, n.aid]).filter(Boolean))];
@@ -396,7 +399,7 @@ async function pushToUsers(items) {
   if (!items.length || !process.env.VAPID_PRIVATE_KEY) return 0;
   let claimed = [];
   try { claimed = await sb("push_log?on_conflict=match_id,ev", { method: "POST", body: items.map((n) => ({ match_id: n.mid, ev: n.ev })), prefer: "resolution=ignore-duplicates,return=representation" }); } catch { return 0; }
-  const ok = new Set(claimed.map((r) => r.match_id + "|" + r.ev));
+  const ok = new Set((claimed || []).map((r) => r.match_id + "|" + r.ev));
   const todo = items.filter((n) => ok.has(n.mid + "|" + n.ev));
   if (!todo.length) return 0;
   const users = [...new Set(todo.map((n) => n.uid))];
