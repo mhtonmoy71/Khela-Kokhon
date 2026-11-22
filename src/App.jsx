@@ -236,6 +236,10 @@ img { display: block; }
 .info h2 { font-size: 16px; margin: 22px 0 8px; }
 .info p { font-size: 15px; line-height: 1.8; color: var(--text); opacity: .9; }
 .founder { text-align: center; margin-bottom: 18px; }
+.founder-p { margin: 0 0 12px; }
+.founder-facts { margin-top: 18px; }
+.founder-facts .info-row { align-items: flex-start; gap: 16px; }
+.founder-facts .info-row b { text-align: right; font-weight: 600; line-height: 1.5; }
 .contact-cards { display: grid; gap: 10px; margin: 18px 0 6px; }
 .contact-card { display: flex; align-items: center; gap: 14px; padding: 14px 16px; text-decoration: none; color: inherit; }
 .contact-card b { display: block; font-size: 15px; }
@@ -4139,7 +4143,12 @@ function InfoPage({ id, user, goProfile }) {
             <a href="https://www.facebook.com/mahbub.tonmoy.71/" target="_blank" rel="noopener noreferrer" aria-label="Facebook"><FbIcon /></a>
           </div>
         </div>
-        <p>{A.dev}</p>
+        {[].concat(A.dev).map((t, i) => <p key={i} className="founder-p">{t}</p>)}
+        {A.devFacts && (
+          <div className="card founder-facts">
+            {A.devFacts.map(([k, v]) => <div key={k} className="info-row"><span className="muted">{k}</span><b>{v}</b></div>)}
+          </div>
+        )}
       </div>
     </>
   );
@@ -4271,7 +4280,12 @@ const ABOUT = {
     devH: "ডেভেলপার পরিচিতি",
     devName: "মাহবুব হাসান তন্ময়",
     devRole: "প্রতিষ্ঠাতা ও ডেভেলপার",
-    dev: "ক্রীড়া লেখক। খেলা৭১-এ সাব-এডিটর হিসেবে কাজ করেছেন, বাংলা ও ইংরেজিতে লিখেছেন ১,৭০০-র বেশি ক্রীড়া প্রতিবেদন। গোপালগঞ্জ বিজ্ঞান ও প্রযুক্তি বিশ্ববিদ্যালয় থেকে বিবিএ শেষ করে এখন একটি বেসরকারি ব্যাংকে কর্মরত। আগ্রহের জায়গা খেলার ইতিহাস। প্রোগ্রামিংয়ে প্রাতিষ্ঠানিক পড়াশোনা নেই; নিজে শিখে বানিয়েছেন খেলা কখন?।",
+    dev: [
+      "ক্রীড়া লেখক, খেলার ইতিহাসের অনুরাগী। বাংলা ও ইংরেজিতে লিখেছেন ১,৭০০-র বেশি ক্রীড়া প্রতিবেদন।",
+      "২০২২ সালের অমর একুশে বইমেলায় প্রকাশিত হয় তাঁর প্রথম বই ‘ক্রিকেট ৩৬৫’।",
+      "প্রোগ্রামিংয়ে প্রাতিষ্ঠানিক পড়াশোনা নেই। এআই-এর সাথে ‘ভাইব কোডিং’ করে নিজেই বানিয়েছেন খেলা কখন?, যাতে বাংলাদেশের ফুটবলপ্রেমীরা নিজের ভাষায়, নিজের সময়ে খেলার সব খবর পান।",
+    ],
+    devFacts: [["জন্মস্থান", "গাংনী, মেহেরপুর"], ["পড়াশোনা", "বিবিএ (ফাইন্যান্স অ্যান্ড ব্যাংকিং), গোপালগঞ্জ বিজ্ঞান ও প্রযুক্তি বিশ্ববিদ্যালয়"], ["প্রথম বই", "ক্রিকেট ৩৬৫ (২০২২)"], ["আগ্রহ", "খেলার ইতিহাস"]],
     cta: "শুরু করুন",
   },
   en: {
@@ -4291,7 +4305,12 @@ const ABOUT = {
     devH: "About the Developer",
     devName: "Mahbub Hasan Tonmoy",
     devRole: "Founder & developer",
-    dev: "Sports writer. Former sub-editor at Khela71, with more than 1,700 sports articles in Bangla and English. Holds a BBA from Gopalganj Science and Technology University and now works at a private bank. Has a keen interest in sports history. No formal training in programming; self-taught, he built Khela Kokhon himself.",
+    dev: [
+      "Sports writer with a passion for sports history, and the author of more than 1,700 sports reports in Bangla and English.",
+      "His first book, ‘Cricket 365’, was published at the Ekushey Book Fair in 2022.",
+      "With no formal training in programming, he built Khela Kokhon himself through ‘vibe coding’ with AI, so that football fans in Bangladesh can follow every match in their own language and their own time zone.",
+    ],
+    devFacts: [["Born", "Gangni, Meherpur"], ["Education", "BBA (Finance and Banking), Gopalganj Science and Technology University"], ["First book", "Cricket 365 (2022)"], ["Interest", "Sports history"]],
     cta: "Get started",
   },
 };
