@@ -4232,12 +4232,12 @@ function InfoPage({ id, user, goProfile }) {
          ["কেন রাখা হয়", "শুধু আপনার দল, প্রেডিকশন, পয়েন্ট আর লিডারবোর্ড দেখানোর জন্য। লিডারবোর্ড আর বন্ধুদের লিগে অন্যরা শুধু আপনার নাম ও ছবি দেখে, ইমেইল নয়।"],
          ["ফোনে কী জমা থাকে", "ভাষা, থিম, সাম্প্রতিক খোঁজ আর এমন কিছু পছন্দ আপনার ফোনের ব্রাউজারেই থাকে, আমাদের কাছে আসে না।"],
          ["কারও সাথে ভাগ করা হয় না", "আপনার তথ্য বিক্রি করা হয় না, বিজ্ঞাপনদাতা বা অন্য কাউকে দেওয়া হয় না। তথ্য নিরাপদে Supabase-এর সার্ভারে রাখা হয়।"],
-         ["অ্যাকাউন্ট ও তথ্য মুছে ফেলা", "অ্যাপের ভেতর থেকেই মুছতে পারবেন: প্রোফাইল → একদম নিচে \"অ্যাকাউন্ট মুছুন\" → নিশ্চিত করতে \"মুছুন\" লিখে চাপুন। আপনার প্রোফাইল, প্রিয় দল, প্রেডিকশন, পয়েন্ট, লিগের সদস্যপদ, কুইজ ও দৈনিক চ্যালেঞ্জের রেকর্ড আর নোটিফিকেশন সাথে সাথে স্থায়ীভাবে মুছে যায়। লগিন করতে না পারলে khelakokhon@gmail.com-এ ইমেইল করুন, আমরা মুছে দেব।"]]
+         ["অ্যাকাউন্ট ও তথ্য মুছে ফেলা", "অ্যাপের ভেতর থেকেই মুছতে পারবেন: প্রোফাইল → একদম নিচে \"অ্যাকাউন্ট মুছুন\" → নিশ্চিত করতে \"ডিলিট একাউন্ট\" লিখে চাপুন। আপনার প্রোফাইল, প্রিয় দল, প্রেডিকশন, পয়েন্ট, লিগের সদস্যপদ, কুইজ ও দৈনিক চ্যালেঞ্জের রেকর্ড আর নোটিফিকেশন সাথে সাথে স্থায়ীভাবে মুছে যায়। লগিন করতে না পারলে khelakokhon@gmail.com-এ ইমেইল করুন, আমরা মুছে দেব।"]]
       : [["What we store", "If you sign in with Google or email, we keep your name, email and profile photo, plus your favourite teams, match predictions and friends' leagues. Nothing personal is collected if you use the site without signing in."],
          ["Why", "Only to show your teams, predictions, points and leaderboards. Others see just your name and photo on leaderboards, never your email."],
          ["On your device", "Language, theme, recent searches and similar preferences stay in your browser and are never sent to us."],
          ["No sharing", "Your data is never sold or given to advertisers or anyone else. It is stored securely on Supabase servers."],
-         ["Deleting your account and data", "You can delete it in the app: Profile → \"Delete account\" at the bottom → type DELETE to confirm. Your profile, teams, predictions, points, league memberships, quiz and daily-challenge records and notifications are deleted permanently, right away. If you can't log in, email khelakokhon@gmail.com and we'll delete it for you."]];
+         ["Deleting your account and data", "You can delete it in the app: Profile → \"Delete account\" at the bottom → type DELETE ACCOUNT to confirm. Your profile, teams, predictions, points, league memberships, quiz and daily-challenge records and notifications are deleted permanently, right away. If you can't log in, email khelakokhon@gmail.com and we'll delete it for you."]];
     return (
       <>
         {back}
@@ -6448,7 +6448,9 @@ function DeleteAccount({ bn, toast }) {
   const [open, setOpen] = useState(false);
   const [txt, setTxt] = useState("");
   const [busy, setBusy] = useState(false);
-  const word = bn ? "মুছুন" : "DELETE";
+  const word = bn ? "ডিলিট একাউন্ট" : "DELETE ACCOUNT";
+  // বানানের ছোটখাটো তফাত মেনে নেওয়া: একাউন্ট/অ্যাকাউন্ট, বাড়তি ফাঁকা, ইংরেজি বড়-ছোট হাতের অক্ষর
+  const okWord = (t) => { const x = t.trim().replace(/\s+/g, " ").toLowerCase().replace("অ্যাকাউন্ট", "একাউন্ট").replace("এ্যাকাউন্ট", "একাউন্ট"); return x === "ডিলিট একাউন্ট" || x === "delete account"; };
   async function go() {
     setBusy(true);
     try {
@@ -6470,7 +6472,7 @@ function DeleteAccount({ bn, toast }) {
       <input value={txt} onChange={(e) => setTxt(e.target.value)} placeholder={word} />
       <div className="del-acc-btns">
         <button className="btn ghost" onClick={() => { setOpen(false); setTxt(""); }} disabled={busy}>{bn ? "থাক" : "Cancel"}</button>
-        <button className="btn danger" onClick={go} disabled={busy || txt.trim() !== word}>{busy ? "…" : (bn ? "স্থায়ীভাবে মুছুন" : "Delete permanently")}</button>
+        <button className="btn danger" onClick={go} disabled={busy || !okWord(txt)}>{busy ? "…" : (bn ? "স্থায়ীভাবে মুছুন" : "Delete permanently")}</button>
       </div>
     </div>
   );
