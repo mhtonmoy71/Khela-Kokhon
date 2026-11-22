@@ -31,7 +31,7 @@ export default defineConfig({
         navigateFallbackDenylist: [/^\/api\//],
         skipWaiting: true,   // নতুন সংস্করণ অপেক্ষায় না থেকে সাথে সাথে চালু
         clientsClaim: true,
-        importScripts: ["/push-sw.js?v=6"],
+        importScripts: ["/push-sw.js?v=7"],
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/crests\.football-data\.org\/.*/i,
