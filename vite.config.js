@@ -29,6 +29,8 @@ export default defineConfig({
       },
       workbox: {
         navigateFallbackDenylist: [/^\/api\//],
+        skipWaiting: true,   // নতুন সংস্করণ অপেক্ষায় না থেকে সাথে সাথে চালু
+        clientsClaim: true,
         importScripts: ["/push-sw.js?v=6"],
         runtimeCaching: [
           {
