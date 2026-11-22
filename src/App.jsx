@@ -4105,7 +4105,7 @@ function Footer({ comps = [] }) {
         <div className="foot-about">
         <div className="foot-brand"><Logo size={36} /><b>খেলা কখন<span>?</span></b></div>
         <div className="foot-tag">{bn ? "ম্যাচের ঘড়ি আপনার হাতে" : "The match clock in your hands"}</div>
-        <p className="foot-desc">{bn ? "ইউরোপের ফুটবল থেকে দেশের মাঠ, সব খেলার খবর এক প্ল্যাটফর্মে। সাথে আছে জ্ঞান ঝালিয়ে নেওয়ার কুইজ, দৈনিক চ্যালেঞ্জ আর প্রেডিকশন গেম।" : "From European football to the game at home, all on one platform. Plus quizzes to sharpen your knowledge, a daily challenge and a prediction game."}</p>
+        <p className="foot-desc">{bn ? "ইউরোপের ফুটবল থেকে দেশের মাঠ, সব ম্যাচের তথ্য এক প্ল্যাটফর্মে। সাথে আছে জ্ঞান ঝালিয়ে নেওয়ার কুইজ, দৈনিক চ্যালেঞ্জ আর প্রেডিকশন গেম।" : "From European football to the game at home, every match on one platform. Plus quizzes to sharpen your knowledge, a daily challenge and a prediction game."}</p>
         <div className="foot-social">
           <a href="https://www.facebook.com/khelakokhon" target="_blank" rel="noopener noreferrer" aria-label="Facebook"><FbIcon /></a>
           <a href="mailto:khelakokhon@gmail.com" aria-label="Email"><MailIcon /></a>
