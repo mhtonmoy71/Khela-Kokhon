@@ -49,7 +49,7 @@ img { display: block; }
 /* ── ক্রেস্ট ── */
 .crest { object-fit: contain; flex: none; }
 .crest-fb { flex: none; border-radius: 50%; background: var(--card2); border: 1px solid var(--line); color: var(--muted);
-  display: grid; place-items: center; font-family: Inter, sans-serif; font-weight: 700; }
+  display: grid; place-items: center; font-family: Inter, 'Hind Siliguri', sans-serif; font-weight: 700; }
 
 /* ── প্রতিযোগিতার হেডার ── */
 .comp-h { display: flex; align-items: center; gap: 9px; padding: 11px 14px; font-size: 13.5px; font-weight: 700; border-bottom: 1px solid var(--line); }
@@ -71,7 +71,7 @@ img { display: block; }
 .side.win span { font-weight: 700; }
 .mid { text-align: center; line-height: 1.15; }
 .mid .t { font-size: 13px; font-weight: 600; }
-.mid .sc { font-family: Inter, sans-serif; font-size: 16px; font-weight: 800; letter-spacing: .5px; }
+.mid .sc { font-family: Inter, 'Hind Siliguri', sans-serif; font-size: 16px; font-weight: 800; letter-spacing: .5px; }
 .mid .st { font-size: 10.5px; color: var(--muted); margin-top: 2px; }
 .mid .lv { color: var(--red); font-weight: 700; }
 .lv.lv-pill { display: inline-block; background: #16a34a; color: #fff; border-radius: 999px; padding: 0 7px; font: 700 11.5px Inter, 'Hind Siliguri', sans-serif; line-height: 18px; }
@@ -116,7 +116,7 @@ img { display: block; }
 .rival:last-child { border-bottom: 0; }
 .rival .nm { font-weight: 700; flex: 1; min-width: 0; }
 .rival .res { font-size: 12.5px; color: var(--muted); text-align: right; }
-.badge { font-family: Inter, sans-serif; font-size: 11px; font-weight: 800; width: 22px; height: 22px; border-radius: 6px; display: grid; place-items: center; color: #fff; }
+.badge { font-family: Inter, 'Hind Siliguri', sans-serif; font-size: 11px; font-weight: 800; width: 22px; height: 22px; border-radius: 6px; display: grid; place-items: center; color: #fff; }
 .badge.W { background: #16a34a; } .badge.D { background: #64748b; } .badge.L { background: #dc2626; }
 
 /* ── তারিখ স্ট্রিপ ── */
@@ -151,7 +151,7 @@ img { display: block; }
 
 .stepper { display: flex; align-items: center; justify-content: center; gap: 10px; }
 .stepper button { width: 38px; height: 38px; border-radius: 12px; background: var(--card2); border: 1px solid var(--line); font-size: 20px; font-weight: 700; }
-.stepper .v { font-family: Inter, sans-serif; font-size: 30px; font-weight: 800; min-width: 34px; text-align: center; }
+.stepper .v { font-family: Inter, 'Hind Siliguri', sans-serif; font-size: 30px; font-weight: 800; min-width: 34px; text-align: center; }
 .pred-box { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 6px; padding: 16px 10px; }
 .pred-box .dash { font-size: 24px; color: var(--muted); }
 
@@ -183,11 +183,11 @@ img { display: block; }
 /* ── লিডারবোর্ড ── */
 .lb { display: grid; grid-template-columns: 32px 32px 1fr auto; align-items: center; gap: 8px; padding: 11px 14px; border-bottom: 1px solid var(--line); font-size: 14px; }
 .lb:last-child { border-bottom: 0; }
-.lb .rk { font-family: Inter, sans-serif; font-weight: 800; color: var(--muted); text-align: center; }
+.lb .rk { font-family: Inter, 'Hind Siliguri', sans-serif; font-weight: 800; color: var(--muted); text-align: center; }
 .lb .rk.top { color: var(--amber); }
 .lb .pt { font-weight: 700; text-align: right; }
 .lb .sub { font-size: 11.5px; color: var(--muted); }
-.ptbadge { font-family: Inter, sans-serif; font-size: 11px; font-weight: 800; padding: 3px 7px; border-radius: 7px; background: var(--card2); color: var(--muted); }
+.ptbadge { font-family: Inter, 'Hind Siliguri', sans-serif; font-size: 11px; font-weight: 800; padding: 3px 7px; border-radius: 7px; background: var(--card2); color: var(--muted); }
 .ptbadge.p3 { background: var(--green); color: var(--onGreen); }
 .ptbadge.p1 { background: var(--greenDim); color: var(--green); }
 
@@ -248,7 +248,7 @@ img { display: block; }
 .contact-cards { display: grid; gap: 10px; margin: 18px 0 6px; }
 .contact-card { display: flex; align-items: center; gap: 14px; padding: 14px 16px; text-decoration: none; color: inherit; }
 .contact-card b { display: block; font-size: 15px; }
-.contact-card small { color: var(--muted); font-size: 13px; font-family: Inter, sans-serif; }
+.contact-card small { color: var(--muted); font-size: 13px; font-family: Inter, 'Hind Siliguri', sans-serif; }
 .contact-ic { width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; background: var(--greenDim); color: var(--green); flex: none; }
 .contact-ic.fb { background: color-mix(in srgb, #1877f2 14%, transparent); color: #1877f2; }
 .contact-topics { display: grid; gap: 10px; }
@@ -258,7 +258,7 @@ img { display: block; }
 .founder-photo { width: 120px; height: 120px; border-radius: 50%; object-fit: cover; border: 3px solid var(--green); margin: 0 auto 10px; }
 .foot-made { font-size: 12.5px; font-weight: 600; color: var(--muted); margin-bottom: 8px; font-family: Inter, "Hind Siliguri", sans-serif; }
 .foot-links { display: flex; justify-content: center; gap: 16px; flex-wrap: wrap; margin-bottom: 8px; }
-.foot-links a { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; text-decoration: none; font-family: Inter, sans-serif; font-weight: 500; }
+.foot-links a { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; text-decoration: none; font-family: Inter, 'Hind Siliguri', sans-serif; font-weight: 500; }
 .foot-copy { font-size: 11px; color: var(--muted); opacity: .8; }
 
 /* ── হোমের পরিচিতি অংশ ── */
@@ -392,7 +392,7 @@ img { display: block; }
 .cm-sc { font: 800 15px Inter, 'Hind Siliguri', sans-serif; background: var(--card2); border-radius: 8px; padding: 2px 9px; }
 .cm-pl { display: flex; align-items: center; gap: 10px; width: 100%; padding: 8px 10px; border-radius: 999px; background: var(--card2); border: 0; color: inherit; font: inherit; text-align: left; cursor: pointer; }
 .cm-pl-n { flex: 1; min-width: 0; display: flex; align-items: baseline; gap: 6px; }
-.cm-pl-n small { color: var(--muted); font: 600 13px Inter, sans-serif; }
+.cm-pl-n small { color: var(--muted); font: 600 13px Inter, 'Hind Siliguri', sans-serif; }
 .cm-pl-n b { font-size: 15px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .cm-ph { position: relative; width: 46px; height: 46px; flex: none; }
 .cm-ph img, .cm-ph i { width: 46px; height: 46px; border-radius: 50%; object-fit: cover; object-position: 50% 15%; background: var(--card); display: grid; place-items: center; font-style: normal; font-weight: 700; color: var(--muted); }
@@ -471,7 +471,7 @@ img { display: block; }
 .mp-info svg { color: var(--muted); flex: none; }
 .tbl.tbl-me { background: var(--greenDim); }
 .pm-shirt img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; object-position: 50% 15%; background: #e5e7eb; }
-.pm-no { font: 700 10px Inter, sans-serif; opacity: .85; margin-right: 3px; }
+.pm-no { font: 700 10px Inter, 'Hind Siliguri', sans-serif; opacity: .85; margin-right: 3px; }
 .ms-goals { display: grid; grid-template-columns: 1fr 22px 1fr; gap: 6px; align-items: start; margin: 2px 4px 0; font-size: 12.5px; color: var(--muted); line-height: 1.5; }
 .ms-goals .h { text-align: right; } .ms-goals b { color: var(--text); font-weight: 600; }
 .ms-goals .ball-mini { justify-self: center; margin-top: 3px; opacity: .7; }
@@ -534,15 +534,15 @@ img { display: block; }
 .pitch-f.pf-t { top: 6px; } .pitch-f.pf-b { bottom: 6px; }
 .pm-wrap { position: absolute; transform: translate(-50%, -20px); display: flex; justify-content: center; }
 .pm { display: flex; flex-direction: column; align-items: center; gap: 3px; min-width: 0; max-width: 100%; }
-.pm-shirt { position: relative; width: 38px; height: 38px; border-radius: 50%; display: grid; place-items: center; font: 800 12px Inter, sans-serif; color: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.35); }
+.pm-shirt { position: relative; width: 38px; height: 38px; border-radius: 50%; display: grid; place-items: center; font: 800 12px Inter, 'Hind Siliguri', sans-serif; color: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.35); }
 .pm-h .pm-shirt, .pm-a .pm-shirt { background: #e5e7eb; border: 2px solid #fff; }
 .pm-n { font-size: 11.5px; font-weight: 600; color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,.55); max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; line-height: 1.3; }
 .pm-shirt em { position: absolute; font-style: normal; }
-.pm-r { font: 800 10px Inter, sans-serif; color: #fff; border-radius: 5px; padding: 1px 4px; font-style: normal; }
+.pm-r { font: 800 10px Inter, 'Hind Siliguri', sans-serif; color: #fff; border-radius: 5px; padding: 1px 4px; font-style: normal; }
 .pm-shirt .pm-r { top: -5px; right: -20px; font-size: 10px; padding: 1px 4px; border-radius: 6px; box-shadow: 0 1px 2px rgba(0,0,0,.25); font-family: Inter, 'Hind Siliguri', sans-serif; }
 .pm-r.r-top { background: #2563eb; } .pm-r.r-hi { background: #16a34a; } .pm-r.r-ok { background: #ea8a0b; } .pm-r.r-lo { background: #dc2626; }
 .pm-r.big { font-size: 16px; padding: 4px 8px; border-radius: 8px; }
-.pm-c { top: -6px; left: -8px; background: #facc15; color: #111; font: 800 9px Inter, sans-serif; width: 14px; height: 14px; border-radius: 50%; display: grid; place-items: center; }
+.pm-c { top: -6px; left: -8px; background: #facc15; color: #111; font: 800 9px Inter, 'Hind Siliguri', sans-serif; width: 14px; height: 14px; border-radius: 50%; display: grid; place-items: center; }
 .pm-g { bottom: -6px; right: -10px; font-size: 10px; }
 .pm-card { bottom: -4px; left: -6px; width: 8px; height: 11px; border-radius: 2px; background: #facc15; }
 .pm-card.red { background: #ef4444; }
@@ -560,7 +560,7 @@ button.pm { background: none; border: 0; padding: 0; cursor: pointer; font: inhe
 .afp-back { width: 32px; height: 32px; border-radius: 50%; border: 0; background: rgba(255,255,255,.14); color: #fff; display: grid; place-items: center; cursor: pointer; }
 .afp-id { display: flex; align-items: center; gap: 14px; margin-top: 10px; }
 .afp-ph { width: 64px; height: 64px; border-radius: 50%; object-fit: cover; object-position: 50% 15%; background: #fff; flex: none; border: 2px solid rgba(255,255,255,.7); }
-.afp-ph-fb { display: grid; place-items: center; font: 800 22px Inter, sans-serif; color: #065f46; }
+.afp-ph-fb { display: grid; place-items: center; font: 800 22px Inter, 'Hind Siliguri', sans-serif; color: #065f46; }
 .afp-id h1 { font-size: 21px; line-height: 1.2; margin: 0 0 6px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .afp-id .pl-inj { margin: 0; font-size: 11px; }
 .afp-team { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px 3px 4px; border-radius: 999px; border: 0; background: rgba(255,255,255,.16); color: #fff; font: 600 12.5px 'Hind Siliguri', sans-serif; cursor: pointer; }
@@ -615,7 +615,7 @@ button.pm { background: none; border: 0; padding: 0; cursor: pointer; font: inhe
 .lgt-row .pts { font-weight: 800; }
 .lgt-row.z-cl { border-left-color: #16a34a; } .lgt-row.z-el { border-left-color: #2563eb; } .lgt-row.z-ecl { border-left-color: #0891b2; } .lgt-row.z-rel { border-left-color: #dc2626; } .lgt-row.z-po { border-left-color: #d97706; }
 .lgt-form { display: flex; gap: 3px; justify-content: center; }
-.lgt-form i { font-style: normal; width: 21px; height: 21px; border-radius: 5px; display: grid; place-items: center; font: 700 10px 'Hind Siliguri', Inter, sans-serif; color: #fff; }
+.lgt-form i { font-style: normal; width: 21px; height: 21px; border-radius: 5px; display: grid; place-items: center; font: 700 10px 'Hind Siliguri', Inter, 'Hind Siliguri', sans-serif; color: #fff; }
 .lgt-form .f-w { background: #16a34a; } .lgt-form .f-d { background: #94a3b8; } .lgt-form .f-l { background: #dc2626; } .lgt-form .f-x { background: var(--card2); color: var(--muted); }
 .lgt-legend { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 12px; color: var(--muted); margin: 4px 2px 0; }
 .lgt-legend span { display: inline-flex; align-items: center; gap: 6px; }
@@ -639,10 +639,10 @@ button.pm { background: none; border: 0; padding: 0; cursor: pointer; font: inhe
 .scr.afp > span:nth-child(n+3) { text-align: center; }
 .pl-inj { display: inline-block; margin-top: 4px; font-size: 12px; font-weight: 700; color: #fff; background: #dc2626; border-radius: 999px; padding: 1px 9px; }
 .lu-p.played { color: var(--text); }
-.lu-no { width: 18px; text-align: right; font: 700 11px Inter, sans-serif; color: var(--muted); flex: none; }
+.lu-no { width: 18px; text-align: right; font: 700 11px Inter, 'Hind Siliguri', sans-serif; color: var(--muted); flex: none; }
 .lu-n { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .lu-ev { font-size: 11px; }
-.ball-mini { display: inline-flex; align-items: center; gap: 1px; } .ball-mini svg { display: block; } .ball-mini b { font: 800 9px Inter, sans-serif; color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,.6); }
+.ball-mini { display: inline-flex; align-items: center; gap: 1px; } .ball-mini svg { display: block; } .ball-mini b { font: 800 9px Inter, 'Hind Siliguri', sans-serif; color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,.6); }
 .lu-ev .ball-mini b { color: var(--text); text-shadow: none; }
 .comp-go { margin-left: auto; color: var(--muted); font-size: 18px; line-height: 1; }
 .hero-top { color: inherit; text-align: left; }
@@ -775,7 +775,7 @@ button.pm { background: none; border: 0; padding: 0; cursor: pointer; font: inhe
 .inline-form { display: flex; gap: 8px; }
 .inline-form input { flex: 1; min-width: 0; height: 44px; border-radius: 12px; border: 1px solid var(--line); background: var(--card2); padding: 0 12px; font-size: 15px; outline: none; }
 .inline-form input:focus { border-color: var(--green); }
-.code { font-family: Inter, sans-serif; letter-spacing: 1.5px; color: var(--green); }
+.code { font-family: Inter, 'Hind Siliguri', sans-serif; letter-spacing: 1.5px; color: var(--green); }
 
 /* ── খেলোয়াড় আর মুখোমুখি ── */
 .info-row { display: flex; justify-content: space-between; gap: 12px; padding: 12px 14px; border-bottom: 1px solid var(--line); font-size: 14px; }
@@ -786,18 +786,18 @@ button.pm { background: none; border: 0; padding: 0; cursor: pointer; font: inhe
 .sq-av { grid-column: 1; grid-row: 1 / span 2; display: flex; }
 .sq > b { grid-column: 2; }
 .av { border-radius: 50%; object-fit: cover; object-position: 50% 18%; background: var(--card2); flex: none; display: block; }
-.av-fb { display: grid; place-items: center; color: var(--muted); font-family: Inter, sans-serif; font-weight: 700; }
+.av-fb { display: grid; place-items: center; color: var(--muted); font-family: Inter, 'Hind Siliguri', sans-serif; font-weight: 700; }
 .sq:last-child { border-bottom: 0; }
 .sq b { font-weight: 600; font-size: 14px; font-family: Inter, "Hind Siliguri", sans-serif; }
 .sq .muted { grid-column: 2; font-size: 12px; }
 .sq-age { grid-column: 3; grid-row: 1 / span 2; align-self: center; font-size: 13px; color: var(--muted); }
 .h2h-agg { display: grid; grid-template-columns: 1fr 1fr 1fr; text-align: center; padding: 14px 8px; border-bottom: 1px solid var(--line); }
-.h2h-agg b { display: block; font-size: 24px; font-family: Inter, sans-serif; }
+.h2h-agg b { display: block; font-size: 24px; font-family: Inter, 'Hind Siliguri', sans-serif; }
 .h2h-agg span { font-size: 12px; color: var(--muted); }
 .h2h-row { display: flex; flex-direction: column; gap: 2px; padding: 10px 14px; border-bottom: 1px solid var(--line); font-size: 13.5px; }
 .h2h-row:last-child { border-bottom: 0; }
 .h2h-row .muted { font-size: 11.5px; }
-.h2h-score b { font-family: Inter, sans-serif; margin: 0 4px; }
+.h2h-score b { font-family: Inter, 'Hind Siliguri', sans-serif; margin: 0 4px; }
 
 /* ══════ মিনিমাল ডিজাইন ══════ */
 .sec { margin-top: 22px; }
@@ -817,7 +817,7 @@ button.pm { background: none; border: 0; padding: 0; cursor: pointer; font: inhe
 .nx-time { text-align: center; display: flex; flex-direction: column; line-height: 1.15; }
 .nx-time b { font-size: 16px; }
 .nx-time small { font-size: 11px; opacity: .75; }
-.nx-score { font-family: Inter, sans-serif; font-size: 20px !important; }
+.nx-score { font-family: Inter, 'Hind Siliguri', sans-serif; font-size: 20px !important; }
 /* অতিথির জন্য সরু লাইন */
 .slim { width: 100%; display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-radius: 14px; background: var(--card); border: 1px dashed color-mix(in srgb, var(--green) 45%, transparent); font-size: 14px; text-align: left; }
 .slim span:nth-child(2) { flex: 1; }
@@ -886,7 +886,7 @@ button.pm { background: none; border: 0; padding: 0; cursor: pointer; font: inhe
 .ms-team { display: flex; flex-direction: column; align-items: center; gap: 8px; font-size: 15px; font-weight: 700; text-align: center; line-height: 1.25; }
 .ms-mid { text-align: center; min-width: 96px; }
 .ms-time { font-size: 26px; font-weight: 700; line-height: 1.1; }
-.ms-score { font-family: Inter, sans-serif; font-size: 32px; font-weight: 800; letter-spacing: 1px; }
+.ms-score { font-family: Inter, 'Hind Siliguri', sans-serif; font-size: 32px; font-weight: 800; letter-spacing: 1px; }
 .ms-date { font-size: 13px; color: var(--muted); margin-top: 4px; }
 .ms-cd { text-align: center; font-size: 12.5px; color: var(--muted); padding-bottom: 4px; }
 .ms-row { width: 100%; display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; font-size: 14.5px; font-weight: 600; text-align: left; }
@@ -930,7 +930,7 @@ button.pm { background: none; border: 0; padding: 0; cursor: pointer; font: inhe
 .qz-join form { display: flex; gap: 8px; margin-top: 10px; }
 .qz-join input { flex: 1; min-width: 0; height: 44px; border-radius: 12px; border: 1px solid var(--line); background: var(--card2); padding: 0 14px; font-size: 16px; letter-spacing: 2px; text-transform: uppercase; outline: none; color: var(--text); }
 .qz-lobby { padding: 18px; text-align: center; }
-.qz-code { font-family: Inter, sans-serif; font-weight: 800; font-size: 38px; letter-spacing: 6px; color: var(--green); margin: 4px 0 14px; }
+.qz-code { font-family: Inter, 'Hind Siliguri', sans-serif; font-weight: 800; font-size: 38px; letter-spacing: 6px; color: var(--green); margin: 4px 0 14px; }
 .qz-board { margin-top: 4px; }
 .qz-pl { display: flex; align-items: center; gap: 10px; padding: 11px 14px; border-top: 1px solid var(--line); }
 .qz-pl:first-child { border-top: 0; }
@@ -942,13 +942,13 @@ button.pm { background: none; border: 0; padding: 0; cursor: pointer; font: inhe
 .qz-sc small { font-size: 11.5px; color: var(--muted); }
 .qz-go { margin-top: 14px; height: 52px; font-size: 16.5px; }
 .qz-wait { display: flex; align-items: center; justify-content: center; gap: 8px; color: var(--muted); font-size: 13.5px; margin: 14px 0; text-align: center; }
-.qz-count { font-family: Inter, sans-serif; font-size: 96px; font-weight: 800; text-align: center; color: var(--green); margin-top: 60px; }
+.qz-count { font-family: Inter, 'Hind Siliguri', sans-serif; font-size: 96px; font-weight: 800; text-align: center; color: var(--green); margin-top: 60px; }
 .qz-top { display: flex; justify-content: space-between; font-size: 13px; color: var(--muted); font-weight: 600; }
 .qz-myscore { color: var(--green); }
 .qz-timer { height: 8px; border-radius: 4px; background: var(--card2); overflow: hidden; margin: 10px 0 4px; }
 .qz-timer i { display: block; height: 100%; background: var(--green); transition: width .25s linear; }
 .qz-timer i.low { background: var(--red); }
-.qz-left { text-align: center; font-family: Inter, sans-serif; font-weight: 800; font-size: 26px; color: var(--green); }
+.qz-left { text-align: center; font-family: Inter, 'Hind Siliguri', sans-serif; font-weight: 800; font-size: 26px; color: var(--green); }
 .qz-left.low { color: var(--red); }
 .qz-q { font-size: 19px; line-height: 1.5; margin: 10px 0 16px; text-align: center; }
 .qz-opts { display: grid; gap: 10px; }
@@ -970,7 +970,7 @@ button.pm { background: none; border: 0; padding: 0; cursor: pointer; font: inhe
 .qz-result { padding: 22px 18px; text-align: center; }
 .qz-big { font-size: 52px; }
 .qz-result h2 { font-size: 19px; margin: 6px 0; }
-.qz-score { font-family: Inter, sans-serif; font-size: 54px; font-weight: 800; color: var(--green); line-height: 1.1; }
+.qz-score { font-family: Inter, 'Hind Siliguri', sans-serif; font-size: 54px; font-weight: 800; color: var(--green); line-height: 1.1; }
 .qz-score small { font-size: 24px; color: var(--muted); }
 .qz-actions { display: grid; gap: 10px; margin-top: 16px; }
 .qz-note { text-align: center; font-size: 12px; }
@@ -1024,11 +1024,11 @@ button.sq { width: 100%; text-align: left; }
 .pl-name b:hover { text-decoration: underline; }
 button.scr { width: 100%; }
 .pl-avatar { width: 84px; height: 84px; border-radius: 50%; display: grid; place-items: center; background: linear-gradient(150deg, #0a3d2f, #064e3b 60%, #08261f);
-  color: #7dffb8; font-family: Inter, sans-serif; font-weight: 800; font-size: 32px; box-shadow: 0 0 0 3px var(--greenDim); }
+  color: #7dffb8; font-family: Inter, 'Hind Siliguri', sans-serif; font-weight: 800; font-size: 32px; box-shadow: 0 0 0 3px var(--greenDim); }
 .pl-photo-wrap { position: relative; width: 112px; height: 112px; }
 .pl-photo { width: 112px; height: 112px; border-radius: 50%; object-fit: cover; object-position: 50% 15%; background: var(--card2); box-shadow: 0 0 0 3px var(--greenDim); }
 .pl-shirt { position: absolute; right: -2px; bottom: 2px; min-width: 32px; height: 32px; padding: 0 6px; border-radius: 16px; display: grid; place-items: center;
-  background: var(--brand); color: #7dffb8; font-family: Inter, sans-serif; font-weight: 800; font-size: 14px; box-shadow: 0 0 0 3px var(--bg); }
+  background: var(--brand); color: #7dffb8; font-family: Inter, 'Hind Siliguri', sans-serif; font-weight: 800; font-size: 14px; box-shadow: 0 0 0 3px var(--bg); }
 .pl-credit { text-align: center; font-size: 10.5px; margin-top: 6px; }
 .pl-credit a { color: var(--muted); text-decoration: none; }
 .stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px 4px; padding: 16px 8px; text-align: center; }
@@ -1040,7 +1040,7 @@ button.scr { width: 100%; }
 .ask-pl-n { flex: 1; min-width: 0; display: flex; flex-direction: column; }
 .ask-pl-n b { font-size: 14px; font-family: Inter, "Hind Siliguri", sans-serif; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .ask-pl-n small { font-size: 11.5px; }
-.ask-pl-g { font-family: Inter, sans-serif; font-weight: 800; font-size: 17px; color: var(--green); display: flex; flex-direction: column; align-items: center; line-height: 1.1; }
+.ask-pl-g { font-family: Inter, 'Hind Siliguri', sans-serif; font-weight: 800; font-size: 17px; color: var(--green); display: flex; flex-direction: column; align-items: center; line-height: 1.1; }
 .ask-pl-g small { font-size: 10px; font-weight: 500; color: var(--muted); font-family: "Hind Siliguri", sans-serif; }
 
 /* ── সার্চ ── */
@@ -1057,7 +1057,7 @@ button.scr { width: 100%; }
 .s-row:active, .s-row:hover { background: var(--card2); }
 .s-row b { font-size: 15px; font-weight: 600; }
 .s-ic { width: 30px; height: 30px; border-radius: 50%; background: #fff; display: grid; place-items: center; flex: none; }
-.s-ic:empty::after { content: attr(data-c); font-family: Inter, sans-serif; font-weight: 800; font-size: 9.5px; color: #064e3b; }
+.s-ic:empty::after { content: attr(data-c); font-family: Inter, 'Hind Siliguri', sans-serif; font-weight: 800; font-size: 9.5px; color: #064e3b; }
 .s-txt { display: flex; flex-direction: column; min-width: 0; }
 .s-txt b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: Inter, "Hind Siliguri", sans-serif; }
 .s-txt small { font-size: 12px; }
@@ -1080,7 +1080,7 @@ button.scr { width: 100%; }
 .lg-empty { font-size: 13.5px; }
 .scr.cr-tot { background: var(--greenDim); }
 .lg-ic { width: 48px; height: 48px; flex: none; border-radius: 50%; background: #fff; display: grid; place-items: center; box-shadow: 0 0 0 1px var(--line); }
-.lg-ic:empty::after { content: attr(data-c); font-family: Inter, sans-serif; font-weight: 800; font-size: 13px; color: #064e3b; }
+.lg-ic:empty::after { content: attr(data-c); font-family: Inter, 'Hind Siliguri', sans-serif; font-weight: 800; font-size: 13px; color: #064e3b; }
 .lg-nm { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
 .lg-nm b { font-size: 15.5px; }
 .lg-nm small { font-size: 12px; }
@@ -1626,7 +1626,7 @@ function crestOrBadge(ctx, img, team, cx, cy, size) {
     const w = img.width * ratio, h = img.height * ratio;
     ctx.drawImage(img, cx - w / 2, cy - h / 2, w, h);
   } else {
-    ctx.fillStyle = "#064e3b"; ctx.font = `800 ${size * 0.32}px Inter, sans-serif`; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+    ctx.fillStyle = "#064e3b"; ctx.font = `800 ${size * 0.32}px Inter, 'Hind Siliguri', sans-serif`; ctx.textAlign = "center"; ctx.textBaseline = "middle";
     ctx.fillText((team?.tla || team?.short_en || "?").slice(0, 3), cx, cy);
   }
   ctx.restore();
@@ -1678,7 +1678,7 @@ async function makeCard(m, { lang = "bn", teamName, compName, L, pred }) {
 
   const done = isDone(m) || isLive(m);
   if (done && m.home_score != null) {
-    ctx.font = bn ? `700 104px ${CARD_FONT}` : `800 96px Inter, sans-serif`; ctx.fillStyle = "#fff";
+    ctx.font = bn ? `700 104px ${CARD_FONT}` : `800 96px Inter, 'Hind Siliguri', sans-serif`; ctx.fillStyle = "#fff";
     ctx.fillText(`${num(m.home_score, lang)} - ${num(m.away_score, lang)}`, CARD_W / 2, cy);
     ctx.font = `600 36px ${CARD_FONT}`; ctx.fillStyle = "#7dffb8";
     ctx.fillText(isLive(m) ? (bn ? "লাইভ" : "LIVE") : (bn ? "খেলা শেষ" : "Full time"), CARD_W / 2, cy + 80);
@@ -1717,7 +1717,7 @@ async function makeCard(m, { lang = "bn", teamName, compName, L, pred }) {
     ctx.textAlign = "center"; ctx.fillStyle = "#fcd34d"; ctx.font = `600 38px ${CARD_FONT}`;
     ctx.fillText(bn ? "আমার প্রেডিকশন" : "My prediction", CARD_W / 2, py + 56);
     const sc = bn ? `${num(pred.home, "bn")} - ${num(pred.away, "bn")}` : `${pred.home} - ${pred.away}`;
-    ctx.fillStyle = "#fff"; ctx.font = bn ? `700 100px ${CARD_FONT}` : `800 96px Inter, sans-serif`; ctx.fillText(sc, CARD_W / 2, py + 140);
+    ctx.fillStyle = "#fff"; ctx.font = bn ? `700 100px ${CARD_FONT}` : `800 96px Inter, 'Hind Siliguri', sans-serif`; ctx.fillText(sc, CARD_W / 2, py + 140);
     let foot;
     if (pred.points != null) foot = pred.points > 0 ? (bn ? `ঠিক হয়েছে · +${num(pred.points, "bn")} পয়েন্ট` : `Nailed it · +${pred.points} pts`) : (bn ? "এবার মেলেনি" : "Not this time");
     else if (pred.pen_pick) foot = bn ? `টাইব্রেকারে জিতবে ${teamName(pred.pen_pick === 1 ? m.home : m.away)}` : `${teamName(pred.pen_pick === 1 ? m.home : m.away)} win on pens`;
@@ -1726,7 +1726,7 @@ async function makeCard(m, { lang = "bn", teamName, compName, L, pred }) {
   }
 
   // নিচে ঠিকানা
-  ctx.textAlign = "center"; ctx.fillStyle = "rgba(255,255,255,0.75)"; ctx.font = `600 34px Inter, sans-serif`;
+  ctx.textAlign = "center"; ctx.fillStyle = "rgba(255,255,255,0.75)"; ctx.font = `600 34px Inter, 'Hind Siliguri', sans-serif`;
   ctx.fillText("khelakokhon.com", CARD_W / 2, CH - 62);
 
   return new Promise((ok) => c.toBlob((b) => ok(b), "image/png"));
@@ -3373,7 +3373,7 @@ const EvIcon = ({ e }) => {
   return (
     <svg className="ev-ic ev-var" width="22" height="22" viewBox="0 0 24 24" aria-label="VAR">
       <rect x="1.8" y="3.6" width="20.4" height="13.6" rx="2.6" fill="none" stroke="currentColor" strokeWidth="1.6" />
-      <text x="12" y="13.1" textAnchor="middle" fontFamily="Inter, sans-serif" fontWeight="800" fontSize="6.8" fill="currentColor" letterSpacing="-.2">VAR</text>
+      <text x="12" y="13.1" textAnchor="middle" fontFamily="Inter, 'Hind Siliguri', sans-serif" fontWeight="800" fontSize="6.8" fill="currentColor" letterSpacing="-.2">VAR</text>
       <path d="M12 17.2v3M8.2 20.6h7.6" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
     </svg>
   );
@@ -4961,7 +4961,7 @@ function Friends({ user, goProfile, toast, openId, reloadKey }) {
       <div className="card" style={{ padding: 14 }}>
         <div style={{ fontWeight: 700, marginBottom: 8 }}>{bn ? "কোড দিয়ে যোগ দিন" : "Join with a code"}</div>
         <form className="inline-form" onSubmit={join}>
-          <input value={code} onChange={(e) => setCode(e.target.value.toUpperCase())} maxLength={6} placeholder="ABC123" style={{ letterSpacing: 3, fontFamily: "Inter, sans-serif", fontWeight: 700 }} />
+          <input value={code} onChange={(e) => setCode(e.target.value.toUpperCase())} maxLength={6} placeholder="ABC123" style={{ letterSpacing: 3, fontFamily: "Inter, 'Hind Siliguri', sans-serif", fontWeight: 700 }} />
           <button className="btn" disabled={busy}>{bn ? "যোগ দিন" : "Join"}</button>
         </form>
       </div>
