@@ -71,7 +71,7 @@ img { display: block; }
 .side.win span { font-weight: 700; }
 .mid { text-align: center; line-height: 1.15; }
 .mid .t { font-size: 13px; font-weight: 600; }
-.mid .sc { font-family: Inter, 'Hind Siliguri', sans-serif; font-size: 16px; font-weight: 800; letter-spacing: .5px; }
+.mid .sc { font-family: Inter, 'KK Score', 'Hind Siliguri', sans-serif; font-size: 16px; font-weight: 800; letter-spacing: .5px; }
 .mid .st { font-size: 10.5px; color: var(--muted); margin-top: 2px; }
 .mid .lv { color: var(--red); font-weight: 700; }
 .lv.lv-pill { display: inline-block; background: #16a34a; color: #fff; border-radius: 999px; padding: 0 7px; font: 700 11.5px Inter, 'Hind Siliguri', sans-serif; line-height: 18px; }
@@ -792,12 +792,12 @@ button.pm { background: none; border: 0; padding: 0; cursor: pointer; font: inhe
 .sq .muted { grid-column: 2; font-size: 12px; }
 .sq-age { grid-column: 3; grid-row: 1 / span 2; align-self: center; font-size: 13px; color: var(--muted); }
 .h2h-agg { display: grid; grid-template-columns: 1fr 1fr 1fr; text-align: center; padding: 14px 8px; border-bottom: 1px solid var(--line); }
-.h2h-agg b { display: block; font-size: 24px; font-family: Inter, 'Hind Siliguri', sans-serif; }
+.h2h-agg b { display: block; font-size: 24px; font-family: Inter, 'KK Score', 'Hind Siliguri', sans-serif; }
 .h2h-agg span { font-size: 12px; color: var(--muted); }
 .h2h-row { display: flex; flex-direction: column; gap: 2px; padding: 10px 14px; border-bottom: 1px solid var(--line); font-size: 13.5px; }
 .h2h-row:last-child { border-bottom: 0; }
 .h2h-row .muted { font-size: 11.5px; }
-.h2h-score b { font-family: Inter, 'Hind Siliguri', sans-serif; margin: 0 4px; }
+.h2h-score b { font-family: Inter, 'KK Score', 'Hind Siliguri', sans-serif; margin: 0 4px; }
 
 /* ══════ মিনিমাল ডিজাইন ══════ */
 .sec { margin-top: 22px; }
@@ -817,7 +817,7 @@ button.pm { background: none; border: 0; padding: 0; cursor: pointer; font: inhe
 .nx-time { text-align: center; display: flex; flex-direction: column; line-height: 1.15; }
 .nx-time b { font-size: 16px; }
 .nx-time small { font-size: 11px; opacity: .75; }
-.nx-score { font-family: Inter, 'Hind Siliguri', sans-serif; font-size: 20px !important; }
+.nx-score { font-family: Inter, 'KK Score', 'Hind Siliguri', sans-serif; font-size: 20px !important; }
 /* অতিথির জন্য সরু লাইন */
 .slim { width: 100%; display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-radius: 14px; background: var(--card); border: 1px dashed color-mix(in srgb, var(--green) 45%, transparent); font-size: 14px; text-align: left; }
 .slim span:nth-child(2) { flex: 1; }
@@ -886,7 +886,7 @@ button.pm { background: none; border: 0; padding: 0; cursor: pointer; font: inhe
 .ms-team { display: flex; flex-direction: column; align-items: center; gap: 8px; font-size: 15px; font-weight: 700; text-align: center; line-height: 1.25; }
 .ms-mid { text-align: center; min-width: 96px; }
 .ms-time { font-size: 26px; font-weight: 700; line-height: 1.1; }
-.ms-score { font-family: Inter, 'Hind Siliguri', sans-serif; font-size: 32px; font-weight: 800; letter-spacing: 1px; }
+.ms-score { font-family: Inter, 'KK Score', 'Hind Siliguri', sans-serif; font-size: 32px; font-weight: 800; letter-spacing: 1px; }
 .ms-date { font-size: 13px; color: var(--muted); margin-top: 4px; }
 .ms-cd { text-align: center; font-size: 12.5px; color: var(--muted); padding-bottom: 4px; }
 .ms-row { width: 100%; display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; font-size: 14.5px; font-weight: 600; text-align: left; }
