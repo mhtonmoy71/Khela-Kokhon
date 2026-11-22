@@ -473,6 +473,8 @@ export async function runReminders(force) {
         body: st >= 2 ? `আপনার ${bnN(st)} দিনের স্ট্রিক আজ রাতেই ভেঙে যাবে। ৫টা প্রশ্নে ধরে রাখুন` : "৫টা প্রশ্ন, ১ মিনিট। আজকের পয়েন্ট নিয়ে নিন", url: "/quiz/daily", tag: "daily" });
     }
   }
+  // পরীক্ষায় (force) আগের পাঠানো খাতা না মেনে আবার পাঠানো
+  if (force) for (const n of items) n.ev += ":t" + now;
   return { reminders: items.length, sent: await pushToUsers(items) };
 }
 
