@@ -1335,6 +1335,26 @@ button.scr { width: 100%; }
 .dl-range { font-size: 12px; padding: 0 16px 6px; }
 .dl-row { border-bottom: 1px solid var(--line); }
 .dl-row:last-child { border-bottom: 0; }
+.lvb-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 6px; padding: 10px; }
+.lvb-grid.compact { grid-template-columns: repeat(auto-fill, minmax(128px, 1fr)); }
+.lvb-cell { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 3px; padding: 12px 6px 10px; border-radius: 14px; color: inherit; background: var(--card2); }
+.lvb-cell b { font-size: 13px; line-height: 1.3; }
+.lvb-cell.off b { color: var(--muted); }
+.lvb-tier { font-size: 12px; font-weight: 800; color: var(--muted); }
+.lvb-cell > small.muted { font-size: 10.5px; line-height: 1.3; }
+.lvb-bar { display: block; width: 80%; height: 5px; border-radius: 99px; background: var(--line); overflow: hidden; margin: 3px 0 1px; }
+.lvb-bar em { display: block; height: 100%; border-radius: 99px; }
+.lvb-champ { font-size: 10.5px; font-weight: 800; color: #ca8a04; }
+.lvb-pop { max-width: 360px; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.lvb-steps { width: 100%; text-align: left; margin: 6px 0 12px; display: flex; flex-direction: column; gap: 2px; }
+.lvb-step { display: flex; align-items: center; gap: 10px; padding: 6px 4px; border-radius: 10px; opacity: .55; }
+.lvb-step.got { opacity: 1; }
+.lvb-step span { flex: 1; display: flex; flex-direction: column; } .lvb-step b { font-size: 13.5px; } .lvb-step small { font-size: 11.5px; }
+.lvb-step em { font-style: normal; font-size: 11.5px; color: var(--muted); white-space: nowrap; }
+.lvb-step.got em { color: var(--green); font-weight: 700; }
+.lvb-more { font-size: 12px; text-align: center; margin-top: 4px; }
+.lvb-mini { display: inline-flex; vertical-align: -4px; margin: 0 2px 0 5px; }
+.bdg.legend { filter: drop-shadow(0 0 6px rgba(244,63,94,.45)); }
 .bdg-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 4px; padding: 10px; }
 .bdg-cell { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 3px; padding: 10px 4px; border-radius: 14px; }
 .bdg-cell b { font-size: 12.5px; line-height: 1.3; }
@@ -5563,6 +5583,131 @@ const BADGES = [
   ["week1", "সপ্তাহের চ্যাম্পিয়ন", "Weekly champion", "কোনো সপ্তাহে প্রথম হন", "Win a week", ["#fde047", "#ca8a04"], "crown"],
 ];
 const badgeOf = (id) => BADGES.find((b) => b[0] === id);
+// ── ব্যাজের লেভেল (supabase/badge_levels.sql-এর সাথে মিল রেখে) ──
+// প্রতিটা ব্যাজে ধাপ: সবুজ → ব্রোঞ্জ → রুপা → সোনা → প্লাটিনাম → হীরা → কিংবদন্তি; শেষ ধাপের পরে নির্দিষ্ট ব্যবধানে একটা করে তারা
+const LV_METRICS = [
+  { m: "streak", bn: "টানা খেলা", en: "Streak", glyph: "flame", steps: [3, 7, 14, 30, 60, 100, 180, 365], star: 365, ubn: "দিন টানা", uen: "days in a row" },
+  { m: "perfect", bn: "পারফেক্ট ডে", en: "Perfect days", glyph: "check", steps: [1, 5, 10, 25, 50, 100, 250], star: 250, ubn: "দিন", uen: "days" },
+  { m: "days", bn: "মোট খেলা", en: "Days played", glyph: "cal", steps: [1, 10, 50, 100, 200, 365, 500], star: 250, ubn: "দিন", uen: "days" },
+  { m: "football", bn: "ফুটবল বিশেষজ্ঞ", en: "Football expert", glyph: "ball", steps: [50, 150, 500, 1000, 2500], star: 2500, ubn: "সঠিক উত্তর", uen: "right answers" },
+  { m: "cricket", bn: "ক্রিকেট বিশেষজ্ঞ", en: "Cricket expert", glyph: "bat", steps: [50, 150, 500, 1000, 2500], star: 2500, ubn: "সঠিক উত্তর", uen: "right answers" },
+  { m: "week", bn: "সাপ্তাহিক সেরা দশ", en: "Weekly top 10", glyph: "laurel", steps: [1, 5, 10, 25], star: 25, ubn: "বার", uen: "times" },
+];
+const LV_TIERS = [null, ["সবুজ", "Green", "#34d399", "#059669"], ["ব্রোঞ্জ", "Bronze", "#f0b37e", "#9a5b2c"], ["রুপা", "Silver", "#e5e7eb", "#8b98a9"], ["সোনা", "Gold", "#fde047", "#ca8a04"],
+  ["প্লাটিনাম", "Platinum", "#a5f3fc", "#0e7490"], ["হীরা", "Diamond", "#c4b5fd", "#6d28d9"], ["কিংবদন্তি", "Legend", "#fda4af", "#be123c"]];
+const lvMeta = (m) => LV_METRICS.find((x) => x.m === m);
+// কোন ধাপের রং: শেষ ধাপ সবসময় কিংবদন্তি
+const lvTier = (meta, level) => (level <= 0 ? null : LV_TIERS[level >= meta.steps.length ? 7 : Math.min(level, 6)]);
+function lvOf(meta, v = 0) {
+  const n = meta.steps.length, last = meta.steps[n - 1];
+  const level = meta.steps.filter((x) => v >= x).length;
+  const stars = level === n ? Math.floor((v - last) / meta.star) : 0;
+  const next = level < n ? meta.steps[level] : last + (stars + 1) * meta.star;
+  const prev = level === 0 ? 0 : level < n ? meta.steps[level - 1] : last + stars * meta.star;
+  return { v, level, stars, next, prev, pct: Math.max(0, Math.min(1, (v - prev) / Math.max(1, next - prev))) };
+}
+// 'lv:perfect:3' / 'lv:perfect:s2' → { meta, level, stars }
+const lvParse = (id) => { const [, m, x] = String(id).split(":"); const meta = lvMeta(m); if (!meta) return null; return x?.[0] === "s" ? { meta, level: meta.steps.length, stars: +x.slice(1) } : { meta, level: +x, stars: 0 }; };
+function LevelIcon({ m, level = 0, stars = 0, size = 56 }) {
+  const { lang } = useT();
+  const meta = lvMeta(m); if (!meta) return null;
+  const t = lvTier(meta, level), locked = !t;
+  const [c1, c2] = locked ? ["#d6dde3", "#9aa7b2"] : [t[2], t[3]];
+  const gid = `lv-${m}-${level}-${size}`;
+  const legend = t && t === LV_TIERS[7];
+  const g = {
+    flame: <path d="M32.8 17.5c.6 3.4-.9 5.4-2.7 7.4-2 2.2-4.5 4.6-4.5 8.4A6.4 6.4 0 0 0 32 40a6.4 6.4 0 0 0 6.4-6.8c0-2.8-1.2-5.1-2.9-7 .1 1.9-.6 3.3-1.9 4 .5-4.3-.3-8.9-.8-12.7z" fill="#fff" />,
+    check: <path d="M22 31.5l7 7 13-14" stroke="#fff" strokeWidth="4.5" fill="none" strokeLinecap="round" strokeLinejoin="round" />,
+    cal: <><rect x="21" y="21" width="22" height="19" rx="3.5" fill="none" stroke="#fff" strokeWidth="3" /><path d="M21 27h22M26.5 18v5M37.5 18v5" stroke="#fff" strokeWidth="3" strokeLinecap="round" /></>,
+    ball: <><circle cx="32" cy="31" r="11" fill="#fff" /><path d="M32 25l5 3.6-1.9 5.9h-6.2L27 28.6z" fill={c2} /></>,
+    bat: <><path d="M38.5 19.5l5 5-13 13-5-5z" fill="#fff" /><path d="M25.5 32.5l5 5-4 4-5-5z" fill="#fff" opacity=".85" /><circle cx="41" cy="39" r="3.4" fill="#fff" /></>,
+    laurel: <><path d="M24 21c-4 5-4 14 0 20M40 21c4 5 4 14 0 20" stroke="#fff" strokeWidth="3" fill="none" strokeLinecap="round" /><text x="32" y="36" fontSize="12" fontWeight="900" fill="#fff" textAnchor="middle" fontFamily="Inter, 'Hind Siliguri', sans-serif">{num(10, lang)}</text></>,
+  }[meta.glyph];
+  const lbl = level > 0 ? meta.steps[Math.min(level, meta.steps.length) - 1] : meta.steps[0];
+  return (
+    <svg width={size} height={size} viewBox="0 0 64 64" aria-hidden="true" className={"bdg" + (locked ? " locked" : "") + (legend ? " legend" : "")}>
+      <defs><linearGradient id={gid} x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor={c1} /><stop offset="1" stopColor={c2} /></linearGradient></defs>
+      <path d="M32 3l6.2 4.6 7.7-.3 2.4 7.3 6.4 4.4-2.4 7.3 2.4 7.4-6.4 4.3-2.4 7.4-7.7-.3L32 50.7l-6.2-4.6-7.7.3-2.4-7.4-6.4-4.3 2.4-7.4-2.4-7.3 6.4-4.4 2.4-7.3 7.7.3z" fill={`url(#${gid})`} transform="translate(0 5)" stroke={legend ? "#fff7" : "none"} strokeWidth="1.5" />
+      <circle cx="32" cy="31" r="17" fill="rgba(255,255,255,.16)" />
+      {g}
+      {meta.glyph !== "laurel" && <text x="32" y="50" fontSize="9" fontWeight="900" fill="#fff" textAnchor="middle" fontFamily="Inter, 'Hind Siliguri', sans-serif">{num(lbl, lang)}</text>}
+      {stars > 0 && <g><circle cx="50" cy="13" r="8.5" fill="#f59e0b" stroke="var(--card)" strokeWidth="2" /><text x="50" y="16.5" fontSize="9" fontWeight="900" fill="#fff" textAnchor="middle" fontFamily="Inter, 'Hind Siliguri', sans-serif">★{stars > 1 ? num(stars, lang) : ""}</text></g>}
+      {locked && <g transform="translate(42 42)"><circle r="8" fill="var(--card)" /><path d="M-3 -1v-2a3 3 0 0 1 6 0v2M-4.2 -1h8.4v6h-8.4z" stroke="var(--muted)" strokeWidth="1.6" fill="none" /></g>}
+    </svg>
+  );
+}
+// নিজের অগ্রগতি (লেভেলের জন্য); SQL না থাকলে null → আগের ব্যাজ দেখায়
+function useDailyProgress(user, key) {
+  const [p, setP] = useState(undefined);
+  useEffect(() => {
+    if (DEMO) { const S = ls.get("daily_demo", { plays: {} }); const done = Object.values(S.plays).filter((x) => x.finished);
+      setP({ streak: Math.max(0, ...done.map((x) => x.streak)), perfect: done.filter((x) => x.correct === DAILY_Q).length, days: done.length, football: 12, cricket: 4, week: 0, champ: 0 }); return; }
+    if (!user) { setP(null); return; }
+    sb.rpc("daily_my_progress").then(({ data, error }) => setP(error ? null : data), () => setP(null));
+  }, [user?.id, key]);
+  return p;
+}
+function shareLevel(meta, lv, bn) {
+  const t = lvTier(meta, lv.level);
+  const text = bn ? `খেলা কখন?-এর দৈনিক চ্যালেঞ্জে আমার "${meta.bn}" ব্যাজ এখন ${t ? t[0] : ""} (${num(lv.v, "bn")} ${meta.ubn})। আপনিও খেলুন: https://khelakokhon.com/quiz/daily`
+    : `My "${meta.en}" badge on Khela Kokhon is now ${t ? t[1] : ""} (${lv.v} ${meta.uen}). Play the daily challenge: https://khelakokhon.com/quiz/daily`;
+  if (navigator.share) navigator.share({ text }).catch(() => {}); else navigator.clipboard?.writeText(text);
+}
+// ৬টা লেভেলওয়ালা ব্যাজ
+function LevelBadges({ progress, have = [], compact }) {
+  const { lang } = useT();
+  const bn = lang === "bn";
+  const [open, setOpen] = useState(null);
+  const when = Object.fromEntries(have.map((b) => [b.id, b.at]));
+  const dt = (iso) => { if (!iso) return ""; const d = new Date(iso); return bn ? `${num(d.getDate(), "bn")} ${BN_MONTHS[d.getMonth()]} ${num(d.getFullYear(), "bn")}` : `${d.getDate()} ${EN_MONTHS[d.getMonth()]} ${d.getFullYear()}`; };
+  const sel = open && lvMeta(open);
+  const slv = sel && lvOf(sel, progress[sel.m] || 0);
+  return (
+    <>
+      <div className={"lvb-grid" + (compact ? " compact" : "")}>
+        {LV_METRICS.map((meta) => {
+          const lv = lvOf(meta, progress[meta.m] || 0), t = lvTier(meta, lv.level);
+          return (
+            <button key={meta.m} className={"lvb-cell" + (t ? "" : " off")} onClick={() => setOpen(meta.m)}>
+              <LevelIcon m={meta.m} level={lv.level} stars={lv.stars} size={compact ? 50 : 56} />
+              <b>{bn ? meta.bn : meta.en}</b>
+              <small className="lvb-tier" style={t ? { color: t[3] } : null}>{t ? `${bn ? t[0] : t[1]}${lv.stars ? ` ★${num(lv.stars, lang)}` : ""}` : (bn ? "এখনো নেই" : "Not yet")} · {num(lv.v, lang)}</small>
+              <i className="lvb-bar"><em style={{ width: `${Math.round(lv.pct * 100)}%`, background: t ? t[3] : "var(--muted)" }} /></i>
+              <small className="muted">{bn ? `${num(lv.next, "bn")}-এর পথে, আর ${num(lv.next - lv.v, "bn")}` : `${lv.next - lv.v} to ${lv.next}`}</small>
+              {meta.m === "week" && progress.champ > 0 && <small className="lvb-champ">{bn ? `চ্যাম্পিয়ন ×${num(progress.champ, "bn")}` : `Champion ×${progress.champ}`}</small>}
+            </button>
+          );
+        })}
+      </div>
+      {sel && (
+        <div className="veil bdg-veil" onClick={() => setOpen(null)}>
+          <div className="bdg-pop lvb-pop" onClick={(e) => e.stopPropagation()}>
+            <LevelIcon m={sel.m} level={slv.level} stars={slv.stars} size={96} />
+            <div className="bdg-pop-t"><b>{bn ? sel.bn : sel.en}</b><span className="muted">{bn ? `এখন পর্যন্ত ${num(slv.v, "bn")} ${sel.ubn}` : `${slv.v} ${sel.uen} so far`}</span></div>
+            <div className="lvb-steps">
+              {sel.steps.map((x, i) => {
+                const lvl = i + 1, t = lvTier(sel, lvl), got = slv.level >= lvl;
+                return (
+                  <div key={x} className={"lvb-step" + (got ? " got" : "")}>
+                    <LevelIcon m={sel.m} level={got ? lvl : 0} size={30} />
+                    <span><b>{bn ? t[0] : t[1]}</b><small className="muted">{num(x, lang)} {bn ? sel.ubn : sel.uen}</small></span>
+                    <em>{got ? (dt(when[`lv:${sel.m}:${lvl}`]) || (bn ? "অর্জিত" : "Earned")) : (bn ? `আর ${num(x - slv.v, "bn")}` : `${x - slv.v} to go`)}</em>
+                  </div>
+                );
+              })}
+              <div className="muted lvb-more">{bn ? `এরপর প্রতি ${num(sel.star, "bn")}-এ একটা করে ★` : `Then a ★ every ${sel.star}`}</div>
+            </div>
+            <div className="adm-actions">
+              {slv.level > 0 && <button className="btn ghost" onClick={() => shareLevel(sel, slv, bn)}>{bn ? "শেয়ার করুন" : "Share"}</button>}
+              <button className="btn" onClick={() => setOpen(null)}>{bn ? "ঠিক আছে" : "OK"}</button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  );
+}
+
 
 function BadgeIcon({ id, size = 56, locked }) {
   const { lang } = useT();
@@ -5722,8 +5867,13 @@ function NewBadgePop({ ids, onClose }) {
       <Confetti />
       <div className="bdg-pop" onClick={(e) => e.stopPropagation()}>
         <small>{bn ? (ids.length > 1 ? `${num(ids.length, "bn")}টা নতুন ব্যাজ!` : "নতুন ব্যাজ!") : (ids.length > 1 ? `${ids.length} new badges!` : "New badge!")}</small>
-        <div className="bdg-pop-row">{ids.map((id) => <BadgeIcon key={id} id={id} size={ids.length > 1 ? 84 : 112} />)}</div>
-        {ids.map((id) => { const b = badgeOf(id); return b && <div key={id} className="bdg-pop-t"><b>{bn ? b[1] : b[2]}</b><span className="muted">{bn ? b[3] : b[4]}</span></div>; })}
+        <div className="bdg-pop-row">{ids.map((id) => { const L = lvParse(id); return L ? <LevelIcon key={id} m={L.meta.m} level={L.level} stars={L.stars} size={ids.length > 1 ? 84 : 112} /> : <BadgeIcon key={id} id={id} size={ids.length > 1 ? 84 : 112} />; })}</div>
+        {ids.map((id) => {
+          const L = lvParse(id);
+          if (L) { const t = lvTier(L.meta, L.level), x = L.meta.steps[Math.min(L.level, L.meta.steps.length) - 1] + L.stars * L.meta.star;
+            return <div key={id} className="bdg-pop-t"><b>{bn ? L.meta.bn : L.meta.en} · {bn ? t[0] : t[1]}{L.stars ? ` ★${num(L.stars, lang)}` : ""}</b><span className="muted">{bn ? `${num(x, "bn")} ${L.meta.ubn} পূর্ণ হয়েছে` : `${x} ${L.meta.uen} reached`}</span></div>; }
+          const b = badgeOf(id); return b && <div key={id} className="bdg-pop-t"><b>{bn ? b[1] : b[2]}</b><span className="muted">{bn ? b[3] : b[4]}</span></div>;
+        })}
         <button className="btn block" onClick={onClose}>{bn ? "দারুণ!" : "Awesome!"}</button>
       </div>
     </div>
@@ -5766,7 +5916,7 @@ function WeekBoard() {
           <div key={i} className={"qz-pl dl-row" + (r.is_me ? " me" : "")}>
             <RankBadge rank={r.rank} lang={lang} />
             <UserAvatar src={r.avatar} name={r.name} size={30} />
-            <span className="qz-nm">{r.name}{r.is_me ? (bn ? " (আপনি)" : " (you)") : ""}<small className="muted"> · {bn ? `${num(r.days, "bn")} দিন` : `${r.days}d`}</small></span>
+            <span className="qz-nm">{r.name}{(() => { const L = r.top && lvParse(r.top); return L ? <span className="lvb-mini" title={bn ? L.meta.bn : L.meta.en}><LevelIcon m={L.meta.m} level={L.level} size={18} /></span> : null; })()}{r.is_me ? (bn ? " (আপনি)" : " (you)") : ""}<small className="muted"> · {bn ? `${num(r.days, "bn")} দিন` : `${r.days}d`}</small></span>
             <span className="qz-sc"><b>{num(r.points, lang)}</b><small>{bn ? "পয়েন্ট" : "pts"}</small></span>
           </div>
         ))
@@ -5780,6 +5930,7 @@ function DailyPage({ user, goProfile, toast }) {
   const bn = lang === "bn";
   const wide = useWide();
   const [st, setSt, load, off] = useDaily(user);
+  const prog = useDailyProgress(user, st?.play?.finished ? "done" : st?.day);
   const [rev, setRev] = useState(null);   // সর্বশেষ প্রশ্নের ফল
   const [picked, setPicked] = useState(null);
   const [busy, setBusy] = useState(false);
@@ -5794,8 +5945,16 @@ function DailyPage({ user, goProfile, toast }) {
   useEffect(() => { if (playing) quizAudio.start(); else quizAudio.stop(); return () => quizAudio.stop(); }, [playing]);
   // নতুন ব্যাজ (সাপ্তাহিক ব্যাজ পরে আসে, তাই যেকোনো সময়)
   useEffect(() => {
-    const ids = [...(st?.new_badges || []), ...(st?.badges || []).map((b) => b.id)].filter((id) => !seenBadges().includes(id));
-    if (ids.length && !playing) setPop([...new Set(ids)]);
+    let ids = [...new Set([...(st?.new_badges || []), ...(st?.badges || []).map((b) => b.id)])].filter((id) => !seenBadges().includes(id));
+    // লেভেল ব্যবস্থা চালু থাকলে: পুরনো ব্যাজ নয়, প্রতি ব্যাজের সবচেয়ে উঁচু নতুন ধাপটা
+    if ((st?.badges || []).some((b) => String(b.id).startsWith("lv:"))) {
+      markBadgesSeen(ids.filter((id) => !String(id).startsWith("lv:")));
+      const best = {};
+      for (const id of ids.filter((x) => String(x).startsWith("lv:"))) { const L = lvParse(id); if (!L) continue; const sc = L.level * 1000 + L.stars; if (!best[L.meta.m] || sc > best[L.meta.m][0]) best[L.meta.m] = [sc, id]; }
+      markBadgesSeen(ids);
+      ids = Object.values(best).map((x) => x[1]);
+    }
+    if (ids.length && !playing) setPop(ids);
   }, [st?.badges?.length, playing]);
 
   const nowS = now + (off.current || 0);
@@ -5957,7 +6116,7 @@ function DailyPage({ user, goProfile, toast }) {
   const side = (
     <>
       <div className="sec"><div className="sec-h"><h2>{bn ? "সাপ্তাহিক র‍্যাঙ্কিং" : "Weekly ranking"}</h2></div><WeekBoard /></div>
-      {(user || DEMO) && <div className="sec"><div className="sec-h"><h2>{bn ? "আপনার ব্যাজ" : "Your badges"}</h2><span className="muted" style={{ fontSize: 12.5 }}>{num((st.badges || []).length, lang)}/{num(BADGES.length, lang)}</span></div><div className="card"><BadgeGrid have={st.badges} /></div></div>}
+      {(user || DEMO) && <div className="sec"><div className="sec-h"><h2>{bn ? "আপনার ব্যাজ" : "Your badges"}</h2></div><div className="card">{prog ? <LevelBadges progress={prog} have={st.badges} /> : <BadgeGrid have={st.badges} />}</div></div>}
     </>
   );
 
@@ -6491,11 +6650,14 @@ function AuthForm() {
   );
 }
 
-function ProfileBadges({ st }) {
+function ProfileBadges({ st, user }) {
   const { lang } = useT();
   const bn = lang === "bn";
   const nav = useNav();
+  const prog = useDailyProgress(user, st?.badges?.length);
   if (!st || st.error) return null;
+  const lvTotal = prog ? LV_METRICS.reduce((n, mt) => n + lvOf(mt, prog[mt.m] || 0).level, 0) : 0;
+  const lvMax = LV_METRICS.reduce((n, mt) => n + mt.steps.length, 0);
   return (
     <div className="sec" id="my-badges">
       <div className="sec-h"><h2>{bn ? "দৈনিক চ্যালেঞ্জের ব্যাজ" : "Daily challenge badges"}</h2><button className="link" onClick={() => nav.openDaily()}>{bn ? "খেলুন" : "Play"} →</button></div>
@@ -6503,9 +6665,9 @@ function ProfileBadges({ st }) {
         <div className="pb-stats">
           <div><FlameIcon width={18} height={18} className="fl" /><b>{num(st.streak, lang)}</b><small>{bn ? "এখন টানা" : "current streak"}</small></div>
           <div><TrophyIcon width={18} height={18} /><b>{num(st.best_streak, lang)}</b><small>{bn ? "সেরা ধারাবাহিকতা" : "best streak"}</small></div>
-          <div><CalIcon width={18} height={18} /><b>{num((st.badges || []).length, lang)}/{num(BADGES.length, lang)}</b><small>{bn ? "ব্যাজ" : "badges"}</small></div>
+          <div><CalIcon width={18} height={18} /><b>{prog ? `${num(lvTotal, lang)}/${num(lvMax, lang)}` : `${num((st.badges || []).length, lang)}/${num(BADGES.length, lang)}`}</b><small>{prog ? (bn ? "ধাপ" : "levels") : (bn ? "ব্যাজ" : "badges")}</small></div>
         </div>
-        <BadgeGrid have={st.badges} compact />
+        {prog ? <LevelBadges progress={prog} have={st.badges} compact /> : <BadgeGrid have={st.badges} compact />}
       </div>
     </div>
   );
@@ -7098,7 +7260,7 @@ function Profile({ user, profile, setProfile, toast, myTeams, teamsById, lang, s
       </div>
       {ADMIN_IDS.includes(user?.id) && <div className="sec"><a className="btn block admin-btn" href="/admin" onClick={(e) => { e.preventDefault(); history.pushState({}, "", "/admin"); dispatchEvent(new PopStateEvent("popstate")); }}>অ্যাডমিন প্যানেল · শুধু আপনি দেখছেন</a></div>}
       <PushCard user={user} hasFav={myTeams.fav.length > 0} toast={toast} bn={bn} />
-      <ProfileBadges st={st} />
+      <ProfileBadges st={st} user={user} />
       {settings}
       <div className="sec">
         <button className="btn ghost block" onClick={signOut}>{t("logout")}</button>
