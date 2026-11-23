@@ -439,7 +439,7 @@ const BD = 6 * 3600000;
 const bdParts = (t) => { const d = new Date(Date.parse(t) + BD); return { h: d.getUTCHours(), mi: d.getUTCMinutes(), day: d.toISOString().slice(0, 10) }; };
 const bdPeriod = (h) => (h < 4 ? "রাত" : h < 6 ? "ভোর" : h < 12 ? "সকাল" : h < 15 ? "দুপুর" : h < 18 ? "বিকাল" : h < 20 ? "সন্ধ্যা" : "রাত");
 const bdTime = (t) => { const { h, mi } = bdParts(t); return `${bdPeriod(h)} ${bnN(h % 12 || 12)}:${bnN(String(mi).padStart(2, "0"))}`; };
-async function pushToUsers(items) {
+export async function pushToUsers(items) {
   if (!items.length || !process.env.VAPID_PRIVATE_KEY) return 0;
   let claimed = [];
   try { claimed = await sb("push_log?on_conflict=match_id,ev", { method: "POST", body: items.map((n) => ({ match_id: n.mid, ev: n.ev })), prefer: "resolution=ignore-duplicates,return=representation" }); } catch { return 0; }
