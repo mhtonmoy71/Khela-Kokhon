@@ -1,10 +1,13 @@
--- সাপ্তাহিক লিডারবোর্ড: "এই সপ্তাহ" আর "গত সপ্তাহ" (সোমবার থেকে রবিবার, বাংলাদেশ সময়ে খেলা শুরুর হিসাবে)
+-- সাপ্তাহিক লিডারবোর্ড: "এই সপ্তাহ" আর "গত সপ্তাহ" (শনিবার থেকে শুক্রবার, বাংলাদেশ সময়ে খেলা শুরুর হিসাবে)
 -- wk = null হলে পুরো সিজন (আগের মতো), 0 = এই সপ্তাহ, -1 = গত সপ্তাহ
 -- live_leaderboard.sql আগে চালানো থাকতে হবে (live_pts, user_avatar)
 
 create or replace function kk_week_start(wk int)
 returns timestamptz language sql stable as $$
-  select (date_trunc('week', now() at time zone 'Asia/Dhaka') + make_interval(days => 7 * wk)) at time zone 'Asia/Dhaka'
+  -- আজ থেকে পেছনে সবচেয়ে কাছের শনিবার রাত ১২টা (বাংলাদেশ সময়)
+  select (date_trunc('day', now() at time zone 'Asia/Dhaka')
+          - make_interval(days => ((extract(dow from now() at time zone 'Asia/Dhaka')::int + 1) % 7))
+          + make_interval(days => 7 * wk)) at time zone 'Asia/Dhaka'
 $$;
 
 drop function if exists get_leaderboard_v3(int, text, int);
