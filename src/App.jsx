@@ -1002,6 +1002,14 @@ button.pm { background: none; border: 0; padding: 0; cursor: pointer; font: inhe
 .qz-rv:first-of-type { margin-top: 10px; }
 .qz-rv .ok { color: var(--green); }
 .qz-rv .bad { color: var(--red); }
+.seg.lb-period { grid-template-columns: repeat(3, 1fr); margin-bottom: 10px; }
+.wk-head { margin: -2px 0 10px; font-size: 12.5px; }
+.wk-best { display: flex; align-items: center; gap: 12px; margin-top: 8px; padding: 12px 14px; border-radius: 14px; background: linear-gradient(135deg, rgba(245,158,11,.16), rgba(245,158,11,.05)); border: 1px solid rgba(245,158,11,.35); color: var(--text); }
+.wk-best small { display: block; font-size: 11.5px; color: var(--muted); }
+.wk-best b { display: block; font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.wk-crown { width: 34px; height: 34px; flex: none; border-radius: 50%; display: grid; place-items: center; background: #f59e0b; color: #fff; font-size: 17px; }
+.wk-pts { margin-left: auto; font-weight: 800; font-size: 20px; white-space: nowrap; }
+.wk-pts small { font-size: 11px; font-weight: 600; color: var(--muted); }
 .lb-filter { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; margin: 0 -16px 12px; padding: 2px 16px; }
 .lb-filter::-webkit-scrollbar { display: none; }
 .lb-filter .chip { flex: none; display: inline-flex; align-items: center; gap: 6px; }
@@ -1568,6 +1576,9 @@ const isLive = (m) => LIVE.includes(m.status);
 const isDone = (m) => m.status === "FINISHED";
 const isOff = (m) => ["POSTPONED", "CANCELLED", "SUSPENDED"].includes(m.status);
 // নকআউট ম্যাচ (টাইব্রেকার হতে পারে): লিগ/গ্রুপ পর্ব নয় এমন রাউন্ড
+// জাতীয় দলের ম্যাচে লিগের বদলে আসল টুর্নামেন্ট: "বাংলাদেশ · সাফ চ্যাম্পিয়নশিপ"
+const mComp = (m, lang) => (m?.competition_code === "BAN" && m.group_name ? `${lang === "bn" ? "বাংলাদেশ" : "Bangladesh"} · ${lang === "bn" ? m.group_name : (NT_EN[m.group_name] || m.group_name)}` : compName(m?.competition, lang));
+const NT_EN = { "বিশ্বকাপ বাছাই": "World Cup qualifier", "এশিয়ান কাপ বাছাই": "Asian Cup qualifier", "এশিয়ান কাপ": "Asian Cup", "সাফ চ্যাম্পিয়নশিপ": "SAFF Championship", "এশিয়ান গেমস": "Asian Games", "প্রীতি ম্যাচ": "Friendly", "কিংস কাপ": "King's Cup", "আমন্ত্রণমূলক টুর্নামেন্ট": "Invitational" };
 const isKnockout = (m) => (DEMO && typeof window !== "undefined" && window.__kkKO) || !!m?.stage && !/regular|league stage|league phase|group|^league [a-d]|^league - |REGULAR_SEASON|LEAGUE_STAGE|GROUP_STAGE/i.test(m.stage);
 // খেলা চলার সময় এখনকার স্কোর ধরে প্রেডিকশনের পয়েন্ট (শেষ হলে আসল পয়েন্ট)
 const predPts = (pred, m) => {
@@ -2088,7 +2099,8 @@ async function savePrediction(user, matchId, home, away, penPick) {
 // comp না দিলে সব লিগ মিলিয়ে; দিলে শুধু সেই লিগের ম্যাচের পয়েন্ট
 // (লিগ অনুযায়ী হিসাবের ফাংশন ডেটাবেসে না থাকলে "missing" error)
 const rpcMissing = (e) => /PGRST202|could not find the function|does not exist/i.test((e?.code || "") + " " + (e?.message || ""));
-async function getLeaderboard(comp) {
+async function getLeaderboard(comp, wk = null) {
+  if (wk !== null) return weekBoard("get_leaderboard_v3", { lim: 50, comp, wk });
   if (DEMO) return comp ? DEMO_LEADERS.filter((_, i) => (i + comp.length) % 3).map((r) => ({ ...r, points: Math.round(r.points / 3), exact: Math.round(r.exact / 3), played: Math.round(r.played / 3) })) : DEMO_LEADERS;
   // সব লিগ মিলিয়েও নতুন ফাংশন (ছবিসহ); ডেটাবেসে না থাকলে পুরনোটা
   const { data, error } = await sb.rpc("get_leaderboard_comp", { lim: 50, comp });
@@ -2121,12 +2133,60 @@ async function joinLeague(code) {
   return (await rpc("join_pleague", { p_code: code }))[0];
 }
 
-async function leagueBoard(id, comp) {
+async function leagueBoard(id, comp, wk = null) {
+  if (wk !== null) return weekBoard("pleague_board_v3", { p_id: String(id), comp, wk });
   if (DEMO) { const b = demoLeagues().find((x) => x.id === id)?.board || []; return comp ? b.map((r) => ({ ...r, points: Math.round(r.points / 2), exact: Math.round(r.exact / 2), played: Math.round(r.played / 2) })) : b; }
   const { data, error } = await sb.rpc("pleague_board_comp", { p_id: String(id), comp });
   if (error && !comp && rpcMissing(error)) return rpc("pleague_board", { p_id: id });
   if (error) throw rpcMissing(error) ? Object.assign(new Error("missing"), { missing: true }) : error;
   return data;
+}
+
+// সাপ্তাহিক বোর্ড (সোম–রবি, বাংলাদেশ সময়): wk 0 = এই সপ্তাহ, -1 = গত সপ্তাহ
+async function weekBoard(fn, args) {
+  if (DEMO) return DEMO_LEADERS.slice(0, 6).map((r, i) => ({ ...r, points: Math.max(0, 14 - i * 2 - (args.wk ? 1 : 0)), exact: Math.max(0, 3 - i), played: 6 }));
+  const { data, error } = await sb.rpc(fn, args);
+  if (error) throw rpcMissing(error) ? Object.assign(new Error("missing"), { missing: true }) : error;
+  return data;
+}
+// সপ্তাহের তারিখ: "১৭–২৩ নভেম্বর"
+function weekRangeLabel(wk, lang) {
+  const k = dayKey(new Date()), [y, m, d] = k.split("-").map(Number);
+  const wd = (new Date(Date.UTC(y, m - 1, d)).getUTCDay() + 6) % 7; // সোমবার = ০
+  const mon = addDays(k, -wd + 7 * wk), sun = addDays(mon, 6);
+  const p = (x) => x.split("-").map(Number);
+  const [, m1, d1] = p(mon), [, m2, d2] = p(sun), bn = lang === "bn", M = bn ? BN_MONTHS : EN_MONTHS;
+  return m1 === m2 ? `${num(d1, lang)}–${num(d2, lang)} ${M[m2 - 1]}` : `${num(d1, lang)} ${M[m1 - 1]} – ${num(d2, lang)} ${M[m2 - 1]}`;
+}
+// সিজন / এই সপ্তাহ / গত সপ্তাহ
+function PeriodSeg({ value, onChange }) {
+  const { lang } = useT(), bn = lang === "bn";
+  const opts = [[null, bn ? "সিজন" : "Season"], [0, bn ? "এই সপ্তাহ" : "This week"], [-1, bn ? "গত সপ্তাহ" : "Last week"]];
+  return (
+    <div className="seg lb-period">
+      {opts.map(([v, l]) => <button key={String(v)} className={value === v ? "on" : ""} onClick={() => onChange(v)}>{l}</button>)}
+    </div>
+  );
+}
+// সপ্তাহের সেরা: গত সপ্তাহের বোর্ডের ওপরে
+function WeekTop({ rows, wk, lang }) {
+  const bn = lang === "bn";
+  const best = rows?.[0]?.points > 0 ? rows.filter((r) => r.points === rows[0].points && r.exact === rows[0].exact) : [];
+  return (
+    <div className="wk-head">
+      <span className="muted">{weekRangeLabel(wk, lang)}{wk === 0 ? (bn ? " · চলছে" : " · in progress") : ""}</span>
+      {wk === -1 && best.length > 0 && (
+        <div className="wk-best">
+          <span className="wk-crown">★</span>
+          <div style={{ minWidth: 0 }}>
+            <small>{bn ? "সপ্তাহের সেরা প্রেডিক্টর" : "Predictor of the week"}</small>
+            <b>{best.map((r) => r.display_name + (r.is_me ? (bn ? " (আপনি)" : " (you)") : "")).join(", ")}</b>
+          </div>
+          <span className="wk-pts">{num(best[0].points, lang)} <small>{bn ? "পয়েন্ট" : "pts"}</small></span>
+        </div>
+      )}
+    </div>
+  );
 }
 
 // লিডারবোর্ডের লিগ ফিল্টার: সব + ছয় লিগ
@@ -4038,12 +4098,12 @@ function MatchPage({ id, m: mInit, user, pred, onSave, onLogin, toast }) {
         <div className="ms-top">
           <button className="mp-back" onClick={back} aria-label={bn ? "পেছনে" : "Back"}><ChevronIcon style={{ transform: "rotate(-90deg)" }} /></button>
           <button className="ms-comp" onClick={() => m.competition && nav.openLeague(m.competition.code)}>
-            <CompIcon c={m.competition} size={18} /><span>{compName(m.competition, lang)}{isKnockout(m) ? ` · ${isBo3(m) ? (bn ? "রাউন্ড ওয়ান" : "Round One") : stageLabel(m.stage, lang)}` : m.matchday ? ` · ${t("matchday")} ${num(m.matchday, lang)}` : ""}</span>
+            <CompIcon c={m.competition} size={18} /><span>{mComp(m, lang)}{isKnockout(m) ? ` · ${isBo3(m) ? (bn ? "রাউন্ড ওয়ান" : "Round One") : stageLabel(m.stage, lang)}` : m.matchday ? ` · ${t("matchday")} ${num(m.matchday, lang)}` : ""}</span>
           </button>
           {!isDone(m) && !isOff(m) && <BellBtn user={user} kind="match" id={m.id} base={[m.home_id, m.away_id].some((t) => (pfMap["team:" + t] !== undefined ? pfMap["team:" + t] : favTeamIds.includes(t)))} onLogin={onLogin} toast={toast} className="ms-share" />}
           <button className="ms-share" disabled={making} aria-label={bn ? "শেয়ার" : "Share"} onClick={async () => {
             setMaking(true);
-            try { await shareCard(m, { lang, teamName: (tm) => teamName(tm, lang), compName: compName(m.competition, lang), L, pred: pred || null }, toast); }
+            try { await shareCard(m, { lang, teamName: (tm) => teamName(tm, lang), compName: mComp(m, lang), L, pred: pred || null }, toast); }
             catch { toast(bn ? "ছবি বানানো গেল না" : "Couldn't make the image"); }
             setMaking(false);
           }}>{making ? <span className="spin sm" /> : <ShareIcon />}</button>
@@ -4106,7 +4166,7 @@ function MatchPage({ id, m: mInit, user, pred, onSave, onLogin, toast }) {
                     <span><b>{lang === "bn" ? "প্রেডিকশন দেওয়া আছে" : "Prediction locked in"}</b><small className="muted">{lang === "bn" ? "খেলা শুরুর আগ পর্যন্ত স্কোর বদলে আবার দিতে পারবেন" : "Change the score any time before kickoff"}</small></span>
                     <button className="pick-share" disabled={making} aria-label={bn ? "প্রেডিকশন শেয়ার" : "Share prediction"} onClick={async () => {
                       setMaking(true);
-                      try { await shareCard(m, { lang, teamName: (tm) => teamName(tm, lang), compName: compName(m.competition, lang), L, pred }, toast); }
+                      try { await shareCard(m, { lang, teamName: (tm) => teamName(tm, lang), compName: mComp(m, lang), L, pred }, toast); }
                       catch { toast(bn ? "ছবি বানানো গেল না" : "Couldn't make the image"); }
                       setMaking(false);
                     }}>{making ? <span className="spin sm" /> : <ShareIcon />}<span>{bn ? "শেয়ার" : "Share"}</span></button>
@@ -4130,7 +4190,7 @@ function MatchPage({ id, m: mInit, user, pred, onSave, onLogin, toast }) {
               <div className="sec-h"><h2>{bn ? "ম্যাচের তথ্য" : "Match info"}</h2></div>
               <div className="card mp-info">
                 <div><CalIcon width={16} height={16} /><span>{dayLabel(dayKey(m.utc_date), lang)} · {timeLabel(m.utc_date, lang)} <small className="muted">({t("bdTime")})</small></span></div>
-                <div><TrophyIcon width={16} height={16} /><span>{compName(m.competition, lang)}{isKnockout(m) ? ` · ${isBo3(m) ? (bn ? "রাউন্ড ওয়ান" : "Round One") : stageLabel(m.stage, lang)}` : m.matchday ? ` · ${t("matchday")} ${num(m.matchday, lang)}` : ""}</span></div>
+                <div><TrophyIcon width={16} height={16} /><span>{mComp(m, lang)}{isKnockout(m) ? ` · ${isBo3(m) ? (bn ? "রাউন্ড ওয়ান" : "Round One") : stageLabel(m.stage, lang)}` : m.matchday ? ` · ${t("matchday")} ${num(m.matchday, lang)}` : ""}</span></div>
               </div>
             </div>
           </>
@@ -4851,13 +4911,14 @@ function Board({ league, user, onBack, onLeft, toast }) {
   const [rows, setRows] = useState(null);
   const [err, setErr] = useState("");
   const [comp, setComp] = useState(null);
+  const [wk, setWk] = useState(null);
   useEffect(() => {
     setRows(null); setErr("");
     let a = true;
-    leagueBoard(league.id, comp).then((r) => a && setRows(r)).catch((e) => { if (!a) return; setErr(e.missing ? "missing" : e.message); setRows([]); });
-    const iv = setInterval(() => { if (!document.hidden) leagueBoard(league.id, comp).then((r) => a && r && setRows(r)).catch(() => {}); }, 60000);
+    leagueBoard(league.id, comp, wk).then((r) => a && setRows(r)).catch((e) => { if (!a) return; setErr(e.missing ? "missing" : e.message); setRows([]); });
+    const iv = setInterval(() => { if (!document.hidden) leagueBoard(league.id, comp, wk).then((r) => a && r && setRows(r)).catch(() => {}); }, 60000);
     return () => { a = false; clearInterval(iv); };
-  }, [league.id, comp]);
+  }, [league.id, comp, wk]);
 
   async function leave() {
     if (!window.confirm(bn ? `"${league.name}" লিগ ছেড়ে দেবেন?` : `Leave "${league.name}"?`)) return;
@@ -4875,11 +4936,14 @@ function Board({ league, user, onBack, onLeft, toast }) {
         </div>
       </div>
       <button className="btn block" style={{ margin: "12px 0" }} onClick={() => shareInvite(league, bn, toast)}>{bn ? "বন্ধুদের আমন্ত্রণ পাঠান" : "Invite friends"}</button>
+      <PeriodSeg value={wk} onChange={setWk} />
       <CompFilter value={comp} onChange={setComp} />
       {err && err !== "missing" && <div className="err">{err}</div>}
+      {wk !== null && rows && !err && <WeekTop rows={rows} wk={wk} lang={lang} />}
       {rows === null ? <div className="card"><div className="spin" /></div>
-        : err === "missing" || (comp && !rows.some((r) => r.played > 0)) ? <BoardMsg err={err} comp={comp} lang={lang} />
-        : <BoardRows rows={comp ? rows.filter((r) => r.played > 0 || r.is_me) : rows} isMe={(r) => r.is_me} lang={lang} t={t} />}
+        : err === "missing" && wk !== null ? <div className="card empty">{bn ? "সাপ্তাহিক লিডারবোর্ড খুব শিগগিরই চালু হচ্ছে।" : "Weekly leaderboard is coming soon."}</div>
+        : err === "missing" || ((comp || wk !== null) && !rows.some((r) => r.played > 0)) ? (wk !== null ? <div className="card empty">{wk === 0 ? (bn ? "এই সপ্তাহে লিগের কেউ এখনো পয়েন্ট পায়নি।" : "No points in this league this week yet.") : (bn ? "গত সপ্তাহে লিগের কেউ পয়েন্ট পায়নি।" : "No points last week.")}</div> : <BoardMsg err={err} comp={comp} lang={lang} />)
+        : <BoardRows rows={comp || wk !== null ? rows.filter((r) => r.played > 0 || r.is_me) : rows} isMe={(r) => r.is_me} lang={lang} t={t} />}
       <button className="link" style={{ color: "var(--red)", marginTop: 14 }} onClick={leave}>{bn ? "লিগ ছেড়ে দিন" : "Leave league"}</button>
     </>
   );
@@ -4981,21 +5045,25 @@ function Leaderboard({ me }) {
   const [rows, setRows] = useState(null);
   const [err, setErr] = useState("");
   const [comp, setComp] = useState(null);
+  const [wk, setWk] = useState(null);
   useEffect(() => {
     setRows(null); setErr("");
     let a = true;
-    getLeaderboard(comp).then((r) => a && setRows(r)).catch((e) => { if (!a) return; setErr(e?.missing ? "missing" : "x"); setRows([]); });
+    getLeaderboard(comp, wk).then((r) => a && setRows(r)).catch((e) => { if (!a) return; setErr(e?.missing ? "missing" : "x"); setRows([]); });
     // রিয়েল টাইম: প্রতি মিনিটে নতুন (খেলা চলার সময় পয়েন্ট বদলায়)
-    const iv = setInterval(() => { if (!document.hidden) getLeaderboard(comp).then((r) => a && r && setRows(r)).catch(() => {}); }, 60000);
+    const iv = setInterval(() => { if (!document.hidden) getLeaderboard(comp, wk).then((r) => a && r && setRows(r)).catch(() => {}); }, 60000);
     return () => { a = false; clearInterval(iv); };
-  }, [comp]);
+  }, [comp, wk]);
   const isMe = (r) => r.is_me ?? (me && r.display_name === me);
+  const bn = lang === "bn";
   return (
     <>
+      <PeriodSeg value={wk} onChange={setWk} />
       <CompFilter value={comp} onChange={setComp} />
+      {wk !== null && rows && !err && <WeekTop rows={rows} wk={wk} lang={lang} />}
       {rows === null ? <div className="card"><div className="spin" /></div>
-        : err === "missing" ? <BoardMsg err={err} comp={comp} lang={lang} />
-        : !rows.length ? (comp ? <BoardMsg comp={comp} lang={lang} /> : <div className="card empty">{t("noLeaders")}</div>)
+        : err === "missing" ? (wk !== null ? <div className="card empty">{bn ? "সাপ্তাহিক লিডারবোর্ড খুব শিগগিরই চালু হচ্ছে।" : "Weekly leaderboard is coming soon."}</div> : <BoardMsg err={err} comp={comp} lang={lang} />)
+        : !rows.length ? (wk !== null ? <div className="card empty">{wk === 0 ? (bn ? "এই সপ্তাহে এখনো কেউ পয়েন্ট পায়নি। প্রেডিক্ট করে শুরু করুন।" : "No points this week yet.") : (bn ? "গত সপ্তাহে কেউ পয়েন্ট পায়নি।" : "No points last week.")}</div> : comp ? <BoardMsg comp={comp} lang={lang} /> : <div className="card empty">{t("noLeaders")}</div>)
         : <BoardRows rows={rows} isMe={isMe} lang={lang} t={t} />}
     </>
   );
@@ -6536,12 +6604,12 @@ function PushCard({ user, hasFav, toast, bn }) {
     setBusy(false);
   }
   async function pref(k) {
-    const prefs = { start: true, goal: true, end: true, day: true, pred: true, daily: true, ...(row.prefs || {}) };
+    const prefs = { start: true, goal: true, end: true, day: true, pred: true, predres: true, daily: true, ...(row.prefs || {}) };
     prefs[k] = !prefs[k];
     setRow({ ...row, prefs });
     await sb.from("push_subs").update({ prefs }).eq("id", row.id);
   }
-  const P = { start: true, goal: true, end: true, day: true, pred: true, daily: true, ...(row?.prefs || {}) };
+  const P = { start: true, goal: true, end: true, day: true, pred: true, predres: true, daily: true, ...(row?.prefs || {}) };
   return (
     <div className="sec">
       <div className="sec-h"><h2>{bn ? "নোটিফিকেশন" : "Notifications"}</h2></div>
@@ -6558,7 +6626,7 @@ function PushCard({ user, hasFav, toast, bn }) {
             </div>
             {row && (
               <div className="push-prefs">
-                {[["start", bn ? "খেলা শুরু" : "Kick-off"], ["goal", bn ? "গোল" : "Goals"], ["end", bn ? "খেলা শেষ" : "Full time"], ["day", bn ? "আজ খেলা আছে" : "Match day"], ["pred", bn ? "প্রেডিকশন মনে করানো" : "Prediction reminder"], ["daily", bn ? "দৈনিক চ্যালেঞ্জ" : "Daily challenge"]].map(([k, l]) => (
+                {[["start", bn ? "খেলা শুরু" : "Kick-off"], ["goal", bn ? "গোল" : "Goals"], ["end", bn ? "খেলা শেষ" : "Full time"], ["day", bn ? "আজ খেলা আছে" : "Match day"], ["pred", bn ? "প্রেডিকশন মনে করানো" : "Prediction reminder"], ["predres", bn ? "প্রেডিকশনের ফল" : "Prediction results"], ["daily", bn ? "দৈনিক চ্যালেঞ্জ" : "Daily challenge"]].map(([k, l]) => (
                   <button key={k} className={"chip" + (P[k] ? " on" : "")} onClick={() => pref(k)}>{P[k] ? "✓ " : ""}{l}</button>
                 ))}
               </div>
@@ -7524,7 +7592,7 @@ async function answerBase(raw, teams, lang, idsOverride) {
 function describe(m, id, past, lang) {
   const bn = lang === "bn";
   const home = teamName(m.home, lang), away = teamName(m.away, lang);
-  const comp = compName(m.competition, lang);
+  const comp = mComp(m, lang);
   if (past || isDone(m)) {
     const s = `${num(m.home_score, lang)}-${num(m.away_score, lang)}`;
     return bn ? `${dayLabel(dayKey(m.utc_date), "bn")} (${comp}): ${home} ${s} ${away}।` : `${dayLabel(dayKey(m.utc_date), "en")}, ${comp}: ${home} ${s} ${away}.`;
@@ -8021,6 +8089,20 @@ function PhotoDot({ src, name }) {
   return src && !bad ? <img className="ldr-ph" src={src} alt="" width="30" height="30" loading="lazy" onError={() => setBad(true)} /> : <span className="ldr-ph ldr-ph-fb">{(name || "?").slice(0, 1)}</span>;
 }
 
+// বাংলাদেশ জাতীয় দলের পাতা: /bangladesh (বা লিগ তালিকা থেকে) — দলের পাতাই, সব টুর্নামেন্টের ম্যাচ মিলিয়ে
+let bdTeamId = null;
+function BangladeshPage({ favs, ...props }) {
+  const [id, setId] = useState(bdTeamId);
+  const { lang } = useT();
+  useEffect(() => {
+    if (id || DEMO) return;
+    sb.from("teams").select("id").eq("name_en", "Bangladesh").gte("id", 10000000).limit(1)
+      .then(({ data }) => { bdTeamId = data?.[0]?.id || false; setId(bdTeamId); }, () => setId(false));
+  }, []);
+  if (id) return <Team key={id} id={id} isFav={favs.includes(id)} {...props} />;
+  if (id === false || DEMO) return <div className="card empty">{lang === "bn" ? "বাংলাদেশ জাতীয় দলের তথ্য শিগগিরই আসছে।" : "Bangladesh national team coming soon."}</div>;
+  return <div className="card"><div className="spin" /></div>;
+}
 function League({ code, comps, preds, onOpen, teamsById }) {
   const { lang } = useT();
   const bn = lang === "bn";
@@ -8783,6 +8865,7 @@ const PAGE_URL = { about: "/about", how: "/how-it-works", founder: "/founder", c
 const viewFromPath = () => {
   const [, kind, id] = window.location.pathname.split("/");
   if (kind === "league" && id) return { kind: "league", code: id.toUpperCase() };
+  if (kind === "bangladesh" && !id) return { kind: "league", code: "BAN" };
   if (kind === "team" && /^\d+$/.test(id || "")) return { kind: "team", id: +id };
   if (kind === "player" && /^\d+$/.test(id || "")) return { kind: "player", id: +id };
   if (kind === "match" && /^\d+$/.test(id || "")) return { kind: "match", id: +id };
@@ -8890,7 +8973,7 @@ export default function App() {
     setSheet(null); setSearching(false); setEditing(false); setView(v); window.scrollTo(0, 0);
   };
   const nav = {
-    openLeague: (code) => openView(`/league/${code}`, { kind: "league", code }),
+    openLeague: (code) => openView(code === "BAN" ? "/bangladesh" : `/league/${code}`, { kind: "league", code }),
     openTeam: (id) => openView(`/team/${id}`, { kind: "team", id }),
     // আইডি ১ কোটি+ = API-Football-এর খেলোয়াড় (যেকোনো লিগ)
     openPlayer: (id) => openView(`/player/${id}`, { kind: "player", id }),
@@ -9058,6 +9141,8 @@ export default function App() {
             onDone={finishOnboarding}
             onCancel={editing ? () => setEditing(false) : skipOnboarding}
           />
+        ) : view?.kind === "league" && view.code === "BAN" ? (
+          <BangladeshPage teamsById={teamsById} preds={preds} onOpen={openMatch} favs={myTeams.fav} onToggleFav={toggleFav} user={user} toast={toast} onLogin={() => go("profile")} />
         ) : view?.kind === "league" ? (
           <League key={view.code} code={view.code} comps={comps} preds={preds} onOpen={openMatch} teamsById={teamsById} />
         ) : view?.kind === "team" ? (

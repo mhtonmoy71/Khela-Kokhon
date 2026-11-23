@@ -59,7 +59,7 @@ async function sitemap(res) {
   const urls = [
     u("/", "always", "1.0"), u("/leagues", "daily", "0.8"), u("/quiz/daily", "daily", "0.6"), u("/predict", "daily", "0.6"), u("/ask", "weekly", "0.5"),
     u("/about", "monthly", "0.4"), u("/how-it-works", "monthly", "0.4"), u("/founder", "monthly", "0.3"), u("/contact", "yearly", "0.3"), u("/privacy", "yearly", "0.2"),
-    ...comps.map((c) => u(`/league/${c.code}`, "hourly", "0.9")),
+    ...comps.map((c) => (c.code === "BAN" ? u("/bangladesh", "daily", "0.9") : u(`/league/${c.code}`, "hourly", "0.9"))),
     ...teams.map((t) => u(`/team/${t.id}`, "daily", "0.6")),
     ...matches.map((m) => u(`/match/${m.id}`, m.status === "FINISHED" ? "weekly" : "hourly", "0.7")),
   ];
@@ -72,6 +72,9 @@ async function leagueMeta(code) {
   const [c] = await sbGet(`competitions?select=code,name_bn,name_en&code=eq.${encodeURIComponent(code)}`);
   if (!c) return null;
   const n = c.name_bn || c.name_en;
+  if (c.code === "BAN") return { title: "বাংলাদেশ জাতীয় ফুটবল দল: পরের ম্যাচ, রেজাল্ট, স্কোয়াড · খেলা কখন?",
+    desc: "বাংলাদেশের পরের ম্যাচ কবে (বাংলাদেশ সময়), সাফ, এশিয়ান কাপ বাছাই আর প্রীতি ম্যাচের রেজাল্ট, লাইভ স্কোর আর স্কোয়াড। গোল আর খেলা শুরুর নোটিফিকেশন পেতে খেলা কখন?-এ দলটি ফলো করুন।",
+    image: `${SITE}/api/og?league=BAN`, url: `${SITE}/bangladesh` };
   return { title: `${n}: লাইভ স্কোর, পয়েন্ট টেবিল, ফিক্সচার · খেলা কখন?`,
     desc: `${n}-এর সব ম্যাচ বাংলাদেশ সময়ে, লাইভ স্কোর, রিয়েল টাইম পয়েন্ট টেবিল, গোলদাতা আর অ্যাসিস্টের তালিকা। খেলা কখন?-এ।`,
     image: `${SITE}/api/og?league=${encodeURIComponent(c.code)}`, url: `${SITE}/league/${c.code}` };

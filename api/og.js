@@ -76,7 +76,7 @@ export default async function handler(req, res) {
     if (q.league && /^[A-Za-z0-9]{2,6}$/.test(q.league)) {
       const code = q.league.toUpperCase();
       const [c] = await sbGet(`competitions?select=code,name_en,emblem&code=eq.${code}`);
-      if (c) return await entityCard(res, { name: c.name_en, img: EMBLEM_FIX[code] ? SITE + EMBLEM_FIX[code] : c.emblem, sub: "Live scores · Table · Fixtures" });
+      if (c) return await entityCard(res, { name: code === "BAN" ? "Bangladesh" : c.name_en, img: EMBLEM_FIX[code] ? SITE + EMBLEM_FIX[code] : c.emblem, sub: code === "BAN" ? "National team · Next match · Results" : "Live scores · Table · Fixtures" });
     }
     if (/^\d+$/.test(q.team || "")) {
       const [t] = await sbGet(`teams?select=id,name_en,short_en,crest&id=eq.${q.team}`);
