@@ -2,6 +2,7 @@
 import { Fragment, createContext, useContext, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createClient } from "@supabase/supabase-js";
 import { matchReport } from "./report.js";
+import { clubBn } from "./clubsBn.js";
 
 // ════════════════ স্টাইল ════════════════
 const CSS = `
@@ -1860,7 +1861,7 @@ const DEMO_TEAMS = [
   T(86, "Real Madrid", "RMA", "রিয়াল মাদ্রিদ", "PD"), T(81, "Barça", "FCB", "বার্সেলোনা", "PD"), T(78, "Atleti", "ATM", "অ্যাটলেটিকো মাদ্রিদ", "PD"), T(559, "Sevilla", "SEV", "সেভিয়া", "PD"),
   T(5, "Bayern", "FCB", "বায়ার্ন মিউনিখ", "BL1"), T(4, "Dortmund", "BVB", "ডর্টমুন্ড", "BL1"), T(3, "Leverkusen", "B04", "লেভারকুসেন", "BL1"), T(721, "RB Leipzig", "RBL", "লাইপজিগ", "BL1"),
   T(98, "Milan", "MIL", "এসি মিলান", "SA"), T(108, "Inter", "INT", "ইন্টার মিলান", "SA"), T(109, "Juventus", "JUV", "জুভেন্টাস", "SA"), T(113, "Napoli", "NAP", "নাপোলি", "SA"),
-  T(524, "PSG", "PSG", "পিএসজি", "FL1"), T(516, "Marseille", "OM", "মার্সেই", "FL1"), T(548, "Monaco", "ASM", "মোনাকো", "FL1"), T(523, "Lyon", "OL", "লিওঁ", "FL1"),
+  T(524, "PSG", "PSG", "পিএসজি", "FL1"), T(516, "Marseille", "OM", "মার্শেই", "FL1"), T(548, "Monaco", "ASM", "মোনাকো", "FL1"), T(523, "Lyon", "OL", "লিওঁ", "FL1"),
 ];
 
 const byId = Object.fromEntries(DEMO_TEAMS.map((t) => [t.id, t]));
@@ -2450,19 +2451,19 @@ const TEAM_NAMES = {
   503: ["Porto", "পোর্তো"],
   511: ["Toulouse", "তুলুজ"],
   512: ["Brest", "ব্রেস্ত"],
-  516: ["Marseille", "মার্সেই"],
+  516: ["Marseille", "মার্শেই"],
   519: ["Auxerre", "অক্সের"],
   521: ["Lille", "লিল"],
   522: ["Nice", "নিস"],
   523: ["Lyon", "লিওঁ"],
   524: ["Paris Saint-Germain", "পিএসজি"],
   525: ["Lorient", "লরিয়াঁ"],
-  529: ["Rennes", "রেন"],
+  529: ["Rennes", "রেনে"],
   531: ["Troyes", "ত্রোয়া"],
   532: ["Angers", "অঁজে"],
   533: ["Le Havre", "লে আভ্র"],
   535: ["Le Mans", "লে মাঁ"],
-  546: ["Lens", "লঁস"],
+  546: ["Lens", "লাঁস"],
   548: ["Monaco", "মোনাকো"],
   558: ["Celta Vigo", "সেল্তা ভিগো"],
   559: ["Sevilla", "সেভিয়া"],
@@ -2498,7 +2499,7 @@ const TEAM_NAMES = {
 const teamName = (team, lang) =>
   !team ? (lang === "bn" ? "নির্ধারিত হয়নি" : "TBD")
     : TEAM_NAMES[team.id] ? TEAM_NAMES[team.id][lang === "bn" ? 1 : 0]
-    : lang === "bn" ? team.name_bn || (team.id >= 10000000 && team.short_en ? NAT_BN[team.short_en] || trName(team.short_en.replace(/\b(FC|SC|CF|AFC|CD|SD|UD|AC|SAD|SFC|FK|SK|BK)\b\.?/g, "").trim()) : null) || team.short_en || team.name_en : team.short_en || team.name_en;
+    : lang === "bn" ? team.name_bn || clubBn(team.short_en) || clubBn(team.name_en) || (team.id >= 10000000 && team.short_en ? NAT_BN[team.short_en] || trName(team.short_en.replace(/\b(FC|SC|CF|AFC|CD|SD|UD|AC|SAD|SFC|FK|SK|BK)\b\.?/g, "").trim()) : null) || team.short_en || team.name_en : team.short_en || team.name_en;
 // খোঁজার জন্য দলের সব নাম
 const teamAliases = (t) => [t.name_bn, t.name_en, t.short_en, ...(TEAM_NAMES[t.id] || []), ...(TEAM_SHORT[t.id] || [])];
 // ম্যাচের সারিতে জায়গা কম: লম্বা নামের প্রচলিত ছোট রূপ (FotMob-এর মতো)। দলের পাতা, শিট, সার্চে পুরো নাম থাকে।
