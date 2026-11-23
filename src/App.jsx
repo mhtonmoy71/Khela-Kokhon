@@ -7223,6 +7223,12 @@ function Profile({ user, profile, setProfile, toast, myTeams, teamsById, lang, s
   const photo = own || googlePhoto(user);
   // অর্জিত ব্যাজ, বড়টা আগে (তালিকার শেষের দিকেরগুলো কঠিন)
   const earned = st && !st.error ? BADGES.map((b) => b[0]).filter((id) => (st.badges || []).some((x) => x.id === id)).reverse() : [];
+  // লেভেল চালু থাকলে: প্রতি ব্যাজের সবচেয়ে উঁচু ধাপ, উঁচুটা আগে
+  const topLv = (() => {
+    const best = {};
+    for (const b of (st && !st.error && st.badges) || []) { const L = String(b.id).startsWith("lv:") && lvParse(b.id); if (!L) continue; const sc = L.level * 1000 + L.stars; if (!best[L.meta.m] || sc > best[L.meta.m].sc) best[L.meta.m] = { ...L, sc }; }
+    return Object.values(best).sort((a, b) => b.sc - a.sc);
+  })();
   const chips = (ids) => ids.map((id) => teamsById[id]).filter(Boolean).map((tm) => (
     <button className="tchip" key={tm.id} onClick={() => nav.openTeam(tm.id)}><Crest team={tm} size={18} />{teamName(tm, lang)}</button>
   ));
@@ -7239,9 +7245,9 @@ function Profile({ user, profile, setProfile, toast, myTeams, teamsById, lang, s
             <div style={{ minWidth: 0 }}>
               <div className="prof-name">
                 <span style={{ minWidth: 0, overflowWrap: "anywhere" }}>{name}</span>
-                {earned.length > 0 && (
-                  <button className="prof-bdg" onClick={() => document.getElementById("my-badges")?.scrollIntoView({ behavior: "smooth", block: "start" })} aria-label={bn ? `${num(earned.length, "bn")}টা ব্যাজ` : `${earned.length} badges`}>
-                    {earned.slice(0, 5).map((id) => <BadgeIcon key={id} id={id} size={22} />)}
+                {(topLv.length > 0 || earned.length > 0) && (
+                  <button className="prof-bdg" onClick={() => document.getElementById("my-badges")?.scrollIntoView({ behavior: "smooth", block: "start" })} aria-label={bn ? "আমার ব্যাজ" : "My badges"}>
+                    {topLv.length ? topLv.slice(0, 6).map((L) => <LevelIcon key={L.meta.m} m={L.meta.m} level={L.level} stars={L.stars} size={24} />) : earned.slice(0, 5).map((id) => <BadgeIcon key={id} id={id} size={22} />)}
                   </button>
                 )}
               </div>
