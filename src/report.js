@@ -46,8 +46,9 @@ function bestPlayer(live) {
   return all[0] || null;
 }
 
-export function matchReport(m, live, { tn, pn = (x) => x, comp = "" } = {}) {
+export function matchReport(m, live, { tn, pn = (x) => x, comp = "", lang = "bn" } = {}) {
   if (!m || m.status !== "FINISHED" || m.home_score == null) return null;
+  if (lang !== "bn") return reportEn(m, live, { tn, pn, comp });
   const ev = Array.isArray(live?.events) ? live.events : [];
   const H = tn(m.home), A = tn(m.away), hs = m.home_score, as = m.away_score;
   const name = (s) => (s === "h" ? H : A);
@@ -129,5 +130,83 @@ export function matchReport(m, live, { tn, pn = (x) => x, comp = "" } = {}) {
   const best = bestPlayer(live);
   if (best && best.r >= 7) paras.push(`ম্যাচের সর্বোচ্চ রেটিং ${er(name(best.side))} ${er(pn(best.name))}: ${bn(best.r.toFixed(1))}।`);
 
+  return { title, paras };
+}
+
+// ── ইংরেজি রিপোর্ট (একই হিসাব, ইংরেজি বাক্য) ──
+const ordMin = (e) => (e.x ? `${e.m}+${e.x}` : `${e.m}`) + "'";
+const poss = (n) => (/s$/i.test(n) ? `${n}'` : `${n}'s`);
+// "in the Premier League", "in La Liga", "in Serie A"
+const inComp = (c) => (!c ? "" : / League| Cup|Bundesliga|Championship|Nations|Euro\b/i.test(c) && !/^(La Liga|MLS)/i.test(c) ? ` in the ${c}` : ` in ${c}`);
+function reportEn(m, live, { tn, pn, comp }) {
+  const ev = Array.isArray(live?.events) ? live.events : [];
+  const H = tn(m.home), A = tn(m.away), hs = m.home_score, as = m.away_score;
+  const name = (s) => (s === "h" ? H : A);
+  const pens = m.pen_home != null && m.pen_away != null && m.pen_home !== m.pen_away;
+  const winSide = hs > as ? "h" : as > hs ? "a" : pens ? (m.pen_home > m.pen_away ? "h" : "a") : null;
+  const W = winSide ? name(winSide) : null, Lz = winSide ? name(winSide === "h" ? "a" : "h") : null;
+  const gs = goalsOf(m, ev);
+  const sc = `${Math.max(hs, as)}-${Math.min(hs, as)}`;
+  const neutral = /final/i.test(m.stage || "");
+  let winner = null, trailed = false;
+  if (gs && winSide && !pens) {
+    let h = 0, a = 0;
+    for (const g of gs) {
+      g.s === "h" ? h++ : a++;
+      const lead = winSide === "h" ? h - a : a - h;
+      if (lead < 0) trailed = true;
+      if (lead === 1 && (winSide === "h" ? h : a) === Math.min(hs, as) + 1) winner = g;
+    }
+  }
+  const lastGoal = gs?.[gs.length - 1];
+  let title;
+  if (pens) title = `${W} beat ${Lz} on penalties (${Math.max(m.pen_home, m.pen_away)}-${Math.min(m.pen_home, m.pen_away)})`;
+  else if (!winSide) title = hs === 0 ? `${H} and ${A} play out a goalless draw` : lastGoal && lastGoal.m >= 85 ? `Late equaliser earns ${name(lastGoal.s)} a ${hs}-${as} draw with ${name(lastGoal.s === "h" ? "a" : "h")}` : `${H} and ${A} share the points in a ${hs}-${as} draw`;
+  else if (Math.abs(hs - as) >= 3) title = `${W} thrash ${Lz} ${sc}`;
+  else if (trailed) title = `${W} come from behind to beat ${Lz} ${sc}`;
+  else if (winner && winner.m >= 85) title = `Late winner gives ${W} ${sc} victory over ${Lz}`;
+  else if (hs + as === 1 && gs?.[0]?.p && !/own/i.test(gs[0].d || "")) title = `${pn(gs[0].p)} strike gives ${W} 1-0 win over ${Lz}`;
+  else title = `${W} beat ${Lz} ${sc}`;
+
+  const paras = [];
+  const where = inComp(comp);
+  if (!winSide) paras.push(`${H} and ${A} drew ${hs}-${as}${where}.`);
+  else if (pens) paras.push(`After a ${hs}-${as} draw${where}, ${W} won the shootout ${Math.max(m.pen_home, m.pen_away)}-${Math.min(m.pen_home, m.pen_away)}.`);
+  else paras.push(`${W} beat ${Lz} ${sc}${neutral ? "" : winSide === "h" ? " at home" : " away from home"}${where}.`);
+
+  if (gs && gs.length) {
+    let h = 0, a = 0;
+    const led = { h: false, a: false };
+    const parts = gs.map((g, i) => {
+      const before = g.s === "h" ? h - a : a - h;
+      g.s === "h" ? h++ : a++;
+      const T = name(g.s), again = led[g.s];
+      if ((g.s === "h" ? h - a : a - h) > 0) led[g.s] = true;
+      const own = /own/i.test(g.d || ""), pen = /penalty/i.test(g.d || "");
+      const who = own ? `An own goal by ${pn(g.p)}` : pn(g.p);
+      const ast = g.a && !own && !pen ? `, assisted by ${pn(g.a)},` : "";
+      const what = i === 0 ? `put ${T} ahead` : before === 0 ? `put ${T} ${again ? "back " : ""}in front` : before > 0 ? `extended ${poss(T)} lead` : before === -1 ? `levelled for ${T}` : `pulled one back for ${T}`;
+      return `${who}${ast} ${what}${pen ? " from the spot" : ""} (${ordMin(g)}, ${h}-${a}).`;
+    });
+    paras.push(parts.join(" "));
+    const cnt = {};
+    for (const g of gs) if (!/own/i.test(g.d || "")) cnt[g.p] = (cnt[g.p] || 0) + 1;
+    const star = Object.entries(cnt).sort((x, y) => y[1] - x[1])[0];
+    if (star && star[1] >= 2) paras.push(`${pn(star[0])} ${star[1] >= 3 ? "scored a hat-trick" : "scored twice"}.`);
+  } else if (hs + as === 0) paras.push("Neither side found the net.");
+
+  const reds = ev.filter((e) => e.t === "Card" && /red/i.test(e.d || ""));
+  for (const r of reds.slice(0, 2)) paras.push(`${poss(name(r.s))} ${pn(r.p)} was sent off (${ordMin(r)}), leaving them with ten men.`);
+  const miss = ev.filter((e) => e.t === "Goal" && /missed/i.test(e.d || ""));
+  for (const x of miss.slice(0, 1)) paras.push(`${poss(name(x.s))} ${pn(x.p)} missed a penalty (${ordMin(x)}).`);
+
+  const pos = statOf(live?.stats, "Ball Possession"), sh = statOf(live?.stats, "Total Shots"), on = statOf(live?.stats, "Shots on Goal"), xg = statOf(live?.stats, "expected_goals");
+  const st = [];
+  if (pos?.h != null && pos?.a != null && pos.h !== pos.a) st.push(`${name(pos.h > pos.a ? "h" : "a")} had more of the ball (${Math.max(pos.h, pos.a)}%)`);
+  if (sh?.h != null && sh?.a != null) st.push(`Shots ${sh.h}-${sh.a}${on?.h != null ? `, on target ${on.h}-${on.a}` : ""}`);
+  if (xg?.h != null && xg?.a != null) st.push(`xG ${xg.h.toFixed(2)}-${xg.a.toFixed(2)}`);
+  if (st.length) paras.push(st.join(". ") + ".");
+  const best = bestPlayer(live);
+  if (best && best.r >= 7) paras.push(`Top-rated player: ${pn(best.name)} (${name(best.side)}), ${best.r.toFixed(1)}.`);
   return { title, paras };
 }

@@ -3849,18 +3849,20 @@ function MatchCommentary({ L, m, lang }) {
 // খেলা শেষে বাংলায় ম্যাচ রিপোর্ট (গোল, কার্ড, স্ট্যাটস থেকে নিজে থেকে লেখা; report.js)
 function MatchReport({ m, L, lang }) {
   const [full, setFull] = useState(false);
-  const r = useMemo(() => (lang === "bn" && L?.events ? matchReport(m, L, { tn: (t) => teamName(t, "bn"), pn: (n) => bnPlayer(n, "bn"), comp: mComp(m, "bn") }) : null), [m?.id, m?.status, m?.home_score, m?.away_score, L, lang]);
+  const bn = lang === "bn";
+  const r = useMemo(() => (L?.events ? matchReport(m, L, { lang, tn: (t) => teamName(t, lang), pn: (n) => (bn ? bnPlayer(n, "bn") : n), comp: mComp(m, lang) }) : null), [m?.id, m?.status, m?.home_score, m?.away_score, L, lang]);
   if (!r) return null;
   const show = full ? r.paras : r.paras.slice(0, 2);
   return (
     <article className="card mrep">
-      <div className="mrep-k">ম্যাচ রিপোর্ট</div>
+      <div className="mrep-k">{bn ? "ম্যাচ রিপোর্ট" : "Match report"}</div>
       <h3>{r.title}</h3>
       {show.map((p, i) => <p key={i}>{p}</p>)}
-      {r.paras.length > 2 && <button className="link" onClick={() => setFull(!full)}>{full ? "কম দেখুন" : "পুরোটা পড়ুন"}</button>}
+      {r.paras.length > 2 && <button className="link" onClick={() => setFull(!full)}>{full ? (bn ? "কম দেখুন" : "Show less") : (bn ? "পুরোটা পড়ুন" : "Read more")}</button>}
     </article>
   );
 }
+// খেলা শেষে বাংলায় ম্যাচ রিপোর্ট
 function useMatchLive(m) {
   const [L, setL] = useState(null);
   useEffect(() => {
