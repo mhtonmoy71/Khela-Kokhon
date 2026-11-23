@@ -37,7 +37,7 @@ export const AF_LEAGUES = {
 };
 // জাতীয় দলের ম্যাচের টুর্নামেন্টের নাম বাংলায় (ম্যাচের group_name-এ রাখা হয়)
 const NT_COMP_BN = [[/world cup.*qual/i, "বিশ্বকাপ বাছাই"], [/asian cup.*qual/i, "এশিয়ান কাপ বাছাই"], [/asian cup/i, "এশিয়ান কাপ"], [/saff/i, "সাফ চ্যাম্পিয়নশিপ"],
-  [/asian games/i, "এশিয়ান গেমস"], [/friendl/i, "প্রীতি ম্যাচ"], [/king'?s cup/i, "কিংস কাপ"], [/tri.?nation|four nation/i, "আমন্ত্রণমূলক টুর্নামেন্ট"]];
+  [/asian games/i, "এশিয়ান গেমস"], [/asean/i, "ফিফা আসিয়ান কাপ"], [/series/i, "ফিফা সিরিজ"], [/friendl/i, "প্রীতি ম্যাচ"], [/king'?s cup/i, "কিংস কাপ"], [/tri.?nation|four nation/i, "আমন্ত্রণমূলক টুর্নামেন্ট"]];
 const ntComp = (n) => NT_COMP_BN.find(([re]) => re.test(n || ""))?.[1] || n || null;
 // প্রতিপক্ষ দেশের নাম বাংলায় (হুবহু মিললে)
 const NT_BN = { Bangladesh: "বাংলাদেশ", India: "ভারত", Nepal: "নেপাল", Bhutan: "ভুটান", "Sri Lanka": "শ্রীলঙ্কা", Maldives: "মালদ্বীপ", Pakistan: "পাকিস্তান",
@@ -47,7 +47,7 @@ const NT_BN = { Bangladesh: "বাংলাদেশ", India: "ভারত", N
   Australia: "অস্ট্রেলিয়া", Qatar: "কাতার", Kuwait: "কুয়েত", Bahrain: "বাহরাইন", Lebanon: "লেবানন", Palestine: "ফিলিস্তিন", Syria: "সিরিয়া",
   Jordan: "জর্ডান", Oman: "ওমান", "Saudi Arabia": "সৌদি আরব", "United Arab Emirates": "সংযুক্ত আরব আমিরাত", Iran: "ইরান", Iraq: "ইরাক", Yemen: "ইয়েমেন",
   Tajikistan: "তাজিকিস্তান", Kyrgyzstan: "কিরগিজস্তান", Turkmenistan: "তুর্কমেনিস্তান", Uzbekistan: "উজবেকিস্তান", Seychelles: "সিশেলস",
-  Mauritius: "মরিশাস", Guam: "গুয়াম", Macao: "ম্যাকাও", Brunei: "ব্রুনাই", "Timor-Leste": "পূর্ব তিমুর" };
+  Mauritius: "মরিশাস", "San Marino": "সান মারিনো", Malta: "মাল্টা", Andorra: "অ্যান্ডোরা", Liechtenstein: "লিশটেনস্টাইন", Gibraltar: "জিব্রাল্টার", Guam: "গুয়াম", Macao: "ম্যাকাও", Brunei: "ব্রুনাই", "Timor-Leste": "পূর্ব তিমুর" };
 export const MOFF = 100000000, TOFF = 10000000, POFF = 10000000;
 // বড় দলগুলোর বাংলা নাম (API-Football-এর নামের অংশ → বাংলা); বাকিগুলো ইংরেজিতে
 const AF_TEAMS_BN = [

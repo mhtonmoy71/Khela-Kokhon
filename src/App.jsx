@@ -1578,7 +1578,7 @@ const isOff = (m) => ["POSTPONED", "CANCELLED", "SUSPENDED"].includes(m.status);
 // নকআউট ম্যাচ (টাইব্রেকার হতে পারে): লিগ/গ্রুপ পর্ব নয় এমন রাউন্ড
 // জাতীয় দলের ম্যাচে লিগের বদলে আসল টুর্নামেন্ট: "বাংলাদেশ · সাফ চ্যাম্পিয়নশিপ"
 const mComp = (m, lang) => (m?.competition_code === "BAN" && m.group_name ? `${lang === "bn" ? "বাংলাদেশ" : "Bangladesh"} · ${lang === "bn" ? m.group_name : (NT_EN[m.group_name] || m.group_name)}` : compName(m?.competition, lang));
-const NT_EN = { "বিশ্বকাপ বাছাই": "World Cup qualifier", "এশিয়ান কাপ বাছাই": "Asian Cup qualifier", "এশিয়ান কাপ": "Asian Cup", "সাফ চ্যাম্পিয়নশিপ": "SAFF Championship", "এশিয়ান গেমস": "Asian Games", "প্রীতি ম্যাচ": "Friendly", "কিংস কাপ": "King's Cup", "আমন্ত্রণমূলক টুর্নামেন্ট": "Invitational" };
+const NT_EN = { "বিশ্বকাপ বাছাই": "World Cup qualifier", "এশিয়ান কাপ বাছাই": "Asian Cup qualifier", "এশিয়ান কাপ": "Asian Cup", "সাফ চ্যাম্পিয়নশিপ": "SAFF Championship", "এশিয়ান গেমস": "Asian Games", "প্রীতি ম্যাচ": "Friendly", "কিংস কাপ": "King's Cup", "আমন্ত্রণমূলক টুর্নামেন্ট": "Invitational", "ফিফা আসিয়ান কাপ": "FIFA ASEAN Cup", "ফিফা সিরিজ": "FIFA Series" };
 const isKnockout = (m) => (DEMO && typeof window !== "undefined" && window.__kkKO) || !!m?.stage && !/regular|league stage|league phase|group|^league [a-d]|^league - |REGULAR_SEASON|LEAGUE_STAGE|GROUP_STAGE/i.test(m.stage);
 // খেলা চলার সময় এখনকার স্কোর ধরে প্রেডিকশনের পয়েন্ট (শেষ হলে আসল পয়েন্ট)
 const predPts = (pred, m) => {
