@@ -5583,6 +5583,25 @@ const BADGES = [
   ["week1", "সপ্তাহের চ্যাম্পিয়ন", "Weekly champion", "কোনো সপ্তাহে প্রথম হন", "Win a week", ["#fde047", "#ca8a04"], "crown"],
 ];
 const badgeOf = (id) => BADGES.find((b) => b[0] === id);
+// ── পপআপ খোলা থাকলে ফোনের ব্যাক বাটনে শুধু পপআপ বন্ধ (পাতা পেছনে যায় না) ──
+// খোলার সময় ইতিহাসে একটা ধাপ যোগ; ব্যাক চাপলে সেই ধাপ সরে পপআপ বন্ধ। বোতাম চেপে বন্ধ করলে ধাপটা নিজেই সরানো হয়।
+const modalStack = [];
+function useBackClose(open, onClose) {
+  const cb = useRef(onClose); cb.current = onClose;
+  useEffect(() => {
+    if (!open) return;
+    const me = { closed: false };
+    modalStack.push(me);
+    window.history.pushState({ ...(window.history.state || {}), kkModal: modalStack.length }, "");
+    const onPop = () => { if (modalStack[modalStack.length - 1] !== me) return; me.closed = true; modalStack.pop(); cb.current(); };
+    window.addEventListener("popstate", onPop);
+    return () => {
+      window.removeEventListener("popstate", onPop);
+      if (!me.closed) { me.closed = true; const i = modalStack.indexOf(me); if (i >= 0) modalStack.splice(i, 1); window.__kkSkipPop = (window.__kkSkipPop || 0) + 1; window.history.back(); }
+    };
+  }, [open]);
+}
+
 // ── ব্যাজের লেভেল (supabase/badge_levels.sql-এর সাথে মিল রেখে) ──
 // প্রতিটা ব্যাজে ধাপ: সবুজ → ব্রোঞ্জ → রুপা → সোনা → প্লাটিনাম → হীরা → কিংবদন্তি; শেষ ধাপের পরে নির্দিষ্ট ব্যবধানে একটা করে তারা
 const LV_METRICS = [
@@ -5662,6 +5681,7 @@ function LevelBadges({ progress, have = [], compact }) {
   const dt = (iso) => { if (!iso) return ""; const d = new Date(iso); return bn ? `${num(d.getDate(), "bn")} ${BN_MONTHS[d.getMonth()]} ${num(d.getFullYear(), "bn")}` : `${d.getDate()} ${EN_MONTHS[d.getMonth()]} ${d.getFullYear()}`; };
   const sel = open && lvMeta(open);
   const slv = sel && lvOf(sel, progress[sel.m] || 0);
+  useBackClose(!!open, () => setOpen(null));
   return (
     <>
       <div className={"lvb-grid" + (compact ? " compact" : "")}>
@@ -5862,6 +5882,7 @@ function NewBadgePop({ ids, onClose }) {
   const { lang } = useT();
   const bn = lang === "bn";
   useEffect(() => { quizAudio.sfx("win"); markBadgesSeen(ids); }, []);
+  useBackClose(true, onClose);
   return (
     <div className="veil bdg-veil" onClick={onClose}>
       <Confetti />
@@ -9548,7 +9569,12 @@ export default function App() {
     setTab(id); setView(null); setEditing(false); window.scrollTo(0, 0);
   };
   useEffect(() => {
-    const onPop = () => { setSheet(null); setSearching(false); setView(viewFromPath()); if (!viewFromPath()) setTab(tabFromPath()); window.scrollTo(0, 0); };
+    const onPop = () => {
+      // পপআপ বন্ধের জন্য ব্যাক (বা বোতামে বন্ধ করার পর ইতিহাস ঠিক করা): পাতা যেমন আছে থাকবে
+      if (window.__kkSkipPop) { window.__kkSkipPop--; return; }
+      if (modalStack.length) return;
+      setSheet(null); setSearching(false); setView(viewFromPath()); if (!viewFromPath()) setTab(tabFromPath()); window.scrollTo(0, 0);
+    };
     window.addEventListener("popstate", onPop);
     return () => window.removeEventListener("popstate", onPop);
   }, []);

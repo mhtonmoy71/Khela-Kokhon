@@ -87,7 +87,7 @@ if ("serviceWorker" in navigator && import.meta.env.PROD) {
     if (ready && url && !busy()) { ready = false; location.assign(url); return; }
     return push(st, t, url);
   };
-  addEventListener("popstate", () => { if (ready && !busy()) { ready = false; location.reload(); } });
+  addEventListener("popstate", () => { if (window.__kkSkipPop || window.history.state?.kkModal) return; if (ready && !busy()) { ready = false; location.reload(); } });
   document.addEventListener("visibilitychange", () => { if (document.hidden) reloadNow(); });
 
   navigator.serviceWorker.addEventListener("controllerchange", onReady);
