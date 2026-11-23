@@ -32,7 +32,22 @@ export const AF_LEAGUES = {
   // বাংলাদেশ ফেডারেশন কাপ
   BFC: { id: 811, en: "Federation Cup", bn: "ফেডারেশন কাপ", sort: 8, squads: true, ownTable: "groups" },
   BPL: { id: null, find: { country: "Bangladesh", name: /premier/i }, en: "Bangladesh Football League", bn: "বাংলাদেশ ফুটবল লিগ", sort: 7, squads: true, ownTable: true },
+  // বাংলাদেশ জাতীয় দল: কোনো এক লিগ না, দল ধরে সব ম্যাচ (প্রীতি, সাফ, এশিয়ান কাপ বাছাই...)
+  BAN: { id: null, team: "Bangladesh", en: "Bangladesh", bn: "বাংলাদেশ জাতীয় দল", sort: 0 },
 };
+// জাতীয় দলের ম্যাচের টুর্নামেন্টের নাম বাংলায় (ম্যাচের group_name-এ রাখা হয়)
+const NT_COMP_BN = [[/world cup.*qual/i, "বিশ্বকাপ বাছাই"], [/asian cup.*qual/i, "এশিয়ান কাপ বাছাই"], [/asian cup/i, "এশিয়ান কাপ"], [/saff/i, "সাফ চ্যাম্পিয়নশিপ"],
+  [/asian games/i, "এশিয়ান গেমস"], [/friendl/i, "প্রীতি ম্যাচ"], [/king'?s cup/i, "কিংস কাপ"], [/tri.?nation|four nation/i, "আমন্ত্রণমূলক টুর্নামেন্ট"]];
+const ntComp = (n) => NT_COMP_BN.find(([re]) => re.test(n || ""))?.[1] || n || null;
+// প্রতিপক্ষ দেশের নাম বাংলায় (হুবহু মিললে)
+const NT_BN = { Bangladesh: "বাংলাদেশ", India: "ভারত", Nepal: "নেপাল", Bhutan: "ভুটান", "Sri Lanka": "শ্রীলঙ্কা", Maldives: "মালদ্বীপ", Pakistan: "পাকিস্তান",
+  Afghanistan: "আফগানিস্তান", Singapore: "সিঙ্গাপুর", "Hong Kong": "হংকং", Malaysia: "মালয়েশিয়া", Indonesia: "ইন্দোনেশিয়া", Thailand: "থাইল্যান্ড",
+  Vietnam: "ভিয়েতনাম", Myanmar: "মিয়ানমার", Cambodia: "কম্বোডিয়া", Laos: "লাওস", Philippines: "ফিলিপাইন", "Chinese Taipei": "চাইনিজ তাইপে",
+  China: "চীন", Japan: "জাপান", "South Korea": "দক্ষিণ কোরিয়া", "Korea Republic": "দক্ষিণ কোরিয়া", "North Korea": "উত্তর কোরিয়া", Mongolia: "মঙ্গোলিয়া",
+  Australia: "অস্ট্রেলিয়া", Qatar: "কাতার", Kuwait: "কুয়েত", Bahrain: "বাহরাইন", Lebanon: "লেবানন", Palestine: "ফিলিস্তিন", Syria: "সিরিয়া",
+  Jordan: "জর্ডান", Oman: "ওমান", "Saudi Arabia": "সৌদি আরব", "United Arab Emirates": "সংযুক্ত আরব আমিরাত", Iran: "ইরান", Iraq: "ইরাক", Yemen: "ইয়েমেন",
+  Tajikistan: "তাজিকিস্তান", Kyrgyzstan: "কিরগিজস্তান", Turkmenistan: "তুর্কমেনিস্তান", Uzbekistan: "উজবেকিস্তান", Seychelles: "সিশেলস",
+  Mauritius: "মরিশাস", Guam: "গুয়াম", Macao: "ম্যাকাও", Brunei: "ব্রুনাই", "Timor-Leste": "পূর্ব তিমুর" };
 export const MOFF = 100000000, TOFF = 10000000, POFF = 10000000;
 // বড় দলগুলোর বাংলা নাম (API-Football-এর নামের অংশ → বাংলা); বাকিগুলো ইংরেজিতে
 const AF_TEAMS_BN = [
@@ -56,7 +71,7 @@ const AF_TEAMS_BN = [
   ["Atlanta United", "আটলান্টা ইউনাইটেড"], ["Columbus Crew", "কলম্বাস ক্রু"], ["FC Cincinnati", "এফসি সিনসিনাটি"],
   ["Philadelphia Union", "ফিলাডেলফিয়া ইউনিয়ন"], ["Orlando City", "অরল্যান্ডো সিটি"], ["Toronto FC", "টরন্টো এফসি"],
 ];
-const afBn = (name) => AF_TEAMS_BN.find(([k]) => (name || "").toLowerCase().includes(k.toLowerCase()))?.[1] || null;
+const afBn = (name) => NT_BN[name] || AF_TEAMS_BN.find(([k]) => (name || "").toLowerCase().includes(k.toLowerCase()))?.[1] || null;
 const AF_STATUS = (st) => (["NS", "TBD"].includes(st) ? "TIMED" : st === "HT" ? "PAUSED" : ["FT", "AET", "PEN"].includes(st) ? "FINISHED"
   : st === "PST" ? "POSTPONED" : ["CANC", "ABD", "AWD", "WO"].includes(st) ? "CANCELLED" : "IN_PLAY");
 // লোগো না এলে দেখানোর তিন অক্ষর: "Al-Hilal" → HIL, "Inter Miami" → INT
@@ -105,6 +120,7 @@ export async function syncAfLeagues(only) {
   for (const [code, L] of Object.entries(AF_LEAGUES)) {
     if (only && !only.includes(code)) continue;
     try {
+      if (L.team) { out[code] = await syncNationalTeam(code, L); continue; }
       if (!L.id && L.find) {
         const list = await af(`/leagues?country=${encodeURIComponent(L.find.country)}&type=league`);
         const hit = list.find((x) => L.find.name.test(x.league?.name || ""));
@@ -167,6 +183,34 @@ export async function syncAfLeagues(only) {
   }
   out.merged = merged.size; out.removed = removed;
   return { mode: "leagues", calls, ...out };
+}
+
+// জাতীয় দল: শেষ ১০টা আর সামনের ১০টা ম্যাচ (সব টুর্নামেন্ট মিলিয়ে), ৩টা কল
+async function syncNationalTeam(code, L) {
+  if (!L.tid) {
+    const list = await af(`/teams?name=${encodeURIComponent(L.team)}`);
+    L.tid = list.find((x) => x.team?.national && x.team?.name === L.team)?.team?.id || null;
+    if (!L.tid) return "team not found";
+  }
+  const [last, next] = await Promise.all([af(`/fixtures?team=${L.tid}&last=10&timezone=UTC`), af(`/fixtures?team=${L.tid}&next=10&timezone=UTC`)]);
+  const fx = [...last, ...next].filter((f) => f.fixture?.id);
+  const me = fx.flatMap((f) => [f.teams.home, f.teams.away]).find((t) => t?.id === L.tid);
+  await upsertRows("competitions", [{ code, name_en: L.en, name_bn: L.bn, emblem: me?.logo || null, sort: L.sort }], "code");
+  const teams = new Map();
+  for (const f of fx) for (const t of [f.teams.home, f.teams.away]) if (t?.id) teams.set(t.id, afTeamRow(t));
+  await upsertRows("teams", [...teams.values()]);
+  const pen = await hasPen();
+  // নকআউট রাউন্ড (সেমি, ফাইনাল...) হলে stage রাখা হয়, যাতে টাইব্রেকারের নিয়ম চলে; বাকি সব (প্রীতি, গ্রুপ) সাধারণ ম্যাচ
+  const KO = /final|semi|quarter|round of|play.?off|3rd place/i;
+  await upsertRows("matches", fx.map((f) => ({
+    ...(pen ? { pen_home: f.score?.penalty?.home ?? null, pen_away: f.score?.penalty?.away ?? null } : {}),
+    id: MOFF + f.fixture.id, competition_code: code, season: f.league?.season || new Date(f.fixture.timestamp * 1000).getUTCFullYear(), matchday: null,
+    stage: KO.test(f.league?.round || "") ? f.league.round : null, group_name: ntComp(f.league?.name),
+    utc_date: new Date(f.fixture.timestamp * 1000).toISOString(), status: AF_STATUS(f.fixture.status?.short),
+    home_id: TOFF + f.teams.home.id, away_id: TOFF + f.teams.away.id,
+    home_score: f.goals?.home ?? null, away_score: f.goals?.away ?? null, updated_at: new Date().toISOString(),
+  })));
+  return { team: TOFF + L.tid, matches: fx.length };
 }
 
 async function sb(path, { method = "GET", body, prefer } = {}) {
@@ -505,6 +549,22 @@ export async function runReminders(force) {
       const st = plays.find((p) => p.user_id === u && p.day === yest)?.streak || 0;
       items.push({ uid: u, mid: 0, ev: `daily:${today}:${u}`, kind: "daily", title: "আজকের দৈনিক চ্যালেঞ্জ এখনো বাকি",
         body: st >= 2 ? `আপনার ${bnN(st)} দিনের স্ট্রিক আজ রাতেই ভেঙে যাবে। ৫টা প্রশ্নে ধরে রাখুন` : "৫টা প্রশ্ন, ১ মিনিট। আজকের পয়েন্ট নিয়ে নিন", url: "/quiz/daily", tag: "daily" });
+    }
+  }
+  // ৪) প্রেডিকশনের ফল: খেলা শেষে পয়েন্ট হিসাব হলেই, যারা প্রেডিক্ট করেছিলেন তাদের (প্রতি ম্যাচে একবার)
+  {
+    const users = new Set(subs.map((x) => x.user_id));
+    const done = await sb(`matches?select=id,home_score,away_score,pen_home,pen_away,home:teams!matches_home_fk(${T}),away:teams!matches_away_fk(${T})&status=eq.FINISHED&utc_date=gte.${new Date(now - 10 * 3600000).toISOString()}&home_score=not.is.null`).catch(() => []);
+    if (done.length) {
+      const pr = await sb(`predictions?select=user_id,match_id,home,away,points&match_id=in.(${done.map((m) => m.id).join(",")})&points=not.is.null`).catch(() => []);
+      const HEAD = { 5: "দারুণ! স্কোর আর টাইব্রেকার দুটোই মিলেছে, +৫", 4: "টাইব্রেকারের জয়ী মিলেছে, +৪ পয়েন্ট", 3: "হুবহু স্কোর মিলেছে! +৩ পয়েন্ট", 1: "ফল মিলেছে, +১ পয়েন্ট", 0: "এবার প্রেডিকশন মেলেনি" };
+      for (const p of pr) {
+        if (!users.has(p.user_id)) continue;
+        const m = done.find((x) => x.id === p.match_id); if (!m) continue;
+        const pen = m.pen_home != null && m.pen_away != null ? ` (টাইব্রেকারে ${bnN(m.pen_home)}–${bnN(m.pen_away)})` : "";
+        items.push({ uid: p.user_id, mid: m.id, ev: "res:" + p.user_id, kind: "predres", title: HEAD[p.points] || `+${bnN(p.points)} পয়েন্ট`,
+          body: `${tnm(m.home)} ${bnN(m.home_score)}–${bnN(m.away_score)} ${tnm(m.away)}${pen} · আপনার প্রেডিকশন ছিল ${bnN(p.home)}–${bnN(p.away)}`, url: `/match/${m.id}`, tag: `res${m.id}` });
+      }
     }
   }
   // পরীক্ষায় (force) আগের পাঠানো খাতা না মেনে আবার পাঠানো

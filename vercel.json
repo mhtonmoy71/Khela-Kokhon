@@ -31,6 +31,10 @@
       "destination": "/api/page?l=:code"
     },
     {
+      "source": "/bangladesh",
+      "destination": "/api/page?l=BAN"
+    },
+    {
       "source": "/team/:id",
       "destination": "/api/page?t=:id"
     },
