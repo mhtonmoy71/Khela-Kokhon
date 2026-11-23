@@ -27,12 +27,23 @@ export default async function handler(req, res) {
       return res.status(200).json({ ok: true });
     }
     const now = Date.now(), day = new Date(now - 86400000).toISOString(), week = new Date(now - 7 * 86400000).toISOString();
-    const [users, users7, subs, pred24, predAll, leagues, errors, lastLive, lastErr, liveNow] = await Promise.all([
-      count("profiles?select=id"), count(`profiles?select=id&created_at=gte.${week}`), get("push_subs?select=user_id"),
+    // লগিন অ্যাকাউন্ট (Supabase auth): মোট আর কবে খোলা
+    const authUsers = async () => {
+      const all = [];
+      for (let page = 1; page <= 20; page++) {
+        const r = await fetch(`${base()}/auth/v1/admin/users?page=${page}&per_page=1000`, { headers: H() }).then((x) => (x.ok ? x.json() : null)).catch(() => null);
+        const list = r?.users || [];
+        all.push(...list);
+        if (list.length < 1000) break;
+      }
+      return all;
+    };
+    const [au, subs, pred24, predAll, leagues, errors, lastLive, lastErr, liveNow] = await Promise.all([
+      authUsers(), get("push_subs?select=user_id"),
       count(`predictions?select=user_id&created_at=gte.${day}`), count("predictions?select=user_id"), count("pleagues?select=id"),
       get("client_errors?select=fp,msg,src,url,ua,build,count,first_seen,last_seen&order=last_seen.desc&limit=40"),
-      get("sync_log?select=ok,detail,created_at&mode=eq.live&order=created_at.desc&limit=1"),
-      get("sync_log?select=detail,created_at&mode=eq.live&ok=eq.false&order=created_at.desc&limit=1"),
+      get("match_live?select=updated_at&order=updated_at.desc&limit=1"),
+      get("sync_log?select=*&mode=eq.live&ok=eq.false&order=id.desc&limit=1"),
       count("matches?select=id&status=in.(IN_PLAY,PAUSED)"),
     ]);
     let af = null;
@@ -43,9 +54,12 @@ export default async function handler(req, res) {
     } catch { /* দেখানো যাবে না */ }
     return res.status(200).json({
       ok: true,
-      users, users7, pushUsers: new Set(subs.map((x) => x.user_id)).size, pushDevices: subs.length,
+      users: au.length, users7: au.filter((u) => Date.parse(u.created_at) >= Date.parse(week)).length, users24: au.filter((u) => Date.parse(u.created_at) >= Date.parse(day)).length,
+      active7: au.filter((u) => u.last_sign_in_at && Date.parse(u.last_sign_in_at) >= Date.parse(week)).length,
+      pushUsers: new Set(subs.map((x) => x.user_id)).size, pushDevices: subs.length,
       pred24, predAll, leagues, liveNow, af,
-      live: lastLive[0] ? { ok: lastLive[0].ok, at: lastLive[0].created_at } : null,
+      // লাইভ আপডেট: শেষ কখন কোনো ম্যাচের বিস্তারিত হালনাগাদ হয়েছে
+      live: lastLive[0] ? { at: lastLive[0].updated_at } : null,
       lastLiveError: lastErr[0] || null,
       errors,
     });
