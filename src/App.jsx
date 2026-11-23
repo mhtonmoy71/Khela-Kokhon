@@ -870,6 +870,7 @@ button.pm { background: none; border: 0; padding: 0; cursor: pointer; font: inhe
 .row.has-badge { padding-left: 44px; padding-right: 8px; }
 .rbadge.live { background: #16a34a; color: #fff; border-radius: 999px; font-family: Inter, 'Hind Siliguri', sans-serif; }
 .row.has-badge .mid .st { display: none; }
+.follow .row.has-badge .mid .st { display: block; }
 .mid .st { white-space: nowrap; }
 .rbadge { position: absolute; left: 8px; top: 50%; transform: translateY(-50%); width: 32px; padding: 3px 0; border-radius: 8px; background: var(--card2);
   color: var(--muted); font-size: 10.5px; font-weight: 700; text-align: center; line-height: 1.2; white-space: nowrap; overflow: hidden; }
@@ -4504,17 +4505,20 @@ function rowBadge(m, t, lang = "bn") {
   if (m.status === "CANCELLED") return <span className="rbadge">{lang === "bn" ? "বাতিল" : "C"}</span>;
   return null;
 }
-// সামনের খেলার দিন, সময়ের নিচে ছোট করে (আজ / রবি, ২২ নভে)
-function rowSub(m, lang) {
-  if (isLive(m) || m.status === "PAUSED" || isDone(m) || isOff(m)) return null;
-  const k = dayKey(m.utc_date), l = stripLabel(k, lang);
-  return k === dayKey(new Date()) ? l.top : `${l.top}, ${l.bottom}`;
-}
 
 const ChevronIcon = (p) => (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" {...p}><path d="m6 15 6-6 6 6" /></svg>
 );
 
+// প্রিয় দলের কার্ডে কবে খেলা: সামনের হলে আজ / কাল / বুধ, ২৫ নভে; শেষ হলে আজ / গতকাল / শনি, ২১ নভে
+function followSub(m, lang) {
+  if (isLive(m) || m.status === "PAUSED" || isOff(m)) return null;
+  const k = dayKey(m.utc_date), today = dayKey(new Date()), bn = lang === "bn";
+  if (k === today) return bn ? "আজ" : "Today";
+  if (k === addDays(today, 1)) return bn ? "আগামীকাল" : "Tomorrow";
+  if (k === addDays(today, -1)) return bn ? "গতকাল" : "Yesterday";
+  const l = stripLabel(k, lang); return `${l.top}, ${l.bottom}`;
+}
 function Following({ list, preds, onOpen }) {
   const { t, lang } = useT();
   const [open, setOpen] = useState(() => stored("kk_follow_open", "1") === "1");
@@ -4526,7 +4530,7 @@ function Following({ list, preds, onOpen }) {
         <b>{t("following")}</b>
         <ChevronIcon className={"chev" + (open ? " up" : "")} />
       </button>
-      {open && list.map((m) => <MatchRow key={m.id} m={m} pred={preds[m.id]} onOpen={onOpen} plain badge={rowBadge(m, t, lang)} sub={rowSub(m, lang)} />)}
+      {open && list.map((m) => <MatchRow key={m.id} m={m} pred={preds[m.id]} onOpen={onOpen} plain badge={rowBadge(m, t, lang)} sub={followSub(m, lang)} />)}
     </div>
   );
 }
