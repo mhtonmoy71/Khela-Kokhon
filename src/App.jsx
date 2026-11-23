@@ -6728,7 +6728,9 @@ function AdminPage({ user, toast, goProfile }) {
   if (err) return <div className="card empty">তথ্য আনা গেল না। একটু পরে আবার চেষ্টা করুন।</div>;
   if (!d) return <div className="card"><div className="spin" /></div>;
   const af = d.af;
-  const liveOk = d.live && d.live.ok && Date.now() - Date.parse(d.live.at) < 10 * 60000;
+  // খেলা চললে ৬ মিনিটের মধ্যে হালনাগাদ হওয়া উচিত; খেলা না থাকলে অপেক্ষায়
+  const liveAge = d.live?.at ? (Date.now() - Date.parse(d.live.at)) / 60000 : 9999;
+  const liveState = d.liveNow > 0 ? (liveAge <= 6 ? "ok" : "bad") : "idle";
   const tile = (v, l, tone) => <div className={"adm-tile" + (tone ? " " + tone : "")}><b>{v}</b><small>{l}</small></div>;
   return (
     <div className="sec adm">
@@ -6737,17 +6739,18 @@ function AdminPage({ user, toast, goProfile }) {
 
       <div className="adm-h">সাইটের অবস্থা</div>
       <div className="adm-grid">
-        {tile(liveOk ? "চালু" : "থেমে আছে", `লাইভ আপডেট · ${agoBn(d.live?.at)}`, liveOk ? "ok" : "bad")}
+        {tile(liveState === "ok" ? "চালু" : liveState === "bad" ? "থেমে আছে" : "অপেক্ষায়", `লাইভ আপডেট · শেষ ${agoBn(d.live?.at)}`, liveState === "idle" ? "" : liveState)}
         {tile(af ? (af.active ? `${num(af.days ?? 0, "bn")} দিন` : "বন্ধ") : "—", "API-Football-এর মেয়াদ", !af ? "" : !af.active || af.days <= 7 ? "bad" : af.days <= 30 ? "warn" : "ok")}
         {tile(af ? `${num(af.used ?? 0, "bn")}/${num(af.limit ?? 0, "bn")}` : "—", "আজকের API কল", af && af.used / af.limit > 0.9 ? "bad" : "")}
         {tile(num(d.liveNow ?? 0, "bn"), "এখন লাইভ ম্যাচ")}
       </div>
-      {d.lastLiveError && Date.now() - Date.parse(d.lastLiveError.created_at) < 6 * 3600000 && <div className="adm-warn">শেষ লাইভ ভুল ({agoBn(d.lastLiveError.created_at)}): {String(d.lastLiveError.detail || "").slice(0, 160)}</div>}
+      { d.lastLiveError && d.lastLiveError.created_at && Date.now() - Date.parse(d.lastLiveError.created_at) < 6 * 3600000 && <div className="adm-warn">শেষ লাইভ ভুল ({agoBn(d.lastLiveError.created_at)}): {String(d.lastLiveError.detail || "").slice(0, 160)}</div>}
 
       <div className="adm-h">ব্যবহারকারী</div>
       <div className="adm-grid">
         {tile(num(d.users ?? 0, "bn"), "মোট অ্যাকাউন্ট")}
-        {tile(num(d.users7 ?? 0, "bn"), "গত ৭ দিনে নতুন")}
+        {tile(num(d.users7 ?? 0, "bn"), `গত ৭ দিনে নতুন (আজ ${num(d.users24 ?? 0, "bn")})`)}
+        {tile(num(d.active7 ?? 0, "bn"), "গত ৭ দিনে লগইন করেছেন")}
         {tile(num(d.pushUsers ?? 0, "bn"), `নোটিফিকেশন চালু (${num(d.pushDevices ?? 0, "bn")} ডিভাইস)`)}
         {tile(num(d.pred24 ?? 0, "bn"), `২৪ ঘণ্টায় প্রেডিকশন (মোট ${num(d.predAll ?? 0, "bn")})`)}
         {tile(num(d.leagues ?? 0, "bn"), "বন্ধুদের লিগ")}
