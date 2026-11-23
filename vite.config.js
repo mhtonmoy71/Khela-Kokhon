@@ -34,6 +34,12 @@ export default defineConfig({
         importScripts: ["/push-sw.js?v=7"],
         runtimeCaching: [
           {
+            // ছোট করা লোগো/ছবি (/api/img): একবার এলে ফোনেই থাকে, পরের বার নেট ছাড়াই সাথে সাথে
+            urlPattern: ({ url }) => url.origin === self.location.origin && url.pathname === "/api/img",
+            handler: "CacheFirst",
+            options: { cacheName: "img", expiration: { maxEntries: 1500, maxAgeSeconds: 60 * 60 * 24 * 60 }, cacheableResponse: { statuses: [200] } },
+          },
+          {
             urlPattern: /^https:\/\/crests\.football-data\.org\/.*/i,
             handler: "CacheFirst",
             options: { cacheName: "crests", expiration: { maxEntries: 300, maxAgeSeconds: 60 * 60 * 24 * 30 } },
