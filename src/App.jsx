@@ -6722,6 +6722,9 @@ function AdminPage({ user, toast, goProfile }) {
   };
   const load = () => call().then((x) => { setD(x); setErr(""); }).catch((e) => setErr(e.code === 403 ? "forbidden" : e.code === 401 ? "login" : "x"));
   useEffect(() => { if (DEMO) { setErr("x"); return; } if (user) load(); const i = setInterval(() => !document.hidden && user && load(), 60000); return () => clearInterval(i); }, [user?.id]);
+  // Claude-কে পাঠানোর জন্য ভুলের পুরো বিবরণ কপি (চ্যাটে পেস্ট করলেই খুঁজে ঠিক করা যায়)
+  const errText = (e) => `[খেলা কখন এরর] ${e.count}× · ${e.msg}\nপাতা: ${e.url || "-"}\nডিভাইস: ${e.ua || "-"}\nসংস্করণ: ${e.build || "-"} · প্রথম ${e.first_seen} · শেষ ${e.last_seen}\nকোডের জায়গা: ${e.src || "-"}\n${(e.stack || "").slice(0, 1500)}`;
+  const copy = async (txt) => { try { await navigator.clipboard.writeText(txt); toast("কপি হয়েছে, এখন Claude-এর চ্যাটে পেস্ট করুন"); } catch { window.prompt("কপি করুন:", txt); } };
   const fix = async (fp) => { await call(fp ? { fix: fp } : { fixAll: true }).catch(() => {}); toast(fp ? "তালিকা থেকে সরানো হয়েছে" : "সব সরানো হয়েছে"); load(); };
   if (!user || err === "login") return <div className="card empty"><div style={{ marginBottom: 12 }}>অ্যাডমিন প্যানেল দেখতে লগইন করুন</div><button className="btn" onClick={goProfile}>লগইন</button></div>;
   if (err === "forbidden") return <div className="card empty">এই পাতা শুধু অ্যাডমিনের জন্য।</div>;
@@ -6756,7 +6759,7 @@ function AdminPage({ user, toast, goProfile }) {
         {tile(num(d.leagues ?? 0, "bn"), "বন্ধুদের লিগ")}
       </div>
 
-      <div className="adm-h">ধরা পড়া ভুল (এরর) <span className="muted">{num(d.errors.length, "bn")}টা</span>{d.errors.length > 0 && <button className="link" onClick={() => window.confirm("সব ভুল তালিকা থেকে সরাবেন?") && fix(null)}>সব সরান</button>}</div>
+      <div className="adm-h">ধরা পড়া ভুল (এরর) <span className="muted">{num(d.errors.length, "bn")}টা</span>{d.errors.length > 0 && <><button className="link" onClick={() => copy(d.errors.map(errText).join("\n\n---\n\n"))}>সব কপি</button><button className="link" style={{ marginLeft: 10, color: "var(--muted)" }} onClick={() => window.confirm("সব ভুল তালিকা থেকে সরাবেন?") && fix(null)}>সব সরান</button></>}</div>
       {!d.errors.length ? <div className="card empty">কোনো ভুল নেই। সব ঠিকঠাক চলছে।</div> : (
         <div className="card adm-errs">
           {d.errors.map((e) => (
@@ -6770,6 +6773,7 @@ function AdminPage({ user, toast, goProfile }) {
                 <div className="adm-more">
                   <div className="muted">প্রথম: {agoBn(e.first_seen)} · সংস্করণ: {(e.build || "").slice(0, 16)}</div>
                   {e.stack && <pre>{e.stack.slice(0, 900)}</pre>}
+                  <button className="btn" onClick={() => copy(errText(e))}>Claude-কে পাঠাতে কপি করুন</button>
                   <button className="btn ghost" onClick={() => fix(e.fp)}>ঠিক হয়েছে, তালিকা থেকে সরান</button>
                 </div>
               )}
@@ -6777,7 +6781,7 @@ function AdminPage({ user, toast, goProfile }) {
           ))}
         </div>
       )}
-      <div className="muted adm-note" style={{ marginTop: 10 }}>নতুন ভুল ধরা পড়লে আপনার ফোনে নোটিফিকেশনও যায়। কোনো ভুল বুঝতে না পারলে এখানকার স্ক্রিনশট পাঠান।</div>
+      <div className="muted adm-note" style={{ marginTop: 10 }}>নতুন ভুল ধরা পড়লে আপনার ফোনে নোটিফিকেশনও যায়। ঠিক করাতে "সব কপি" চেপে Claude-এর চ্যাটে পেস্ট করে লিখুন "এগুলো ঠিক করো"।</div>
     </div>
   );
 }
