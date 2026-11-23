@@ -2142,7 +2142,7 @@ async function leagueBoard(id, comp, wk = null) {
   return data;
 }
 
-// সাপ্তাহিক বোর্ড (সোম–রবি, বাংলাদেশ সময়): wk 0 = এই সপ্তাহ, -1 = গত সপ্তাহ
+// সাপ্তাহিক বোর্ড (শনি–শুক্র, বাংলাদেশ সময়): wk 0 = এই সপ্তাহ, -1 = গত সপ্তাহ
 async function weekBoard(fn, args) {
   if (DEMO) return DEMO_LEADERS.slice(0, 6).map((r, i) => ({ ...r, points: Math.max(0, 14 - i * 2 - (args.wk ? 1 : 0)), exact: Math.max(0, 3 - i), played: 6 }));
   const { data, error } = await sb.rpc(fn, args);
@@ -2152,7 +2152,7 @@ async function weekBoard(fn, args) {
 // সপ্তাহের তারিখ: "১৭–২৩ নভেম্বর"
 function weekRangeLabel(wk, lang) {
   const k = dayKey(new Date()), [y, m, d] = k.split("-").map(Number);
-  const wd = (new Date(Date.UTC(y, m - 1, d)).getUTCDay() + 6) % 7; // সোমবার = ০
+  const wd = (new Date(Date.UTC(y, m - 1, d)).getUTCDay() + 1) % 7; // শনিবার = ০
   const mon = addDays(k, -wd + 7 * wk), sun = addDays(mon, 6);
   const p = (x) => x.split("-").map(Number);
   const [, m1, d1] = p(mon), [, m2, d2] = p(sun), bn = lang === "bn", M = bn ? BN_MONTHS : EN_MONTHS;
