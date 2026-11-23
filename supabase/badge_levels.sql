@@ -10,6 +10,7 @@
 --    week     সাপ্তাহিক সেরা দশ       ১, ৫, ১০, ২৫ বার (+২৫-এ তারা); সাথে চ্যাম্পিয়ন কতবার
 --  অর্জিত ধাপ user_badges-এ 'lv:<ব্যাজ>:<ধাপ>' আর তারা 'lv:<ব্যাজ>:s<সংখ্যা>' নামে থাকে (কবে পেলেন সহ)
 --  আগের ব্যাজ (first, streak3 ...) যেমন ছিল থাকে; আবার চালালেও ক্ষতি নেই
+--  leaderboard_avatars.sql আগে চালানো থাকতে হবে (user_avatar; সাপ্তাহিক র‍্যাঙ্কিংয়ে ছবি)
 -- ═══════════════════════════════════════════════════════════════
 
 create or replace function daily_progress(p_user uuid) returns jsonb
@@ -106,7 +107,7 @@ language sql security definer set search_path = public stable as $$
   )
   select jsonb_build_object('start', (select s from w), 'end', (select s + 6 from w),
     'rows', coalesce((select jsonb_agg(jsonb_build_object('rank', rk, 'name', coalesce(pr.display_name, 'খেলোয়াড়'), 'points', pts, 'days', days,
-              'is_me', t.user_id = auth.uid(),
+              'is_me', t.user_id = auth.uid(), 'avatar', user_avatar(t.user_id),
               'top', (select ub.badge from user_badges ub where ub.user_id = t.user_id and ub.badge ~ '^lv:[a-z]+:[0-9]+$'
                       order by split_part(ub.badge, ':', 3)::int desc, ub.earned_at limit 1)) order by rk, pts desc)
             from t left join profiles pr on pr.id = t.user_id where rk <= 20 or t.user_id = auth.uid()), '[]'::jsonb));
