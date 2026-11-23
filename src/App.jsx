@@ -6869,7 +6869,8 @@ const poss = (name, lang) => (lang !== "bn" ? `${name}'s`
 
 // ════════ খেলোয়াড়ের প্রশ্ন ════════
 const COMP_ORDER = ["CL", "PL", "PD", "BL1", "SA", "FL1", "BPL", "BFC", "SPL", "MLS", "UEL", "UECL", "UNL", "EURO", "FAC", "EFL", "CDR", "CCC", "ACL"];
-const COMP_LABEL = { CL: ["চ্যাম্পিয়ন্স লিগ", "Champions League"], PL: ["প্রিমিয়ার লিগ", "Premier League"], PD: ["লা লিগা", "La Liga"], BL1: ["বুন্দেসলিগা", "Bundesliga"], SA: ["সিরি আ", "Serie A"], FL1: ["লিগ ওয়ান", "Ligue 1"], SPL: ["সৌদি প্রো লিগ", "Saudi Pro League"], MLS: ["এমএলএস", "MLS"],
+const COMP_LABEL = {
+  BAN: ["জাতীয় দল", "National team"], CL: ["চ্যাম্পিয়ন্স লিগ", "Champions League"], PL: ["প্রিমিয়ার লিগ", "Premier League"], PD: ["লা লিগা", "La Liga"], BL1: ["বুন্দেসলিগা", "Bundesliga"], SA: ["সিরি আ", "Serie A"], FL1: ["লিগ ওয়ান", "Ligue 1"], SPL: ["সৌদি প্রো লিগ", "Saudi Pro League"], MLS: ["এমএলএস", "MLS"],
   UECL: ["কনফারেন্স লিগ", "Conference League"], UNL: ["নেশনস লিগ", "Nations League"], EURO: ["ইউরো", "Euro"], FAC: ["এফএ কাপ", "FA Cup"],
   EFL: ["কারাবাও কাপ", "Carabao Cup"], CDR: ["কোপা দেল রে", "Copa del Rey"], BFC: ["ফেডারেশন কাপ", "Federation Cup"], CCC: ["কনকাকাফ চ্যাম্পিয়ন্স কাপ", "CONCACAF Champions Cup"], ACL: ["এএফসি চ্যাম্পিয়ন্স লিগ", "AFC Champions League"],
   UEL: ["ইউরোপা লিগ", "Europa League"], BPL: ["বাংলাদেশ ফুটবল লিগ", "Bangladesh Football League"] };
@@ -7972,7 +7973,7 @@ function DatedRows({ list, preds, onOpen, comp }) {
     <div key={m.id}>
       <div className="muted dr-h">
         <span>{dayLabel(dayKey(m.utc_date), lang, { short: true })}</span>
-        {comp && m.competition_code && <span className="dr-c"><CompIcon c={m.competition || { code: m.competition_code }} size={13} />{compLabel(m.competition_code, lang)}</span>}
+        {comp && m.competition_code && <span className="dr-c"><CompIcon c={m.competition || { code: m.competition_code }} size={13} />{m.competition_code === "BAN" && m.group_name ? (lang === "bn" ? m.group_name : NT_EN[m.group_name] || m.group_name) : compLabel(m.competition_code, lang)}</span>}
       </div>
       <MatchRow m={m} pred={preds[m.id]} onOpen={onOpen} />
     </div>
