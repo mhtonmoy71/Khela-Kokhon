@@ -1016,6 +1016,25 @@ button.pm { background: none; border: 0; padding: 0; cursor: pointer; font: inhe
 .mrep h3 { font-size: 17px; line-height: 1.4; margin: 0 0 8px; }
 .mrep p { font-size: 14.5px; line-height: 1.75; margin: 0 0 8px; color: var(--text); }
 .mrep .link { font-size: 13.5px; }
+.admin-btn { margin: 0 0 14px; text-decoration: none; display: flex; justify-content: center; }
+.adm-note { font-size: 12.5px; margin: -4px 0 6px; }
+.adm-h { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 15px; margin: 18px 0 8px; }
+.adm-h .link { margin-left: auto; font-size: 13px; }
+.adm-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
+.adm-tile { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px; display: flex; flex-direction: column; gap: 2px; }
+.adm-tile b { font-size: 20px; }
+.adm-tile small { font-size: 12px; color: var(--muted); }
+.adm-tile.ok b { color: var(--green); } .adm-tile.warn b { color: #d97706; } .adm-tile.bad b { color: #e11d48; }
+.adm-warn { margin-top: 8px; padding: 10px 12px; border-radius: 12px; background: rgba(225,29,72,.08); color: #e11d48; font-size: 13px; word-break: break-word; }
+.adm-errs { padding: 4px 0; }
+.adm-err { padding: 10px 14px; border-bottom: 1px solid var(--line); }
+.adm-err:last-child { border-bottom: 0; }
+.adm-err-h { display: flex; gap: 10px; align-items: flex-start; width: 100%; text-align: left; color: inherit; }
+.adm-cnt { flex: none; font-weight: 800; color: #e11d48; min-width: 34px; }
+.adm-msg { font-size: 14px; word-break: break-word; }
+.adm-meta { font-size: 12px; margin: 2px 0 0 44px; }
+.adm-more { margin: 8px 0 0 44px; display: flex; flex-direction: column; gap: 8px; font-size: 12px; }
+.adm-more pre { white-space: pre-wrap; word-break: break-all; font-size: 11px; background: var(--card2); padding: 8px; border-radius: 8px; max-height: 220px; overflow: auto; }
 .lb-filter { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; margin: 0 -16px 12px; padding: 2px 16px; }
 .lb-filter::-webkit-scrollbar { display: none; }
 .lb-filter .chip { flex: none; display: inline-flex; align-items: center; gap: 6px; }
@@ -6681,6 +6700,84 @@ function PushCard({ user, hasFav, toast, bn }) {
   );
 }
 
+// ═════════ অ্যাডমিন প্যানেল (/admin): শুধু প্রতিষ্ঠাতার অ্যাকাউন্টে, সাইটের অবস্থা এক নজরে ═════════
+const ADMIN_IDS = ["b9593729-5ea4-44f4-9083-7cf4d19721ee"];
+const agoBn = (iso) => {
+  if (!iso) return "—";
+  const m = Math.round((Date.now() - Date.parse(iso)) / 60000);
+  return m < 1 ? "এইমাত্র" : m < 60 ? `${num(m, "bn")} মিনিট আগে` : m < 1440 ? `${num(Math.round(m / 60), "bn")} ঘণ্টা আগে` : `${num(Math.round(m / 1440), "bn")} দিন আগে`;
+};
+const uaShort = (ua) => (!ua ? "" : `${/iPhone|iPad/.test(ua) ? "আইফোন" : /Android/.test(ua) ? "অ্যান্ড্রয়েড" : /Windows/.test(ua) ? "উইন্ডোজ" : /Mac/.test(ua) ? "ম্যাক" : "অন্য"} · ${/SamsungBrowser/.test(ua) ? "স্যামসাং" : /Edg\//.test(ua) ? "এজ" : /Firefox/.test(ua) ? "ফায়ারফক্স" : /Chrome/.test(ua) ? "ক্রোম" : /Safari/.test(ua) ? "সাফারি" : "ব্রাউজার"}`);
+function AdminPage({ user, toast, goProfile }) {
+  const [d, setD] = useState(null);
+  const [err, setErr] = useState("");
+  const [open, setOpen] = useState(null);
+  const call = async (body) => {
+    const { data } = await sb.auth.getSession();
+    const tk = data?.session?.access_token;
+    if (!tk) throw Object.assign(new Error("login"), { code: 401 });
+    const r = await fetch("/api/admin", body ? { method: "POST", headers: { Authorization: `Bearer ${tk}`, "Content-Type": "application/json" }, body: JSON.stringify(body) } : { headers: { Authorization: `Bearer ${tk}` } });
+    if (r.status === 401 || r.status === 403) throw Object.assign(new Error("no"), { code: r.status });
+    return r.json();
+  };
+  const load = () => call().then((x) => { setD(x); setErr(""); }).catch((e) => setErr(e.code === 403 ? "forbidden" : e.code === 401 ? "login" : "x"));
+  useEffect(() => { if (DEMO) { setErr("x"); return; } if (user) load(); const i = setInterval(() => !document.hidden && user && load(), 60000); return () => clearInterval(i); }, [user?.id]);
+  const fix = async (fp) => { await call(fp ? { fix: fp } : { fixAll: true }).catch(() => {}); toast(fp ? "তালিকা থেকে সরানো হয়েছে" : "সব সরানো হয়েছে"); load(); };
+  if (!user || err === "login") return <div className="card empty"><div style={{ marginBottom: 12 }}>অ্যাডমিন প্যানেল দেখতে লগইন করুন</div><button className="btn" onClick={goProfile}>লগইন</button></div>;
+  if (err === "forbidden") return <div className="card empty">এই পাতা শুধু অ্যাডমিনের জন্য।</div>;
+  if (err) return <div className="card empty">তথ্য আনা গেল না। একটু পরে আবার চেষ্টা করুন।</div>;
+  if (!d) return <div className="card"><div className="spin" /></div>;
+  const af = d.af;
+  const liveOk = d.live && d.live.ok && Date.now() - Date.parse(d.live.at) < 10 * 60000;
+  const tile = (v, l, tone) => <div className={"adm-tile" + (tone ? " " + tone : "")}><b>{v}</b><small>{l}</small></div>;
+  return (
+    <div className="sec adm">
+      <div className="sec-h"><h2 style={{ fontSize: 19 }}>অ্যাডমিন প্যানেল</h2><button className="link" onClick={load}>রিফ্রেশ</button></div>
+      <div className="muted adm-note">প্রতি মিনিটে নিজে থেকে হালনাগাদ হয়। এই পাতা শুধু আপনার অ্যাকাউন্টে খোলে।</div>
+
+      <div className="adm-h">সাইটের অবস্থা</div>
+      <div className="adm-grid">
+        {tile(liveOk ? "চালু" : "থেমে আছে", `লাইভ আপডেট · ${agoBn(d.live?.at)}`, liveOk ? "ok" : "bad")}
+        {tile(af ? (af.active ? `${num(af.days ?? 0, "bn")} দিন` : "বন্ধ") : "—", "API-Football-এর মেয়াদ", !af ? "" : !af.active || af.days <= 7 ? "bad" : af.days <= 30 ? "warn" : "ok")}
+        {tile(af ? `${num(af.used ?? 0, "bn")}/${num(af.limit ?? 0, "bn")}` : "—", "আজকের API কল", af && af.used / af.limit > 0.9 ? "bad" : "")}
+        {tile(num(d.liveNow ?? 0, "bn"), "এখন লাইভ ম্যাচ")}
+      </div>
+      {d.lastLiveError && Date.now() - Date.parse(d.lastLiveError.created_at) < 6 * 3600000 && <div className="adm-warn">শেষ লাইভ ভুল ({agoBn(d.lastLiveError.created_at)}): {String(d.lastLiveError.detail || "").slice(0, 160)}</div>}
+
+      <div className="adm-h">ব্যবহারকারী</div>
+      <div className="adm-grid">
+        {tile(num(d.users ?? 0, "bn"), "মোট অ্যাকাউন্ট")}
+        {tile(num(d.users7 ?? 0, "bn"), "গত ৭ দিনে নতুন")}
+        {tile(num(d.pushUsers ?? 0, "bn"), `নোটিফিকেশন চালু (${num(d.pushDevices ?? 0, "bn")} ডিভাইস)`)}
+        {tile(num(d.pred24 ?? 0, "bn"), `২৪ ঘণ্টায় প্রেডিকশন (মোট ${num(d.predAll ?? 0, "bn")})`)}
+        {tile(num(d.leagues ?? 0, "bn"), "বন্ধুদের লিগ")}
+      </div>
+
+      <div className="adm-h">ধরা পড়া ভুল (এরর) <span className="muted">{num(d.errors.length, "bn")}টা</span>{d.errors.length > 0 && <button className="link" onClick={() => window.confirm("সব ভুল তালিকা থেকে সরাবেন?") && fix(null)}>সব সরান</button>}</div>
+      {!d.errors.length ? <div className="card empty">কোনো ভুল নেই। সব ঠিকঠাক চলছে।</div> : (
+        <div className="card adm-errs">
+          {d.errors.map((e) => (
+            <div key={e.fp} className="adm-err">
+              <button className="adm-err-h" onClick={() => setOpen(open === e.fp ? null : e.fp)}>
+                <span className="adm-cnt">{num(e.count, "bn")}×</span>
+                <span className="adm-msg">{e.msg}</span>
+              </button>
+              <div className="muted adm-meta">{agoBn(e.last_seen)} · {(e.url || "").replace(/^https?:\/\/[^/]+/, "") || "/"} · {uaShort(e.ua)}</div>
+              {open === e.fp && (
+                <div className="adm-more">
+                  <div className="muted">প্রথম: {agoBn(e.first_seen)} · সংস্করণ: {(e.build || "").slice(0, 16)}</div>
+                  {e.stack && <pre>{e.stack.slice(0, 900)}</pre>}
+                  <button className="btn ghost" onClick={() => fix(e.fp)}>ঠিক হয়েছে, তালিকা থেকে সরান</button>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+      <div className="muted adm-note" style={{ marginTop: 10 }}>নতুন ভুল ধরা পড়লে আপনার ফোনে নোটিফিকেশনও যায়। কোনো ভুল বুঝতে না পারলে এখানকার স্ক্রিনশট পাঠান।</div>
+    </div>
+  );
+}
 function Profile({ user, profile, setProfile, toast, myTeams, teamsById, lang, setLang, theme, setTheme, onEditTeams }) {
   const { t } = useT();
   const bn = lang === "bn";
@@ -6765,6 +6862,7 @@ function Profile({ user, profile, setProfile, toast, myTeams, teamsById, lang, s
           <div className="team-chips">{myTeams.fav.length ? chips(myTeams.fav) : <span className="muted" style={{ fontSize: 13 }}>{lang === "bn" ? "এখনো কোনো প্রিয় দল নেই। যেকোনো দলের পাতায় ☆ চাপুন, বা ওপরে এডিট করুন।" : "No favourites yet. Tap ☆ on any team page, or Edit above."}</span>}</div>
         </div>
       </div>
+      {ADMIN_IDS.includes(user?.id) && <a className="btn block admin-btn" href="/admin" onClick={(e) => { e.preventDefault(); history.pushState({}, "", "/admin"); dispatchEvent(new PopStateEvent("popstate")); }}>অ্যাডমিন প্যানেল · সাইটের অবস্থা</a>}
       <PushCard user={user} hasFav={myTeams.fav.length > 0} toast={toast} bn={bn} />
       <ProfileBadges st={st} />
       {settings}
@@ -8913,6 +9011,7 @@ const viewFromPath = () => {
   }
   if (kind === "daily" && !id) return { kind: "daily" };
   if (PAGE_PATHS[kind] && !id) return { kind: "page", id: PAGE_PATHS[kind] };
+  if (kind === "admin" && !id) return { kind: "admin" };
   return null;
 };
 // পাতার আসল ঠিকানা (পুরনো লিংক খুললে ঠিকানার ঘরে এটা বসে যায়)
@@ -9179,6 +9278,8 @@ export default function App() {
           <League key={view.code} code={view.code} comps={comps} preds={preds} onOpen={openMatch} teamsById={teamsById} />
         ) : view?.kind === "team" ? (
           <Team key={view.id} id={view.id} teamsById={teamsById} preds={preds} onOpen={openMatch} isFav={myTeams.fav.includes(view.id)} onToggleFav={toggleFav} user={user} toast={toast} onLogin={() => go("profile")} />
+        ) : view?.kind === "admin" ? (
+          <AdminPage user={user} toast={toast} goProfile={() => go("profile")} />
         ) : view?.kind === "page" ? (
           <InfoPage key={view.id} id={view.id} user={user} goProfile={() => go("profile")} />
         ) : view?.kind === "daily" ? (
