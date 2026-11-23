@@ -1068,7 +1068,7 @@ button.pm { background: none; border: 0; padding: 0; cursor: pointer; font: inhe
 .adm-note-prev img { border-radius: 50%; flex: none; }
 .adm-note-prev b { display: block; font-size: 14px; } .adm-note-prev span { display: block; font-size: 13px; color: var(--muted); }
 .adm-actions { display: flex; gap: 8px; flex-wrap: wrap; } .adm-actions .btn { flex: 1; min-width: 140px; }
-.admin-btn { margin: 0 0 14px; text-decoration: none; display: flex; justify-content: center; }
+.admin-btn { margin: 0; text-decoration: none; display: flex; justify-content: center; }
 .adm-note { font-size: 12.5px; margin: -4px 0 6px; }
 .adm-h { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 15px; margin: 18px 0 8px; }
 .adm-h .link { margin-left: auto; font-size: 13px; }
@@ -7087,7 +7087,7 @@ function Profile({ user, profile, setProfile, toast, myTeams, teamsById, lang, s
           <div className="team-chips">{myTeams.fav.length ? chips(myTeams.fav) : <span className="muted" style={{ fontSize: 13 }}>{lang === "bn" ? "এখনো কোনো প্রিয় দল নেই। যেকোনো দলের পাতায় ☆ চাপুন, বা ওপরে এডিট করুন।" : "No favourites yet. Tap ☆ on any team page, or Edit above."}</span>}</div>
         </div>
       </div>
-      {ADMIN_IDS.includes(user?.id) && <a className="btn block admin-btn" href="/admin" onClick={(e) => { e.preventDefault(); history.pushState({}, "", "/admin"); dispatchEvent(new PopStateEvent("popstate")); }}>অ্যাডমিন প্যানেল · সাইটের অবস্থা</a>}
+      {ADMIN_IDS.includes(user?.id) && <div className="sec"><a className="btn block admin-btn" href="/admin" onClick={(e) => { e.preventDefault(); history.pushState({}, "", "/admin"); dispatchEvent(new PopStateEvent("popstate")); }}>অ্যাডমিন প্যানেল · শুধু আপনি দেখছেন</a></div>}
       <PushCard user={user} hasFav={myTeams.fav.length > 0} toast={toast} bn={bn} />
       <ProfileBadges st={st} />
       {settings}
