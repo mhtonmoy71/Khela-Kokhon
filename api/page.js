@@ -2,6 +2,7 @@
 //  /match/ID খুললে: সাইটের index.html, কিন্তু শিরোনাম, বর্ণনা আর শেয়ারের ছবি সেই ম্যাচের
 //  (ফেসবুক, মেসেঞ্জার, হোয়াটসঅ্যাপ লিংকের প্রিভিউ এখান থেকে নেয়; ব্যবহারকারীর কাছে সাইট আগের মতোই)
 // ═══════════════════════════════════════════════════════════════
+import { matchReport } from "../src/report.js";
 const SITE = "https://khelakokhon.com";
 const BN = "০১২৩৪৫৬৭৮৯", bn = (n) => String(n).replace(/\d/g, (d) => BN[d]);
 const esc = (s) => String(s || "").replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
@@ -15,7 +16,7 @@ async function getShell() {
 async function getMatch(id) {
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
   const T = "name_en,short_en,name_bn";
-  const r = await fetch(`${process.env.SUPABASE_URL.replace(/\/$/, "")}/rest/v1/matches?select=id,utc_date,status,home_score,away_score,home:teams!matches_home_fk(${T}),away:teams!matches_away_fk(${T}),competition:competitions(name_bn,name_en)&id=eq.${id}`,
+  const r = await fetch(`${process.env.SUPABASE_URL.replace(/\/$/, "")}/rest/v1/matches?select=id,utc_date,status,home_score,away_score,pen_home,pen_away,stage,competition_code,group_name,home:teams!matches_home_fk(${T}),away:teams!matches_away_fk(${T}),competition:competitions(name_bn,name_en)&id=eq.${id}`,
     { headers: { apikey: key, Authorization: `Bearer ${key}` } });
   const [m] = await r.json(); return m || null;
 }
@@ -104,7 +105,21 @@ export default async function handler(req, res) {
         ? (m.status === "FINISHED" ? "খেলা শেষ। গোল, লাইনআপ, রেটিং আর স্ট্যাটস দেখুন খেলা কখন?-এ।" : "খেলা চলছে। লাইভ স্কোর, কমেন্ট্রি আর স্ট্যাটস দেখুন খেলা কখন?-এ।")
         : `${whenBn(m.utc_date)}। স্কোর প্রেডিক্ট করুন, লাইভ স্কোর দেখুন খেলা কখন?-এ।`;
       const ver = played ? `${m.status}-${m.home_score}-${m.away_score}` : "s";
-      html = setMeta(html, { title: title + " · খেলা কখন?", desc, image: `${SITE}/api/og?match=${m.id}&v=${ver}`, url: `${SITE}/match/${m.id}` });
+      // খেলা শেষ হলে বাংলা ম্যাচ রিপোর্ট: গুগলের জন্য পাতার ভেতরে (React চালু হলে নিজের পাতা বসায়)
+      let rep = null;
+      if (m.status === "FINISHED") {
+        const [L] = await sbGet(`match_live?select=events,stats,players,lineups&match_id=eq.${m.id}`).catch(() => []);
+        const compBn = m.competition_code === "BAN" && m.group_name ? `বাংলাদেশ · ${m.group_name}` : comp;
+        rep = L?.events ? matchReport(m, L, { tn, comp: compBn }) : null;
+      }
+      html = setMeta(html, { title: (rep ? rep.title : title) + " · খেলা কখন?", desc: rep ? rep.paras[0].slice(0, 300) : desc, image: `${SITE}/api/og?match=${m.id}&v=${ver}`, url: `${SITE}/match/${m.id}` });
+      const ld = { "@context": "https://schema.org", "@type": "SportsEvent", name: `${tn(m.home)} বনাম ${tn(m.away)}`, startDate: m.utc_date, sport: "Football",
+        eventStatus: "https://schema.org/EventScheduled", location: { "@type": "Place", name: comp || "Football" },
+        homeTeam: { "@type": "SportsTeam", name: tn(m.home) }, awayTeam: { "@type": "SportsTeam", name: tn(m.away) },
+        competitor: [{ "@type": "SportsTeam", name: tn(m.home) }, { "@type": "SportsTeam", name: tn(m.away) }], url: `${SITE}/match/${m.id}` };
+      const body = rep ? `<article><h1>${esc(rep.title)}</h1>${rep.paras.map((p) => `<p>${esc(p)}</p>`).join("")}</article>` : `<h1>${esc(title)}</h1><p>${esc(desc)}</p>`;
+      html = html.replace('<div id="root"></div>', `<div id="root">${body}</div>`)
+        .replace("</head>", `<script type="application/ld+json">${JSON.stringify(ld).replace(/</g, "\\u003c")}</script></head>`);
     }
     else if (q.l && /^[A-Za-z0-9]{2,6}$/.test(q.l)) { const mt = await leagueMeta(q.l.toUpperCase()); if (mt) html = setMeta(html, mt); }
     else if (/^\d+$/.test(q.t || "")) { const mt = await teamMeta(+q.t); if (mt) html = setMeta(html, mt); }

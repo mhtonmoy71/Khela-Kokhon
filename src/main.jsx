@@ -4,9 +4,56 @@ import App from "./App.jsx";
 
 window.__kkBuild = __BUILD__;
 
+// ── সাইটে কোনো ভুল (এরর) হলে নিজে থেকেই জানানো (/api/log → অ্যাডমিনের ফোনে) ──
+// একই ভুল একবারই, আর এক পাতায় সর্বোচ্চ ৫টা; ব্রাউজার এক্সটেনশনের ভুল বাদ
+const sent = new Set();
+function report(msg, stack, src) {
+  try {
+    if (!import.meta.env.PROD || !msg) return;
+    const k = msg + "|" + (src || "");
+    if (sent.has(k) || sent.size >= 5) return;
+    sent.add(k);
+    const body = JSON.stringify({ msg: String(msg).slice(0, 500), stack: String(stack || "").slice(0, 2000), src: src || "", url: location.href, build: window.__kkBuild });
+    if (navigator.sendBeacon) navigator.sendBeacon("/api/log", new Blob([body], { type: "application/json" }));
+    else fetch("/api/log", { method: "POST", headers: { "Content-Type": "application/json" }, body, keepalive: true }).catch(() => {});
+  } catch { /* জানাতে না পারলেও সাইট চলবে */ }
+}
+window.__kkReport = report;
+addEventListener("error", (e) => {
+  // শুধু আমাদের নিজের কোডের ভুল (অন্য সাইটের স্ক্রিপ্ট বা ছবি লোড না হওয়া বাদ)
+  if (!e.message || (e.filename && !e.filename.startsWith(location.origin))) return;
+  report(e.message, e.error?.stack, `${(e.filename || "").replace(location.origin, "")}:${e.lineno}:${e.colno}`);
+});
+addEventListener("unhandledrejection", (e) => {
+  const r = e.reason;
+  if (!(r instanceof Error)) return;
+  report(r.message, r.stack, "promise");
+});
+
+// পাতার কোনো অংশ ভেঙে গেলে পুরো সাইট সাদা না হয়ে একটা বার্তা আর আবার চেষ্টার বোতাম
+class Guard extends React.Component {
+  constructor(p) { super(p); this.state = { err: null }; }
+  static getDerivedStateFromError(err) { return { err }; }
+  componentDidCatch(err, info) { report(err?.message || String(err), (err?.stack || "") + "\n" + (info?.componentStack || "").slice(0, 800), "render"); }
+  render() {
+    if (!this.state.err) return this.props.children;
+    return (
+      <div style={{ minHeight: "100vh", display: "grid", placeItems: "center", padding: 24, textAlign: "center", fontFamily: "'Hind Siliguri', sans-serif", background: "#064e3b", color: "#fff" }}>
+        <div>
+          <div style={{ fontSize: 22, fontWeight: 700, marginBottom: 8 }}>দুঃখিত, কিছু একটা গোলমাল হয়েছে</div>
+          <div style={{ opacity: 0.8, marginBottom: 18 }}>সমস্যাটা আমাদের কাছে নিজে থেকেই পৌঁছে গেছে। আবার চেষ্টা করুন।</div>
+          <button onClick={() => location.reload()} style={{ background: "#00e676", color: "#06201a", border: 0, borderRadius: 12, padding: "12px 22px", fontSize: 16, fontWeight: 700, cursor: "pointer" }}>আবার চেষ্টা করুন</button>
+        </div>
+      </div>
+    );
+  }
+}
+
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
-    <App />
+    <Guard>
+      <App />
+    </Guard>
   </React.StrictMode>
 );
 

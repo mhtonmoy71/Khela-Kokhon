@@ -1,6 +1,7 @@
 // খেলা কখন? v2 — পুরো অ্যাপ এক ফাইলে
 import { Fragment, createContext, useContext, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createClient } from "@supabase/supabase-js";
+import { matchReport } from "./report.js";
 
 // ════════════════ স্টাইল ════════════════
 const CSS = `
@@ -1010,6 +1011,11 @@ button.pm { background: none; border: 0; padding: 0; cursor: pointer; font: inhe
 .wk-crown { width: 34px; height: 34px; flex: none; border-radius: 50%; display: grid; place-items: center; background: #f59e0b; color: #fff; font-size: 17px; }
 .wk-pts { margin-left: auto; font-weight: 800; font-size: 20px; white-space: nowrap; }
 .wk-pts small { font-size: 11px; font-weight: 600; color: var(--muted); }
+.mrep { padding: 14px 16px; margin-bottom: 12px; }
+.mrep-k { font-size: 11.5px; font-weight: 700; color: var(--green); letter-spacing: .3px; margin-bottom: 4px; }
+.mrep h3 { font-size: 17px; line-height: 1.4; margin: 0 0 8px; }
+.mrep p { font-size: 14.5px; line-height: 1.75; margin: 0 0 8px; color: var(--text); }
+.mrep .link { font-size: 13.5px; }
 .lb-filter { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; margin: 0 -16px 12px; padding: 2px 16px; }
 .lb-filter::-webkit-scrollbar { display: none; }
 .lb-filter .chip { flex: none; display: inline-flex; align-items: center; gap: 6px; }
@@ -3072,24 +3078,31 @@ function ClockText() {
 }
 
 // ── দলের ক্রেস্ট (ছবি না এলে সংক্ষিপ্ত নাম) ──
+// বাইরের লোগো/ছবি নিজেদের ডোমেইন থেকে ছোট করে (/api/img, CDN-এ জমা): দেখানোর মাপের দ্বিগুণ (রেটিনা)
+const IMG_HOSTS = /^https:\/\/(crests\.football-data\.org|media(-\d)?\.api-sports\.io)\//;
+const imgUrl = (src, px) => (src && !DEMO && IMG_HOSTS.test(src) ? `/api/img?u=${encodeURIComponent(src)}&w=${Math.round(px * 2)}` : src);
+// ছোট করা ছবি না এলে আসলটা, তাও না এলে বিকল্প (tries: ০ ছোট, ১ আসল, ২ বাদ)
+function useImgTries(key) { const [t, setT] = useState(0); useEffect(() => setT(0), [key]); return [t, () => setT((x) => x + 1)]; }
 function Crest({ team, size = 22 }) {
-  const [bad, setBad] = useState(false);
-  if (!team?.crest || bad)
+  const [tries, fail] = useImgTries(team?.crest);
+  const src = !team?.crest ? null : tries === 0 ? imgUrl(team.crest, size) : tries === 1 && imgUrl(team.crest, size) !== team.crest ? team.crest : null;
+  if (!src)
     return (
       <span className="crest-fb" style={{ width: size, height: size, fontSize: size * 0.34 }}>
         {(team?.tla || team?.short_en || "?").slice(0, 3)}
       </span>
     );
-  return <img className="crest" src={team.crest} alt="" width={size} height={size} loading="lazy" onError={() => setBad(true)} />;
+  return <img className="crest" src={src} alt="" width={size} height={size} loading="lazy" decoding="async" onError={fail} />;
 }
 
 // ডেটা সোর্সের পুরনো লোগোর বদলে নতুন লোগো (সাইটের নিজের ফাইল, public/leagues)
 const EMBLEM_FIX = { CL: "/leagues/CL.png", PL: "/leagues/PL.png", PD: "/leagues/PD.png", BL1: "/leagues/BL1.png", SA: "/leagues/SA.png", FL1: "/leagues/FL1.png", BPL: "/leagues/BPL.svg", BFC: "/leagues/BFC.svg" };
 function CompIcon({ c, size = 18 }) {
-  const [bad, setBad] = useState(false);
-  const src = (c && EMBLEM_FIX[c.code]) || c?.emblem;
-  if (!src || bad) return null;
-  return <img src={src} alt="" width={size} height={size} style={{ objectFit: "contain" }} onError={() => setBad(true)} />;
+  const raw = (c && EMBLEM_FIX[c.code]) || c?.emblem;
+  const [tries, fail] = useImgTries(raw);
+  const src = !raw ? null : tries === 0 ? imgUrl(raw, size) : tries === 1 && imgUrl(raw, size) !== raw ? raw : null;
+  if (!src) return null;
+  return <img src={src} alt="" width={size} height={size} style={{ objectFit: "contain" }} decoding="async" onError={fail} />;
 }
 
 // ── স্ট্যাটাস লেখা ──
@@ -3614,7 +3627,7 @@ function PitchMan({ p, st, side, mode = "r", ts }) {
   const nav = useNav();
   return (
     <button className={"pm pm-" + side} onClick={() => p.id && nav.openPlayer(10000000 + p.id)}>
-      <span className="pm-shirt">{p.id && !noPic ? <img src={`https://media.api-sports.io/football/players/${p.id}.png`} alt="" loading="lazy" onError={() => setNoPic(true)} /> : (p.no ?? "")}
+      <span className="pm-shirt">{p.id && !noPic ? <img src={imgUrl(`https://media.api-sports.io/football/players/${p.id}.png`, 38)} alt="" loading="lazy" onError={() => setNoPic(true)} /> : (p.no ?? "")}
         {mode === "r" && st?.r ? <em className={"pm-r " + rateCls(st.r)}>{rateTxt(st.r, lang)}</em> : null}
         {mode === "age" && ts?.age != null ? <em className="pm-x">{num(ts.age, lang)}</em> : null}
         {mode === "nat" && flagUrl(ts?.nat) ? <em className="pm-flag"><img src={flagUrl(ts.nat)} alt={ts.nat} loading="lazy" /></em> : null}
@@ -3761,7 +3774,7 @@ function CmPlayer({ id, name, team, no, lang, badge }) {
     <button className="cm-pl" onClick={() => id && nav.openPlayer(10000000 + id)}>
       <Crest team={team} size={26} />
       <span className="cm-pl-n">{no != null && <small>{num(no, lang)}</small>}<b>{bnPlayer(name, lang)}</b></span>
-      <span className="cm-ph">{id && !bad ? <img src={`https://media.api-sports.io/football/players/${id}.png`} alt="" loading="lazy" onError={() => setBad(true)} /> : <i>{(bnPlayer(name, lang) || "?").slice(0, 1)}</i>}{badge && <em>{badge}</em>}</span>
+      <span className="cm-ph">{id && !bad ? <img src={imgUrl(`https://media.api-sports.io/football/players/${id}.png`, 40)} alt="" loading="lazy" onError={() => setBad(true)} /> : <i>{(bnPlayer(name, lang) || "?").slice(0, 1)}</i>}{badge && <em>{badge}</em>}</span>
     </button>
   );
 }
@@ -3833,6 +3846,21 @@ function MatchCommentary({ L, m, lang }) {
 }
 
 // ম্যাচের পাতা খোলা থাকলে লাইভ বিস্তারিত আনা, খেলা চললে প্রতি মিনিটে নতুন করে
+// খেলা শেষে বাংলায় ম্যাচ রিপোর্ট (গোল, কার্ড, স্ট্যাটস থেকে নিজে থেকে লেখা; report.js)
+function MatchReport({ m, L, lang }) {
+  const [full, setFull] = useState(false);
+  const r = useMemo(() => (lang === "bn" && L?.events ? matchReport(m, L, { tn: (t) => teamName(t, "bn"), pn: (n) => bnPlayer(n, "bn"), comp: mComp(m, "bn") }) : null), [m?.id, m?.status, m?.home_score, m?.away_score, L, lang]);
+  if (!r) return null;
+  const show = full ? r.paras : r.paras.slice(0, 2);
+  return (
+    <article className="card mrep">
+      <div className="mrep-k">ম্যাচ রিপোর্ট</div>
+      <h3>{r.title}</h3>
+      {show.map((p, i) => <p key={i}>{p}</p>)}
+      {r.paras.length > 2 && <button className="link" onClick={() => setFull(!full)}>{full ? "কম দেখুন" : "পুরোটা পড়ুন"}</button>}
+    </article>
+  );
+}
 function useMatchLive(m) {
   const [L, setL] = useState(null);
   useEffect(() => {
@@ -4133,6 +4161,7 @@ function MatchPage({ id, m: mInit, user, pred, onSave, onLogin, toast }) {
       <div className="mp-body">
         {tab === "ov" && (
           <>
+            <MatchReport m={m} L={L} lang={lang} />
             {hasEv && <div className="mc-body" style={{ marginBottom: 12 }}><MatchEvents L={L} m={m} lang={lang} /></div>}
             {open && <div className="ms-cd">{t("startsIn")} {countdown(new Date(m.utc_date) - now, lang)} · {t("bdTime")}</div>}
             <FanVote m={m} />
