@@ -62,7 +62,7 @@ const AF_TEAMS_BN = [
   ["Montreal", "সিএফ মন্ট্রিয়ল"], ["San Diego", "সান দিয়েগো এফসি"],
   ["Bashundhara", "বসুন্ধরা কিংস"], ["Abahani Chittagong", "চট্টগ্রাম আবাহনী"], ["Chittagong Abahani", "চট্টগ্রাম আবাহনী"], ["Chattogram Abahani", "চট্টগ্রাম আবাহনী"], ["Abahani", "ঢাকা আবাহনী"],
   ["Mohammedan", "মোহামেডান"], ["Fortis", "ফর্টিস এফসি"], ["Rahmatganj", "রহমতগঞ্জ"], ["Rahmatgonj", "রহমতগঞ্জ"], ["PWD", "পিডব্লিউডি"], ["Brothers Union", "ব্রাদার্স ইউনিয়ন"],
-  ["Police", "পুলিশ এফসি"], ["City Club", "সিটি ক্লাব"], ["Chattogram", "চট্টগ্রাম"], ["Fakirerpool", "ফকিরেরপুল"], ["Dhaka Wanderers", "ঢাকা ওয়ান্ডারার্স"], ["Sheikh Russel", "শেখ রাসেল"],
+  ["Police", "পুলিশ এফসি"], ["City Club", "সিটি ক্লাব"], ["Chattogram", "চট্টগ্রাম"], ["Fakirerpool", "ফকিরেরপুল ইয়াংমেন্স"], ["Dhaka Wanderers", "ঢাকা ওয়ান্ডারার্স"], ["Sheikh Russel", "শেখ রাসেল"],
   ["Sheikh Jamal", "শেখ জামাল"], ["Arambagh", "আরামবাগ"], ["Muktijoddha", "মুক্তিযোদ্ধা"], ["Uttar Baridhara", "উত্তর বারিধারা"], ["Saif Sporting", "সাইফ স্পোর্টিং"],
   ["Al-Hilal", "আল হিলাল"], ["Al-Nassr", "আল নাসর"], ["Al-Ittihad", "আল ইত্তিহাদ"], ["Al-Ahli", "আল আহলি"],
   ["Al-Qadisiyah", "আল কাদসিয়া"], ["Al-Ettifaq", "আল ইত্তিফাক"], ["Al-Shabab", "আল শাবাব"], ["Al-Taawoun", "আল তাউন"],

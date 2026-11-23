@@ -30,6 +30,8 @@ export const CLUBS_BN = {
   "Swindon": "সুইনডন টাউন", "Swindon Town": "সুইনডন টাউন", "Newport County": "নিউপোর্ট কাউন্টি", "Barrow": "ব্যারো", "Bromley": "ব্রমলি", "Cheltenham": "চেলটেনহ্যাম টাউন", "Cheltenham Town": "চেলটেনহ্যাম টাউন",
   "Oldham": "ওল্ডহ্যাম অ্যাথলেটিক", "Oldham Athletic": "ওল্ডহ্যাম অ্যাথলেটিক", "Bournemouth": "বোর্নমাউথ", "Brighton": "ব্রাইটন", "Brentford": "ব্রেন্টফোর্ড",
   "Barnet": "বার্নেট", "York": "ইয়র্ক সিটি", "York City": "ইয়র্ক সিটি", "Southend": "সাউথএন্ড ইউনাইটেড", "Southend United": "সাউথএন্ড ইউনাইটেড", "Hartlepool": "হার্টলপুল ইউনাইটেড",
+  // ── বাংলাদেশ ──
+  "Fakirerpool": "ফকিরেরপুল ইয়াংমেন্স", "Fakirerpool YMC": "ফকিরেরপুল ইয়াংমেন্স", "Fakirerpool Young Men": "ফকিরেরপুল ইয়াংমেন্স",
   // ── স্কটল্যান্ড ──
   "Celtic": "সেলটিক", "Rangers": "রেঞ্জার্স", "Aberdeen": "অ্যাবারডিন", "Hearts": "হার্টস", "Hibernian": "হিবারনিয়ান",
   // ── স্পেন: সেগুন্দা আর কোপা দেল রের ছোট দল ──
