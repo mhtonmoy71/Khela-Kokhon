@@ -16,6 +16,7 @@ export const FINAL = ["FT", "AET", "PEN", "CANC", "ABD", "AWD", "WO", "PST"];
 
 // ── শুধু API-Football থেকে আসা লিগ (football-data-এ নেই): সূচি, টেবিল, গোলদাতা সবই এখান থেকে ──
 // আইডি আলাদা রাখতে: ম্যাচ = ১০ কোটি + API-Football-এর আইডি, দল ও খেলোয়াড় = ১ কোটি + আইডি
+import { clubBn } from "../src/clubsBn.js";
 export const AF_LEAGUES = {
   SPL: { id: 307, en: "Saudi Pro League", bn: "সৌদি প্রো লিগ", sort: 7, squads: true },
   MLS: { id: 253, en: "MLS", bn: "এমএলএস", sort: 8, squads: true },
@@ -71,7 +72,7 @@ const AF_TEAMS_BN = [
   ["Atlanta United", "আটলান্টা ইউনাইটেড"], ["Columbus Crew", "কলম্বাস ক্রু"], ["FC Cincinnati", "এফসি সিনসিনাটি"],
   ["Philadelphia Union", "ফিলাডেলফিয়া ইউনিয়ন"], ["Orlando City", "অরল্যান্ডো সিটি"], ["Toronto FC", "টরন্টো এফসি"],
 ];
-const afBn = (name) => NT_BN[name] || AF_TEAMS_BN.find(([k]) => (name || "").toLowerCase().includes(k.toLowerCase()))?.[1] || null;
+const afBn = (name) => NT_BN[name] || clubBn(name) || AF_TEAMS_BN.find(([k]) => (name || "").toLowerCase().includes(k.toLowerCase()))?.[1] || null;
 const AF_STATUS = (st) => (["NS", "TBD"].includes(st) ? "TIMED" : st === "HT" ? "PAUSED" : ["FT", "AET", "PEN"].includes(st) ? "FINISHED"
   : st === "PST" ? "POSTPONED" : ["CANC", "ABD", "AWD", "WO"].includes(st) ? "CANCELLED" : "IN_PLAY");
 // লোগো না এলে দেখানোর তিন অক্ষর: "Al-Hilal" → HIL, "Inter Miami" → INT
