@@ -1016,6 +1016,43 @@ button.pm { background: none; border: 0; padding: 0; cursor: pointer; font: inhe
 .mrep h3 { font-size: 17px; line-height: 1.4; margin: 0 0 8px; }
 .mrep p { font-size: 14.5px; line-height: 1.75; margin: 0 0 8px; color: var(--text); }
 .mrep .link { font-size: 13.5px; }
+.adm-app { min-height: 100vh; background: var(--bg); }
+.adm-top { position: sticky; top: 0; z-index: 20; display: flex; align-items: center; gap: 10px; padding: 10px 16px; padding-top: max(10px, env(safe-area-inset-top)); background: #06201a; color: #fff; }
+.adm-brand { display: flex; flex-direction: column; line-height: 1.05; }
+.adm-brand b { font-size: 16px; } .adm-brand b i { font-style: normal; color: #f59e0b; }
+.adm-brand span { font-size: 11.5px; color: #7dffb8; font-weight: 700; letter-spacing: .5px; }
+.adm-top .sp { flex: 1; }
+.adm-ref, .adm-exit { height: 32px; padding: 0 12px; border-radius: 999px; font-size: 13px; font-weight: 600; color: #fff; background: rgba(255,255,255,.1); }
+.adm-exit { background: #00e676; color: #06201a; }
+.adm-tabs { position: sticky; top: 52px; z-index: 19; display: flex; gap: 4px; overflow-x: auto; scrollbar-width: none; padding: 8px 12px; background: var(--card); border-bottom: 1px solid var(--line); }
+.adm-tabs::-webkit-scrollbar { display: none; }
+.adm-tabs button { flex: none; height: 34px; padding: 0 14px; border-radius: 999px; font-size: 14px; font-weight: 600; color: var(--muted); display: inline-flex; align-items: center; gap: 6px; }
+.adm-tabs button.on { background: var(--greenDim); color: var(--text); }
+.adm-tabs em { font-style: normal; font-size: 11px; background: #e11d48; color: #fff; border-radius: 999px; padding: 0 6px; line-height: 17px; }
+.adm-main { max-width: 860px; margin: 0 auto; padding: 14px 16px 60px; }
+.adm-chart { padding: 14px 10px 8px; }
+.adm-bars { display: flex; align-items: flex-end; gap: 6px; height: 140px; }
+.adm-bar { flex: 1; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 4px; min-width: 0; }
+.adm-bar i { width: 70%; max-width: 34px; border-radius: 6px 6px 2px 2px; background: var(--green); }
+.adm-bar i.u { background: #3b82f6; }
+.adm-bar-v { font-size: 12px; font-weight: 700; }
+.adm-bar-d { font-size: 11px; color: var(--muted); white-space: nowrap; }
+.adm-list { padding: 2px 0; }
+.adm-user, .adm-run { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+.adm-user:last-child, .adm-run:last-child { border-bottom: 0; }
+.adm-user b, .adm-run b { display: block; font-size: 14.5px; }
+.adm-user small, .adm-run small { display: block; font-size: 12px; }
+.adm-run > div { flex: 1; }
+.adm-run .btn { flex: none; height: 34px; padding: 0 14px; }
+.adm-tag { margin-left: auto; flex: none; font-size: 11px; font-weight: 700; color: var(--green); background: var(--greenDim); border-radius: 999px; padding: 2px 8px; }
+.adm-ok { color: var(--green); word-break: break-all; } .adm-bad { color: #e11d48; word-break: break-all; }
+.adm-form { padding: 14px; display: flex; flex-direction: column; gap: 12px; }
+.adm-form label { display: flex; flex-direction: column; gap: 6px; font-size: 13px; font-weight: 600; }
+.adm-form input, .adm-form textarea { font: inherit; font-weight: 400; font-size: 15px; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--bg); color: var(--text); resize: vertical; }
+.adm-note-prev { display: flex; gap: 10px; align-items: flex-start; margin-top: 6px; padding: 10px 12px; border-radius: 14px; background: var(--card2); }
+.adm-note-prev img { border-radius: 50%; flex: none; }
+.adm-note-prev b { display: block; font-size: 14px; } .adm-note-prev span { display: block; font-size: 13px; color: var(--muted); }
+.adm-actions { display: flex; gap: 8px; flex-wrap: wrap; } .adm-actions .btn { flex: 1; min-width: 140px; }
 .admin-btn { margin: 0 0 14px; text-decoration: none; display: flex; justify-content: center; }
 .adm-note { font-size: 12.5px; margin: -4px 0 6px; }
 .adm-h { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 15px; margin: 18px 0 8px; }
@@ -6654,12 +6691,12 @@ function PushCard({ user, hasFav, toast, bn }) {
     setBusy(false);
   }
   async function pref(k) {
-    const prefs = { start: true, goal: true, end: true, day: true, pred: true, predres: true, daily: true, ...(row.prefs || {}) };
+    const prefs = { start: true, goal: true, end: true, day: true, pred: true, predres: true, news: true, daily: true, ...(row.prefs || {}) };
     prefs[k] = !prefs[k];
     setRow({ ...row, prefs });
     await sb.from("push_subs").update({ prefs }).eq("id", row.id);
   }
-  const P = { start: true, goal: true, end: true, day: true, pred: true, predres: true, daily: true, ...(row?.prefs || {}) };
+  const P = { start: true, goal: true, end: true, day: true, pred: true, predres: true, news: true, daily: true, ...(row?.prefs || {}) };
   return (
     <div className="sec">
       <div className="sec-h"><h2>{bn ? "নোটিফিকেশন" : "Notifications"}</h2></div>
@@ -6676,7 +6713,7 @@ function PushCard({ user, hasFav, toast, bn }) {
             </div>
             {row && (
               <div className="push-prefs">
-                {[["start", bn ? "খেলা শুরু" : "Kick-off"], ["goal", bn ? "গোল" : "Goals"], ["end", bn ? "খেলা শেষ" : "Full time"], ["day", bn ? "আজ খেলা আছে" : "Match day"], ["pred", bn ? "প্রেডিকশন মনে করানো" : "Prediction reminder"], ["predres", bn ? "প্রেডিকশনের ফল" : "Prediction results"], ["daily", bn ? "দৈনিক চ্যালেঞ্জ" : "Daily challenge"]].map(([k, l]) => (
+                {[["start", bn ? "খেলা শুরু" : "Kick-off"], ["goal", bn ? "গোল" : "Goals"], ["end", bn ? "খেলা শেষ" : "Full time"], ["day", bn ? "আজ খেলা আছে" : "Match day"], ["pred", bn ? "প্রেডিকশন মনে করানো" : "Prediction reminder"], ["predres", bn ? "প্রেডিকশনের ফল" : "Prediction results"], ["news", bn ? "ঘোষণা" : "Announcements"], ["daily", bn ? "দৈনিক চ্যালেঞ্জ" : "Daily challenge"]].map(([k, l]) => (
                   <button key={k} className={"chip" + (P[k] ? " on" : "")} onClick={() => pref(k)}>{P[k] ? "✓ " : ""}{l}</button>
                 ))}
               </div>
@@ -6708,10 +6745,28 @@ const agoBn = (iso) => {
   return m < 1 ? "এইমাত্র" : m < 60 ? `${num(m, "bn")} মিনিট আগে` : m < 1440 ? `${num(Math.round(m / 60), "bn")} ঘণ্টা আগে` : `${num(Math.round(m / 1440), "bn")} দিন আগে`;
 };
 const uaShort = (ua) => (!ua ? "" : `${/iPhone|iPad/.test(ua) ? "আইফোন" : /Android/.test(ua) ? "অ্যান্ড্রয়েড" : /Windows/.test(ua) ? "উইন্ডোজ" : /Mac/.test(ua) ? "ম্যাক" : "অন্য"} · ${/SamsungBrowser/.test(ua) ? "স্যামসাং" : /Edg\//.test(ua) ? "এজ" : /Firefox/.test(ua) ? "ফায়ারফক্স" : /Chrome/.test(ua) ? "ক্রোম" : /Safari/.test(ua) ? "সাফারি" : "ব্রাউজার"}`);
-function AdminPage({ user, toast, goProfile }) {
+const ADMIN_TABS = [["ov", "ওভারভিউ"], ["users", "ইউজার"], ["errors", "এরর"], ["news", "ঘোষণা"], ["sync", "আপডেট"]];
+const RUN_LIST = [
+  ["fd-quick", "আজকের ম্যাচ (ইউরোপের ৬ লিগ)", "গতকাল থেকে আগামীকাল পর্যন্ত স্কোর আর সময়"],
+  ["fd-full", "পুরো সূচি (ইউরোপের ৬ লিগ)", "সিজনের সব ম্যাচ নতুন করে"],
+  ["fd-tables", "পয়েন্ট টেবিল (ইউরোপের ৬ লিগ)", ""],
+  ["fd-scorers", "গোলদাতার তালিকা (ইউরোপের ৬ লিগ)", ""],
+  ["af-tables", "রিয়েল টাইম টেবিল (সব লিগ)", "খেলার ফল থেকে টেবিল আবার হিসাব"],
+  ["af:BAN", "বাংলাদেশ জাতীয় দল", "শেষ ১০ আর সামনের ১০ ম্যাচ"],
+  ["af:BPL", "বাংলাদেশ ফুটবল লিগ", ""],
+  ["af:BFC", "ফেডারেশন কাপ", ""],
+  ["af-all", "বাকি সব লিগ একসাথে", "সময় লাগে (১ মিনিট পর্যন্ত), বেশি API কল খরচ হয়"],
+  ["remind", "রিমাইন্ডার আর প্রেডিকশনের ফল", "যার যা পাওনা, এখনই পাঠানো"],
+];
+function AdminApp({ user, toast, goProfile, onExit }) {
   const [d, setD] = useState(null);
   const [err, setErr] = useState("");
+  const [tab, setTab] = useState(() => ls.get("adm_tab", "ov"));
   const [open, setOpen] = useState(null);
+  const [busy, setBusy] = useState("");
+  const [runOut, setRunOut] = useState({});
+  const [bc, setBc] = useState({ title: "", body: "", url: "/" });
+  useEffect(() => { ls.set("adm_tab", tab); window.scrollTo(0, 0); }, [tab]);
   const call = async (body) => {
     const { data } = await sb.auth.getSession();
     const tk = data?.session?.access_token;
@@ -6722,44 +6777,109 @@ function AdminPage({ user, toast, goProfile }) {
   };
   const load = () => call().then((x) => { setD(x); setErr(""); }).catch((e) => setErr(e.code === 403 ? "forbidden" : e.code === 401 ? "login" : "x"));
   useEffect(() => { if (DEMO) { setErr("x"); return; } if (user) load(); const i = setInterval(() => !document.hidden && user && load(), 60000); return () => clearInterval(i); }, [user?.id]);
-  // Claude-কে পাঠানোর জন্য ভুলের পুরো বিবরণ কপি (চ্যাটে পেস্ট করলেই খুঁজে ঠিক করা যায়)
   const errText = (e) => `[খেলা কখন এরর] ${e.count}× · ${e.msg}\nপাতা: ${e.url || "-"}\nডিভাইস: ${e.ua || "-"}\nসংস্করণ: ${e.build || "-"} · প্রথম ${e.first_seen} · শেষ ${e.last_seen}\nকোডের জায়গা: ${e.src || "-"}\n${(e.stack || "").slice(0, 1500)}`;
   const copy = async (txt) => { try { await navigator.clipboard.writeText(txt); toast("কপি হয়েছে, এখন Claude-এর চ্যাটে পেস্ট করুন"); } catch { window.prompt("কপি করুন:", txt); } };
   const fix = async (fp) => { await call(fp ? { fix: fp } : { fixAll: true }).catch(() => {}); toast(fp ? "তালিকা থেকে সরানো হয়েছে" : "সব সরানো হয়েছে"); load(); };
-  if (!user || err === "login") return <div className="card empty"><div style={{ marginBottom: 12 }}>অ্যাডমিন প্যানেল দেখতে লগইন করুন</div><button className="btn" onClick={goProfile}>লগইন</button></div>;
-  if (err === "forbidden") return <div className="card empty">এই পাতা শুধু অ্যাডমিনের জন্য।</div>;
-  if (err) return <div className="card empty">তথ্য আনা গেল না। একটু পরে আবার চেষ্টা করুন।</div>;
-  if (!d) return <div className="card"><div className="spin" /></div>;
+  const run = async (k) => {
+    setBusy(k); setRunOut((o) => ({ ...o, [k]: null }));
+    const r = await call({ run: k }).catch(() => ({ ok: false }));
+    setBusy(""); setRunOut((o) => ({ ...o, [k]: r }));
+    toast(r.ok ? "আপডেট হয়ে গেছে" : "আপডেট করা গেল না");
+  };
+  const send = async (test) => {
+    if (!bc.title.trim()) return toast("শিরোনাম লিখুন");
+    if (!test && !window.confirm(`নোটিফিকেশন চালু থাকা ${num(d?.pushUsers ?? 0, "bn")} জনের কাছে পাঠাবেন?`)) return;
+    setBusy(test ? "bc-test" : "bc");
+    const r = await call({ broadcast: { ...bc, test } }).catch(() => ({ ok: false }));
+    setBusy("");
+    toast(r.ok ? (test ? "শুধু আপনার ফোনে পাঠানো হয়েছে" : `${num(r.users ?? 0, "bn")} জনের কাছে পাঠানো হয়েছে`) : "পাঠানো গেল না");
+    if (r.ok && !test) setBc({ title: "", body: "", url: "/" });
+  };
+
+  const shell = (body) => (
+    <div className="adm-app">
+      <header className="adm-top">
+        <Logo size={30} />
+        <div className="adm-brand"><b>খেলা কখন<i>?</i></b><span>অ্যাডমিন</span></div>
+        <div className="sp" />
+        {d && <button className="adm-ref" onClick={load} aria-label="রিফ্রেশ">রিফ্রেশ</button>}
+        <button className="adm-exit" onClick={onExit}>সাইটে ফিরুন</button>
+      </header>
+      {d && <nav className="adm-tabs">{ADMIN_TABS.map(([k, l]) => <button key={k} className={tab === k ? "on" : ""} onClick={() => setTab(k)}>{l}{k === "errors" && d.errors.length > 0 ? <em>{num(d.errors.length, "bn")}</em> : null}</button>)}</nav>}
+      <main className="adm-main">{body}</main>
+    </div>
+  );
+  if (!user || err === "login") return shell(<div className="card empty"><div style={{ marginBottom: 12 }}>অ্যাডমিন প্যানেল দেখতে লগইন করুন</div><button className="btn" onClick={goProfile}>লগইন</button></div>);
+  if (err === "forbidden") return shell(<div className="card empty">এই পাতা শুধু অ্যাডমিনের জন্য।</div>);
+  if (err) return shell(<div className="card empty">তথ্য আনা গেল না। একটু পরে আবার চেষ্টা করুন।</div>);
+  if (!d) return shell(<div className="card"><div className="spin" /></div>);
+
   const af = d.af;
-  // খেলা চললে ৬ মিনিটের মধ্যে হালনাগাদ হওয়া উচিত; খেলা না থাকলে অপেক্ষায়
   const liveAge = d.live?.at ? (Date.now() - Date.parse(d.live.at)) / 60000 : 9999;
   const liveState = d.liveNow > 0 ? (liveAge <= 6 ? "ok" : "bad") : "idle";
   const tile = (v, l, tone) => <div className={"adm-tile" + (tone ? " " + tone : "")}><b>{v}</b><small>{l}</small></div>;
-  return (
-    <div className="sec adm">
-      <div className="sec-h"><h2 style={{ fontSize: 19 }}>অ্যাডমিন প্যানেল</h2><button className="link" onClick={load}>রিফ্রেশ</button></div>
-      <div className="muted adm-note">প্রতি মিনিটে নিজে থেকে হালনাগাদ হয়। এই পাতা শুধু আপনার অ্যাকাউন্টে খোলে।</div>
+  const daily = d.daily || [];
+  const maxU = Math.max(1, ...daily.map((x) => x.users)), maxP = Math.max(1, ...daily.map((x) => x.preds));
+  const dayLbl = (k) => { const [y, m, dd] = k.split("-").map(Number); return `${BN_DAYS_SHORT[new Date(Date.UTC(y, m - 1, dd)).getUTCDay()]} ${num(dd, "bn")}`; };
+  const bars = (key, max, cls) => (
+    <div className="adm-bars">
+      {daily.map((x) => (
+        <div key={x.d} className="adm-bar">
+          <span className="adm-bar-v">{num(x[key], "bn")}</span>
+          <i className={cls} style={{ height: `${Math.max(3, (x[key] / max) * 100)}%` }} />
+          <span className="adm-bar-d">{dayLbl(x.d)}</span>
+        </div>
+      ))}
+    </div>
+  );
 
+  const ov = (
+    <>
       <div className="adm-h">সাইটের অবস্থা</div>
       <div className="adm-grid">
         {tile(liveState === "ok" ? "চালু" : liveState === "bad" ? "থেমে আছে" : "অপেক্ষায়", `লাইভ আপডেট · শেষ ${agoBn(d.live?.at)}`, liveState === "idle" ? "" : liveState)}
         {tile(af ? (af.active ? `${num(af.days ?? 0, "bn")} দিন` : "বন্ধ") : "—", "API-Football-এর মেয়াদ", !af ? "" : !af.active || af.days <= 7 ? "bad" : af.days <= 30 ? "warn" : "ok")}
         {tile(af ? `${num(af.used ?? 0, "bn")}/${num(af.limit ?? 0, "bn")}` : "—", "আজকের API কল", af && af.used / af.limit > 0.9 ? "bad" : "")}
         {tile(num(d.liveNow ?? 0, "bn"), "এখন লাইভ ম্যাচ")}
+        {tile(num(d.errors.length, "bn"), "ধরা পড়া ভুল", d.errors.length ? "bad" : "ok")}
       </div>
-      { d.lastLiveError && d.lastLiveError.created_at && Date.now() - Date.parse(d.lastLiveError.created_at) < 6 * 3600000 && <div className="adm-warn">শেষ লাইভ ভুল ({agoBn(d.lastLiveError.created_at)}): {String(d.lastLiveError.detail || "").slice(0, 160)}</div>}
-
-      <div className="adm-h">ব্যবহারকারী</div>
+      {d.lastLiveError && d.lastLiveError.created_at && Date.now() - Date.parse(d.lastLiveError.created_at) < 6 * 3600000 && <div className="adm-warn">শেষ লাইভ ভুল ({agoBn(d.lastLiveError.created_at)}): {String(d.lastLiveError.detail || "").slice(0, 160)}</div>}
+      <div className="adm-h">এক নজরে</div>
+      <div className="adm-grid">
+        {tile(num(d.users ?? 0, "bn"), "মোট অ্যাকাউন্ট")}
+        {tile(num(d.users7 ?? 0, "bn"), `গত ৭ দিনে নতুন (আজ ${num(d.users24 ?? 0, "bn")})`)}
+        {tile(num(d.pred24 ?? 0, "bn"), `২৪ ঘণ্টায় প্রেডিকশন (মোট ${num(d.predAll ?? 0, "bn")})`)}
+        {tile(num(d.pushUsers ?? 0, "bn"), "নোটিফিকেশন চালু")}
+      </div>
+      <div className="adm-h">গত ৭ দিন: প্রেডিকশন</div>
+      <div className="card adm-chart">{bars("preds", maxP, "p")}</div>
+    </>
+  );
+  const users = (
+    <>
       <div className="adm-grid">
         {tile(num(d.users ?? 0, "bn"), "মোট অ্যাকাউন্ট")}
         {tile(num(d.users7 ?? 0, "bn"), `গত ৭ দিনে নতুন (আজ ${num(d.users24 ?? 0, "bn")})`)}
         {tile(num(d.active7 ?? 0, "bn"), "গত ৭ দিনে লগইন করেছেন")}
         {tile(num(d.pushUsers ?? 0, "bn"), `নোটিফিকেশন চালু (${num(d.pushDevices ?? 0, "bn")} ডিভাইস)`)}
-        {tile(num(d.pred24 ?? 0, "bn"), `২৪ ঘণ্টায় প্রেডিকশন (মোট ${num(d.predAll ?? 0, "bn")})`)}
         {tile(num(d.leagues ?? 0, "bn"), "বন্ধুদের লিগ")}
       </div>
-
-      <div className="adm-h">ধরা পড়া ভুল (এরর) <span className="muted">{num(d.errors.length, "bn")}টা</span>{d.errors.length > 0 && <><button className="link" onClick={() => copy(d.errors.map(errText).join("\n\n---\n\n"))}>সব কপি</button><button className="link" style={{ marginLeft: 10, color: "var(--muted)" }} onClick={() => window.confirm("সব ভুল তালিকা থেকে সরাবেন?") && fix(null)}>সব সরান</button></>}</div>
+      <div className="adm-h">গত ৭ দিন: নতুন ইউজার</div>
+      <div className="card adm-chart">{bars("users", maxU, "u")}</div>
+      <div className="adm-h">নতুন ইউজার</div>
+      <div className="card adm-list">
+        {(d.recentUsers || []).map((u, i) => (
+          <div key={i} className="adm-user">
+            <div style={{ minWidth: 0 }}><b>{u.name}</b><small className="muted">যোগ দিয়েছেন {agoBn(u.at)} · শেষ লগইন {agoBn(u.last)} · {u.via === "google" ? "Google" : u.via === "email" ? "ইমেইল" : u.via}</small></div>
+            {u.push && <span className="adm-tag">নোটিফিকেশন</span>}
+          </div>
+        ))}
+      </div>
+    </>
+  );
+  const errors = (
+    <>
+      <div className="adm-h">ধরা পড়া ভুল <span className="muted">{num(d.errors.length, "bn")}টা</span>{d.errors.length > 0 && <><button className="link" onClick={() => copy(d.errors.map(errText).join("\n\n---\n\n"))}>সব কপি</button><button className="link" style={{ marginLeft: 10, color: "var(--muted)" }} onClick={() => window.confirm("সব ভুল তালিকা থেকে সরাবেন?") && fix(null)}>সব সরান</button></>}</div>
       {!d.errors.length ? <div className="card empty">কোনো ভুল নেই। সব ঠিকঠাক চলছে।</div> : (
         <div className="card adm-errs">
           {d.errors.map((e) => (
@@ -6782,8 +6902,41 @@ function AdminPage({ user, toast, goProfile }) {
         </div>
       )}
       <div className="muted adm-note" style={{ marginTop: 10 }}>নতুন ভুল ধরা পড়লে আপনার ফোনে নোটিফিকেশনও যায়। ঠিক করাতে "সব কপি" চেপে Claude-এর চ্যাটে পেস্ট করে লিখুন "এগুলো ঠিক করো"।</div>
-    </div>
+    </>
   );
+  const news = (
+    <>
+      <div className="muted adm-note">নোটিফিকেশন চালু থাকা {num(d.pushUsers ?? 0, "bn")} জনের ফোনে যাবে। যাঁরা "ঘোষণা" বন্ধ রেখেছেন, তাঁরা পাবেন না।</div>
+      <div className="card adm-form">
+        <label>শিরোনাম<input value={bc.title} maxLength={80} onChange={(e) => setBc({ ...bc, title: e.target.value })} placeholder="যেমন: আজ রাতে এল ক্লাসিকো" /></label>
+        <label>লেখা<textarea value={bc.body} maxLength={200} rows={3} onChange={(e) => setBc({ ...bc, body: e.target.value })} placeholder="যেমন: রাত ২টায় রিয়াল বনাম বার্সা। প্রেডিক্ট করে পয়েন্ট জিতুন" /></label>
+        <label>চাপলে কোন পাতা খুলবে<input value={bc.url} onChange={(e) => setBc({ ...bc, url: e.target.value })} placeholder="/match/123 বা /predict" /></label>
+        <div className="adm-prev"><small className="muted">ফোনে যেমন দেখাবে</small><div className="adm-note-prev"><img src="/icon-192x192.png" alt="" width="34" height="34" /><div><b>{bc.title || "শিরোনাম"}</b><span>{bc.body || "লেখা"}</span></div></div></div>
+        <div className="adm-actions">
+          <button className="btn ghost" disabled={!!busy} onClick={() => send(true)}>{busy === "bc-test" ? "পাঠানো হচ্ছে…" : "আগে শুধু নিজেকে পাঠান"}</button>
+          <button className="btn" disabled={!!busy} onClick={() => send(false)}>{busy === "bc" ? "পাঠানো হচ্ছে…" : "সবাইকে পাঠান"}</button>
+        </div>
+      </div>
+    </>
+  );
+  const sync = (
+    <>
+      <div className="muted adm-note">সাধারণত সব নিজে থেকেই আপডেট হয়। কোনো তথ্য পুরনো দেখালে এখান থেকে সাথে সাথে আবার আনা যায়।</div>
+      <div className="card adm-list">
+        {RUN_LIST.map(([k, l, sub]) => {
+          const o = runOut[k];
+          return (
+            <div key={k} className="adm-run">
+              <div style={{ minWidth: 0 }}><b>{l}</b>{sub && <small className="muted">{sub}</small>}
+                {o && <small className={o.ok ? "adm-ok" : "adm-bad"}>{o.ok ? "হয়ে গেছে" : "হয়নি"}{o.result ? ` · ${JSON.stringify(o.result).replace(/[{}"]/g, " ").slice(0, 140)}` : ""}</small>}</div>
+              <button className="btn ghost" disabled={!!busy} onClick={() => run(k)}>{busy === k ? "চলছে…" : "এখনই"}</button>
+            </div>
+          );
+        })}
+      </div>
+    </>
+  );
+  return shell(tab === "users" ? users : tab === "errors" ? errors : tab === "news" ? news : tab === "sync" ? sync : ov);
 }
 function Profile({ user, profile, setProfile, toast, myTeams, teamsById, lang, setLang, theme, setTheme, onEditTeams }) {
   const { t } = useT();
@@ -9244,6 +9397,13 @@ export default function App() {
 
   // ডেস্কটপে বাঁ পাশে লিগের তালিকা: হোম, প্রেডিকশন, দৈনিক চ্যালেঞ্জ, লিগ ট্যাব আর জিজ্ঞেস করুন বাদে
   const railPage = deskWide && !onboarding && !((!view && ["matches", "predict", "leagues", "ask"].includes(tab)) || view?.kind === "daily");
+  // অ্যাডমিন: সাইটের মেনু ছাড়া আলাদা পাতা
+  if (view?.kind === "admin") return (
+    <LangCtx.Provider value="bn">
+      <AdminApp user={user} toast={toast} goProfile={() => go("profile")} onExit={() => go("matches")} />
+      {toastMsg && <div className="toast">{toastMsg}</div>}
+    </LangCtx.Provider>
+  );
   return (
     <LangCtx.Provider value={lang}>
     <NavCtx.Provider value={nav}>
@@ -9285,8 +9445,6 @@ export default function App() {
           <League key={view.code} code={view.code} comps={comps} preds={preds} onOpen={openMatch} teamsById={teamsById} />
         ) : view?.kind === "team" ? (
           <Team key={view.id} id={view.id} teamsById={teamsById} preds={preds} onOpen={openMatch} isFav={myTeams.fav.includes(view.id)} onToggleFav={toggleFav} user={user} toast={toast} onLogin={() => go("profile")} />
-        ) : view?.kind === "admin" ? (
-          <AdminPage user={user} toast={toast} goProfile={() => go("profile")} />
         ) : view?.kind === "page" ? (
           <InfoPage key={view.id} id={view.id} user={user} goProfile={() => go("profile")} />
         ) : view?.kind === "daily" ? (
