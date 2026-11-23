@@ -1038,6 +1038,21 @@ button.pm { background: none; border: 0; padding: 0; cursor: pointer; font: inhe
 .adm-bar-v { font-size: 12px; font-weight: 700; }
 .adm-bar-d { font-size: 11px; color: var(--muted); white-space: nowrap; }
 .adm-list { padding: 2px 0; }
+.adm-stack { width: 70%; max-width: 34px; display: flex; flex-direction: column; border-radius: 6px 6px 2px 2px; overflow: hidden; }
+.adm-stack i, .adm-legend i { display: block; } .adm-stack .u, .adm-legend .u { background: var(--green); } .adm-stack .g, .adm-legend .g { background: #93c5fd; }
+.adm-legend { display: flex; align-items: center; gap: 6px; font-size: 12px; margin-top: 8px; justify-content: center; }
+.adm-legend i { width: 10px; height: 10px; border-radius: 3px; margin-left: 8px; }
+.adm-ppl { display: grid; grid-template-columns: minmax(0, 1fr) 62px 66px 70px; gap: 6px; align-items: center; padding: 9px 14px; border-bottom: 1px solid var(--line); font-size: 13px; }
+.adm-ppl:last-child { border-bottom: 0; }
+.adm-ppl > span:not(:first-child) { text-align: right; white-space: nowrap; }
+.adm-ppl b { display: block; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.adm-ppl small { display: block; font-size: 11.5px; }
+.adm-ppl-h { font-size: 12px; color: var(--muted); font-weight: 700; padding-top: 6px; padding-bottom: 6px; }
+.adm-shares { padding: 12px 14px; display: flex; flex-direction: column; gap: 10px; }
+.adm-share { display: grid; grid-template-columns: 120px minmax(0, 1fr) auto; gap: 10px; align-items: center; font-size: 13px; }
+.adm-share i { height: 8px; border-radius: 99px; background: var(--card2); overflow: hidden; display: block; }
+.adm-share i b { display: block; height: 100%; background: var(--green); border-radius: 99px; }
+.adm-share em { font-style: normal; color: var(--muted); font-size: 12px; white-space: nowrap; }
 .adm-user, .adm-run { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-bottom: 1px solid var(--line); }
 .adm-user:last-child, .adm-run:last-child { border-bottom: 0; }
 .adm-user b, .adm-run b { display: block; font-size: 14.5px; }
@@ -4380,11 +4395,13 @@ function InfoPage({ id, user, goProfile }) {
     const parts = bn
       ? [["কী তথ্য রাখা হয়", "Google বা ইমেইল দিয়ে লগইন করলে আপনার নাম, ইমেইল আর প্রোফাইল ছবি রাখা হয়। আপনার প্রিয় দল, ম্যাচের প্রেডিকশন আর বন্ধুদের লিগের তথ্যও জমা থাকে। লগইন ছাড়া ব্যবহার করলে কোনো ব্যক্তিগত তথ্য নেওয়া হয় না।"],
          ["কেন রাখা হয়", "শুধু আপনার দল, প্রেডিকশন, পয়েন্ট আর লিডারবোর্ড দেখানোর জন্য। লিডারবোর্ড আর বন্ধুদের লিগে অন্যরা শুধু আপনার নাম ও ছবি দেখে, ইমেইল নয়।"],
+         ["সাইট ব্যবহারের হিসাব", "সাইট আরো ভালো করতে আমরা দেখি সাইটে কতক্ষণ সময় কাটানো হয়, কোন অংশ (ম্যাচ, লিগ, প্রেডিকশন, কুইজ ইত্যাদি) বেশি দেখা হয়, প্রথমবার কোথা থেকে এসেছেন (যেমন ফেসবুক বা গুগল) আর কোন ধরনের ডিভাইস (অ্যান্ড্রয়েড, আইফোন, কম্পিউটার)। সাইট খোলা আর স্ক্রিনে সামনে থাকলেই শুধু সময় গোনা হয়। লগইন করা থাকলে এই হিসাব আপনার অ্যাকাউন্টের সাথে থাকে, না থাকলে ফোনের একটা বেনামি আইডির সাথে। আপনি কী লিখছেন, কী টাইপ করছেন বা অন্য কোনো ব্যক্তিগত তথ্য এতে জমা হয় না, আর এই হিসাব শুধু সাইটের পরিচালক দেখেন। অ্যাকাউন্ট মুছে ফেললে এই হিসাবও মুছে যায়।"],
          ["ফোনে কী জমা থাকে", "ভাষা, থিম, সাম্প্রতিক খোঁজ আর এমন কিছু পছন্দ আপনার ফোনের ব্রাউজারেই থাকে, আমাদের কাছে আসে না।"],
          ["কারও সাথে ভাগ করা হয় না", "আপনার তথ্য বিক্রি করা হয় না, বিজ্ঞাপনদাতা বা অন্য কাউকে দেওয়া হয় না। তথ্য নিরাপদে Supabase-এর সার্ভারে রাখা হয়।"],
          ["অ্যাকাউন্ট ও তথ্য মুছে ফেলা", "অ্যাপের ভেতর থেকেই মুছতে পারবেন: প্রোফাইল → একদম নিচে \"অ্যাকাউন্ট মুছুন\" → নিশ্চিত করতে \"ডিলিট একাউন্ট\" লিখে চাপুন। আপনার প্রোফাইল, প্রিয় দল, প্রেডিকশন, পয়েন্ট, লিগের সদস্যপদ, কুইজ ও দৈনিক চ্যালেঞ্জের রেকর্ড আর নোটিফিকেশন সাথে সাথে স্থায়ীভাবে মুছে যায়। লগিন করতে না পারলে khelakokhon@gmail.com-এ ইমেইল করুন, আমরা মুছে দেব।"]]
       : [["What we store", "If you sign in with Google or email, we keep your name, email and profile photo, plus your favourite teams, match predictions and friends' leagues. Nothing personal is collected if you use the site without signing in."],
          ["Why", "Only to show your teams, predictions, points and leaderboards. Others see just your name and photo on leaderboards, never your email."],
+         ["Usage statistics", "To improve the site we measure how long it is used, which sections (matches, leagues, predictions, quizzes and so on) are viewed most, where you first came from (for example Facebook or Google) and the type of device (Android, iPhone, computer). Time is only counted while the site is open and on screen. If you are signed in this is linked to your account; otherwise to an anonymous device ID. Nothing you type and no other personal information is collected, and only the site's operator can see these figures. Deleting your account deletes them too."],
          ["On your device", "Language, theme, recent searches and similar preferences stay in your browser and are never sent to us."],
          ["No sharing", "Your data is never sold or given to advertisers or anyone else. It is stored securely on Supabase servers."],
          ["Deleting your account and data", "You can delete it in the app: Profile → \"Delete account\" at the bottom → type DELETE ACCOUNT to confirm. Your profile, teams, predictions, points, league memberships, quiz and daily-challenge records and notifications are deleted permanently, right away. If you can't log in, email khelakokhon@gmail.com and we'll delete it for you."]];
@@ -6745,7 +6762,7 @@ const agoBn = (iso) => {
   return m < 1 ? "এইমাত্র" : m < 60 ? `${num(m, "bn")} মিনিট আগে` : m < 1440 ? `${num(Math.round(m / 60), "bn")} ঘণ্টা আগে` : `${num(Math.round(m / 1440), "bn")} দিন আগে`;
 };
 const uaShort = (ua) => (!ua ? "" : `${/iPhone|iPad/.test(ua) ? "আইফোন" : /Android/.test(ua) ? "অ্যান্ড্রয়েড" : /Windows/.test(ua) ? "উইন্ডোজ" : /Mac/.test(ua) ? "ম্যাক" : "অন্য"} · ${/SamsungBrowser/.test(ua) ? "স্যামসাং" : /Edg\//.test(ua) ? "এজ" : /Firefox/.test(ua) ? "ফায়ারফক্স" : /Chrome/.test(ua) ? "ক্রোম" : /Safari/.test(ua) ? "সাফারি" : "ব্রাউজার"}`);
-const ADMIN_TABS = [["ov", "ওভারভিউ"], ["users", "ইউজার"], ["errors", "এরর"], ["news", "ঘোষণা"], ["sync", "আপডেট"]];
+const ADMIN_TABS = [["ov", "ওভারভিউ"], ["usage", "ব্যবহার"], ["users", "ইউজার"], ["errors", "এরর"], ["news", "ঘোষণা"], ["sync", "আপডেট"]];
 const RUN_LIST = [
   ["fd-quick", "আজকের ম্যাচ (ইউরোপের ৬ লিগ)", "গতকাল থেকে আগামীকাল পর্যন্ত স্কোর আর সময়"],
   ["fd-full", "পুরো সূচি (ইউরোপের ৬ লিগ)", "সিজনের সব ম্যাচ নতুন করে"],
@@ -6758,6 +6775,10 @@ const RUN_LIST = [
   ["af-all", "বাকি সব লিগ একসাথে", "সময় লাগে (১ মিনিট পর্যন্ত), বেশি API কল খরচ হয়"],
   ["remind", "রিমাইন্ডার আর প্রেডিকশনের ফল", "যার যা পাওনা, এখনই পাঠানো"],
 ];
+const SEC_BN = { matches: "ম্যাচের তালিকা", match: "ম্যাচের পাতা", leagues: "লিগ ট্যাব", league: "লিগের পাতা", team: "দলের পাতা", player: "প্লেয়ার", predict: "প্রেডিকশন", quiz: "কুইজ ও চ্যালেঞ্জ", ask: "জিজ্ঞেস করুন", profile: "প্রোফাইল", bangladesh: "বাংলাদেশ দল", pages: "অন্যান্য পাতা", admin: "অ্যাডমিন", other: "অন্যান্য" };
+const SRC_BN = { facebook: "ফেসবুক", google: "গুগল সার্চ", search: "অন্য সার্চ", app: "ইনস্টল করা অ্যাপ", direct: "সরাসরি লিংক", x: "এক্স (টুইটার)", youtube: "ইউটিউব", instagram: "ইনস্টাগ্রাম", other: "অন্য সাইট", unknown: "অজানা" };
+const PLAT_BN = { android: "অ্যান্ড্রয়েড ব্রাউজার", "android-app": "অ্যান্ড্রয়েড অ্যাপ", ios: "আইফোন ব্রাউজার", "ios-app": "আইফোন অ্যাপ", desktop: "কম্পিউটার", "desktop-app": "কম্পিউটার অ্যাপ", unknown: "অজানা" };
+const minBn = (m) => (m >= 60 ? `${num(Math.floor(m / 60), "bn")} ঘ ${num(m % 60, "bn")} মি` : `${num(m, "bn")} মি`);
 function AdminApp({ user, toast, goProfile, onExit }) {
   const [d, setD] = useState(null);
   const [err, setErr] = useState("");
@@ -6842,6 +6863,7 @@ function AdminApp({ user, toast, goProfile, onExit }) {
         {tile(af ? `${num(af.used ?? 0, "bn")}/${num(af.limit ?? 0, "bn")}` : "—", "আজকের API কল", af && af.used / af.limit > 0.9 ? "bad" : "")}
         {tile(num(d.liveNow ?? 0, "bn"), "এখন লাইভ ম্যাচ")}
         {tile(num(d.errors.length, "bn"), "ধরা পড়া ভুল", d.errors.length ? "bad" : "ok")}
+        {d.usage && tile(num((d.usage.onlineUsers || 0) + (d.usage.onlineGuests || 0), "bn"), "এখন সাইটে আছেন", "ok")}
       </div>
       {d.lastLiveError && d.lastLiveError.created_at && Date.now() - Date.parse(d.lastLiveError.created_at) < 6 * 3600000 && <div className="adm-warn">শেষ লাইভ ভুল ({agoBn(d.lastLiveError.created_at)}): {String(d.lastLiveError.detail || "").slice(0, 160)}</div>}
       <div className="adm-h">এক নজরে</div>
@@ -6853,6 +6875,49 @@ function AdminApp({ user, toast, goProfile, onExit }) {
       </div>
       <div className="adm-h">গত ৭ দিন: প্রেডিকশন</div>
       <div className="card adm-chart">{bars("preds", maxP, "p")}</div>
+    </>
+  );
+  const U = d.usage;
+  const share = (list, label) => { const tot = list.reduce((n, x) => n + (x.n ?? x.min), 0) || 1; return list.slice(0, 8).map((x) => { const v = x.n ?? x.min; return (
+    <div key={x.k} className="adm-share"><span>{label[x.k] || x.k}</span><i><b style={{ width: `${Math.max(2, (v / tot) * 100)}%` }} /></i><em>{x.min != null ? minBn(x.min) : num(x.n, "bn")} · {num(Math.round((v / tot) * 100), "bn")}%</em></div>); }); };
+  const usage = !U ? <div className="card empty">ব্যবহারের হিসাব এখনো চালু হয়নি। activity.sql চালানোর পর থেকে জমা শুরু হবে।</div> : (
+    <>
+      <div className="adm-grid">
+        {tile(num(U.onlineUsers + U.onlineGuests, "bn"), `এখন অনলাইন (লগইন ${num(U.onlineUsers, "bn")}, অতিথি ${num(U.onlineGuests, "bn")})`, "ok")}
+        {tile(num(U.visitors7, "bn"), "গত ৭ দিনে এসেছেন (অতিথিসহ)")}
+        {tile(minBn(U.minutes7), "গত ৭ দিনে মোট সময়")}
+        {tile(`${num(U.avgSession, "bn")} মি`, "গড়ে একবারে কতক্ষণ থাকেন")}
+        {tile(U.retention.d1 == null ? "—" : `${num(U.retention.d1, "bn")}%`, `পরের দিন আবার এসেছেন (${num(U.retention.d1n, "bn")} জনের মধ্যে)`, U.retention.d1 == null ? "" : U.retention.d1 >= 30 ? "ok" : U.retention.d1 >= 15 ? "warn" : "bad")}
+        {tile(U.retention.d7 == null ? "—" : `${num(U.retention.d7, "bn")}%`, `৭ দিনের মধ্যে আবার এসেছেন (${num(U.retention.d7n, "bn")} জনের মধ্যে)`, U.retention.d7 == null ? "" : U.retention.d7 >= 40 ? "ok" : U.retention.d7 >= 20 ? "warn" : "bad")}
+      </div>
+      <div className="adm-h">দৈনিক সক্রিয় (লগইন + অতিথি)</div>
+      <div className="card adm-chart">
+        <div className="adm-bars">
+          {U.dau.map((x) => { const mx = Math.max(1, ...U.dau.map((y) => y.users + y.guests)); return (
+            <div key={x.d} className="adm-bar">
+              <span className="adm-bar-v">{num(x.users + x.guests, "bn")}</span>
+              <div className="adm-stack" style={{ height: `${Math.max(3, ((x.users + x.guests) / mx) * 100)}%` }}><i className="g" style={{ flex: x.guests }} /><i className="u" style={{ flex: x.users }} /></div>
+              <span className="adm-bar-d">{dayLbl(x.d)}</span>
+            </div>); })}
+        </div>
+        <div className="muted adm-legend"><i className="u" /> লগইন করা <i className="g" /> অতিথি</div>
+      </div>
+      <div className="adm-h">কে কত সময় দিচ্ছেন <span className="muted">লগইন করা ইউজার</span></div>
+      {!U.people.length ? <div className="card empty">এখনো কোনো হিসাব জমেনি।</div> : (
+        <div className="card adm-list">
+          <div className="adm-ppl adm-ppl-h"><span>নাম</span><span>আজ</span><span>৭ দিন</span><span>মোট</span></div>
+          {U.people.map((p, i) => (
+            <div key={i} className="adm-ppl"><span><b>{p.name}</b><small className="muted">{agoBn(p.last)} · {PLAT_BN[p.platform] || p.platform || ""}</small></span><span>{minBn(p.today)}</span><span>{minBn(p.week)}</span><span>{minBn(p.total)}</span></div>
+          ))}
+        </div>
+      )}
+      <div className="adm-h">কোন অংশে সময় কাটে <span className="muted">গত ৭ দিন</span></div>
+      <div className="card adm-shares">{U.pages.length ? share(U.pages, SEC_BN) : <div className="muted">এখনো হিসাব নেই</div>}</div>
+      <div className="adm-h">কোথা থেকে আসছেন <span className="muted">গত ৩০ দিনের নতুনরা</span></div>
+      <div className="card adm-shares">{U.sources.length ? share(U.sources, SRC_BN) : <div className="muted">এখনো হিসাব নেই</div>}</div>
+      <div className="adm-h">কোন ডিভাইসে</div>
+      <div className="card adm-shares">{U.platforms.length ? share(U.platforms, PLAT_BN) : <div className="muted">এখনো হিসাব নেই</div>}</div>
+      <div className="muted adm-note" style={{ marginTop: 10 }}>সাইট খোলা আর স্ক্রিনে সামনে থাকলেই শুধু সময় গোনা হয়। অতিথি মানে লগইন ছাড়া ভিজিটর (ফোন ধরে গোনা, নাম ছাড়া)।</div>
     </>
   );
   const users = (
@@ -6936,7 +7001,7 @@ function AdminApp({ user, toast, goProfile, onExit }) {
       </div>
     </>
   );
-  return shell(tab === "users" ? users : tab === "errors" ? errors : tab === "news" ? news : tab === "sync" ? sync : ov);
+  return shell(tab === "usage" ? usage : tab === "users" ? users : tab === "errors" ? errors : tab === "news" ? news : tab === "sync" ? sync : ov);
 }
 function Profile({ user, profile, setProfile, toast, myTeams, teamsById, lang, setLang, theme, setTheme, onEditTeams }) {
   const { t } = useT();
@@ -9214,6 +9279,58 @@ function Nav({ tab, go }) {
   );
 }
 
+// ── সাইটে কাটানো সময় (অ্যাডমিনের "ব্যবহার" ট্যাবের জন্য; প্রাইভেসি পলিসিতে লেখা আছে) ──
+// সাইট খোলা আর স্ক্রিনে সামনে থাকলেই শুধু গোনা; প্রতি ৩০ সেকেন্ডে একবার, পেছনে গেলে থামে
+// লগইন থাকলে সার্ভার নিজেই চেনে; না থাকলে ফোনের একটা বেনামি আইডি (নাম বা ব্যক্তিগত তথ্য নয়)
+const actSection = (p) => {
+  const k = p.split("/")[1] || "";
+  return { "": "matches", leagues: "leagues", league: "league", team: "team", match: "match", player: "player", predict: "predict", quiz: "quiz", daily: "quiz", ask: "ask", profile: "profile", bangladesh: "bangladesh", join: "predict", admin: "admin" }[k] || "pages";
+};
+function actRef() {
+  try {
+    const got = localStorage.getItem("kk_ref"); if (got) return null; // শুধু প্রথমবার পাঠানো হয়
+    const q = new URLSearchParams(location.search).get("utm_source");
+    const r = document.referrer || "";
+    const v = q ? q.toLowerCase().slice(0, 20)
+      : matchMedia("(display-mode: standalone)").matches ? "app"
+      : /facebook|fb\.|messenger/i.test(r) ? "facebook" : /google\./i.test(r) ? "google" : /bing\.|duckduckgo|yahoo/i.test(r) ? "search"
+      : /t\.co|twitter|x\.com/i.test(r) ? "x" : /youtube/i.test(r) ? "youtube" : /instagram/i.test(r) ? "instagram"
+      : r && !r.includes(location.host) ? "other" : "direct";
+    localStorage.setItem("kk_ref", v);
+    return v;
+  } catch { return null; }
+}
+function actDev() {
+  try { let d = localStorage.getItem("kk_dev"); if (!d) { d = Math.random().toString(36).slice(2, 12) + Date.now().toString(36); localStorage.setItem("kk_dev", d); } return d; } catch { return null; }
+}
+function actSid() {
+  try {
+    const now = Date.now(), last = +sessionStorage.getItem("kk_sid_t") || 0;
+    let s = sessionStorage.getItem("kk_sid");
+    if (!s || now - last > 30 * 60000) { s = Math.random().toString(36).slice(2, 12); sessionStorage.setItem("kk_sid", s); }
+    sessionStorage.setItem("kk_sid_t", String(now));
+    return s;
+  } catch { return "x"; }
+}
+const actPlatform = () => { const u = navigator.userAgent; const os = /Android/i.test(u) ? "android" : /iPhone|iPad|iPod/i.test(u) ? "ios" : "desktop"; try { return matchMedia("(display-mode: standalone)").matches ? os + "-app" : os; } catch { return os; } };
+function useActivity(userId) {
+  useEffect(() => {
+    if (DEMO || !sb) return;
+    let since = document.visibilityState === "visible" ? Date.now() : null;
+    const send = () => {
+      if (since == null) return;
+      const sec = Math.round((Date.now() - since) / 1000);
+      since = document.visibilityState === "visible" ? Date.now() : null;
+      if (sec < 3) return;
+      sb.rpc("log_activity", { p_dev: actDev(), p_sec: Math.min(sec, 60), p_sec_name: actSection(location.pathname), p_sid: actSid(), p_ref: actRef(), p_platform: actPlatform() }).then(() => {}, () => {});
+    };
+    const iv = setInterval(() => { if (document.visibilityState === "visible") send(); }, 30000);
+    const vis = () => { if (document.visibilityState === "visible") { if (since == null) since = Date.now(); } else send(); };
+    document.addEventListener("visibilitychange", vis);
+    return () => { clearInterval(iv); document.removeEventListener("visibilitychange", vis); send(); };
+  }, [userId]);
+}
+
 export default function App() {
   const deskWide = useWide();
   const [lang, setLangS] = useState(() => stored("kk_lang", "bn"));
@@ -9223,6 +9340,7 @@ export default function App() {
   const [comps, setComps] = useState([]);
   const [teamsById, setTeamsById] = useState({});
   const [user, setUser] = useState(null);
+  useActivity(user?.id);
   const [profile, setProfile] = useState(null);
   const [myTeams, setMyTeams] = useState({ fav: [], rival: [] });
   const [preds, setPreds] = useState({});

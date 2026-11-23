@@ -25,6 +25,7 @@ export default async function handler(req, res) {
       `match_votes?user_id=${u}`, `push_follow?user_id=${u}`, `push_subs?user_id=${u}`,
       `predictions?user_id=${u}`, `user_teams?user_id=${u}`, `pleague_members?user_id=${u}`,
       `pleagues?owner=${u}`, `pleagues?owner_id=${u}`, `pleagues?created_by=${u}`,
+      `activity_daily?uid=eq.${uid}`, `activity_users?uid=eq.${uid}`,
       `profiles?id=${u}`,
     ]) await del(path).catch(() => {});
     // শেষে লগিন অ্যাকাউন্ট

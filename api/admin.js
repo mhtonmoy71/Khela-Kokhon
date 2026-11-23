@@ -14,6 +14,56 @@ const get = (p) => fetch(`${base()}/rest/v1/${p}`, { headers: H() }).then((r) =>
 const count = (p) => fetch(`${base()}/rest/v1/${p}`, { headers: { ...H(), Prefer: "count=exact", Range: "0-0" } })
   .then((r) => parseInt((r.headers.get("content-range") || "").split("/")[1], 10) || 0).catch(() => null);
 
+// ── সাইটে কাটানো সময় (activity.sql): এখন অনলাইন, কে কত মিনিট, দৈনিক সক্রিয়, অংশ, ফিরে আসা, উৎস ──
+async function usageStats(now) {
+  const bdDay = (t) => new Date(t + 6 * 3600000).toISOString().slice(0, 10);
+  const today = bdDay(now), d7 = bdDay(now - 6 * 86400000), d14 = bdDay(now - 13 * 86400000), d30 = bdDay(now - 29 * 86400000);
+  const [rows, online, top, fresh] = await Promise.all([
+    get(`activity_daily?select=day,uid,is_user,seconds,sessions,pages&day=gte.${d14}&limit=50000`),
+    get(`activity_users?select=uid,is_user&last_seen=gte.${new Date(now - 2 * 60000).toISOString()}&limit=5000`),
+    get("activity_users?select=uid,is_user,total_seconds,last_seen,platform&is_user=eq.true&order=total_seconds.desc&limit=40"),
+    get(`activity_users?select=uid,is_user,first_day,ref,platform&first_day=gte.${d30}&limit=20000`),
+  ]);
+  if (!Array.isArray(rows)) return null;
+  const days = [...Array(7)].map((_, i) => bdDay(now - (6 - i) * 86400000));
+  const dau = days.map((d) => { const r = rows.filter((x) => x.day === d); return { d, users: r.filter((x) => x.is_user).length, guests: r.filter((x) => !x.is_user).length, min: Math.round(r.reduce((n, x) => n + x.seconds, 0) / 60) }; });
+  const last7 = rows.filter((x) => x.day >= d7);
+  const sec7 = last7.reduce((n, x) => n + x.seconds, 0), ses7 = last7.reduce((n, x) => n + (x.sessions || 0), 0);
+  const pages = {};
+  for (const x of last7) for (const [k, v] of Object.entries(x.pages || {})) pages[k] = (pages[k] || 0) + (+v || 0);
+  // কে কত মিনিট: আজ আর ৭ দিন (শুধু লগইন করা ইউজার, নামসহ)
+  const per = {};
+  for (const x of rows.filter((r) => r.is_user)) {
+    const o = (per[x.uid] ||= { today: 0, week: 0 });
+    if (x.day === today) o.today += x.seconds;
+    if (x.day >= d7) o.week += x.seconds;
+  }
+  const ids = [...new Set([...top.map((t) => t.uid), ...Object.keys(per)])].slice(0, 80);
+  const profs = ids.length ? await get(`profiles?select=id,display_name&id=in.(${ids.join(",")})`) : [];
+  const nm = (id) => profs.find((p) => p.id === id)?.display_name || "নাম নেই";
+  const people = top.map((t) => ({ name: nm(t.uid), total: Math.round(t.total_seconds / 60), week: Math.round((per[t.uid]?.week || 0) / 60), today: Math.round((per[t.uid]?.today || 0) / 60), last: t.last_seen, platform: t.platform }))
+    .sort((a, b) => b.week - a.week || b.total - a.total);
+  // ফিরে আসা: গত ১৪ দিনে প্রথম এসেছেন এমনদের মধ্যে পরের দিন (D1) আর পরের ৭ দিনের মধ্যে (D7) আবার এসেছেন কতজন
+  const has = new Set(rows.map((x) => x.uid + "|" + x.day));
+  const addD = (d, n) => new Date(Date.parse(d + "T00:00:00Z") + n * 86400000).toISOString().slice(0, 10);
+  const cohort = fresh.filter((u) => u.first_day >= d14);
+  const d1Base = cohort.filter((u) => addD(u.first_day, 1) <= today), d7Base = cohort.filter((u) => addD(u.first_day, 7) <= today);
+  const back1 = d1Base.filter((u) => has.has(u.uid + "|" + addD(u.first_day, 1))).length;
+  const back7 = d7Base.filter((u) => [1, 2, 3, 4, 5, 6, 7].some((n) => has.has(u.uid + "|" + addD(u.first_day, n)))).length;
+  const src = {}, plat = {};
+  for (const u of fresh) { src[u.ref || "unknown"] = (src[u.ref || "unknown"] || 0) + 1; plat[u.platform || "unknown"] = (plat[u.platform || "unknown"] || 0) + 1; }
+  return {
+    onlineUsers: online.filter((x) => x.is_user).length, onlineGuests: online.filter((x) => !x.is_user).length,
+    dau, avgSession: ses7 ? Math.round(sec7 / ses7 / 6) / 10 : 0, minutes7: Math.round(sec7 / 60),
+    visitors7: new Set(last7.map((x) => x.uid)).size,
+    pages: Object.entries(pages).map(([k, v]) => ({ k, min: Math.round(v / 60) })).sort((a, b) => b.min - a.min),
+    people,
+    retention: { d1: d1Base.length ? Math.round((back1 / d1Base.length) * 100) : null, d1n: d1Base.length, d7: d7Base.length ? Math.round((back7 / d7Base.length) * 100) : null, d7n: d7Base.length },
+    sources: Object.entries(src).map(([k, n]) => ({ k, n })).sort((a, b) => b.n - a.n),
+    platforms: Object.entries(plat).map(([k, n]) => ({ k, n })).sort((a, b) => b.n - a.n),
+  };
+}
+
 export default async function handler(req, res) {
   res.setHeader("Cache-Control", "no-store");
   const token = (req.headers.authorization || "").replace(/^Bearer\s+/i, "");
@@ -97,6 +147,7 @@ export default async function handler(req, res) {
       live: lastLive[0] ? { at: lastLive[0].updated_at } : null,
       lastLiveError: lastErr[0] || null,
       errors, daily, recentUsers,
+      usage: await usageStats(now).catch(() => null),
     });
   } catch (e) {
     return res.status(500).json({ ok: false, error: String(e.message || e).slice(0, 200) });
