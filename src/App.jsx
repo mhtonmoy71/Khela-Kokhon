@@ -1093,7 +1093,8 @@ button.pm { background: none; border: 0; padding: 0; cursor: pointer; font: inhe
 .lb-filter .chip { flex: none; display: inline-flex; align-items: center; gap: 6px; }
 .pick-out { text-align: center; font-size: 13.5px; font-weight: 600; color: var(--green); padding: 0 12px 12px; }
 .pick-done { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 14px; background: var(--greenDim); }
-.pick-done span:last-child { display: flex; flex-direction: column; gap: 2px; }
+.pick-done .pick-txt { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; line-height: 1.35; }
+.pick-done .pick-txt b { font-size: 15px; }
 .pick-done small { font-size: 12.5px; }
 .pick-ok { width: 34px; height: 34px; border-radius: 50%; background: var(--green); color: var(--onGreen); display: grid; place-items: center; font-weight: 800; font-size: 17px; flex: none; }
 .pick-undo { display: block; margin: 10px auto 0; font-size: 13px; color: var(--muted); }
@@ -4294,7 +4295,7 @@ function MatchPage({ id, m: mInit, user, pred, onSave, onLogin, toast }) {
                 {pred && !(pred.home !== h || pred.away !== a) && (!pc || (pred.pen_pick ?? null) === pen) ? (
                   <div className="pick-done">
                     <span className="pick-ok">✓</span>
-                    <span><b>{lang === "bn" ? "প্রেডিকশন দেওয়া আছে" : "Prediction locked in"}</b><small className="muted">{lang === "bn" ? "খেলা শুরুর আগ পর্যন্ত স্কোর বদলে আবার দিতে পারবেন" : "Change the score any time before kickoff"}</small></span>
+                    <span className="pick-txt"><b>{lang === "bn" ? "প্রেডিকশন দেওয়া আছে" : "Prediction saved"}</b><small className="muted">{lang === "bn" ? "খেলা শুরুর আগে বদলাতে পারবেন" : "Editable until kickoff"}</small></span>
                     <button className="pick-share" disabled={making} aria-label={bn ? "প্রেডিকশন শেয়ার" : "Share prediction"} onClick={async () => {
                       setMaking(true);
                       try { await shareCard(m, { lang, teamName: (tm) => teamName(tm, lang), compName: mComp(m, lang), L, pred }, toast); }
