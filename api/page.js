@@ -113,8 +113,18 @@ export default async function handler(req, res) {
         rep = L?.events ? matchReport(m, L, { tn, comp: compBn }) : null;
       }
       html = setMeta(html, { title: (rep ? rep.title : title) + " · খেলা কখন?", desc: rep ? rep.paras[0].slice(0, 300) : desc, image: `${SITE}/api/og?match=${m.id}&v=${ver}`, url: `${SITE}/match/${m.id}` });
-      const ld = { "@context": "https://schema.org", "@type": "SportsEvent", name: `${tn(m.home)} বনাম ${tn(m.away)}`, startDate: m.utc_date, sport: "Football",
-        eventStatus: "https://schema.org/EventScheduled", location: { "@type": "Place", name: comp || "Football" },
+      // গুগলের ইভেন্টের তথ্য (SportsEvent): শেষের সময়, জায়গা, বর্ণনা, ছবি, আয়োজক
+      const CC = { PL: ["GB", "ইংল্যান্ড"], FAC: ["GB", "ইংল্যান্ড"], EFL: ["GB", "ইংল্যান্ড"], PD: ["ES", "স্পেন"], CDR: ["ES", "স্পেন"], BL1: ["DE", "জার্মানি"], SA: ["IT", "ইতালি"], FL1: ["FR", "ফ্রান্স"],
+        MLS: ["US", "যুক্তরাষ্ট্র"], SPL: ["SA", "সৌদি আরব"], BPL: ["BD", "বাংলাদেশ"], BFC: ["BD", "বাংলাদেশ"] }[m.competition_code];
+      const STATUS = { POSTPONED: "EventPostponed", CANCELLED: "EventCancelled" }[m.status] || "EventScheduled";
+      const venue = `${tn(m.home)}-এর মাঠ`;
+      const ld = { "@context": "https://schema.org", "@type": "SportsEvent", name: `${tn(m.home)} বনাম ${tn(m.away)}`, sport: "Football",
+        startDate: m.utc_date, endDate: new Date(Date.parse(m.utc_date) + 115 * 60000).toISOString(),
+        eventStatus: `https://schema.org/${STATUS}`, eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
+        description: (rep ? rep.paras[0] : desc).slice(0, 300),
+        image: [`${SITE}/api/og?match=${m.id}&v=${ver}`],
+        location: { "@type": "Place", name: venue, address: CC ? { "@type": "PostalAddress", addressCountry: CC[0], addressRegion: CC[1] } : { "@type": "PostalAddress", name: venue } },
+        organizer: { "@type": "Organization", name: comp || "Football", url: m.competition_code === "BAN" ? `${SITE}/bangladesh` : `${SITE}/league/${m.competition_code}` },
         homeTeam: { "@type": "SportsTeam", name: tn(m.home) }, awayTeam: { "@type": "SportsTeam", name: tn(m.away) },
         competitor: [{ "@type": "SportsTeam", name: tn(m.home) }, { "@type": "SportsTeam", name: tn(m.away) }], url: `${SITE}/match/${m.id}` };
       const body = rep ? `<article><h1>${esc(rep.title)}</h1>${rep.paras.map((p) => `<p>${esc(p)}</p>`).join("")}</article>` : `<h1>${esc(title)}</h1><p>${esc(desc)}</p>`;
