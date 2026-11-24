@@ -69,7 +69,9 @@ if ("serviceWorker" in navigator && import.meta.env.PROD) {
     if (a && (a.tagName === "INPUT" || a.tagName === "TEXTAREA" || a.isContentEditable)) return true;
     return /^\/(quiz|daily)/.test(location.pathname);
   };
-  const reloadNow = () => { if (!ready) return; ready = false; location.reload(); };
+  // নতুন সংস্করণের জন্য রিলোড: পরের পাতায় স্প্ল্যাশের অ্যানিমেশন নয় (index.html-এর "quiet")
+  const quiet = () => { try { sessionStorage.setItem("kk_quiet", "1"); } catch { /* না পারলে স্প্ল্যাশ দেখাবে */ } };
+  const reloadNow = () => { if (!ready) return; ready = false; quiet(); location.reload(); };
   const armIdle = () => {
     clearTimeout(idleTimer);
     idleTimer = setTimeout(() => (busy() ? armIdle() : reloadNow()), 60000);
@@ -84,10 +86,10 @@ if ("serviceWorker" in navigator && import.meta.env.PROD) {
   // অ্যাপের ভেতরে অন্য পাতায় গেলে: পুরো পাতাটাই নতুন সংস্করণে খোলা
   const push = history.pushState.bind(history);
   history.pushState = (st, t, url) => {
-    if (ready && url && !busy()) { ready = false; location.assign(url); return; }
+    if (ready && url && !busy()) { ready = false; quiet(); location.assign(url); return; }
     return push(st, t, url);
   };
-  addEventListener("popstate", () => { if (window.__kkSkipPop || window.history.state?.kkModal) return; if (ready && !busy()) { ready = false; location.reload(); } });
+  addEventListener("popstate", () => { if (window.__kkSkipPop || window.history.state?.kkModal) return; if (ready && !busy()) { ready = false; quiet(); location.reload(); } });
   document.addEventListener("visibilitychange", () => { if (document.hidden) reloadNow(); });
 
   navigator.serviceWorker.addEventListener("controllerchange", onReady);
