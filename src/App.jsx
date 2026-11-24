@@ -2544,7 +2544,7 @@ const teamName = (team, lang) =>
     : TEAM_NAMES[team.id] ? TEAM_NAMES[team.id][lang === "bn" ? 1 : 0]
     : lang === "bn" ? team.name_bn || clubBn(team.short_en) || clubBn(team.name_en) || (team.id >= 10000000 && team.short_en ? NAT_BN[team.short_en] || trName(team.short_en.replace(/\b(FC|SC|CF|AFC|CD|SD|UD|AC|SAD|SFC|FK|SK|BK)\b\.?/g, "").trim()) : null) || team.short_en || team.name_en : team.short_en || team.name_en;
 // খোঁজার জন্য দলের সব নাম
-const teamAliases = (t) => [t.name_bn, t.name_en, t.short_en, ...(TEAM_NAMES[t.id] || []), ...(TEAM_SHORT[t.id] || [])];
+const teamAliases = (t) => [t.name_bn, clubBn(t.short_en), t.name_en, t.short_en, ...(TEAM_NAMES[t.id] || []), ...(TEAM_SHORT[t.id] || [])];
 // ম্যাচের সারিতে জায়গা কম: লম্বা নামের প্রচলিত ছোট রূপ (FotMob-এর মতো)। দলের পাতা, শিট, সার্চে পুরো নাম থাকে।
 const TEAM_SHORT = {
   65: ["Man City", "ম্যান সিটি"], 66: ["Man United", "ম্যান ইউনাইটেড"], 351: ["Nott'm Forest", "নটিংহাম"], 76: ["Wolves", "উলভস"],

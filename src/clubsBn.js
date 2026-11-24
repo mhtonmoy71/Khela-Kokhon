@@ -4,6 +4,8 @@
 //  সাইট নিজে উচ্চারণ আন্দাজ করত ("ফ্লীটওয়ুড", "পেটের্বোরুগ")। এখানে ইংরেজি নাম → বাংলা।
 //  App.jsx (দেখানো) আর api/live.js (ডাটাবেসে নতুন দল রাখার সময়) দুই জায়গাতেই ব্যবহার হয়।
 // ═══════════════════════════════════════════════════════════════
+import { CLUBS_BN2 } from "./clubsBn2.js";
+
 export const CLUBS_BN = {
   // ── ইংল্যান্ড: চ্যাম্পিয়নশিপ, লিগ ওয়ান, লিগ টু, ন্যাশনাল লিগ ──
   "Norwich": "নরউইচ সিটি", "Norwich City": "নরউইচ সিটি", "Watford": "ওয়াটফোর্ড", "Middlesbrough": "মিডলসবরো", "Sheffield Utd": "শেফিল্ড ইউনাইটেড", "Sheffield United": "শেফিল্ড ইউনাইটেড",
@@ -56,5 +58,5 @@ export const CLUBS_BN = {
 const strip = (s) => (s || "").replace(/\b(FC|AFC|CF|SC|CD|SD|UD|AC|SAD|SFC|FK|SK|BK)\b\.?/g, "").replace(/\s+/g, " ").trim();
 export function clubBn(name) {
   if (!name) return null;
-  return CLUBS_BN[name] || CLUBS_BN[strip(name)] || null;
+  return CLUBS_BN[name] || CLUBS_BN2[name] || CLUBS_BN[strip(name)] || CLUBS_BN2[strip(name)] || null;
 }
