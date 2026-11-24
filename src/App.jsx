@@ -1211,7 +1211,7 @@ button.scr { width: 100%; }
 
 /* ══════ ডেস্কটপ (১০২৪px বা তার বেশি চওড়া স্ক্রিন) ══════ */
 .dnav { display: none; }
-@media (min-width: 1024px) {
+@media (min-width: 960px) {
   .app { max-width: 1440px; padding: 0 28px 40px; }
   /* বাঁ পাশের লিগের তালিকা */
   .rail { position: sticky; top: 76px; max-height: calc(100vh - 92px); overflow-y: auto; scrollbar-width: thin; background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 8px; margin-top: 14px; }
@@ -1446,7 +1446,7 @@ button.scr { width: 100%; }
 }
 @media (min-width: 1280px) { .home-grid .groups { columns: 2 !important; } }
 /* লিগ আর দলের পাতা: মাঝারি ডেস্কটপে মাঝখানে পড়ার মতো চওড়া, বড় স্ক্রিনে দুই কলাম */
-@media (min-width: 1024px) and (max-width: 1099px) { .main.v-league, .main.v-team, .main.v-player, .main.v-predict, .main.v-daily { max-width: 820px; margin: 0 auto; } }
+@media (min-width: 960px) and (max-width: 1099px) { .main.v-league, .main.v-team, .main.v-player, .main.v-predict, .main.v-daily { max-width: 820px; margin: 0 auto; } }
 @media (min-width: 1100px) {
   .pg-grid { display: grid; grid-template-columns: minmax(0, 1fr) 380px; gap: 28px; align-items: start; }
   .pg-side .sec:first-child, .pg-main .sec:first-child { margin-top: 18px; }
