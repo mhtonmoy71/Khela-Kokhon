@@ -69,22 +69,27 @@
       body { font-family: 'Hind Siliguri', sans-serif; -webkit-tap-highlight-color: transparent; }
 
       /* ── স্প্ল্যাশ ──
-         ইনস্টল করা অ্যাপে ফোন আগে নিজের স্প্ল্যাশ দেখায় (মাঝখানে বড় লোগো, #064e3b রং)। আমাদেরটা ঠিক সেখান থেকেই
-         শুরু হয়, একই রং, একই মাপ আর জায়গায় লোগো, তাই হাতবদল চোখে পড়ে না। তারপর লোগো মসৃণভাবে ছোট হয়ে উপরে ওঠে,
-         নিচে নাম ফুটে ওঠে; শেষে শুধু দ্রুত মিলিয়ে যায়। সব মিলিয়ে প্রায় ১ সেকেন্ড। */
+         ব্রাউজারে: বড় লোগো মাঝখান থেকে মসৃণভাবে ছোট হয়ে উপরে ওঠে, নিচে নাম ফুটে ওঠে (প্রায় ১ সেকেন্ড)।
+         ইনস্টল করা অ্যাপে: ফোনের নিজের স্প্ল্যাশের হুবহু রূপ, নড়াচড়া ছাড়া (নিচে .app)। */
       #splash {
         position: fixed; inset: 0; z-index: 9999; overflow: hidden; background: #064e3b;
-        transition: opacity .32s ease-out; --s: min(38vw, 170px);
+        transition: opacity .26s ease-out; --s: min(49.3vw, 240px);
       }
+      /* ইনস্টল করা অ্যাপ: ফোনের স্প্ল্যাশ আগেই লোগো দেখিয়েছে; আমাদেরটা হুবহু একই (মাপ ৪৯.৩% চওড়া, মাঝখানে, কোনো ছায়া/নড়াচড়া নয়),
+         তাই ফোনেরটা মিলিয়ে যাওয়ার সময় দুটো লোগো আলাদা দেখায় না; অ্যাপ তৈরি হলেই মিলিয়ে যায় */
+      #splash.app::before, #splash.app #splash-text { display: none; }
+      #splash.app #splash-logo { animation: none; width: var(--s); height: var(--s); transform: translate(-50%, -50%); filter: none; }
+      /* বেরোনো: আগে লোগো আর লেখা, তারপর পেছনের রং (একসাথে আবছা মেশে না) */
+      #splash.out #splash-logo, #splash.out #splash-text { opacity: 0; transition: opacity .16s ease-out; }
       #splash::before { content: ""; position: absolute; inset: 0; background: radial-gradient(90% 60% at 50% 42%, rgba(0,230,118,.16), rgba(0,0,0,0) 60%), linear-gradient(180deg, rgba(0,0,0,0) 40%, rgba(0,0,0,.28)); opacity: 0; animation: spFade .9s ease forwards; }
       #splash.hide { opacity: 0; pointer-events: none; }
       #splash-logo {
         position: absolute; left: 50%; top: 50%; width: 104px; height: 104px; transform: translate(-50%, calc(-50% - 78px));
-        animation: spLogo .72s .05s cubic-bezier(.5, 0, .2, 1) both; filter: drop-shadow(0 8px 24px rgba(0,0,0,.35));
+        animation: spLogo .72s .05s cubic-bezier(.5, 0, .2, 1) both; filter: drop-shadow(0 8px 24px rgba(0,0,0,.35)); transition: opacity .16s ease-out;
       }
       #splash-logo svg { display: block; width: 100%; height: 100%; }
       #splash-logo .h-s { transform-origin: 40px 40px; animation: spTick 1s .7s steps(1) infinite; }
-      #splash-text { position: absolute; left: 0; right: 0; top: calc(50% - 6px); display: flex; flex-direction: column; align-items: center; }
+      #splash-text { position: absolute; left: 0; right: 0; top: calc(50% - 6px); display: flex; flex-direction: column; align-items: center; transition: opacity .16s ease-out; }
       #splash-title { font-family: 'Hind Siliguri', sans-serif; font-size: 30px; font-weight: 800; color: #fff; letter-spacing: .5px; opacity: 0; animation: spRise .5s .36s cubic-bezier(.2, .8, .2, 1) forwards; }
       #splash-title b { color: #f59e0b; }
       #splash-tag { font-family: 'Hind Siliguri', sans-serif; font-size: 15.5px; font-weight: 600; color: #7dffb8; margin-top: 4px; opacity: 0; animation: spRise .5s .46s cubic-bezier(.2, .8, .2, 1) forwards; }
@@ -134,18 +139,25 @@
         <div id="splash-bar"><i></i></div>
       </div>
     </div>
+    <script>
+      // ইনস্টল করা অ্যাপ হলে প্রথম আঁকার আগেই: ফোনের স্প্ল্যাশের সাথে হুবহু মেলানো রূপ
+      try { if (matchMedia('(display-mode: standalone)').matches || navigator.standalone) document.getElementById('splash').classList.add('app'); } catch (e) {}
+    </script>
 
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
     <script>
-      // অ্যানিমেশন শেষ হওয়া পর্যন্ত (প্রায় ১ সেকেন্ড), আর পাতা লোড হওয়া পর্যন্ত; যেটা পরে
+      // ব্রাউজারে: অ্যানিমেশন শেষ (প্রায় ১ সেকেন্ড) আর পাতা লোড, যেটা পরে। অ্যাপে: ফোনের স্প্ল্যাশ মিলিয়ে যাওয়ার সময়টুকু (০.৪৫ সে.) আর পাতা লোড।
       (function () {
         const t0 = performance.now();
+        const sp = document.getElementById('splash');
+        const minMs = sp && sp.classList.contains('app') ? 450 : 1050;
         window.addEventListener('load', () => {
           setTimeout(() => {
-            const splash = document.getElementById('splash');
-            if (splash) { splash.classList.add('hide'); setTimeout(() => splash.remove(), 360); }
-          }, Math.max(150, 1050 - (performance.now() - t0)));
+            if (!sp) return;
+            sp.classList.add('out');
+            setTimeout(() => { sp.classList.add('hide'); setTimeout(() => sp.remove(), 300); }, 140);
+          }, Math.max(120, minMs - (performance.now() - t0)));
         });
       })();
     </script>
