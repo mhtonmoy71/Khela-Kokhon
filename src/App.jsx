@@ -1394,7 +1394,12 @@ button.scr { width: 100%; }
 .dl-t-txt b { font-size: 15px; } .dl-t-txt small { font-size: 12.5px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .dl-t-streak { display: inline-flex; align-items: center; gap: 3px; font-weight: 800; font-size: 14px; color: #f97316; font-family: Inter, "Hind Siliguri", sans-serif; }
 .dl-t-go { flex: none; height: 34px; padding: 0 14px; border-radius: 17px; background: var(--green); color: var(--onGreen); font-weight: 700; font-size: 13.5px; display: grid; place-items: center; }
-.dl-teaser.side { padding: 14px; }
+.dl-teaser.side { padding: 14px 40px 14px 14px; flex-wrap: wrap; row-gap: 12px; }
+/* সরু ডান কলামে: আইকন আর লেখা এক সারিতে, "খেলুন" নিচে পুরো চওড়া */
+.dl-teaser.side .dl-t-txt { display: flex; flex-direction: column; flex: 1 1 140px; }
+.dl-teaser.side .dl-t-txt b { white-space: nowrap; }
+.dl-teaser.side .dl-t-txt small { white-space: normal; }
+.dl-teaser.side .dl-t-go { order: 5; flex: 1 0 100%; margin-right: -26px; display: flex; align-items: center; justify-content: center; height: 36px; }
 .dl-teaser { position: relative; cursor: pointer; padding-right: 40px; }
 .dl-t-x { position: absolute; top: 6px; right: 6px; width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; color: var(--muted); background: transparent; }
 .dl-t-x:hover, .dl-t-x:focus-visible { background: var(--card2); color: var(--text); }
