@@ -438,6 +438,9 @@ img { display: block; }
 .sball { flex: none; }
 .sball .sb-ring { stroke: #e5e7eb; }
 [data-theme="light"] .sball .sb-ring { stroke: #1f2937; }
+/* ডার্ক মোডে কালো লোগো (markDark দেখে চিহ্ন দেয়) */
+:root:not([data-theme="light"]) img[data-dk="inv"] { filter: invert(1) brightness(.92); }
+:root:not([data-theme="light"]) img[data-dk="plate"] { background: #e9eef0; border-radius: 50%; padding: 1.5px; }
 .mp .ms-goals b { font-weight: 600; }
 .mp .ms-goals span { color: var(--muted); }
 .mp .ms-goals .ball-mini { justify-self: center; opacity: .5; margin-top: 2px; }
@@ -3189,6 +3192,30 @@ const IMG_HOSTS = /^https:\/\/(crests\.football-data\.org|media(-\d)?\.api-sport
 const imgUrl = (src, px) => (src && !DEMO && IMG_HOSTS.test(src) ? `/api/img?u=${encodeURIComponent(src)}&w=${Math.round(px * 2)}` : src);
 // ছোট করা ছবি না এলে আসলটা, তাও না এলে বিকল্প (tries: ০ ছোট, ১ আসল, ২ বাদ)
 function useImgTries(key) { const [t, setT] = useState(0); useEffect(() => setT(0), [key]); return [t, () => setT((x) => x + 1)]; }
+// ডার্ক মোডে কালো লোগো (প্রিমিয়ার লিগের সিংহ, লিগ ওয়ান, কালো ক্লাব-লোগো) ব্যাকগ্রাউন্ডে মিশে যায়।
+// লোগো এলে একবার পিক্সেল দেখে: বেশিরভাগ কালো আর রংহীন হলে "inv" (ডার্কে সাদা করে উল্টানো),
+// কালো কিন্তু রঙিন হলে "plate" (পেছনে হালকা গোল চাকতি)। নিজেদের সার্ভারের ছবিই পড়া যায়; বাকিগুলো যেমন আছে।
+const dkMemo = new Map();
+function markDark(e) {
+  const img = e.currentTarget, key = img.currentSrc || img.src;
+  if (dkMemo.has(key)) { const v = dkMemo.get(key); if (v) img.dataset.dk = v; return; }
+  let v = "";
+  try {
+    const N = 32, c = document.createElement("canvas"); c.width = c.height = N;
+    const x = c.getContext("2d", { willReadFrequently: true }); x.drawImage(img, 0, 0, N, N);
+    const d = x.getImageData(0, 0, N, N).data;
+    let n = 0, dark = 0, light = 0, sat = 0;
+    for (let i = 0; i < d.length; i += 4) {
+      if (d[i + 3] < 140) continue;
+      const r = d[i] / 255, g = d[i + 1] / 255, b = d[i + 2] / 255, mx = Math.max(r, g, b), mn = Math.min(r, g, b);
+      const lum = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+      n++; if (lum < 0.15) dark++; if (lum > 0.7) light++; sat += mx ? (mx - mn) / mx : 0;
+    }
+    if (n > 20 && dark / n > 0.5 && light / n < 0.18) v = sat / n < 0.3 ? "inv" : "plate";
+  } catch { v = ""; }
+  dkMemo.set(key, v);
+  if (v) img.dataset.dk = v;
+}
 function Crest({ team, size = 22 }) {
   const [tries, fail] = useImgTries(team?.crest);
   const src = !team?.crest ? null : tries === 0 ? imgUrl(team.crest, size) : tries === 1 && imgUrl(team.crest, size) !== team.crest ? team.crest : null;
@@ -3198,7 +3225,7 @@ function Crest({ team, size = 22 }) {
         {(team?.tla || team?.short_en || "?").slice(0, 3)}
       </span>
     );
-  return <img className="crest" src={src} alt="" width={size} height={size} loading="lazy" decoding="async" onError={fail} />;
+  return <img className="crest" src={src} alt="" width={size} height={size} loading="lazy" decoding="async" onError={fail} onLoad={markDark} />;
 }
 
 // ডেটা সোর্সের পুরনো লোগোর বদলে নতুন লোগো (সাইটের নিজের ফাইল, public/leagues)
@@ -3208,7 +3235,7 @@ function CompIcon({ c, size = 18 }) {
   const [tries, fail] = useImgTries(raw);
   const src = !raw ? null : tries === 0 ? imgUrl(raw, size) : tries === 1 && imgUrl(raw, size) !== raw ? raw : null;
   if (!src) return null;
-  return <img src={src} alt="" width={size} height={size} style={{ objectFit: "contain" }} decoding="async" onError={fail} />;
+  return <img src={src} alt="" width={size} height={size} style={{ objectFit: "contain" }} decoding="async" onError={fail} onLoad={markDark} />;
 }
 
 // ── স্ট্যাটাস লেখা ──
