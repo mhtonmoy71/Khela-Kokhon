@@ -106,6 +106,34 @@ export default async function handler(req, res) {
       }
       return res.status(200).json({ ok: true });
     }
+    // ── কুইজের খুঁটিনাটি (/admin → কুইজ): দৈনিক চ্যালেঞ্জ আর কুইজ রুম, তারিখ ধরে ──
+    const qq = req.query || {};
+    if (qq.quiz) {
+      const okD = (x) => /^\d{4}-\d{2}-\d{2}$/.test(x || "");
+      const to = okD(qq.to) ? qq.to : new Date(Date.now() + 6 * 3600000).toISOString().slice(0, 10);
+      let from = okD(qq.from) ? qq.from : to;
+      if (Date.parse(to) - Date.parse(from) > 62 * 86400000) from = new Date(Date.parse(to) - 62 * 86400000).toISOString().slice(0, 10);
+      const [plays, answers, sets, rooms] = await Promise.all([
+        get(`daily_plays?select=user_id,day,idx,started_at,finished_at,correct,raw,points,streak&day=gte.${from}&day=lte.${to}&order=day.desc&limit=20000`),
+        get(`daily_answers?select=user_id,day,q_index,qid,choice,correct,ms,pts&day=gte.${from}&day=lte.${to}&limit=100000`),
+        get(`daily_sets?select=day,question_ids&day=gte.${from}&day=lte.${to}`),
+        get(`quiz_rooms?select=id,code,host,status,question_ids,started_at,created_at&created_at=gte.${from}T00:00:00%2B06:00&created_at=lt.${new Date(Date.parse(to) + 86400000).toISOString().slice(0, 10)}T00:00:00%2B06:00&order=created_at.desc&limit=500`),
+      ]);
+      const roomIds = rooms.map((r) => r.id);
+      const [rp, ra] = roomIds.length ? await Promise.all([
+        get(`quiz_players?select=room_id,user_id,display_name,joined_at&room_id=in.(${roomIds.join(",")})&limit=10000`),
+        get(`quiz_answers?select=room_id,user_id,q_index,correct,ms&room_id=in.(${roomIds.join(",")})&limit=100000`),
+      ]) : [[], []];
+      const qids = [...new Set(sets.flatMap((x) => x.question_ids || []))];
+      const questions = qids.length ? await get(`quiz_questions?select=id,question,options,answer,category,difficulty&id=in.(${qids.join(",")})`) : [];
+      const uids = [...new Set([...plays.map((x) => x.user_id), ...rp.map((x) => x.user_id)])];
+      const names = {};
+      for (let i = 0; i < uids.length; i += 150) {
+        const ps = await get(`profiles?select=id,display_name&id=in.(${uids.slice(i, i + 150).join(",")})`);
+        for (const x of ps) names[x.id] = x.display_name || "নাম নেই";
+      }
+      return res.status(200).json({ ok: true, from, to, plays, answers, sets, questions, names, rooms, roomPlayers: rp, roomAnswers: ra });
+    }
     const now = Date.now(), day = new Date(now - 86400000).toISOString(), week = new Date(now - 7 * 86400000).toISOString();
     // লগিন অ্যাকাউন্ট (Supabase auth): মোট আর কবে খোলা
     const authUsers = async () => {

@@ -1086,6 +1086,33 @@ button.pm { background: none; border: 0; padding: 0; cursor: pointer; font: inhe
 .faq summary::after { content: "+"; color: var(--muted); font-weight: 600; flex: none; }
 .faq details[open] summary::after { content: "–"; }
 .faq p { margin: 8px 0 0; color: var(--muted); line-height: 1.65; }
+.aq-f { padding: 12px; display: flex; flex-direction: column; gap: 10px; margin-bottom: 12px; }
+.aq-seg { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; }
+.aq-seg button { flex: none; border: 1px solid var(--line); background: var(--card2); color: var(--text); border-radius: 999px; padding: 6px 12px; font: inherit; font-size: 13px; font-weight: 600; cursor: pointer; }
+.aq-seg button.on { background: var(--green); color: var(--onGreen); border-color: var(--green); }
+.aq-row { display: flex; gap: 10px; flex-wrap: wrap; }
+.aq-row label { display: flex; flex-direction: column; gap: 4px; font-size: 12px; color: var(--muted); flex: 1; min-width: 140px; }
+.aq-f select, .aq-f input { height: 36px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); color: var(--text); padding: 0 10px; font: inherit; font-size: 14px; }
+.aq-tbl { padding: 4px 0; overflow-x: auto; margin-bottom: 12px; }
+.aq-tr { display: grid; grid-template-columns: 1.2fr repeat(5, 1fr); gap: 6px; padding: 8px 14px; font-size: 13px; border-bottom: 1px solid var(--line); min-width: 460px; font-variant-numeric: tabular-nums; }
+.aq-tr:last-child { border-bottom: 0; } .aq-th { color: var(--muted); font-size: 12px; font-weight: 700; }
+.aq-qs { padding: 6px 14px; margin-bottom: 12px; }
+.aq-q { padding: 10px 0; border-bottom: 1px solid var(--line); display: flex; flex-direction: column; gap: 6px; }
+.aq-q:last-child { border-bottom: 0; } .aq-q-t { font-size: 14px; line-height: 1.5; }
+.aq-bar { height: 6px; border-radius: 6px; background: var(--card2); overflow: hidden; }
+.aq-bar i { display: block; height: 100%; background: var(--green); border-radius: 6px; } .aq-bar i.mid { background: var(--amber); } .aq-bar i.bad { background: var(--red); }
+.aq-list { padding: 0; }
+.aq-p { border-bottom: 1px solid var(--line); } .aq-p:last-child { border-bottom: 0; }
+.aq-p-h { width: 100%; display: grid; grid-template-columns: 26px 1fr auto auto; gap: 10px; align-items: center; padding: 10px 14px; background: none; border: 0; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+.aq-rank { color: var(--muted); font-size: 13px; font-weight: 700; text-align: center; }
+.aq-who { min-width: 0; } .aq-who b { display: block; font-size: 14.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } .aq-who small { font-size: 12px; }
+.aq-dots { display: flex; gap: 3px; } .aq-dots i { width: 9px; height: 9px; border-radius: 50%; background: var(--line); } .aq-dots i.ok { background: var(--green); } .aq-dots i.no { background: var(--red); }
+.aq-num { text-align: right; min-width: 64px; } .aq-num b { display: block; font-size: 16px; } .aq-num small { font-size: 11.5px; }
+.aq-more { padding: 0 14px 12px 50px; display: flex; flex-direction: column; gap: 6px; font-size: 12.5px; }
+.aq-a { display: flex; flex-direction: column; gap: 2px; padding: 6px 10px; border-radius: 8px; background: var(--card2); border-left: 3px solid var(--green); }
+.aq-a.no { border-left-color: var(--red); } .aq-a span { font-size: 13px; } .aq-a small { color: var(--muted); }
+.aq-room { padding: 12px 14px; margin-bottom: 10px; } .aq-room-h { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; margin-bottom: 6px; font-size: 13px; }
+.aq-rp { display: grid; grid-template-columns: 1fr auto auto; gap: 12px; padding: 6px 0; border-top: 1px solid var(--line); font-size: 13.5px; }
 .adm-mm { padding: 12px 14px; margin-bottom: 10px; }
 .adm-mm.on { box-shadow: inset 3px 0 0 #e11d48; }
 .adm-mm-h { display: flex; justify-content: space-between; align-items: center; gap: 8px; font-size: 12.5px; margin-bottom: 10px; }
@@ -6451,7 +6478,7 @@ const agoBn = (iso) => {
   return m < 1 ? "এইমাত্র" : m < 60 ? `${num(m, "bn")} মিনিট আগে` : m < 1440 ? `${num(Math.round(m / 60), "bn")} ঘণ্টা আগে` : `${num(Math.round(m / 1440), "bn")} দিন আগে`;
 };
 const uaShort = (ua) => (!ua ? "" : `${/iPhone|iPad/.test(ua) ? "আইফোন" : /Android/.test(ua) ? "অ্যান্ড্রয়েড" : /Windows/.test(ua) ? "উইন্ডোজ" : /Mac/.test(ua) ? "ম্যাক" : "অন্য"} · ${/SamsungBrowser/.test(ua) ? "স্যামসাং" : /Edg\//.test(ua) ? "এজ" : /Firefox/.test(ua) ? "ফায়ারফক্স" : /Chrome/.test(ua) ? "ক্রোম" : /Safari/.test(ua) ? "সাফারি" : "ব্রাউজার"}`);
-const ADMIN_TABS = [["ov", "ওভারভিউ"], ["live", "ম্যাচ"], ["usage", "ব্যবহার"], ["users", "ইউজার"], ["errors", "এরর"], ["news", "ঘোষণা"], ["sync", "আপডেট"]];
+const ADMIN_TABS = [["ov", "ওভারভিউ"], ["live", "ম্যাচ"], ["quiz", "কুইজ"], ["usage", "ব্যবহার"], ["users", "ইউজার"], ["errors", "এরর"], ["news", "ঘোষণা"], ["sync", "আপডেট"]];
 const RUN_LIST = [
   ["fd-quick", "আজকের ম্যাচ (ইউরোপের ৬ লিগ)", "গতকাল থেকে আগামীকাল পর্যন্ত স্কোর আর সময়"],
   ["fd-full", "পুরো সূচি (ইউরোপের ৬ লিগ)", "সিজনের সব ম্যাচ নতুন করে"],
@@ -6468,6 +6495,173 @@ const SEC_BN = { matches: "ম্যাচের তালিকা", match: "�
 const SRC_BN = { facebook: "ফেসবুক", google: "গুগল সার্চ", search: "অন্য সার্চ", app: "ইনস্টল করা অ্যাপ", direct: "সরাসরি লিংক", x: "এক্স (টুইটার)", youtube: "ইউটিউব", instagram: "ইনস্টাগ্রাম", other: "অন্য সাইট", unknown: "অজানা" };
 const PLAT_BN = { android: "অ্যান্ড্রয়েড ব্রাউজার", "android-app": "অ্যান্ড্রয়েড অ্যাপ", ios: "আইফোন ব্রাউজার", "ios-app": "আইফোন অ্যাপ", desktop: "কম্পিউটার", "desktop-app": "কম্পিউটার অ্যাপ", unknown: "অজানা" };
 const minBn = (m) => (m >= 60 ? `${num(Math.floor(m / 60), "bn")} ঘ ${num(m % 60, "bn")} মি` : `${num(m, "bn")} মি`);
+// ── অ্যাডমিন: কুইজের খুঁটিনাটি (কে কখন খেলল, কত সময়ে শেষ করল, কত পেল, কোন প্রশ্ন কঠিন) ──
+const bdDayStr = (t = Date.now()) => new Date(t + 6 * 3600000).toISOString().slice(0, 10);
+const durBn = (ms) => {
+  if (ms == null || !isFinite(ms) || ms < 0) return "–";
+  const s = Math.round(ms / 1000);
+  return s < 60 ? `${num(s, "bn")} সে` : `${num(Math.floor(s / 60), "bn")} মি ${num(s % 60, "bn")} সে`;
+};
+const clockBn = (iso) => { if (!iso) return "–"; const d = new Date(Date.parse(iso) + 6 * 3600000); const h = d.getUTCHours(); const part = h < 4 ? "রাত" : h < 6 ? "ভোর" : h < 12 ? "সকাল" : h < 15 ? "দুপুর" : h < 18 ? "বিকাল" : h < 20 ? "সন্ধ্যা" : "রাত"; return `${part} ${num(h % 12 || 12, "bn")}:${num(String(d.getUTCMinutes()).padStart(2, "0"), "bn")}`; };
+const dayBn = (d) => { const x = new Date(d + "T00:00:00Z"); return `${num(x.getUTCDate(), "bn")} ${["জানু", "ফেব্রু", "মার্চ", "এপ্রিল", "মে", "জুন", "জুলাই", "আগস্ট", "সেপ্টে", "অক্টো", "নভে", "ডিসে"][x.getUTCMonth()]}`; };
+function AdminQuiz({ fetchQ }) {
+  const today = bdDayStr();
+  const [range, setRange] = useState("today");
+  const [day, setDay] = useState(today);
+  const [mode, setMode] = useState("daily");
+  const [status, setStatus] = useState("all");
+  const [sort, setSort] = useState("points");
+  const [q, setQ] = useState("");
+  const [minC, setMinC] = useState(0);
+  const [open, setOpen] = useState(null);
+  const [data, setData] = useState(null);
+  const [err, setErr] = useState(false);
+  const span = range === "today" ? [today, today] : range === "yday" ? [bdDayStr(Date.now() - 86400000), bdDayStr(Date.now() - 86400000)]
+    : range === "7" ? [bdDayStr(Date.now() - 6 * 86400000), today] : range === "30" ? [bdDayStr(Date.now() - 29 * 86400000), today] : [day, day];
+  useEffect(() => {
+    let a = true; setData(null); setErr(false);
+    const go = () => fetchQ(`quiz=1&from=${span[0]}&to=${span[1]}`).then((x) => a && (x?.ok ? setData(x) : setErr(true))).catch(() => a && setErr(true));
+    go();
+    const stop = everyMin(go);
+    return () => { a = false; stop(); };
+  }, [span[0], span[1]]);
+
+  const Seg = ({ v, set, opts }) => <div className="aq-seg">{opts.map(([k, l]) => <button key={k} className={v === k ? "on" : ""} onClick={() => set(k)}>{l}</button>)}</div>;
+  const filters = (
+    <div className="card aq-f">
+      <Seg v={range} set={setRange} opts={[["today", "আজ"], ["yday", "গতকাল"], ["7", "৭ দিন"], ["30", "৩০ দিন"], ["day", "নির্দিষ্ট দিন"]]} />
+      {range === "day" && <input type="date" value={day} max={today} onChange={(e) => e.target.value && setDay(e.target.value)} />}
+      <Seg v={mode} set={setMode} opts={[["daily", "দৈনিক চ্যালেঞ্জ"], ["rooms", "কুইজ রুম"]]} />
+      {mode === "daily" && <>
+        <Seg v={status} set={setStatus} opts={[["all", "সবাই"], ["done", "শেষ করেছেন"], ["left", "মাঝপথে ছেড়েছেন"]]} />
+        <div className="aq-row">
+          <label>সাজানো<select value={sort} onChange={(e) => setSort(e.target.value)}>
+            <option value="points">বেশি পয়েন্ট আগে</option><option value="fast">কম সময়ে শেষ আগে</option><option value="slow">বেশি সময় আগে</option>
+            <option value="correct">বেশি সঠিক আগে</option><option value="early">আগে খেলেছেন আগে</option><option value="late">পরে খেলেছেন আগে</option><option value="streak">বড় স্ট্রিক আগে</option>
+          </select></label>
+          <label>কমপক্ষে সঠিক<select value={minC} onChange={(e) => setMinC(+e.target.value)}>{[0, 1, 2, 3, 4, 5].map((n) => <option key={n} value={n}>{n ? num(n, "bn") + "টি" : "যেকোনো"}</option>)}</select></label>
+        </div>
+      </>}
+      <input className="aq-search" placeholder="নাম দিয়ে খুঁজুন" value={q} onChange={(e) => setQ(e.target.value)} />
+    </div>
+  );
+  if (err) return <>{filters}<div className="card empty">তথ্য আনা গেল না। একটু পরে আবার চেষ্টা করুন।</div></>;
+  if (!data) return <>{filters}<Loading /></>;
+
+  const nm = (u) => data.names[u] || "নাম নেই";
+  const match = (u) => !q.trim() || nm(u).toLowerCase().includes(q.trim().toLowerCase());
+
+  if (mode === "rooms") {
+    const rooms = data.rooms.map((r) => {
+      const ps = data.roomPlayers.filter((p) => p.room_id === r.id).map((p) => {
+        const an = data.roomAnswers.filter((a) => a.room_id === r.id && a.user_id === p.user_id);
+        return { uid: p.user_id, name: p.display_name || nm(p.user_id), correct: an.filter((a) => a.correct).length, answered: an.length, ms: an.reduce((n, a) => n + (a.ms || 0), 0) };
+      }).sort((a, b) => b.correct - a.correct || a.ms - b.ms);
+      return { ...r, ps, total: (r.question_ids || []).length };
+    }).filter((r) => r.ps.some((p) => match(p.uid) || (p.name || "").toLowerCase().includes(q.trim().toLowerCase())));
+    return (
+      <>
+        {filters}
+        <div className="adm-grid">
+          <div className="adm-tile"><b>{num(rooms.length, "bn")}</b><small>কুইজ রুম</small></div>
+          <div className="adm-tile"><b>{num(rooms.reduce((n, r) => n + r.ps.length, 0), "bn")}</b><small>মোট অংশগ্রহণ</small></div>
+        </div>
+        {!rooms.length ? <div className="card empty">এই সময়ে কোনো কুইজ রুম নেই।</div> : rooms.map((r) => (
+          <div key={r.id} className="card aq-room">
+            <div className="aq-room-h"><b>{r.code}</b><span className="muted">{dayBn(bdDayStr(Date.parse(r.created_at)))} · {clockBn(r.created_at)} · {num(r.total, "bn")} প্রশ্ন · {r.status === "finished" || r.status === "closed" ? "শেষ" : r.status === "running" ? "চলছে" : "লবিতে"}</span></div>
+            {r.ps.map((p, i) => <div key={p.uid} className="aq-rp"><span>{num(i + 1, "bn")}. {p.name}{p.uid === r.host ? <small className="muted"> (হোস্ট)</small> : null}</span><span>{num(p.correct, "bn")}/{num(r.total, "bn")} সঠিক</span><span className="muted">{durBn(p.ms)}</span></div>)}
+          </div>
+        ))}
+      </>
+    );
+  }
+
+  const qById = Object.fromEntries(data.questions.map((x) => [x.id, x]));
+  const ansBy = {};
+  for (const a of data.answers) (ansBy[a.user_id + "|" + a.day] ||= []).push(a);
+  let rows = data.plays.map((p) => {
+    const an = (ansBy[p.user_id + "|" + p.day] || []).sort((a, b) => a.q_index - b.q_index);
+    const think = an.reduce((n, a) => n + (a.ms || 0), 0);
+    const total = p.finished_at ? Date.parse(p.finished_at) - Date.parse(p.started_at) : null;
+    return { ...p, an, think, total, done: !!p.finished_at };
+  });
+  const all = rows;
+  rows = rows.filter((r) => match(r.user_id) && (status === "all" || (status === "done" ? r.done : !r.done)) && r.correct >= minC);
+  const S = { points: (a, b) => (b.points ?? -1) - (a.points ?? -1) || a.think - b.think, fast: (a, b) => (a.total ?? 1e12) - (b.total ?? 1e12), slow: (a, b) => (b.total ?? -1) - (a.total ?? -1),
+    correct: (a, b) => b.correct - a.correct || a.think - b.think, early: (a, b) => Date.parse(a.started_at) - Date.parse(b.started_at), late: (a, b) => Date.parse(b.started_at) - Date.parse(a.started_at), streak: (a, b) => b.streak - a.streak };
+  rows.sort(S[sort]);
+  const done = rows.filter((r) => r.done);
+  const avg = (xs) => (xs.length ? xs.reduce((n, x) => n + x, 0) / xs.length : null);
+  const multi = span[0] !== span[1];
+  // প্রশ্ন ধরে: কতজন ঠিক, গড় সময় (একদিন বাছাই করলে)
+  const set = !multi ? data.sets.find((x) => x.day === span[0]) : null;
+  const perQ = set ? (set.question_ids || []).map((qid, i) => {
+    const an = data.answers.filter((a) => a.day === span[0] && a.q_index === i);
+    return { i, q: qById[qid], n: an.length, ok: an.filter((a) => a.correct).length, ms: avg(an.map((a) => a.ms)) };
+  }) : [];
+  const days = multi ? [...new Set(all.map((r) => r.day))].sort().reverse().map((d) => {
+    const r = all.filter((x) => x.day === d), f = r.filter((x) => x.done);
+    return { d, n: r.length, f: f.length, pts: avg(f.map((x) => x.points || 0)), t: avg(f.map((x) => x.total)), c: avg(f.map((x) => x.correct)) };
+  }) : [];
+  return (
+    <>
+      {filters}
+      <div className="adm-grid">
+        <div className="adm-tile"><b>{num(rows.length, "bn")}</b><small>খেলেছেন</small></div>
+        <div className="adm-tile"><b>{num(done.length, "bn")}</b><small>শেষ করেছেন</small></div>
+        <div className="adm-tile"><b>{durBn(avg(done.map((r) => r.total)))}</b><small>গড় সময়</small></div>
+        <div className="adm-tile"><b>{avg(done.map((r) => r.correct)) == null ? "–" : num(Math.round(avg(done.map((r) => r.correct)) * 10) / 10, "bn")}/৫</b><small>গড় সঠিক</small></div>
+        <div className="adm-tile"><b>{avg(done.map((r) => r.points || 0)) == null ? "–" : num(Math.round(avg(done.map((r) => r.points || 0))), "bn")}</b><small>গড় পয়েন্ট</small></div>
+        <div className="adm-tile"><b>{done.length ? durBn(Math.min(...done.map((r) => r.total))) : "–"}</b><small>সবচেয়ে দ্রুত</small></div>
+      </div>
+      {multi && days.length > 0 && <>
+        <div className="adm-h">দিন ধরে</div>
+        <div className="card aq-tbl"><div className="aq-tr aq-th"><span>দিন</span><span>খেলেছেন</span><span>শেষ</span><span>গড় সময়</span><span>গড় সঠিক</span><span>গড় পয়েন্ট</span></div>
+          {days.map((x) => <div key={x.d} className="aq-tr"><span>{dayBn(x.d)}</span><span>{num(x.n, "bn")}</span><span>{num(x.f, "bn")}</span><span>{durBn(x.t)}</span><span>{x.c == null ? "–" : num(Math.round(x.c * 10) / 10, "bn")}</span><span>{x.pts == null ? "–" : num(Math.round(x.pts), "bn")}</span></div>)}
+        </div>
+      </>}
+      {perQ.length > 0 && <>
+        <div className="adm-h">প্রশ্ন ধরে <span className="muted">কোনটা কঠিন ছিল</span></div>
+        <div className="card aq-qs">
+          {perQ.map((x) => { const pc = x.n ? Math.round((x.ok / x.n) * 100) : 0; return (
+            <div key={x.i} className="aq-q">
+              <div className="aq-q-t"><b>{num(x.i + 1, "bn")}.</b> {x.q?.question || "প্রশ্ন পাওয়া যায়নি"}{x.q && <small className="muted"> · উত্তর: {x.q.options?.[x.q.answer]}</small>}</div>
+              <div className="aq-bar"><i style={{ width: pc + "%" }} className={pc < 35 ? "bad" : pc < 65 ? "mid" : ""} /></div>
+              <small className="muted">{num(pc, "bn")}% সঠিক ({num(x.ok, "bn")}/{num(x.n, "bn")}) · গড়ে {durBn(x.ms)}</small>
+            </div>); })}
+        </div>
+      </>}
+      <div className="adm-h">প্রত্যেকের হিসাব <span className="muted">{num(rows.length, "bn")} জন</span></div>
+      {!rows.length ? <div className="card empty">এই ফিল্টারে কেউ নেই।</div> : (
+        <div className="card aq-list">
+          {rows.map((r, i) => {
+            const k = r.user_id + r.day;
+            return (
+              <div key={k} className="aq-p">
+                <button className="aq-p-h" onClick={() => setOpen(open === k ? null : k)}>
+                  <span className="aq-rank">{num(i + 1, "bn")}</span>
+                  <span className="aq-who"><b>{nm(r.user_id)}</b><small className="muted">{multi ? dayBn(r.day) + " · " : ""}{clockBn(r.started_at)}{r.done ? "" : " · মাঝপথে"}{r.streak > 1 ? ` · স্ট্রিক ${num(r.streak, "bn")}` : ""}</small></span>
+                  <span className="aq-dots">{[0, 1, 2, 3, 4].map((j) => { const a = r.an.find((x) => x.q_index === j); return <i key={j} className={!a ? "" : a.correct ? "ok" : "no"} />; })}</span>
+                  <span className="aq-num"><b>{r.points == null ? "–" : num(r.points, "bn")}</b><small className="muted">{r.done ? durBn(r.total) : `${num(r.idx, "bn")}/৫`}</small></span>
+                </button>
+                {open === k && (
+                  <div className="aq-more">
+                    <div className="muted">শুরু {clockBn(r.started_at)}{r.done ? ` · শেষ ${clockBn(r.finished_at)} · মোট ${durBn(r.total)} · ভাবনায় ${durBn(r.think)}` : ""} · মূল পয়েন্ট {num(r.raw, "bn")}</div>
+                    {r.an.map((a) => { const qq = qById[a.qid]; return (
+                      <div key={a.q_index} className={"aq-a " + (a.correct ? "ok" : "no")}>
+                        <span>{num(a.q_index + 1, "bn")}. {qq?.question || "প্রশ্ন"}</span>
+                        <small>{a.choice == null ? "সময় শেষ" : (qq?.options?.[a.choice] ?? "–")} · {durBn(a.ms)} · {num(a.pts, "bn")} পয়েন্ট</small>
+                      </div>); })}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </>
+  );
+}
 function AdminApp({ user, toast, goProfile, onExit }) {
   const [d, setD] = useState(null);
   const [err, setErr] = useState("");
@@ -6486,6 +6680,12 @@ function AdminApp({ user, toast, goProfile, onExit }) {
     if (!tk) throw Object.assign(new Error("login"), { code: 401 });
     const r = await fetch("/api/admin", body ? { method: "POST", headers: { Authorization: `Bearer ${tk}`, "Content-Type": "application/json" }, body: JSON.stringify(body) } : { headers: { Authorization: `Bearer ${tk}` } });
     if (r.status === 401 || r.status === 403) throw Object.assign(new Error("no"), { code: r.status });
+    return r.json();
+  };
+  const fetchQ = async (qs) => {
+    const { data } = await sb.auth.getSession();
+    const tk = data?.session?.access_token;
+    const r = await fetch("/api/admin?" + qs, { headers: { Authorization: `Bearer ${tk}` } });
     return r.json();
   };
   const load = () => call().then((x) => { setD(x); setErr(""); }).catch((e) => setErr(e.code === 403 ? "forbidden" : e.code === 401 ? "login" : "x"));
@@ -6780,7 +6980,7 @@ function AdminApp({ user, toast, goProfile, onExit }) {
       </div>
     </>
   );
-  return shell(tab === "live" ? live : tab === "usage" ? usage : tab === "users" ? users : tab === "errors" ? errors : tab === "news" ? news : tab === "sync" ? sync : ov);
+  return shell(tab === "quiz" ? <AdminQuiz fetchQ={fetchQ} /> : tab === "live" ? live : tab === "usage" ? usage : tab === "users" ? users : tab === "errors" ? errors : tab === "news" ? news : tab === "sync" ? sync : ov);
 }
 function Profile({ user, profile, setProfile, toast, myTeams, teamsById, lang, setLang, theme, setTheme, onEditTeams }) {
   const [editName, setEditName] = useState(null);   // নাম বদলানো (হুক সব রিটার্নের আগে)
