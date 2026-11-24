@@ -4199,7 +4199,7 @@ function MatchPage({ id, m: mInit, user, pred, onSave, onLogin, toast }) {
   const [err, setErr] = useState("");
   const [making, setMaking] = useState(false);
   const [tab, setTab] = useState("ov");
-  useEffect(() => { if (m) document.title = `${teamName(m.home, lang)} বনাম ${teamName(m.away, lang)} · খেলা কখন?`; return () => { document.title = "খেলা কখন?"; }; }, [m?.id, lang]);
+  useEffect(() => { if (m) document.title = `${teamName(m.home, lang)} বনাম ${teamName(m.away, lang)} · খেলা কখন?`; return () => { document.title = "খেলা কখন? - Football Live Scores"; }; }, [m?.id, lang]);
 
   if (gone) return <div className="card empty" style={{ marginTop: 16 }}>{bn ? "ম্যাচটা খুঁজে পাওয়া গেল না" : "Match not found"}</div>;
   if (!m) return <Loading />;
@@ -8697,7 +8697,7 @@ function League({ code, comps, preds, onOpen, teamsById }) {
   const ss = useLgInfo(code, "seasons", tab === "seasons");
   const [games, setGames] = useState(null);
   useEffect(() => { if (tab === "matches" && games === null) Promise.all([getCompUpcoming(code, 15), getCompRecent(code, 15)]).then(([up, past]) => setGames({ up, past })).catch(() => setGames({ up: [], past: [] })); }, [tab]);
-  useEffect(() => { document.title = `${compName(c, lang)} · খেলা কখন?`; return () => { document.title = "খেলা কখন?"; }; }, [code, lang]);
+  useEffect(() => { document.title = `${compName(c, lang)} · খেলা কখন?`; return () => { document.title = "খেলা কখন? - Football Live Scores"; }; }, [code, lang]);
   // বাংলাদেশ ফুটবল লিগের মৌসুম API শেষ বছর দিয়ে চিহ্নিত করে (২০২৭ = ২০২৬–২৭)
   const seTxt = (se0) => { const se = se0 && code === "BPL" ? se0 - 1 : se0; return se ? (bn ? `${num(se, "bn")}–${num(String((se + 1) % 100).padStart(2, "0"), "bn")}` : `${se}/${String((se + 1) % 100).padStart(2, "0")}`) : ""; };
   const tabs = [["table", bn ? "টেবিল" : "Table"], ["matches", bn ? "ম্যাচ" : "Matches"], ["stats", bn ? "পরিসংখ্যান" : "Stats"], ...(code === "CL" ? [] : [["seasons", bn ? "মৌসুম" : "Seasons"]])];
@@ -8966,7 +8966,7 @@ function AfPlayer({ id, comps, teamsById }) {
   const [career, setCareer] = useState(null);
   const [lg, setLg] = useState("all");
   useEffect(() => { let a = true; setP(null); getAfPlayer(id).then((d) => a && setP(d)).catch(() => a && setP(false)); return () => { a = false; }; }, [id]);
-  useEffect(() => { if (p?.name) document.title = `${bnPlayer(p.name, lang, afFullName(p))} · খেলা কখন?`; return () => { document.title = "খেলা কখন?"; }; }, [p?.name, lang]);
+  useEffect(() => { if (p?.name) document.title = `${bnPlayer(p.name, lang, afFullName(p))} · খেলা কখন?`; return () => { document.title = "খেলা কখন? - Football Live Scores"; }; }, [p?.name, lang]);
   // ম্যাচ আর ক্যারিয়ার শুধু সেই ট্যাব খুললে আনা
   useEffect(() => {
     if (tab === "mt" && games === null && p?.teams) fetch(`/api/live?pmatches=${id}&teams=${p.teams.join(",")}`).then((r) => r.json()).then((d) => setGames(Array.isArray(d) ? d : [])).catch(() => setGames([]));

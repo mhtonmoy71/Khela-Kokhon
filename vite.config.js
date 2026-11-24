@@ -12,7 +12,7 @@ export default defineConfig({
       manifest: {
         name: "খেলা কখন?",
         short_name: "খেলা কখন",
-        description: "১৯টা প্রতিযোগিতার লাইভ স্কোর, সূচি, টেবিল, প্রেডিকশন আর কুইজ — বাংলাদেশ সময়ে",
+        description: "Football Live Scores: স্কোর, প্রেডিকশন আর কুইজ, বাংলায়। সব ম্যাচ বাংলাদেশ সময়ে",
         id: "/",
         categories: ["sports"],
         lang: "bn",

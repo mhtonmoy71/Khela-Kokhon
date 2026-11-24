@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content" />
     <meta name="theme-color" content="#064e3b" />
-    <meta name="description" content="ইউরোপের ফুটবল থেকে দেশের মাঠ, সব ম্যাচের লাইভ স্কোর, স্ট্যাটস আর টেবিল, বাংলায়, বাংলাদেশ সময়ে। সাথে প্রেডিকশন গেম, কুইজ আর দৈনিক চ্যালেঞ্জ।" />
+    <meta name="description" content="ফুটবলের লাইভ স্কোর, প্রেডিকশন আর কুইজ, বাংলায়। ইউরোপের বড় লিগ থেকে দেশের মাঠ, সব ম্যাচের স্কোর, স্ট্যাটস আর টেবিল বাংলাদেশ সময়ে, সাথে দৈনিক চ্যালেঞ্জ আর বন্ধুদের প্রেডিকশন লিগ।" />
 
     <!-- Google Analytics -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-7WDKCYBV99"></script>
@@ -26,8 +26,8 @@
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://khelakokhon.com" />
     <link rel="canonical" href="https://khelakokhon.com/" />
-    <meta property="og:title" content="খেলা কখন? — ম্যাচের ঘড়ি আপনার হাতে" />
-    <meta property="og:description" content="ইউরোপের ফুটবল থেকে দেশের মাঠ, সব ম্যাচের লাইভ স্কোর, স্ট্যাটস আর টেবিল, বাংলায়, বাংলাদেশ সময়ে। সাথে প্রেডিকশন গেম, কুইজ আর দৈনিক চ্যালেঞ্জ।" />
+    <meta property="og:title" content="খেলা কখন? - Football Live Scores" />
+    <meta property="og:description" content="ফুটবলের লাইভ স্কোর, প্রেডিকশন আর কুইজ, বাংলায়। ইউরোপের বড় লিগ থেকে দেশের মাঠ, সব ম্যাচের স্কোর, স্ট্যাটস আর টেবিল বাংলাদেশ সময়ে, সাথে দৈনিক চ্যালেঞ্জ আর বন্ধুদের প্রেডিকশন লিগ।" />
     <meta property="og:image" content="https://khelakokhon.com/api/og" />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
@@ -36,11 +36,11 @@
 
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="খেলা কখন? — ম্যাচের ঘড়ি আপনার হাতে" />
-    <meta name="twitter:description" content="ইউরোপের ফুটবল থেকে দেশের মাঠ, সব ম্যাচের লাইভ স্কোর, স্ট্যাটস আর টেবিল, বাংলায়, বাংলাদেশ সময়ে। সাথে প্রেডিকশন গেম, কুইজ আর দৈনিক চ্যালেঞ্জ।" />
+    <meta name="twitter:title" content="খেলা কখন? - Football Live Scores" />
+    <meta name="twitter:description" content="ফুটবলের লাইভ স্কোর, প্রেডিকশন আর কুইজ, বাংলায়। ইউরোপের বড় লিগ থেকে দেশের মাঠ, সব ম্যাচের স্কোর, স্ট্যাটস আর টেবিল বাংলাদেশ সময়ে, সাথে দৈনিক চ্যালেঞ্জ আর বন্ধুদের প্রেডিকশন লিগ।" />
     <meta name="twitter:image" content="https://khelakokhon.com/api/og" />
 
-    <title>খেলা কখন? — লাইভ ফুটবল, বাংলায়</title>
+    <title>খেলা কখন? - Football Live Scores</title>
 
     <link rel="preconnect" href="https://upload.wikimedia.org" crossorigin />
     <link rel="dns-prefetch" href="https://upload.wikimedia.org" />
@@ -68,108 +68,99 @@
       * { margin: 0; padding: 0; box-sizing: border-box; }
       body { font-family: 'Hind Siliguri', sans-serif; -webkit-tap-highlight-color: transparent; }
 
+      /* ── স্প্ল্যাশ: ঘড়ির রিং আঁকা হয়, দাগ ফোটে, কাঁটা ঘুরে বসে, নাম ঝাপসা থেকে স্পষ্ট; বেরোনোর সময় সামনে এগিয়ে মিলিয়ে যায় ── */
       #splash {
-        position: fixed; inset: 0;
-        background: linear-gradient(160deg, #060910 0%, #064e3b 60%, #0a1020 100%);
-        display: flex; flex-direction: column;
-        align-items: center; justify-content: center;
-        z-index: 9999;
-        transition: opacity 0.5s ease;
+        position: fixed; inset: 0; z-index: 9999; overflow: hidden;
+        background: radial-gradient(120% 80% at 50% 38%, #0b5a44 0%, #06362a 42%, #04130f 100%);
+        display: flex; flex-direction: column; align-items: center; justify-content: center;
+        transition: opacity .55s ease, transform .55s cubic-bezier(.4, 0, .2, 1);
       }
-      #splash.hide { opacity: 0; pointer-events: none; }
-      #splash-logo { animation: splashPulse 1.2s ease-in-out infinite alternate; position: relative; width: 100px; height: 100px; }
-      #splash-logo svg { display: block; }
-      #splash-kha {
-        position: absolute; top: 50%; left: 50%;
-        transform: translate(-58%, -52%);
-        font-family: 'Hind Siliguri', sans-serif;
-        font-size: 30px; font-weight: 800;
-        color: rgba(255,255,255,0.18);
-        pointer-events: none;
-      }
-      #splash-q {
-        position: absolute; bottom: 16px; right: 12px;
-        font-family: Arial, sans-serif;
-        font-size: 20px; font-weight: 800;
-        color: #f59e0b;
-        pointer-events: none;
-      }
-      @keyframes splashPulse {
-        from { transform: scale(0.92); opacity: 0.85; }
-        to   { transform: scale(1.04); opacity: 1; }
-      }
-      #splash-title {
-        font-family: 'Hind Siliguri', sans-serif;
-        font-size: 28px; font-weight: 800;
-        color: #fff; margin-top: 20px; letter-spacing: 1px;
-      }
-      #splash-tag {
-        font-family: 'Hind Siliguri', sans-serif;
-        font-size: 16px; font-weight: 600; color: #00e676; margin-top: 6px;
-      }
-      #splash-sub {
-        font-family: Arial, sans-serif;
-        font-size: 13px; color: rgba(255,255,255,0.4);
-        margin-top: 14px; letter-spacing: 2px;
-      }
-      #splash-dot {
-        width: 8px; height: 8px; border-radius: 50%;
-        background: #00e676; margin-top: 32px;
-        animation: dotBlink 0.8s ease-in-out infinite alternate;
-      }
-      @keyframes dotBlink {
-        from { opacity: 0.3; transform: scale(0.8); }
-        to   { opacity: 1;   transform: scale(1.2); }
-      }
+      #splash.hide { opacity: 0; transform: scale(1.06); pointer-events: none; }
+      /* পেছনে মাঠের মাঝের বৃত্ত আর রেখা, হালকা করে আঁকা হয় */
+      #splash-pitch { position: absolute; width: min(150vw, 900px); height: min(150vw, 900px); opacity: .09; pointer-events: none; }
+      #splash-pitch circle, #splash-pitch line { fill: none; stroke: #fff; stroke-width: 1.2; stroke-dasharray: 1600; stroke-dashoffset: 1600; animation: spDraw 2.2s .1s cubic-bezier(.6, 0, .2, 1) forwards; }
+      #splash-glow { position: absolute; width: 360px; height: 360px; border-radius: 50%; background: radial-gradient(circle, rgba(0,230,118,.28), rgba(0,230,118,0) 65%); filter: blur(6px); animation: spGlow 2.4s ease-in-out infinite alternate; pointer-events: none; }
+      #splash-logo { position: relative; width: 108px; height: 108px; animation: spIn .7s cubic-bezier(.2, 1.3, .4, 1) both; filter: drop-shadow(0 10px 30px rgba(0,0,0,.45)); }
+      #splash-logo svg { display: block; overflow: visible; }
+      #splash-logo .ring { stroke-dasharray: 240; stroke-dashoffset: 240; animation: spDraw .9s .1s cubic-bezier(.6, 0, .2, 1) forwards; }
+      #splash-logo .face { opacity: 0; animation: spFade .5s .35s ease forwards; }
+      #splash-logo .tick { opacity: 0; animation: spFade .3s ease forwards; }
+      #splash-logo .hand { transform-origin: 40px 40px; }
+      #splash-logo .h-h { animation: spHour 1s .45s cubic-bezier(.2, 1, .3, 1) both; }
+      #splash-logo .h-m { animation: spMin 1s .45s cubic-bezier(.2, 1, .3, 1) both; }
+      #splash-logo .h-s { animation: spSec 1s .45s cubic-bezier(.2, 1, .3, 1) both, spTick 1s 1.6s steps(1) infinite; }
+      #splash-logo .kha { opacity: 0; animation: spFade .6s .8s ease forwards; }
+      #splash-logo .q { opacity: 0; transform-box: fill-box; transform-origin: center; animation: spPop .5s 1s cubic-bezier(.2, 1.6, .4, 1) forwards; }
+      #splash-title { font-family: 'Hind Siliguri', sans-serif; font-size: 30px; font-weight: 800; color: #fff; margin-top: 22px; letter-spacing: .5px; opacity: 0; animation: spRise .7s .55s cubic-bezier(.2, .8, .2, 1) forwards; }
+      #splash-title b { color: #f59e0b; }
+      #splash-tag { font-family: 'Hind Siliguri', sans-serif; font-size: 15.5px; font-weight: 600; color: #7dffb8; margin-top: 6px; opacity: 0; animation: spRise .7s .72s cubic-bezier(.2, .8, .2, 1) forwards; }
+      #splash-sub { font-family: Inter, Arial, sans-serif; font-size: 11.5px; font-weight: 600; color: rgba(255,255,255,.45); margin-top: 14px; letter-spacing: 3.5px; opacity: 0; animation: spFade .8s .95s ease forwards; }
+      #splash-bar { width: 120px; height: 3px; border-radius: 3px; margin-top: 30px; background: rgba(255,255,255,.08); overflow: hidden; opacity: 0; animation: spFade .4s .6s ease forwards; }
+      #splash-bar i { display: block; width: 40%; height: 100%; border-radius: 3px; background: linear-gradient(90deg, transparent, #00e676, transparent); animation: spBar 1.1s .6s ease-in-out infinite; }
+      @keyframes spDraw { to { stroke-dashoffset: 0; } }
+      @keyframes spFade { to { opacity: 1; } }
+      @keyframes spIn { from { opacity: 0; transform: scale(.7) rotate(-12deg); } to { opacity: 1; transform: none; } }
+      @keyframes spHour { from { transform: rotate(-270deg); } to { transform: rotate(0); } }
+      @keyframes spMin { from { transform: rotate(-420deg); } to { transform: rotate(0); } }
+      @keyframes spSec { from { transform: rotate(-540deg); } to { transform: rotate(0); } }
+      @keyframes spTick { 0% { transform: rotate(0); } 50% { transform: rotate(6deg); } }
+      @keyframes spPop { from { opacity: 0; transform: scale(.2); } to { opacity: .95; transform: scale(1); } }
+      @keyframes spRise { from { opacity: 0; transform: translateY(10px); filter: blur(6px); } to { opacity: 1; transform: none; filter: blur(0); } }
+      @keyframes spGlow { from { transform: scale(.9); opacity: .7; } to { transform: scale(1.1); opacity: 1; } }
+      @keyframes spBar { from { transform: translateX(-110%); } to { transform: translateX(260%); } }
+      @media (prefers-reduced-motion: reduce) { #splash *, #splash *::before { animation-duration: .01s !important; animation-delay: 0s !important; animation-iteration-count: 1 !important; } }
     </style>
   </head>
   <body>
 
     <!-- Splash Screen -->
     <div id="splash">
+      <svg id="splash-pitch" viewBox="0 0 400 400" aria-hidden="true"><circle cx="200" cy="200" r="120"/><line x1="0" y1="200" x2="400" y2="200"/><circle cx="200" cy="200" r="3"/></svg>
+      <div id="splash-glow"></div>
       <div id="splash-logo">
-        <svg width="100" height="100" viewBox="0 0 80 80">
-          <circle cx="40" cy="40" r="38" fill="#064e3b" stroke="#00e676" stroke-width="3"/>
-          <line x1="40" y1="4" x2="40" y2="12" stroke="rgba(255,255,255,0.5)" stroke-width="2.5"/>
-          <line x1="76" y1="40" x2="68" y2="40" stroke="rgba(255,255,255,0.5)" stroke-width="2.5"/>
-          <line x1="4" y1="40" x2="12" y2="40" stroke="rgba(255,255,255,0.5)" stroke-width="2.5"/>
-          <line x1="40" y1="76" x2="40" y2="68" stroke="rgba(255,255,255,0.5)" stroke-width="2.5"/>
-          <line x1="59" y1="8.5" x2="56" y2="13.5" stroke="rgba(255,255,255,0.2)" stroke-width="1.5"/>
-          <line x1="71.5" y1="21" x2="66.5" y2="24" stroke="rgba(255,255,255,0.2)" stroke-width="1.5"/>
-          <line x1="71.5" y1="59" x2="66.5" y2="56" stroke="rgba(255,255,255,0.2)" stroke-width="1.5"/>
-          <line x1="59" y1="71.5" x2="56" y2="66.5" stroke="rgba(255,255,255,0.2)" stroke-width="1.5"/>
-          <line x1="21" y1="71.5" x2="24" y2="66.5" stroke="rgba(255,255,255,0.2)" stroke-width="1.5"/>
-          <line x1="8.5" y1="59" x2="13.5" y2="56" stroke="rgba(255,255,255,0.2)" stroke-width="1.5"/>
-          <line x1="8.5" y1="21" x2="13.5" y2="24" stroke="rgba(255,255,255,0.2)" stroke-width="1.5"/>
-          <line x1="21" y1="8.5" x2="24" y2="13.5" stroke="rgba(255,255,255,0.2)" stroke-width="1.5"/>
-          <line x1="40" y1="40" x2="40" y2="24" stroke="#ffffff" stroke-width="5" stroke-linecap="round"/>
-          <line x1="40" y1="40" x2="55" y2="32" stroke="#00e676" stroke-width="3" stroke-linecap="round"/>
-          <line x1="40" y1="40" x2="62" y2="22" stroke="#e11d48" stroke-width="1.5" stroke-linecap="round"/>
+        <svg width="108" height="108" viewBox="0 0 80 80" aria-hidden="true">
+          <circle class="face" cx="40" cy="40" r="38" fill="#064e3b"/>
+          <circle class="ring" cx="40" cy="40" r="38" fill="none" stroke="#00e676" stroke-width="3" stroke-linecap="round" transform="rotate(-90 40 40)"/>
+          <line class="tick" style="animation-delay:0.30s" x1="40" y1="4" x2="40" y2="12" stroke="rgba(255,255,255,0.55)" stroke-width="2.5"/>
+          <line class="tick" style="animation-delay:0.34s" x1="59" y1="8.5" x2="56" y2="13.5" stroke="rgba(255,255,255,0.22)" stroke-width="1.5"/>
+          <line class="tick" style="animation-delay:0.38s" x1="71.5" y1="21" x2="66.5" y2="24" stroke="rgba(255,255,255,0.22)" stroke-width="1.5"/>
+          <line class="tick" style="animation-delay:0.42s" x1="76" y1="40" x2="68" y2="40" stroke="rgba(255,255,255,0.55)" stroke-width="2.5"/>
+          <line class="tick" style="animation-delay:0.46s" x1="71.5" y1="59" x2="66.5" y2="56" stroke="rgba(255,255,255,0.22)" stroke-width="1.5"/>
+          <line class="tick" style="animation-delay:0.50s" x1="59" y1="71.5" x2="56" y2="66.5" stroke="rgba(255,255,255,0.22)" stroke-width="1.5"/>
+          <line class="tick" style="animation-delay:0.54s" x1="40" y1="76" x2="40" y2="68" stroke="rgba(255,255,255,0.55)" stroke-width="2.5"/>
+          <line class="tick" style="animation-delay:0.58s" x1="21" y1="71.5" x2="24" y2="66.5" stroke="rgba(255,255,255,0.22)" stroke-width="1.5"/>
+          <line class="tick" style="animation-delay:0.62s" x1="8.5" y1="59" x2="13.5" y2="56" stroke="rgba(255,255,255,0.22)" stroke-width="1.5"/>
+          <line class="tick" style="animation-delay:0.66s" x1="4" y1="40" x2="12" y2="40" stroke="rgba(255,255,255,0.55)" stroke-width="2.5"/>
+          <line class="tick" style="animation-delay:0.70s" x1="8.5" y1="21" x2="13.5" y2="24" stroke="rgba(255,255,255,0.22)" stroke-width="1.5"/>
+          <line class="tick" style="animation-delay:0.74s" x1="21" y1="8.5" x2="24" y2="13.5" stroke="rgba(255,255,255,0.22)" stroke-width="1.5"/>
+          <text class="kha" x="32" y="50" font-family="'Hind Siliguri',sans-serif" font-size="34" font-weight="800" fill="rgba(255,255,255,0.18)">খ</text>
+          <line class="hand h-h" x1="40" y1="40" x2="40" y2="24" stroke="#ffffff" stroke-width="5" stroke-linecap="round"/>
+          <line class="hand h-m" x1="40" y1="40" x2="55" y2="32" stroke="#00e676" stroke-width="3" stroke-linecap="round"/>
+          <line class="hand h-s" x1="40" y1="40" x2="62" y2="22" stroke="#e11d48" stroke-width="1.5" stroke-linecap="round"/>
           <circle cx="40" cy="40" r="3" fill="#e11d48"/>
           <circle cx="40" cy="40" r="1.5" fill="#064e3b"/>
-          <text x="32" y="50" font-family="'Hind Siliguri',sans-serif" font-size="34" font-weight="800" fill="rgba(255,255,255,0.18)">খ</text>
-          <text x="54" y="62" font-family="'Hind Siliguri',sans-serif" font-size="22" font-weight="800" fill="#f59e0b" opacity="0.9">?</text>
+          <text class="q" x="54" y="62" font-family="'Hind Siliguri',sans-serif" font-size="22" font-weight="800" fill="#f59e0b">?</text>
         </svg>
-
       </div>
-      <div id="splash-title">খেলা কখন?</div>
+      <div id="splash-title">খেলা কখন<b>?</b></div>
       <div id="splash-tag">ম্যাচের ঘড়ি আপনার হাতে</div>
-      <div id="splash-sub">KHELAKOKHON.COM</div>
-      <div id="splash-dot"></div>
+      <div id="splash-sub">FOOTBALL LIVE SCORES</div>
+      <div id="splash-bar"><i></i></div>
     </div>
 
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
     <script>
-      window.addEventListener('load', () => {
-        setTimeout(() => {
-          const splash = document.getElementById('splash');
-          if (splash) {
-            splash.classList.add('hide');
-            setTimeout(() => splash.remove(), 500);
-          }
-        }, 1200);
-      });
+      // অ্যানিমেশন শেষ হওয়া পর্যন্ত (প্রায় ১.৩ সেকেন্ড), আর পাতা লোড হওয়া পর্যন্ত; যেটা পরে
+      (function () {
+        const t0 = performance.now();
+        window.addEventListener('load', () => {
+          setTimeout(() => {
+            const splash = document.getElementById('splash');
+            if (splash) { splash.classList.add('hide'); setTimeout(() => splash.remove(), 560); }
+          }, Math.max(250, 1350 - (performance.now() - t0)));
+        });
+      })();
     </script>
   </body>
 </html>
