@@ -94,6 +94,10 @@
       #splash.out #splash-logo, #splash.out #splash-text { opacity: 0; transition: opacity .16s ease-out; }
       #splash::before { content: ""; position: absolute; inset: 0; background: radial-gradient(90% 60% at 50% 42%, rgba(0,230,118,.16), rgba(0,0,0,0) 60%), linear-gradient(180deg, rgba(0,0,0,0) 40%, rgba(0,0,0,.28)); opacity: 0; animation: spFade .9s ease forwards; }
       #splash.hide { opacity: 0; pointer-events: none; }
+      /* নতুন সংস্করণে নিজে থেকে রিলোড হলে অ্যানিমেশন নয়, শুধু পাতার রঙের পর্দা (ট্যাব বদলালে স্প্ল্যাশ আবার যেন না চলে) */
+      #splash.quiet { background: #eef2f1; }
+      [data-theme="dark"] #splash.quiet { background: #0c1311; }
+      #splash.quiet > *, #splash.quiet::before { display: none; }
       #splash-logo {
         position: absolute; left: 50%; top: 50%; width: 104px; height: 104px; transform: translate(-50%, calc(-50% - 78px));
         animation: spLogo .72s .05s cubic-bezier(.5, 0, .2, 1) both; filter: drop-shadow(0 8px 24px rgba(0,0,0,.35)); transition: opacity .16s ease-out;
@@ -153,6 +157,7 @@
     <script>
       // ইনস্টল করা অ্যাপ হলে প্রথম আঁকার আগেই: ফোনের স্প্ল্যাশের সাথে হুবহু মেলানো রূপ
       try { if (matchMedia('(display-mode: standalone)').matches || navigator.standalone) document.getElementById('splash').classList.add('app'); } catch (e) {}
+      try { if (sessionStorage.getItem('kk_quiet')) { sessionStorage.removeItem('kk_quiet'); document.getElementById('splash').classList.add('quiet'); } } catch (e) {}
     </script>
 
     <div id="root"><main class="seo-home"><h1>খেলা কখন? - বাংলায় ফুটবলের লাইভ স্কোর</h1><p>খেলা কখন? বাংলাদেশের ফুটবলপ্রেমীদের জন্য বাংলা ভাষার ফুটবল প্ল্যাটফর্ম। চ্যাম্পিয়নস লিগ, প্রিমিয়ার লিগ, লা লিগা, বুন্দেসলিগা, সিরি আ, লিগ ওয়ান, সৌদি প্রো লিগ, এমএলএস, বাংলাদেশ ফুটবল লিগ আর বাংলাদেশ জাতীয় দলের সব খেলার সময় বাংলাদেশ সময়ে, লাইভ স্কোর, লাইনআপ, পয়েন্ট টেবিল আর বাংলায় কমেন্টারি।</p><p>খেলা শুরুর আগে স্কোর প্রেডিক্ট করে পয়েন্ট জিতুন, বন্ধুদের সাথে লিগ খুলুন, প্রতিদিনের ফুটবল কুইজে অংশ নিন। পুরোপুরি বিনা মূল্যে।</p><nav><a href="/leagues">সব লিগ</a> · <a href="/bangladesh">বাংলাদেশ দল</a> · <a href="/league/PL">প্রিমিয়ার লিগ</a> · <a href="/league/CL">চ্যাম্পিয়নস লিগ</a> · <a href="/predict">প্রেডিকশন</a> · <a href="/quiz/daily">দৈনিক কুইজ</a> · <a href="/faq">প্রশ্নোত্তর</a> · <a href="/about">আমাদের কথা</a></nav></main></div><!--/root-->
@@ -162,7 +167,9 @@
       (function () {
         const t0 = performance.now();
         const sp = document.getElementById('splash');
-        const minMs = sp && sp.classList.contains('app') ? 1450 : 1050;
+        const minMs = !sp ? 0 : sp.classList.contains('quiet') ? 0 : sp.classList.contains('app') ? 1450 : 1050;
+        // চুপচাপ রিলোডে অ্যাপ আঁকা হলেই (ছবি লোডের অপেক্ষা ছাড়া) পর্দা সরানো
+        if (sp && sp.classList.contains('quiet')) { document.addEventListener('DOMContentLoaded', () => { sp.classList.add('hide'); setTimeout(() => sp.remove(), 300); }); return; }
         window.addEventListener('load', () => {
           setTimeout(() => {
             if (!sp) return;
