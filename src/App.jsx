@@ -1424,6 +1424,9 @@ button.scr { width: 100%; }
   .mt-row > span:nth-child(n+3) { text-align: right; }
   .mt-h { font-size: 11.5px; padding-top: 2px; padding-bottom: 4px; }
   .sc-row { grid-template-columns: 22px minmax(0, 1fr) auto; }
+  .sc-row.lbr { grid-template-columns: 22px 28px minmax(0, 1fr) auto; gap: 10px; padding: 8px 4px; }
+  .sc-row.lbr.me { background: var(--greenDim); }
+  .sc-row.lbr .mt-pts { font-size: 15px; white-space: nowrap; } .sc-row.lbr .mt-pts small { font-size: 11px; font-weight: 600; }
   button.mt-row:hover, button.sc-row:hover { background: var(--card2); }
   .mt-tm { display: flex; align-items: center; gap: 8px; min-width: 0; }
   .mt-tm b, .sc-nm b { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -4853,9 +4856,9 @@ function SideBoard() {
       </div>
       <div className="mt">
         {rows.slice(0, 5).map((r, i) => (
-          <div key={i} className="sc-row">
+          <div key={i} className={"sc-row lbr" + (r.is_me ? " me" : "")}>
             <span className={"rk-b" + (i < 3 ? " r" + (i + 1) : "")}>{num(i + 1, lang)}</span>
-            <UserAvatar src={r.avatar} name={r.display_name} size={26} />
+            <UserAvatar src={r.avatar} name={r.display_name} size={28} />
             <span className="sc-nm"><b>{r.display_name}</b><small className="muted">{bn ? `${num(r.played, lang)} ম্যাচ · হুবহু ${num(r.exact, lang)}` : `${r.played} played · ${r.exact} exact`}</small></span>
             <span className="mt-pts">{num(r.points, lang)} <small className="muted">{t("pts")}</small></span>
           </div>
