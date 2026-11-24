@@ -200,6 +200,11 @@ img { display: block; }
 .av-wrap .avatar { width: 64px; height: 64px; font-size: 26px; }
 .av-cam { position: absolute; right: -2px; bottom: -2px; width: 24px; height: 24px; border-radius: 50%; background: var(--card); border: 1px solid var(--line); color: var(--text); display: grid; place-items: center; box-shadow: 0 1px 4px rgba(0,0,0,.25); }
 .av-wrap.busy .avatar { opacity: .5; }
+.name-pen { display: inline-grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; color: var(--muted); background: var(--card2); flex: none; }
+.name-edit { display: flex; flex-direction: column; gap: 8px; margin-bottom: 4px; }
+.name-edit input { font: inherit; font-size: 16px; font-weight: 600; padding: 9px 12px; border-radius: 10px; border: 1.5px solid var(--green); background: var(--bg); color: var(--text); width: 100%; }
+.name-edit-a { display: flex; gap: 8px; } .name-edit-a .btn { flex: 1; height: 36px; padding: 0 12px; }
+.name-edit small { font-size: 11.5px; line-height: 1.4; }
 .prof-name { display: flex; align-items: center; flex-wrap: wrap; gap: 4px 8px; font-weight: 700; font-size: 17px; }
 .prof-bdg { display: inline-flex; gap: 2px; background: none; border: 0; padding: 0; cursor: pointer; }
 .prof-bdg svg { display: block; }
@@ -7197,6 +7202,7 @@ function AdminApp({ user, toast, goProfile, onExit }) {
   return shell(tab === "usage" ? usage : tab === "users" ? users : tab === "errors" ? errors : tab === "news" ? news : tab === "sync" ? sync : ov);
 }
 function Profile({ user, profile, setProfile, toast, myTeams, teamsById, lang, setLang, theme, setTheme, onEditTeams }) {
+  const [editName, setEditName] = useState(null);   // নাম বদলানো (হুক সব রিটার্নের আগে)
   const { t } = useT();
   const bn = lang === "bn";
   const nav = useNav();
@@ -7241,6 +7247,15 @@ function Profile({ user, profile, setProfile, toast, myTeams, teamsById, lang, s
   if (!user) return <>{<AuthForm />}{settings}</>;
 
   const name = profile?.display_name || user.email;
+  async function saveName() {
+    const v = (editName || "").replace(/\s+/g, " ").trim();
+    if (v.length < 2) { toast(bn ? "নাম অন্তত ২ অক্ষরের হতে হবে" : "Name must be at least 2 characters"); return; }
+    if (v === profile?.display_name) { setEditName(null); return; }
+    setBusy(true);
+    try { const p = await updateProfile(user, { display_name: v }); setProfile(p); setEditName(null); toast(bn ? "নাম বদলানো হয়েছে" : "Name updated"); }
+    catch { toast(bn ? "নাম সেভ করা গেল না, আবার চেষ্টা করুন" : "Couldn't save the name"); }
+    setBusy(false);
+  }
   const own = profile?.avatar_url || null;
   const photo = own || googlePhoto(user);
   // অর্জিত ব্যাজ, বড়টা আগে (তালিকার শেষের দিকেরগুলো কঠিন)
@@ -7265,14 +7280,28 @@ function Profile({ user, profile, setProfile, toast, myTeams, teamsById, lang, s
             </button>
             <input ref={fileRef} type="file" accept="image/*" hidden onChange={pickPhoto} />
             <div style={{ minWidth: 0 }}>
+              {editName !== null ? (
+                <form className="name-edit" onSubmit={(e) => { e.preventDefault(); saveName(); }}>
+                  <input autoFocus value={editName} maxLength={30} onChange={(e) => setEditName(e.target.value)} placeholder={bn ? "আপনার নাম" : "Your name"} aria-label={bn ? "নাম" : "Name"} />
+                  <div className="name-edit-a">
+                    <button type="button" className="btn ghost" onClick={() => setEditName(null)} disabled={busy}>{bn ? "বাতিল" : "Cancel"}</button>
+                    <button type="submit" className="btn" disabled={busy}>{bn ? "সেভ" : "Save"}</button>
+                  </div>
+                  <small className="muted">{bn ? "লিডারবোর্ড আর বন্ধুদের লিগে এই নাম দেখাবে (২–৩০ অক্ষর)" : "Shown on leaderboards and friends' leagues (2–30 characters)"}</small>
+                </form>
+              ) : (
               <div className="prof-name">
                 <span style={{ minWidth: 0, overflowWrap: "anywhere" }}>{name}</span>
+                <button className="name-pen" onClick={() => setEditName(profile?.display_name || "")} aria-label={bn ? "নাম বদলান" : "Edit name"} title={bn ? "নাম বদলান" : "Edit name"}>
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16v4z" /><path d="m13.5 6.5 4 4" /></svg>
+                </button>
                 {(topLv.length > 0 || earned.length > 0) && (
                   <button className="prof-bdg" onClick={() => document.getElementById("my-badges")?.scrollIntoView({ behavior: "smooth", block: "start" })} aria-label={bn ? "আমার ব্যাজ" : "My badges"}>
                     {topLv.length ? topLv.slice(0, 6).map((L) => <LevelIcon key={L.meta.m} m={L.meta.m} level={L.level} stars={L.stars} size={24} />) : earned.slice(0, 5).map((id) => <BadgeIcon key={id} id={id} size={22} />)}
                   </button>
                 )}
               </div>
+              )}
               <div className="muted" style={{ fontSize: 13, overflowWrap: "anywhere" }}>{user.email}</div>
               {own && <button className="av-rm" onClick={removePhoto} disabled={busy}>{bn ? (googlePhoto(user) ? "Google-এর ছবিতে ফিরুন" : "ছবি সরান") : (googlePhoto(user) ? "Use Google photo" : "Remove photo")}</button>}
             </div>
