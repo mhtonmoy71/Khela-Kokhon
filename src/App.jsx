@@ -3,6 +3,7 @@ import { Fragment, createContext, useContext, useCallback, useEffect, useMemo, u
 import { createClient } from "@supabase/supabase-js";
 import { matchReport } from "./report.js";
 import { clubBn } from "./clubsBn.js";
+import { FAQ } from "./faq.js";
 import { PLAYER_BN, AF_FULL_EN, AF_NAME_BN, BD_PLAYERS_BN, trName, asciiLow, bnPlayer } from "./playersBn.js";
 
 // ════════════════ স্টাইল ════════════════
@@ -1079,6 +1080,12 @@ button.pm { background: none; border: 0; padding: 0; cursor: pointer; font: inhe
 .adm-note-prev { display: flex; gap: 10px; align-items: flex-start; margin-top: 6px; padding: 10px 12px; border-radius: 14px; background: var(--card2); }
 .adm-note-prev img { border-radius: 50%; flex: none; }
 .adm-note-prev b { display: block; font-size: 14px; } .adm-note-prev span { display: block; font-size: 13px; color: var(--muted); }
+.faq details { border-bottom: 1px solid var(--line); padding: 12px 0; }
+.faq summary { font-weight: 700; font-size: 15px; cursor: pointer; list-style: none; display: flex; justify-content: space-between; gap: 12px; }
+.faq summary::-webkit-details-marker { display: none; }
+.faq summary::after { content: "+"; color: var(--muted); font-weight: 600; flex: none; }
+.faq details[open] summary::after { content: "–"; }
+.faq p { margin: 8px 0 0; color: var(--muted); line-height: 1.65; }
 .adm-mm { padding: 12px 14px; margin-bottom: 10px; }
 .adm-mm.on { box-shadow: inset 3px 0 0 #e11d48; }
 .adm-mm-h { display: flex; justify-content: space-between; align-items: center; gap: 8px; font-size: 12.5px; margin-bottom: 10px; }
@@ -3826,7 +3833,7 @@ function Footer({ comps = [] }) {
   const bn = lang === "bn";
   const nav = useNav();
   const cols = [
-    [bn ? "খেলা কখন?" : "Khela Kokhon", [[bn ? "আমাদের কথা" : "About us", () => nav.openPage("about")], [bn ? "কীভাবে কাজ করে" : "How it works", () => nav.openPage("how")], [bn ? "প্রতিষ্ঠাতা" : "Founder", () => nav.openPage("founder")], [bn ? "যোগাযোগ" : "Contact", () => nav.openPage("contact")], [bn ? "গোপনীয়তা" : "Privacy", () => nav.openPage("privacy")]]],
+    [bn ? "খেলা কখন?" : "Khela Kokhon", [[bn ? "আমাদের কথা" : "About us", () => nav.openPage("about")], [bn ? "কীভাবে কাজ করে" : "How it works", () => nav.openPage("how")], [bn ? "প্রশ্নোত্তর" : "FAQ", () => nav.openPage("faq")], [bn ? "প্রতিষ্ঠাতা" : "Founder", () => nav.openPage("founder")], [bn ? "যোগাযোগ" : "Contact", () => nav.openPage("contact")], [bn ? "গোপনীয়তা" : "Privacy", () => nav.openPage("privacy")]]],
     // সব লিগ নয়, জনপ্রিয় কয়েকটা, বাকিগুলো "সব লিগ" পাতায়
     [bn ? "লিগ" : "Leagues", [...["CL", "PL", "PD", "BPL"].map((code) => comps.find((c) => c.code === code)).filter(Boolean).map((c) => [compName(c, lang), () => nav.openLeague(c.code)]),
       [bn ? "সব লিগ →" : "All leagues →", () => nav.go("leagues")]]],
@@ -3959,6 +3966,17 @@ function InfoPage({ id, user, goProfile }) {
       </>
     );
   }
+  if (id === "faq") return (
+    <>
+      {back}
+      <div className="sec info">
+        <h1>{lang === "bn" ? "প্রশ্নোত্তর" : "Frequently asked questions"}</h1>
+        <div className="faq">
+          {FAQ[lang === "bn" ? "bn" : "en"].map(([q, a], i) => <details key={q} open={i === 0}><summary>{q}</summary><p>{a}</p></details>)}
+        </div>
+      </div>
+    </>
+  );
   if (id === "how") return (
     <>
       {back}
@@ -9006,8 +9024,8 @@ const TABS = [
 const tabFromPath = () => TABS.find((x) => x.path === window.location.pathname)?.id || "matches"; // পুরনো /matches লিংকও ম্যাচে যায়
 // /league/PL বা /team/86 হলে সেই পাতা
 // ফুটারের আলাদা পাতা
-const PAGE_PATHS = { about: "about", "how-it-works": "how", founder: "founder", contact: "contact", privacy: "privacy" };
-const PAGE_URL = { about: "/about", how: "/how-it-works", founder: "/founder", contact: "/contact", privacy: "/privacy" };
+const PAGE_PATHS = { about: "about", "how-it-works": "how", founder: "founder", contact: "contact", privacy: "privacy", faq: "faq" };
+const PAGE_URL = { about: "/about", how: "/how-it-works", founder: "/founder", contact: "/contact", privacy: "/privacy", faq: "/faq" };
 const viewFromPath = () => {
   const [, kind, id] = window.location.pathname.split("/");
   if (kind === "league" && id) return { kind: "league", code: id.toUpperCase() };

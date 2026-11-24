@@ -1,0 +1,31 @@
+// প্রশ্নোত্তর (/faq): সাইটের পাতা, গুগলের FAQPage তথ্য আর এআই সার্চ, তিন জায়গাতেই এই লেখা
+export const FAQ = {
+  bn: [
+    ["খেলা কখন? কী?", "খেলা কখন? (khelakokhon.com) বাংলাদেশের ফুটবলপ্রেমীদের জন্য বাংলা ভাষার ফুটবল প্ল্যাটফর্ম। এখানে লাইভ স্কোর, ফিক্সচার, পয়েন্ট টেবিল, ম্যাচের স্ট্যাটস, স্কোর প্রেডিকশন গেম আর ফুটবল কুইজ পাওয়া যায়, সব বাংলায় আর বাংলাদেশ সময়ে।"],
+    ["খেলা কখন? কি বিনা মূল্যে ব্যবহার করা যায়?", "হ্যাঁ, পুরোপুরি বিনা মূল্যে। লাইভ স্কোর দেখতে অ্যাকাউন্ট লাগে না। প্রেডিকশন, প্রিয় দল আর নোটিফিকেশনের জন্য ইমেইল বা গুগল দিয়ে একবার অ্যাকাউন্ট খুলতে হয়।"],
+    ["কোন কোন লিগের খেলা দেখা যায়?", "চ্যাম্পিয়নস লিগ, প্রিমিয়ার লিগ, লা লিগা, বুন্দেসলিগা, সিরি আ, লিগ ওয়ান, ইউরোপা লিগ, কনফারেন্স লিগ, নেশনস লিগ, এফএ কাপ, কোপা দেল রে, সৌদি প্রো লিগ, এমএলএস, এএফসি চ্যাম্পিয়নস লিগ, বাংলাদেশ ফুটবল লিগ, ফেডারেশন কাপ আর বাংলাদেশ জাতীয় দলের খেলা।"],
+    ["খেলার সময় কোন দেশের সময়ে দেখায়?", "সব খেলার সময় বাংলাদেশ সময়ে (GMT+6) দেখায়। রাত একটা বা ভোর চারটার খেলাও সরাসরি বাংলাদেশ সময়ে লেখা থাকে, নিজে হিসাব করতে হয় না।"],
+    ["লাইভ স্কোর কত তাড়াতাড়ি হালনাগাদ হয়?", "খেলা চলার সময় প্রতি মিনিটে স্কোর, গোলদাতা, কার্ড, বদলি আর মিনিট হালনাগাদ হয়। ম্যাচের পাতায় লাইনআপ, প্লেয়ার রেটিং, স্ট্যাটস আর বাংলায় কমেন্টারিও থাকে।"],
+    ["বাংলাদেশ জাতীয় দলের পরের খেলা কবে, কোথায় দেখব?", "khelakokhon.com/bangladesh পাতায় বাংলাদেশের পরের ম্যাচের দিন-সময় (বাংলাদেশ সময়ে), সাম্প্রতিক ফল আর স্কোয়াড আছে। খেলা চলার সময় লাইভ স্কোরও এখানে দেখা যায়।"],
+    ["প্রেডিকশন গেম কীভাবে খেলব?", "কিকঅফের আগে যেকোনো ম্যাচের স্কোর অনুমান করুন। হুবহু স্কোর মিললে ৩ পয়েন্ট, শুধু ফল (জয়, ড্র বা হার) মিললে ১ পয়েন্ট। নকআউটে টাইব্রেকারের বিজয়ী ঠিক হলে বাড়তি পয়েন্ট। সাপ্তাহিক আর সর্বকালের লিডারবোর্ড আছে, সপ্তাহ শুরু হয় শনিবার।"],
+    ["বন্ধুদের সাথে আলাদা লিগ খোলা যায়?", "হ্যাঁ। প্রেডিকশন পাতায় নিজের লিগ খুলে লিংক পাঠালে বন্ধুরা যোগ দিতে পারেন, তখন শুধু নিজেদের মধ্যে র‍্যাঙ্কিং দেখায়।"],
+    ["দৈনিক চ্যালেঞ্জ আর কুইজ কী?", "প্রতিদিন ফুটবল নিয়ে পাঁচটি নতুন প্রশ্নের দৈনিক চ্যালেঞ্জ থাকে। টানা খেললে স্ট্রিক বাড়ে আর ব্যাজ পাওয়া যায়। বন্ধুদের সাথে লাইভ কুইজও খেলা যায়।"],
+    ["প্রিয় দলের গোলের নোটিফিকেশন পাব কীভাবে?", "অ্যাকাউন্ট খুলে সর্বোচ্চ তিনটি প্রিয় দল বাছাই করুন আর নোটিফিকেশন চালু করুন। তাহলে কিকঅফ, প্রতিটি গোল আর ফুলটাইমের খবর ফোনে চলে আসবে।"],
+    ["খেলা কখন? কি অ্যাপ হিসেবে ইনস্টল করা যায়?", "হ্যাঁ। ফোনের ব্রাউজারে khelakokhon.com খুলে \"হোম স্ক্রিনে যোগ করুন\" বা \"ইনস্টল\" চাপলে অ্যাপের মতো চলে, আলাদা করে কিছু ডাউনলোড করতে হয় না। কম্পিউটারেও চলে।"],
+    ["খেলা কখন? কে বানিয়েছেন?", "খেলা কখন? বানিয়েছেন মাহবুব হাসান তন্ময়। যোগাযোগ: khelakokhon@gmail.com, ফেসবুক পেজ facebook.com/khelakokhon।"],
+  ],
+  en: [
+    ["What is Khela Kokhon?", "Khela Kokhon (khelakokhon.com) is a Bangla-language football platform for fans in Bangladesh: live scores, fixtures, standings, match stats, a score prediction game and football quizzes, all in Bangla and Bangladesh time."],
+    ["Is it free?", "Yes, completely free. Live scores need no account. Predictions, favourite teams and notifications need a one-time sign-up with email or Google."],
+    ["Which leagues are covered?", "Champions League, Premier League, La Liga, Bundesliga, Serie A, Ligue 1, Europa League, Conference League, Nations League, FA Cup, Copa del Rey, Saudi Pro League, MLS, AFC Champions League, Bangladesh Football League, Federation Cup and the Bangladesh national team."],
+    ["Which time zone are kick-off times shown in?", "All times are in Bangladesh time (GMT+6)."],
+    ["How fast are live scores updated?", "Every minute during a match: score, scorers, cards, substitutions and the minute. Match pages also have lineups, player ratings, stats and commentary."],
+    ["When is Bangladesh's next match?", "khelakokhon.com/bangladesh shows Bangladesh's next match date and time (Bangladesh time), recent results and the squad, plus live scores during the match."],
+    ["How does the prediction game work?", "Predict any score before kick-off. Exact score = 3 points, correct result = 1 point, extra points for the right shoot-out winner in knockouts. Weekly (from Saturday) and all-time leaderboards."],
+    ["Can I make a private league with friends?", "Yes. Create your own league on the prediction page and share the link."],
+    ["What is the daily challenge?", "Five new football questions every day, with streaks and badges. Live quizzes with friends are also available."],
+    ["How do I get goal notifications for my team?", "Sign up, pick up to three favourite teams and turn on notifications to get kick-off, goal and full-time alerts."],
+    ["Can I install it as an app?", "Yes. Open khelakokhon.com in your phone browser and tap \"Add to home screen\" or \"Install\". It also works on desktop."],
+    ["Who made Khela Kokhon?", "Khela Kokhon was made by Mahbub Hasan Tonmoy. Contact: khelakokhon@gmail.com, facebook.com/khelakokhon."],
+  ],
+};
