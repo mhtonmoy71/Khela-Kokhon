@@ -3485,8 +3485,8 @@ function MatchTable({ m, lang }) {
     let a = true;
     const load = (first) => getStandings(code).then((r) => a && setTable(r)).catch(() => a && first && setTable([]));
     load(true);
-    const iv = setInterval(() => { if (!document.hidden) load(false); }, 60000);
-    return () => { a = false; clearInterval(iv); };
+    const iv = everyMin(() => load(false));
+    return () => { a = false; iv(); };
   }, [code]);
   if (table === null) return <Loading />;
   if (!table.length) return <div className="card empty">{bn ? "এই প্রতিযোগিতার টেবিল এখনো আসেনি" : "No table yet"}</div>;
@@ -3556,8 +3556,8 @@ function useStage(m) {
     let a = true;
     const load = () => getStageMatches(m).then((r) => a && setList(r)).catch(() => a && setList([]));
     load();
-    const iv = setInterval(() => { if (!document.hidden) load(); }, 60000);
-    return () => { a = false; clearInterval(iv); };
+    const iv = everyMin(() => load());
+    return () => { a = false; iv(); };
   }, [key]);
   return list;
 }
@@ -4546,8 +4546,8 @@ function Board({ league, user, onBack, onLeft, toast }) {
     setRows(null); setErr("");
     let a = true;
     leagueBoard(league.id, comp, wk).then((r) => a && setRows(r)).catch((e) => { if (!a) return; setErr(e.missing ? "missing" : e.message); setRows([]); });
-    const iv = setInterval(() => { if (!document.hidden) leagueBoard(league.id, comp, wk).then((r) => a && r && setRows(r)).catch(() => {}); }, 60000);
-    return () => { a = false; clearInterval(iv); };
+    const iv = everyMin(() => leagueBoard(league.id, comp, wk).then((r) => a && r && setRows(r)).catch(() => {}));
+    return () => { a = false; iv(); };
   }, [league.id, comp, wk]);
 
   async function leave() {
@@ -4681,8 +4681,8 @@ function Leaderboard({ me }) {
     let a = true;
     getLeaderboard(comp, wk).then((r) => a && setRows(r)).catch((e) => { if (!a) return; setErr(e?.missing ? "missing" : "x"); setRows([]); });
     // রিয়েল টাইম: প্রতি মিনিটে নতুন (খেলা চলার সময় পয়েন্ট বদলায়)
-    const iv = setInterval(() => { if (!document.hidden) getLeaderboard(comp, wk).then((r) => a && r && setRows(r)).catch(() => {}); }, 60000);
-    return () => { a = false; clearInterval(iv); };
+    const iv = everyMin(() => getLeaderboard(comp, wk).then((r) => a && r && setRows(r)).catch(() => {}));
+    return () => { a = false; iv(); };
   }, [comp, wk]);
   const isMe = (r) => r.is_me ?? (me && r.display_name === me);
   const bn = lang === "bn";
@@ -4710,8 +4710,8 @@ function Mine({ user, preds, fav, onOpen, goProfile }) {
     const load = (first) => getMatchesByIds(ids).then((r) => live && setMade(r.sort((a, b) => b.utc_date.localeCompare(a.utc_date)))).catch(() => live && first && setMade([]));
     load(true);
     // খেলা চলার সময় স্কোর আর এখন পর্যন্ত পয়েন্ট প্রতি মিনিটে
-    const iv = setInterval(() => { if (!document.hidden) load(false); }, 60000);
-    return () => { live = false; clearInterval(iv); };
+    const iv = everyMin(() => load(false));
+    return () => { live = false; iv(); };
   }, [ids.join(",")]);
 
   useEffect(() => {
@@ -8157,8 +8157,8 @@ function useLgInfo(code, kind, on = true) {
     const load = () => fetch(`/api/live?lg=${code}&kind=${kind}`).then((r) => (r.ok ? r.json() : false)).then((x) => { if (x || lgCache[k] === undefined) { lgCache[k] = x; lgAt[k] = Date.now(); } a && setD(lgCache[k]); }).catch(() => a && lgCache[k] === undefined && setD(false));
     // টেবিল রিয়েল টাইম: পাতা খোলা থাকলে প্রতি মিনিটে নতুন করে (গোল হলেই পয়েন্ট বদলায়)
     if (lgCache[k] === undefined || (kind === "table" && Date.now() - (lgAt[k] || 0) > 30000)) load(); else setD(lgCache[k]);
-    const iv = kind === "table" ? setInterval(() => { if (!document.hidden) load(); }, 60000) : null;
-    return () => { a = false; if (iv) clearInterval(iv); };
+    const iv = kind === "table" ? everyMin(() => load()) : null;
+    return () => { a = false; if (iv) iv(); };
   }, [k, on]);
   return d;
 }
@@ -9050,6 +9050,14 @@ const viewFromPath = () => {
 };
 // পাতার আসল ঠিকানা (পুরনো লিংক খুললে ঠিকানার ঘরে এটা বসে যায়)
 const quizPath = (v) => (v?.kind === "daily" ? "/quiz/daily" : v?.kind === "quiz" ? (v.code ? `/quiz/play/${v.code}` : "/quiz/play") : null);
+// প্রতি মিনিটে নতুন তথ্য, আর অ্যাপে ফিরলেই সাথে সাথে (পাতা রিফ্রেশ করতে হয় না); ফেরত দেয় থামানোর ফাংশন
+function everyMin(fn, ms = 60000) {
+  const run = () => { if (!document.hidden) fn(); };
+  const iv = setInterval(run, ms);
+  addEventListener("online", run);
+  document.addEventListener("visibilitychange", run);
+  return () => { clearInterval(iv); removeEventListener("online", run); document.removeEventListener("visibilitychange", run); };
+}
 const stored = (k, d) => { try { return localStorage.getItem(k) || d; } catch { return d; } };
 const store = (k, v) => { try { localStorage.setItem(k, v); } catch { /* ignore */ } };
 
