@@ -8,13 +8,13 @@ import { PLAYER_BN, AF_FULL_EN, AF_NAME_BN, BD_PLAYERS_BN, trName, asciiLow, bnP
 
 // ════════════════ স্টাইল ════════════════
 const CSS = `
-:root, [data-theme="dark"] {
+:root[data-theme="dark"], [data-theme="dark"] {
   --bg: #0c1311; --card: #151f1c; --card2: #1c2925; --line: rgba(255,255,255,.07);
   --text: #eef5f2; --muted: #8ea39b; --green: #00e676; --greenDim: rgba(0,230,118,.12);
   --amber: #f59e0b; --red: #ff4d5e; --brand: #064e3b; --shadow: 0 8px 30px rgba(0,0,0,.35);
   --onGreen: #04130d;
 }
-[data-theme="light"] {
+:root, [data-theme="light"] {
   --bg: #eef2f1; --card: #ffffff; --card2: #f4f7f6; --line: rgba(0,0,0,.08);
   --text: #0e1a16; --muted: #5f726b; --green: #00875a; --greenDim: #e1f5ec;
   --amber: #c27803; --red: #d92d3c; --brand: #064e3b; --shadow: 0 8px 30px rgba(0,0,0,.08);
@@ -443,8 +443,8 @@ img { display: block; }
 .sball .sb-ring { stroke: #e5e7eb; }
 [data-theme="light"] .sball .sb-ring { stroke: #1f2937; }
 /* ডার্ক মোডে কালো লোগো (markDark দেখে চিহ্ন দেয়) */
-:root:not([data-theme="light"]) img[data-dk="inv"] { filter: invert(1) brightness(.92); }
-:root:not([data-theme="light"]) img[data-dk="plate"] { background: #e9eef0; border-radius: 50%; padding: 1.5px; }
+[data-theme="dark"] img[data-dk="inv"] { filter: invert(1) brightness(.92); }
+[data-theme="dark"] img[data-dk="plate"] { background: #e9eef0; border-radius: 50%; padding: 1.5px; }
 .mp .ms-goals b { font-weight: 600; }
 .mp .ms-goals span { color: var(--muted); }
 .mp .ms-goals .ball-mini { justify-self: center; opacity: .5; margin-top: 2px; }
@@ -9143,7 +9143,7 @@ function useActivity(userId) {
 export default function App() {
   const deskWide = useWide();
   const [lang, setLangS] = useState(() => stored("kk_lang", "bn"));
-  const [theme, setThemeS] = useState(() => stored("kk_theme", "light"));
+  const [theme, setThemeS] = useState(() => (stored("kk_theme", "light") === "dark" ? "dark" : "light"));
   const [tab, setTab] = useState(() => (/^\/(quiz|daily)/.test(window.location.pathname) ? "predict" : tabFromPath()));
   const [view, setView] = useState(viewFromPath);
   const [comps, setComps] = useState([]);

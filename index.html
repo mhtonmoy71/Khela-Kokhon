@@ -41,6 +41,10 @@
     <meta name="twitter:image" content="https://khelakokhon.com/api/og" />
 
     <title>খেলা কখন? - Football Live Scores</title>
+    <script>
+      // থিম প্রথম আঁকার আগেই: শুরুতে সবসময় লাইট, ইউজার নিজে ডার্ক বেছে নিলে তবেই ডার্ক
+      try { document.documentElement.dataset.theme = localStorage.getItem('kk_theme') === 'dark' ? 'dark' : 'light'; } catch (e) { document.documentElement.dataset.theme = 'light'; }
+    </script>
     <script type="application/ld+json">{"@context": "https://schema.org", "@graph": [{"@type": "Organization", "@id": "https://khelakokhon.com/#org", "name": "খেলা কখন?", "alternateName": ["Khela Kokhon", "KhelaKokhon"], "url": "https://khelakokhon.com/", "logo": {"@type": "ImageObject", "url": "https://khelakokhon.com/icon-512x512.png", "width": 512, "height": 512}, "description": "বাংলাদেশের ফুটবলপ্রেমীদের জন্য বাংলা ভাষার ফুটবল প্ল্যাটফর্ম: লাইভ স্কোর, ফিক্সচার, পয়েন্ট টেবিল, প্রেডিকশন গেম আর কুইজ, বাংলাদেশ সময়ে।", "founder": {"@type": "Person", "name": "মাহবুব হাসান তন্ময়", "alternateName": "Mahbub Hasan Tonmoy", "url": "https://khelakokhon.com/founder"}, "areaServed": "BD", "knowsLanguage": ["bn", "en"], "email": "khelakokhon@gmail.com", "sameAs": ["https://www.facebook.com/khelakokhon"], "contactPoint": {"@type": "ContactPoint", "contactType": "customer support", "email": "khelakokhon@gmail.com", "availableLanguage": ["Bengali", "English"]}}, {"@type": "WebSite", "@id": "https://khelakokhon.com/#site", "name": "খেলা কখন?", "alternateName": "Khela Kokhon - Football Live Scores", "url": "https://khelakokhon.com/", "inLanguage": "bn-BD", "publisher": {"@id": "https://khelakokhon.com/#org"}}]}</script>
 
     <link rel="preconnect" href="https://upload.wikimedia.org" crossorigin />
