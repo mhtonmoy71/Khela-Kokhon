@@ -91,7 +91,7 @@ export default async function handler(req, res) {
       }
       if (b?.manual) {
         const { applyManual } = await import("./live.js");
-        const out = await applyManual(b.manual.id, String(b.manual.action || ""), b.manual.min);
+        const out = await applyManual(b.manual.id, String(b.manual.action || ""), b.manual.min ?? b.manual.goal);
         return res.status(200).json(out);
       }
       if (b?.run) {
