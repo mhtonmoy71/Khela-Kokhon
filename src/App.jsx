@@ -1086,6 +1086,10 @@ button.pm { background: none; border: 0; padding: 0; cursor: pointer; font: inhe
 .adm-mm-t { text-align: center; min-width: 0; } .adm-mm-t b { display: block; font-size: 14.5px; margin-bottom: 8px; }
 .adm-mm-n { font-size: 26px; font-weight: 800; padding-top: 2px; white-space: nowrap; }
 .adm-mm-g { display: flex; flex-direction: column; gap: 6px; align-items: stretch; } .adm-mm-g .btn { height: 34px; padding: 0 10px; }
+.adm-min { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; font-size: 13px; }
+.adm-min span { flex: 1; min-width: 0; }
+.adm-min input { width: 76px; height: 34px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); color: var(--text); padding: 0 8px; font-size: 15px; text-align: center; }
+.adm-min .btn { flex: none; height: 34px; padding: 0 12px; }
 .adm-actions { display: flex; gap: 8px; flex-wrap: wrap; } .adm-actions .btn { flex: 1; min-width: 140px; }
 .admin-btn { margin: 0; text-decoration: none; display: flex; justify-content: center; }
 .adm-note { font-size: 12.5px; margin: -4px 0 6px; }
@@ -7071,14 +7075,15 @@ function AdminApp({ user, toast, goProfile, onExit }) {
   };
 
   // হাতে ম্যাচ আপডেট: চাপ দিলেই সার্ভারে যায়, উত্তর এলে তালিকায় বসে
-  const act = async (m, action, ask) => {
+  const [minIn, setMinIn] = useState({});
+  const act = async (m, action, ask, min) => {
     if (ask && !window.confirm(ask)) return;
     setBusy(m.id + action);
-    const r = await call({ manual: { id: m.id, action } }).catch(() => ({ ok: false }));
+    const r = await call({ manual: { id: m.id, action, min } }).catch(() => ({ ok: false }));
     setBusy("");
     if (!r.ok) return toast(r.error || "হলো না, আবার চেষ্টা করুন");
     setD((x) => ({ ...x, manual: { ...x.manual, list: x.manual.list.map((y) => (y.id === m.id ? { ...y, man: r.cleared ? null : r.manual, status: r.cleared ? "TIMED" : y.status } : y)) } }));
-    toast({ start: "খেলা শুরু হয়েছে", ht: "বিরতি", "2h": "দ্বিতীয়ার্ধ শুরু", ft: "খেলা শেষ, প্রেডিকশনের পয়েন্ট দেওয়া হচ্ছে", gh: "গোল যোগ হয়েছে", ga: "গোল যোগ হয়েছে", uh: "গোল বাদ দেওয়া হয়েছে", ua: "গোল বাদ দেওয়া হয়েছে", clear: "হাতের আপডেট মুছে API-তে ফেরানো হয়েছে" }[action] || "হয়েছে");
+    toast({ start: "খেলা শুরু হয়েছে", ht: "বিরতি", "2h": "দ্বিতীয়ার্ধ শুরু", ft: "খেলা শেষ, প্রেডিকশনের পয়েন্ট দেওয়া হচ্ছে", min: "মিনিট ঠিক হয়েছে, এখান থেকে গোনা চলবে", gh: "গোল যোগ হয়েছে", ga: "গোল যোগ হয়েছে", uh: "গোল বাদ দেওয়া হয়েছে", ua: "গোল বাদ দেওয়া হয়েছে", clear: "হাতের আপডেট মুছে API-তে ফেরানো হয়েছে" }[action] || "হয়েছে");
   };
   const manMin = (mm) => {
     const mn = (t) => Math.max(1, Math.floor((Date.now() - Date.parse(t)) / 60000) + 1);
@@ -7274,6 +7279,14 @@ function AdminApp({ user, toast, goProfile, onExit }) {
                 <div className="adm-mm-n">{mm ? `${num(mm.home, "bn")} - ${num(mm.away, "bn")}` : m.hs != null ? `${num(m.hs, "bn")} - ${num(m.as, "bn")}` : "-"}</div>
                 <div className="adm-mm-t"><b>{m.away}</b>{mm && <div className="adm-mm-g">{B(m, "ga", "+ গোল", "btn")}{mm.away > 0 && B(m, "ua", "বাতিল", "btn ghost", `${m.away}-এর শেষ গোল বাদ দেবেন?`)}</div>}</div>
               </div>
+              {mm?.phase !== "FT" && (
+                <div className="adm-min">
+                  <span className="muted">{mm ? "চলমান মিনিট" : "খেলা কত মিনিট চলছে"}</span>
+                  <input type="number" inputMode="numeric" min="1" max="130" placeholder={mm ? manMin(mm) : "যেমন ৪৬"}
+                    value={minIn[m.id] ?? ""} onChange={(e) => setMinIn((o) => ({ ...o, [m.id]: e.target.value }))} />
+                  <button className="btn ghost" disabled={!!busy || !(+minIn[m.id] >= 1)} onClick={async () => { await act(m, "min", mm ? null : `${m.home} বনাম ${m.away}: ${minIn[m.id]} মিনিট থেকে লাইভ দেখাবেন?`, +minIn[m.id]); setMinIn((o) => ({ ...o, [m.id]: "" })); }}>{busy === m.id + "min" ? "…" : mm ? "ঠিক করুন" : "এখান থেকে চালু"}</button>
+                </div>
+              )}
               <div className="adm-actions">
                 {!mm && B(m, "start", "খেলা শুরু", "btn", `${m.home} বনাম ${m.away}: খেলা শুরু হয়েছে বলে দেখাবেন? মিনিট এখন থেকে গোনা শুরু হবে।`)}
                 {mm?.phase === "1H" && B(m, "ht", "বিরতি")}

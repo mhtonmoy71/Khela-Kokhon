@@ -608,7 +608,7 @@ async function manualRows(ids) {
   return Object.fromEntries((Array.isArray(r) ? r : []).filter((x) => want.has(+x.match_id)).map((x) => [x.match_id, x]));
 }
 // অ্যাডমিনের চাপ: start | ht | 2h | ft | gh | ga (গোল) | uh | ua (গোল বাতিল) | clear (হাতের খবর মুছে API-তে ফেরা)
-export async function applyManual(id, action) {
+export async function applyManual(id, action, arg) {
   id = +id;
   const T = "name_en,short_en,name_bn";
   const [m] = await sb(`matches?select=id,competition_code,status,home_score,away_score,home_id,away_id,home:teams!matches_home_fk(${T}),away:teams!matches_away_fk(${T})&id=eq.${id}`);
@@ -626,6 +626,13 @@ export async function applyManual(id, action) {
   if (!old) prevLive.status = "NS";
   const cur = manualLive(mm, now);
   if (action === "start") { mm.phase = "1H"; mm.k1 = iso; mm.k2 = null; }
+  else if (action === "min") {
+    // চলমান মিনিট ঠিক করা: সেখান থেকে গোনা (৪৫-এর বেশি হলে দ্বিতীয়ার্ধ)
+    const n = Math.round(+arg);
+    if (!(n >= 1 && n <= 130)) throw new Error("মিনিট ১ থেকে ১৩০-এর মধ্যে দিন");
+    if (n <= 45) { mm.phase = "1H"; mm.k1 = new Date(now - (n - 1) * 60000).toISOString(); mm.k2 = null; }
+    else { mm.phase = "2H"; mm.k2 = new Date(now - (n - 46) * 60000).toISOString(); mm.k1 = mm.k1 || new Date(now - (n + 14) * 60000).toISOString(); }
+  }
   else if (action === "ht") mm.phase = "HT";
   else if (action === "2h") { mm.phase = "2H"; mm.k2 = iso; }
   else if (action === "ft") mm.phase = "FT";
@@ -642,7 +649,7 @@ export async function applyManual(id, action) {
       if (i >= 0) mm.goals = mm.goals.filter((_, j) => j !== i);
     }
   } else throw new Error("unknown");
-  if (!old && action !== "start") { mm.phase = mm.phase === "NS" ? "1H" : mm.phase; mm.k1 = mm.k1 || iso; }
+  if (!old && action !== "start" && action !== "min") { mm.phase = mm.phase === "NS" ? "1H" : mm.phase; mm.k1 = mm.k1 || iso; }
   mm.updated_at = iso;
   await sb("match_manual?on_conflict=match_id", { method: "POST", body: [mm], prefer: "resolution=merge-duplicates,return=minimal" });
   const row = manualLive(mm, now);
