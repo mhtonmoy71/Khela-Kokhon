@@ -5307,8 +5307,7 @@ function dailyDemo(fn, a = {}) {
     if (pl.qs && now > pl.qs + grace * 1000 && pl.idx < DAILY_Q) { pl.ans.push({ choice: null, ok: false, pts: 0 }); pl.idx++; pl.qs = null; }
     if (pl.idx >= DAILY_Q) {
       pl.finished = true;
-      const mult = pl.streak >= 7 ? 1.5 : pl.streak >= 3 ? 1.2 : 1;
-      pl.points = Math.round((pl.raw + (pl.correct === DAILY_Q ? 10 : 0)) * mult);
+      pl.points = pl.raw + (pl.correct === DAILY_Q ? 10 : 0);   // স্ট্রিকে গুণ নেই: সবাই সমান সুযোগে
     }
   };
   const award = () => {
@@ -5613,7 +5612,6 @@ function DailyPage({ user, goProfile, toast }) {
   const nextIn = Math.max(0, Date.parse(st.next_at) - nowS);
   const hms = (() => { const t = Math.floor(nextIn / 1000), h = Math.floor(t / 3600), m = Math.floor((t % 3600) / 60), s2 = t % 60; return [h, m, s2].map((x) => String(x).padStart(2, "0")).join(":"); })();
   const pl = st.play;
-  const mult = (st.streak + (pl ? 0 : 1)) >= 7 ? 1.5 : (st.streak + (pl ? 0 : 1)) >= 3 ? 1.2 : 1;
 
   const main = pl?.finished ? (
     <>
@@ -5624,7 +5622,7 @@ function DailyPage({ user, goProfile, toast }) {
         <div className="dl-marks">{(pl.marks || []).map((ok, i) => <span key={i} className={ok ? "ok" : "bad"}>{ok ? "✓" : "✕"}</span>)}</div>
         <div className="dl-pts"><b><CountUp to={pl.points ?? pl.raw} lang={lang} /></b> {bn ? "পয়েন্ট" : "points"}</div>
         <div className="muted dl-break">
-          {num(pl.raw, lang)}{pl.correct === DAILY_Q ? ` + ${bn ? "নিখুঁত" : "perfect"} ${num(10, lang)}` : ""}{pl.mult > 1 ? ` × ${num(pl.mult, lang)} (${bn ? "ধারাবাহিকতা" : "streak"})` : ""}
+          {num(pl.raw, lang)}{pl.correct === DAILY_Q ? ` + ${bn ? "নিখুঁত" : "perfect"} ${num(10, lang)}` : ""}
         </div>
         <div className="dl-stats">
           <div><FlameIcon width={20} height={20} className="fl" /><b>{num(st.streak, lang)}</b><small>{bn ? "দিন টানা" : "day streak"}</small></div>
@@ -5660,7 +5658,7 @@ function DailyPage({ user, goProfile, toast }) {
         <span>{bn ? "৫টা প্রশ্ন" : "5 questions"}</span><span>{bn ? "প্রতিটায় ২০ সেকেন্ড" : "20s each"}</span><span>{bn ? "দিনে একবার" : "Once a day"}</span>
       </div>
       {st.streak > 0 && (
-        <div className="dl-streak"><FlameIcon width={22} height={22} /><span><b>{bn ? `টানা ${num(st.streak, "bn")} দিন` : `${st.streak}-day streak`}</b><small>{bn ? (mult > 1 ? `আজ খেললে পয়েন্ট ×${num(mult, "bn")}` : "আজ খেলে ধারাবাহিকতা ধরে রাখুন") : (mult > 1 ? `Play today for ×${mult}` : "Play today to keep it going")}</small></span></div>
+        <div className="dl-streak"><FlameIcon width={22} height={22} /><span><b>{bn ? `টানা ${num(st.streak, "bn")} দিন` : `${st.streak}-day streak`}</b><small>{bn ? "আজ খেলে ধারাবাহিকতা ধরে রাখুন" : "Play today to keep it going"}</small></span></div>
       )}
       <button className="btn block dl-go" disabled={busy} onClick={start}>{!user && !DEMO ? (bn ? "লগইন করে খেলুন" : "Log in to play") : (bn ? "চ্যালেঞ্জ শুরু করুন" : "Start the challenge")}</button>
       <div className="muted dl-meta">{st.players_today > 0 ? (bn ? `আজ ${num(st.players_today, "bn")} জন খেলেছেন · ` : `${st.players_today} played today · `) : ""}{bn ? "নতুন চ্যালেঞ্জ রাত ১২টায়" : "New challenge at midnight"}</div>
@@ -5668,7 +5666,7 @@ function DailyPage({ user, goProfile, toast }) {
         <div><b>+১০</b><span>{bn ? "প্রতিটা সঠিক উত্তর" : "each right answer"}</span></div>
         <div><b>+৫</b><span>{bn ? "পর্যন্ত দ্রুততার বোনাস" : "speed bonus, max"}</span></div>
         <div><b>+১০</b><span>{bn ? "৫টাই সঠিক হলে" : "all 5 right"}</span></div>
-        <div><b>×১.৫</b><span>{bn ? "টানা ৭ দিন খেললে" : "7-day streak"}</span></div>
+        <div><b>{num(85, lang)}</b><span>{bn ? "দিনে সর্বোচ্চ পয়েন্ট" : "max points a day"}</span></div>
       </div>
     </div>
   );
@@ -6679,17 +6677,15 @@ function AdminQuiz({ fetchQ }) {
                     </div>
                     {(() => {
                       const perfect = r.done && r.correct === 5 ? 10 : 0;
-                      const mult = r.streak >= 7 ? 1.5 : r.streak >= 3 ? 1.2 : 1;
-                      const calc = Math.round((r.raw + perfect) * mult);
+                      const calc = r.raw + perfect;
                       return (
                         <div className="aq-sum">
                           <div className="aq-sb"><small>৫ প্রশ্নের পয়েন্ট</small><b>{num(r.raw, "bn")}</b></div>
                           <i>+</i>
                           <div className={"aq-sb" + (perfect ? " hi" : "")}><small>পারফেক্ট বোনাস</small><b>{num(perfect, "bn")}</b><em>{perfect ? "৫টাই সঠিক" : "৫টা সঠিক হলে +১০"}</em></div>
-                          <i>×</i>
-                          <div className={"aq-sb" + (mult > 1 ? " hi" : "")}><small>স্ট্রিক গুণক</small><b>{mult === 1 ? "১" : mult === 1.2 ? "১.২" : "১.৫"}</b><em>টানা {num(r.streak, "bn")} দিন</em></div>
                           <i>=</i>
-                          <div className="aq-sb total"><small>{r.done ? "আজকের পয়েন্ট" : "এখন পর্যন্ত"}</small><b>{num(r.done ? (r.points ?? calc) : r.raw, "bn")}</b>{r.done && r.points != null && r.points !== calc && <em>হিসাবে {num(calc, "bn")}</em>}</div>
+                          <div className="aq-sb total"><small>{r.done ? "দিনের পয়েন্ট" : "এখন পর্যন্ত"}</small><b>{num(r.done ? (r.points ?? calc) : r.raw, "bn")}</b>{r.done && r.points != null && r.points !== calc && <em>নতুন নিয়মে {num(calc, "bn")} (আগের গুণকসহ হিসাব)</em>}</div>
+                          <div className="aq-sb"><small>স্ট্রিক</small><b>{num(r.streak, "bn")}</b><em>দিন টানা · পয়েন্টে প্রভাব নেই</em></div>
                         </div>
                       );
                     })()}
