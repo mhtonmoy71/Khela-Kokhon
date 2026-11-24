@@ -1108,9 +1108,24 @@ button.pm { background: none; border: 0; padding: 0; cursor: pointer; font: inhe
 .aq-who { min-width: 0; } .aq-who b { display: block; font-size: 14.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } .aq-who small { font-size: 12px; }
 .aq-dots { display: flex; gap: 3px; } .aq-dots i { width: 9px; height: 9px; border-radius: 50%; background: var(--line); } .aq-dots i.ok { background: var(--green); } .aq-dots i.no { background: var(--red); }
 .aq-num { text-align: right; min-width: 64px; } .aq-num b { display: block; font-size: 16px; } .aq-num small { font-size: 11.5px; }
-.aq-more { padding: 0 14px 12px 50px; display: flex; flex-direction: column; gap: 6px; font-size: 12.5px; }
+.aq-more { padding: 0 14px 14px; display: flex; flex-direction: column; gap: 10px; font-size: 12.5px; }
 .aq-a { display: flex; flex-direction: column; gap: 2px; padding: 6px 10px; border-radius: 8px; background: var(--card2); border-left: 3px solid var(--green); }
 .aq-a.no { border-left-color: var(--red); } .aq-a span { font-size: 13px; } .aq-a small { color: var(--muted); }
+.aq-qgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
+.aq-qb { background: var(--card2); border: 1px solid var(--line); border-top: 3px solid var(--green); border-radius: 12px; padding: 10px 11px; display: flex; flex-direction: column; gap: 5px; min-width: 0; }
+@media (max-width: 520px) { .aq-qgrid { grid-template-columns: 1fr 1fr; } .aq-qb:last-child:nth-child(odd) { grid-column: 1 / -1; } }
+.aq-qb.no { border-top-color: var(--red); } .aq-qb.none { border-top-color: var(--line); opacity: .6; }
+.aq-qb-h { display: flex; justify-content: space-between; gap: 6px; font-size: 12px; } .aq-qb-h span { color: var(--muted); }
+.aq-qb-p { font-size: 14px; font-variant-numeric: tabular-nums; } .aq-qb-p small { color: var(--muted); font-size: 10.5px; } .aq-qb-p b { font-size: 18px; }
+.aq-qb.ok .aq-qb-p b { color: var(--green); } .aq-qb.no .aq-qb-p b { color: var(--red); }
+.aq-qb-q { font-size: 12.5px; line-height: 1.45; }
+.aq-qb-a { font-size: 11.5px; color: var(--muted); }
+.aq-sum { display: flex; flex-wrap: wrap; align-items: stretch; gap: 6px; margin-top: 4px; }
+.aq-sum > i { font-style: normal; font-weight: 800; color: var(--muted); align-self: center; font-size: 16px; }
+.aq-sb { flex: 1; min-width: 88px; background: var(--card2); border: 1px solid var(--line); border-radius: 12px; padding: 8px 10px; display: flex; flex-direction: column; gap: 1px; }
+.aq-sb small { font-size: 11px; color: var(--muted); } .aq-sb b { font-size: 20px; font-variant-numeric: tabular-nums; } .aq-sb em { font-style: normal; font-size: 10.5px; color: var(--muted); }
+.aq-sb.hi { border-color: var(--amber); } .aq-sb.hi b { color: var(--amber); }
+.aq-sb.total { background: var(--green); border-color: var(--green); } .aq-sb.total small, .aq-sb.total b, .aq-sb.total em { color: var(--onGreen); }
 .aq-room { padding: 12px 14px; margin-bottom: 10px; } .aq-room-h { display: flex; justify-content: space-between; gap: 8px; flex-wrap: wrap; margin-bottom: 6px; font-size: 13px; }
 .aq-rp { display: grid; grid-template-columns: 1fr auto auto; gap: 12px; padding: 6px 0; border-top: 1px solid var(--line); font-size: 13.5px; }
 .adm-mm { padding: 12px 14px; margin-bottom: 10px; }
@@ -6646,12 +6661,38 @@ function AdminQuiz({ fetchQ }) {
                 </button>
                 {open === k && (
                   <div className="aq-more">
-                    <div className="muted">শুরু {clockBn(r.started_at)}{r.done ? ` · শেষ ${clockBn(r.finished_at)} · মোট ${durBn(r.total)} · ভাবনায় ${durBn(r.think)}` : ""} · মূল পয়েন্ট {num(r.raw, "bn")}</div>
-                    {r.an.map((a) => { const qq = qById[a.qid]; return (
-                      <div key={a.q_index} className={"aq-a " + (a.correct ? "ok" : "no")}>
-                        <span>{num(a.q_index + 1, "bn")}. {qq?.question || "প্রশ্ন"}</span>
-                        <small>{a.choice == null ? "সময় শেষ" : (qq?.options?.[a.choice] ?? "–")} · {durBn(a.ms)} · {num(a.pts, "bn")} পয়েন্ট</small>
-                      </div>); })}
+                    <div className="muted">শুরু {clockBn(r.started_at)}{r.done ? ` · শেষ ${clockBn(r.finished_at)} · মোট ${durBn(r.total)} · উত্তর ভাবতে ${durBn(r.think)}` : " · মাঝপথে ছেড়েছেন"}</div>
+                    <div className="aq-qgrid">
+                      {[0, 1, 2, 3, 4].map((j) => {
+                        const a = r.an.find((x) => x.q_index === j), qq = a ? qById[a.qid] : null;
+                        if (!a) return <div key={j} className="aq-qb none"><div className="aq-qb-h"><b>প্রশ্ন {num(j + 1, "bn")}</b><span>খেলেননি</span></div><div className="aq-qb-p">–</div></div>;
+                        const bonus = a.correct ? Math.max(0, a.pts - 10) : 0;
+                        return (
+                          <div key={j} className={"aq-qb " + (a.correct ? "ok" : "no")}>
+                            <div className="aq-qb-h"><b>প্রশ্ন {num(j + 1, "bn")}</b><span>{a.correct ? "সঠিক" : a.choice == null ? "সময় শেষ" : "ভুল"} · {durBn(a.ms)}</span></div>
+                            <div className="aq-qb-p">{a.correct ? <>১০ <small>সঠিক</small> + {num(bonus, "bn")} <small>দ্রুততা</small> = <b>{num(a.pts, "bn")}</b></> : <b>০</b>}</div>
+                            <div className="aq-qb-q">{qq?.question || "প্রশ্ন"}</div>
+                            <div className="aq-qb-a">{a.choice == null ? "উত্তর দেননি" : `উত্তর: ${qq?.options?.[a.choice] ?? "–"}`}{!a.correct && qq ? ` · সঠিক: ${qq.options?.[qq.answer]}` : ""}</div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                    {(() => {
+                      const perfect = r.done && r.correct === 5 ? 10 : 0;
+                      const mult = r.streak >= 7 ? 1.5 : r.streak >= 3 ? 1.2 : 1;
+                      const calc = Math.round((r.raw + perfect) * mult);
+                      return (
+                        <div className="aq-sum">
+                          <div className="aq-sb"><small>৫ প্রশ্নের পয়েন্ট</small><b>{num(r.raw, "bn")}</b></div>
+                          <i>+</i>
+                          <div className={"aq-sb" + (perfect ? " hi" : "")}><small>পারফেক্ট বোনাস</small><b>{num(perfect, "bn")}</b><em>{perfect ? "৫টাই সঠিক" : "৫টা সঠিক হলে +১০"}</em></div>
+                          <i>×</i>
+                          <div className={"aq-sb" + (mult > 1 ? " hi" : "")}><small>স্ট্রিক গুণক</small><b>{mult === 1 ? "১" : mult === 1.2 ? "১.২" : "১.৫"}</b><em>টানা {num(r.streak, "bn")} দিন</em></div>
+                          <i>=</i>
+                          <div className="aq-sb total"><small>{r.done ? "আজকের পয়েন্ট" : "এখন পর্যন্ত"}</small><b>{num(r.done ? (r.points ?? calc) : r.raw, "bn")}</b>{r.done && r.points != null && r.points !== calc && <em>হিসাবে {num(calc, "bn")}</em>}</div>
+                        </div>
+                      );
+                    })()}
                   </div>
                 )}
               </div>
