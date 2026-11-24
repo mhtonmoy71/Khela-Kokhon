@@ -1078,6 +1078,14 @@ button.pm { background: none; border: 0; padding: 0; cursor: pointer; font: inhe
 .adm-note-prev { display: flex; gap: 10px; align-items: flex-start; margin-top: 6px; padding: 10px 12px; border-radius: 14px; background: var(--card2); }
 .adm-note-prev img { border-radius: 50%; flex: none; }
 .adm-note-prev b { display: block; font-size: 14px; } .adm-note-prev span { display: block; font-size: 13px; color: var(--muted); }
+.adm-mm { padding: 12px 14px; margin-bottom: 10px; }
+.adm-mm.on { box-shadow: inset 3px 0 0 #e11d48; }
+.adm-mm-h { display: flex; justify-content: space-between; align-items: center; gap: 8px; font-size: 12.5px; margin-bottom: 10px; }
+.adm-tag.live { background: #e11d48; color: #fff; }
+.adm-mm-sc { display: grid; grid-template-columns: 1fr auto 1fr; align-items: start; gap: 10px; margin-bottom: 12px; }
+.adm-mm-t { text-align: center; min-width: 0; } .adm-mm-t b { display: block; font-size: 14.5px; margin-bottom: 8px; }
+.adm-mm-n { font-size: 26px; font-weight: 800; padding-top: 2px; white-space: nowrap; }
+.adm-mm-g { display: flex; flex-direction: column; gap: 6px; align-items: stretch; } .adm-mm-g .btn { height: 34px; padding: 0 10px; }
 .adm-actions { display: flex; gap: 8px; flex-wrap: wrap; } .adm-actions .btn { flex: 1; min-width: 140px; }
 .admin-btn { margin: 0; text-decoration: none; display: flex; justify-content: center; }
 .adm-note { font-size: 12.5px; margin: -4px 0 6px; }
@@ -3898,13 +3906,13 @@ function Scorers({ L, lang }) {
   const side = (sd) => {
     const by = new Map();
     for (const e of goals.filter((g) => g.s === sd)) {
-      const k = e.p || "?";
+      const k = e.p || "";
       const tag = /Own/i.test(e.d || "") ? (bn ? " (আত্মঘাতী)" : " (OG)") : /Penalty/i.test(e.d || "") ? (bn ? " (পেনাল্টি)" : " (P)") : "";
       (by.get(k) || by.set(k, []).get(k)).push(minuteTxt(e.m ?? 0, e.x, lang) + tag);
     }
     return [...by].map(([n, ms]) => sd === "h"
-      ? <div key={n}><b>{shortName(n, lang)}</b> <span>{ms.join(", ")}</span> <SoccerBall size={13} /></div>
-      : <div key={n}><SoccerBall size={13} /> <b>{shortName(n, lang)}</b> <span>{ms.join(", ")}</span></div>);
+      ? <div key={n}>{n && <b>{shortName(n, lang)}</b>} <span>{ms.join(", ")}</span> <SoccerBall size={13} /></div>
+      : <div key={n}><SoccerBall size={13} /> {n && <b>{shortName(n, lang)}</b>} <span>{ms.join(", ")}</span></div>);
   };
   return (
     <div className="ms-goals">
@@ -3946,8 +3954,8 @@ function MatchCommentary({ L, m, lang }) {
       if (sd === "h") h++; else a++;
       const sc = `${num(h, lang)}–${num(a, lang)}`;
       const line = bn
-        ? `${own ? `আত্মঘাতী গোল! ${tn(sd)} পেল উপহারের গোল` : `${bnPlayer(e.p, lang)}${pen ? " পেনাল্টি থেকে" : ""} গোল করলেন`}। ${before === 0 ? `${tn(sd)} এগিয়ে গেল` : before === -1 ? `${tn(sd)} সমতায় ফিরল` : before < -1 ? `${tn(sd)} ব্যবধান কমাল` : `${tn(sd)} ব্যবধান বাড়াল`} (${sc})।`
-        : `${own ? `Own goal! ${tn(sd)} benefit` : `${e.p} scores${pen ? " from the spot" : ""}`}. ${before === 0 ? `${tn(sd)} take the lead` : before === -1 ? `${tn(sd)} equalise` : before < -1 ? `${tn(sd)} pull one back` : `${tn(sd)} extend the lead`} (${sc}).`;
+        ? `${own ? `আত্মঘাতী গোল! ${tn(sd)} পেল উপহারের গোল` : (e.p ? `${bnPlayer(e.p, lang)}${pen ? " পেনাল্টি থেকে" : ""} গোল করলেন` : "গোল")}। ${before === 0 ? `${tn(sd)} এগিয়ে গেল` : before === -1 ? `${tn(sd)} সমতায় ফিরল` : before < -1 ? `${tn(sd)} ব্যবধান কমাল` : `${tn(sd)} ব্যবধান বাড়াল`} (${sc})।`
+        : `${own ? `Own goal! ${tn(sd)} benefit` : (e.p ? `${e.p} scores${pen ? " from the spot" : ""}` : "Goal")}. ${before === 0 ? `${tn(sd)} take the lead` : before === -1 ? `${tn(sd)} equalise` : before < -1 ? `${tn(sd)} pull one back` : `${tn(sd)} extend the lead`} (${sc}).`;
       cards.push(
         <div key={cards.length} className="cm cm-goal">
           <div className="cm-h"><span className="cm-min">{mt}</span><b>{own ? (bn ? "আত্মঘাতী গোল!" : "Own goal!") : (bn ? "গোল!" : "Goal!")}</b><span className="cm-sc">{sc}</span></div>
@@ -7004,7 +7012,7 @@ const agoBn = (iso) => {
   return m < 1 ? "এইমাত্র" : m < 60 ? `${num(m, "bn")} মিনিট আগে` : m < 1440 ? `${num(Math.round(m / 60), "bn")} ঘণ্টা আগে` : `${num(Math.round(m / 1440), "bn")} দিন আগে`;
 };
 const uaShort = (ua) => (!ua ? "" : `${/iPhone|iPad/.test(ua) ? "আইফোন" : /Android/.test(ua) ? "অ্যান্ড্রয়েড" : /Windows/.test(ua) ? "উইন্ডোজ" : /Mac/.test(ua) ? "ম্যাক" : "অন্য"} · ${/SamsungBrowser/.test(ua) ? "স্যামসাং" : /Edg\//.test(ua) ? "এজ" : /Firefox/.test(ua) ? "ফায়ারফক্স" : /Chrome/.test(ua) ? "ক্রোম" : /Safari/.test(ua) ? "সাফারি" : "ব্রাউজার"}`);
-const ADMIN_TABS = [["ov", "ওভারভিউ"], ["usage", "ব্যবহার"], ["users", "ইউজার"], ["errors", "এরর"], ["news", "ঘোষণা"], ["sync", "আপডেট"]];
+const ADMIN_TABS = [["ov", "ওভারভিউ"], ["live", "ম্যাচ"], ["usage", "ব্যবহার"], ["users", "ইউজার"], ["errors", "এরর"], ["news", "ঘোষণা"], ["sync", "আপডেট"]];
 const RUN_LIST = [
   ["fd-quick", "আজকের ম্যাচ (ইউরোপের ৬ লিগ)", "গতকাল থেকে আগামীকাল পর্যন্ত স্কোর আর সময়"],
   ["fd-full", "পুরো সূচি (ইউরোপের ৬ লিগ)", "সিজনের সব ম্যাচ নতুন করে"],
@@ -7029,6 +7037,9 @@ function AdminApp({ user, toast, goProfile, onExit }) {
   const [busy, setBusy] = useState("");
   const [runOut, setRunOut] = useState({});
   const [bc, setBc] = useState({ title: "", body: "", url: "/" });
+  const [allM, setAllM] = useState(false);
+  const [, tick] = useState(0);
+  useEffect(() => { if (tab !== "live") return; const i = setInterval(() => tick((x) => x + 1), 20000); return () => clearInterval(i); }, [tab]);
   useEffect(() => { ls.set("adm_tab", tab); window.scrollTo(0, 0); }, [tab]);
   const call = async (body) => {
     const { data } = await sb.auth.getSession();
@@ -7059,6 +7070,22 @@ function AdminApp({ user, toast, goProfile, onExit }) {
     if (r.ok && !test) setBc({ title: "", body: "", url: "/" });
   };
 
+  // হাতে ম্যাচ আপডেট: চাপ দিলেই সার্ভারে যায়, উত্তর এলে তালিকায় বসে
+  const act = async (m, action, ask) => {
+    if (ask && !window.confirm(ask)) return;
+    setBusy(m.id + action);
+    const r = await call({ manual: { id: m.id, action } }).catch(() => ({ ok: false }));
+    setBusy("");
+    if (!r.ok) return toast(r.error || "হলো না, আবার চেষ্টা করুন");
+    setD((x) => ({ ...x, manual: { ...x.manual, list: x.manual.list.map((y) => (y.id === m.id ? { ...y, man: r.cleared ? null : r.manual, status: r.cleared ? "TIMED" : y.status } : y)) } }));
+    toast({ start: "খেলা শুরু হয়েছে", ht: "বিরতি", "2h": "দ্বিতীয়ার্ধ শুরু", ft: "খেলা শেষ, প্রেডিকশনের পয়েন্ট দেওয়া হচ্ছে", gh: "গোল যোগ হয়েছে", ga: "গোল যোগ হয়েছে", uh: "গোল বাদ দেওয়া হয়েছে", ua: "গোল বাদ দেওয়া হয়েছে", clear: "হাতের আপডেট মুছে API-তে ফেরানো হয়েছে" }[action] || "হয়েছে");
+  };
+  const manMin = (mm) => {
+    const mn = (t) => Math.max(1, Math.floor((Date.now() - Date.parse(t)) / 60000) + 1);
+    if (mm.phase === "1H" && mm.k1) { const e = mn(mm.k1); return e > 45 ? `৪৫+${num(e - 45, "bn")}'` : `${num(e, "bn")}'`; }
+    if (mm.phase === "2H" && mm.k2) { const e = 45 + mn(mm.k2); return e > 90 ? `৯০+${num(e - 90, "bn")}'` : `${num(e, "bn")}'`; }
+    return mm.phase === "HT" ? "বিরতি" : mm.phase === "FT" ? "শেষ" : "";
+  };
   const shell = (body) => (
     <div className="adm-app">
       <header className="adm-top">
@@ -7226,6 +7253,40 @@ function AdminApp({ user, toast, goProfile, onExit }) {
       </div>
     </>
   );
+  const live = (() => {
+    const M = d.manual;
+    if (!M) return <div className="card empty">ম্যাচের তালিকা আনা গেল না। রিফ্রেশ করুন।</div>;
+    const stuck = (m) => m.man || (["TIMED", "SCHEDULED"].includes(m.status) && Date.now() - Date.parse(m.utc) > 10 * 60000);
+    const list = [...M.list].filter((m) => allM || stuck(m)).sort((a, b) => (!!b.man - !!a.man) || Date.parse(a.utc) - Date.parse(b.utc));
+    const B = (m, a, label, cls = "btn ghost", ask) => <button className={cls} disabled={!!busy} onClick={() => act(m, a, ask)}>{busy === m.id + a ? "…" : label}</button>;
+    return (
+      <>
+        <div className="muted adm-note">API-Football কোনো খেলার লাইভ খবর না দিলে (যেমন বাংলাদেশের কিছু খেলা) টিভি দেখে এখান থেকে নিজে আপডেট করুন। সাইটে সাথে সাথে দেখাবে, মিনিট নিজে চলবে, গোলে নোটিফিকেশন যাবে, শেষ করলে প্রেডিকশনের পয়েন্ট দেওয়া হবে। পরে API-Football চূড়ান্ত ফল দিলে সেটাই বসবে।</div>
+        {!M.tableOk && <div className="adm-warn">আগে Supabase-এ supabase/match_manual.sql চালাতে হবে, তারপর এটা কাজ করবে।</div>}
+        <div className="adm-h">{allM ? "আশপাশের সব ম্যাচ" : "খবর নেই এমন ম্যাচ"} <span className="muted">{num(list.length, "bn")}টা</span><button className="link" onClick={() => setAllM(!allM)}>{allM ? "শুধু খবর নেই এমন" : "সব ম্যাচ দেখান"}</button></div>
+        {!list.length ? <div className="card empty">{allM ? "এখন আশপাশে কোনো ম্যাচ নেই।" : "সব ম্যাচের খবর ঠিকঠাক আসছে।"}</div> : list.map((m) => {
+          const mm = m.man;
+          return (
+            <div key={m.id} className={"card adm-mm" + (mm ? " on" : "")}>
+              <div className="adm-mm-h"><span className="muted">{m.code} · {timeLabel(m.utc, "bn")}</span><span className={mm ? "adm-tag live" : "adm-tag"}>{mm ? `হাতে · ${manMin(mm)}` : m.status === "IN_PLAY" ? "API: চলছে" : m.status === "PAUSED" ? "API: বিরতি" : m.status === "FINISHED" ? "API: শেষ" : "API: শুরুর খবর নেই"}</span></div>
+              <div className="adm-mm-sc">
+                <div className="adm-mm-t"><b>{m.home}</b>{mm && <div className="adm-mm-g">{B(m, "gh", "+ গোল", "btn")}{mm.home > 0 && B(m, "uh", "বাতিল", "btn ghost", `${m.home}-এর শেষ গোল বাদ দেবেন?`)}</div>}</div>
+                <div className="adm-mm-n">{mm ? `${num(mm.home, "bn")} - ${num(mm.away, "bn")}` : m.hs != null ? `${num(m.hs, "bn")} - ${num(m.as, "bn")}` : "-"}</div>
+                <div className="adm-mm-t"><b>{m.away}</b>{mm && <div className="adm-mm-g">{B(m, "ga", "+ গোল", "btn")}{mm.away > 0 && B(m, "ua", "বাতিল", "btn ghost", `${m.away}-এর শেষ গোল বাদ দেবেন?`)}</div>}</div>
+              </div>
+              <div className="adm-actions">
+                {!mm && B(m, "start", "খেলা শুরু", "btn", `${m.home} বনাম ${m.away}: খেলা শুরু হয়েছে বলে দেখাবেন? মিনিট এখন থেকে গোনা শুরু হবে।`)}
+                {mm?.phase === "1H" && B(m, "ht", "বিরতি")}
+                {mm?.phase === "HT" && B(m, "2h", "দ্বিতীয়ার্ধ শুরু", "btn")}
+                {mm && mm.phase !== "FT" && B(m, "ft", "খেলা শেষ", mm.phase === "2H" ? "btn" : "btn ghost", `খেলা শেষ, ফল ${mm.home}-${mm.away}? প্রেডিকশনের পয়েন্ট দেওয়া হবে।`)}
+                {mm && B(m, "clear", "হাতের আপডেট মুছুন", "btn ghost", "হাতে দেওয়া সব খবর মুছে আবার API-Football-এর ওপর ছেড়ে দেবেন?")}
+              </div>
+            </div>
+          );
+        })}
+      </>
+    );
+  })();
   const sync = (
     <>
       <div className="muted adm-note">সাধারণত সব নিজে থেকেই আপডেট হয়। কোনো তথ্য পুরনো দেখালে এখান থেকে সাথে সাথে আবার আনা যায়।</div>
@@ -7243,7 +7304,7 @@ function AdminApp({ user, toast, goProfile, onExit }) {
       </div>
     </>
   );
-  return shell(tab === "usage" ? usage : tab === "users" ? users : tab === "errors" ? errors : tab === "news" ? news : tab === "sync" ? sync : ov);
+  return shell(tab === "live" ? live : tab === "usage" ? usage : tab === "users" ? users : tab === "errors" ? errors : tab === "news" ? news : tab === "sync" ? sync : ov);
 }
 function Profile({ user, profile, setProfile, toast, myTeams, teamsById, lang, setLang, theme, setTheme, onEditTeams }) {
   const [editName, setEditName] = useState(null);   // নাম বদলানো (হুক সব রিটার্নের আগে)

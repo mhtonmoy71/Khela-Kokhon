@@ -137,7 +137,7 @@ export async function syncAfLeagues(only) {
       for (const f of fx) for (const t of [f.teams.home, f.teams.away]) if (t?.id && needRow(t)) teams.set(t.id, teamRowX(t));
       await upsertRows("teams", [...teams.values()]);
       const pen = await hasPen();
-      await upsertRows("matches", fx.map((f) => ({
+      await upsertRows("matches", (await keepManual(fx)).map((f) => ({
         ...(pen ? { pen_home: f.score?.penalty?.home ?? null, pen_away: f.score?.penalty?.away ?? null } : {}),
         id: MOFF + f.fixture.id, competition_code: code, season, matchday: /regular|season|league/i.test(f.league?.round || "") ? parseInt((f.league?.round || "").match(/(\d+)\s*$/)?.[1], 10) || null : null,
         stage: f.league?.round || null, group_name: null, utc_date: new Date(f.fixture.timestamp * 1000).toISOString(),
@@ -203,7 +203,7 @@ async function syncNationalTeam(code, L) {
   const pen = await hasPen();
   // নকআউট রাউন্ড (সেমি, ফাইনাল...) হলে stage রাখা হয়, যাতে টাইব্রেকারের নিয়ম চলে; বাকি সব (প্রীতি, গ্রুপ) সাধারণ ম্যাচ
   const KO = /final|semi|quarter|round of|play.?off|3rd place/i;
-  await upsertRows("matches", fx.map((f) => ({
+  await upsertRows("matches", (await keepManual(fx)).map((f) => ({
     ...(pen ? { pen_home: f.score?.penalty?.home ?? null, pen_away: f.score?.penalty?.away ?? null } : {}),
     id: MOFF + f.fixture.id, competition_code: code, season: f.league?.season || new Date(f.fixture.timestamp * 1000).getUTCFullYear(), matchday: null,
     stage: KO.test(f.league?.round || "") ? f.league.round : null, group_name: ntComp(f.league?.name),
@@ -573,16 +573,100 @@ export async function runReminders(force) {
   return { reminders: items.length, sent: await pushToUsers(items) };
 }
 
+// ── অ্যাডমিনের হাতে দেওয়া ম্যাচের খবর (match_manual) ──
+// API-Football যে খেলার লাইভ তথ্য দেয় না (বাংলাদেশের কিছু খেলা), সেখানে অ্যাডমিন টিভি দেখে শুরু/গোল/বিরতি/শেষ দেন।
+// API-Football শেষ ফল (FT) দিলে সেটাই চূড়ান্ত, হাতের সারি মুছে যায়।
+const manualStatus = (ph) => (ph === "FT" ? "FINISHED" : ph === "HT" ? "PAUSED" : "IN_PLAY");
+function manualLive(mm, now = Date.now()) {
+  const min = (t) => Math.max(1, Math.floor((now - Date.parse(t)) / 60000) + 1);
+  let elapsed = null, extra = null;
+  if (mm.phase === "1H" && mm.k1) { const e = min(mm.k1); elapsed = Math.min(45, e); extra = e > 45 ? e - 45 : null; }
+  else if (mm.phase === "2H" && mm.k2) { const e = 45 + min(mm.k2); elapsed = Math.min(90, e); extra = e > 90 ? e - 90 : null; }
+  else if (mm.phase === "HT") elapsed = 45;
+  else if (mm.phase === "FT") elapsed = 90;
+  const events = (mm.goals || []).map((g) => ({ m: g.m, x: g.x ?? null, s: g.s, t: "Goal", d: "Normal Goal", p: null, pid: null, a: null, aid: null, c: null }));
+  return { match_id: mm.match_id, status: mm.phase, elapsed, extra, home_goals: mm.home, away_goals: mm.away, events, updated_at: new Date(now).toISOString() };
+}
+// দৈনিক সূচি আপডেটে হাতের খবর যেন মুছে না যায়: API চূড়ান্ত ফল না দেওয়া পর্যন্ত ওই ম্যাচ বাদ
+async function keepManual(fx) {
+  const ids = fx.map((f) => MOFF + f.fixture.id);
+  const man = await manualRows(ids);
+  if (!Object.keys(man).length) return fx;
+  const out = [];
+  for (const f of fx) {
+    const id = MOFF + f.fixture.id;
+    if (!man[id]) { out.push(f); continue; }
+    if (["FT", "AET", "PEN"].includes(f.fixture.status?.short)) { await sb(`match_manual?match_id=eq.${id}`, { method: "DELETE", prefer: "return=minimal" }).catch(() => {}); out.push(f); }
+  }
+  return out;
+}
+async function manualRows(ids) {
+  if (!ids.length) return {};
+  // টেবিলটা ছোট (শুধু হাতে চালানো ম্যাচ), তাই পুরোটা এনে মেলানো; SQL না চালানো থাকলে খালি
+  const r = await sb("match_manual?select=*&limit=500").catch(() => []);
+  const want = new Set(ids.map(Number));
+  return Object.fromEntries((Array.isArray(r) ? r : []).filter((x) => want.has(+x.match_id)).map((x) => [x.match_id, x]));
+}
+// অ্যাডমিনের চাপ: start | ht | 2h | ft | gh | ga (গোল) | uh | ua (গোল বাতিল) | clear (হাতের খবর মুছে API-তে ফেরা)
+export async function applyManual(id, action) {
+  id = +id;
+  const T = "name_en,short_en,name_bn";
+  const [m] = await sb(`matches?select=id,competition_code,status,home_score,away_score,home_id,away_id,home:teams!matches_home_fk(${T}),away:teams!matches_away_fk(${T})&id=eq.${id}`);
+  if (!m) throw new Error("ম্যাচ পাওয়া যায়নি");
+  const now = Date.now(), iso = new Date(now).toISOString();
+  const [old] = await sb(`match_manual?select=*&match_id=eq.${id}`).catch(() => []);
+  if (action === "clear") {
+    await sb(`match_manual?match_id=eq.${id}`, { method: "DELETE", prefer: "return=minimal" });
+    await sb(`match_live?match_id=eq.${id}`, { method: "PATCH", body: { status: null, elapsed: null, extra: null, home_goals: null, away_goals: null, events: null, final_seen_at: null }, prefer: "return=minimal" }).catch(() => {});
+    await sb(`matches?id=eq.${id}`, { method: "PATCH", body: { status: "TIMED", home_score: null, away_score: null, updated_at: iso }, prefer: "return=minimal" });
+    return { ok: true, cleared: true };
+  }
+  const mm = old ? { ...old, goals: old.goals || [] } : { match_id: id, phase: "NS", home: 0, away: 0, k1: null, k2: null, goals: [] };
+  const prevLive = manualLive(mm, now);
+  if (!old) prevLive.status = "NS";
+  const cur = manualLive(mm, now);
+  if (action === "start") { mm.phase = "1H"; mm.k1 = iso; mm.k2 = null; }
+  else if (action === "ht") mm.phase = "HT";
+  else if (action === "2h") { mm.phase = "2H"; mm.k2 = iso; }
+  else if (action === "ft") mm.phase = "FT";
+  else if (action === "gh" || action === "ga") {
+    const s = action === "gh" ? "h" : "a";
+    if (s === "h") mm.home++; else mm.away++;
+    const el = cur.elapsed, x = cur.extra;
+    mm.goals = [...mm.goals, { s, m: el, x }];
+  } else if (action === "uh" || action === "ua") {
+    const s = action === "uh" ? "h" : "a";
+    if (s === "h" ? mm.home > 0 : mm.away > 0) {
+      if (s === "h") mm.home--; else mm.away--;
+      const i = mm.goals.map((g) => g.s).lastIndexOf(s);
+      if (i >= 0) mm.goals = mm.goals.filter((_, j) => j !== i);
+    }
+  } else throw new Error("unknown");
+  if (!old && action !== "start") { mm.phase = mm.phase === "NS" ? "1H" : mm.phase; mm.k1 = mm.k1 || iso; }
+  mm.updated_at = iso;
+  await sb("match_manual?on_conflict=match_id", { method: "POST", body: [mm], prefer: "resolution=merge-duplicates,return=minimal" });
+  const row = manualLive(mm, now);
+  await sb("match_live?on_conflict=match_id", { method: "POST", body: [{ ...row, final_seen_at: null }], prefer: "resolution=merge-duplicates,return=minimal" });
+  const st = manualStatus(mm.phase);
+  await sb(`matches?id=eq.${id}`, { method: "PATCH", body: { status: st, home_score: mm.home, away_score: mm.away, updated_at: iso }, prefer: "return=minimal" });
+  if (st === "FINISHED" || m.status === "FINISHED") await sb("rpc/score_predictions", { method: "POST", body: {} }).catch(() => {});
+  if (st === "FINISHED" || m.status === "FINISHED") await refreshStandings([m.competition_code]).catch(() => {});
+  let pushed = 0;
+  try { pushed = await sendPushes(pushNotes(m, prevLive, row)); } catch { /* নোটিফিকেশন ঐচ্ছিক */ }
+  return { ok: true, manual: mm, pushed };
+}
+
 export async function runLive() {
   if (!process.env.APIF_KEY) throw new Error("APIF_KEY সেট করা নেই");
   calls = 0;
   const now = Date.now();
   const from = new Date(now - AFTER).toISOString(), to = new Date(now + BEFORE).toISOString();
   const T = "name_en,short_en,name_bn";
-  const win = await sb(`matches?select=id,competition_code,utc_date,status,home_id,away_id,home:teams!matches_home_fk(${T}),away:teams!matches_away_fk(${T})&utc_date=gte.${from}&utc_date=lte.${to}&status=not.in.(POSTPONED,CANCELLED)`);
+  const win = await sb(`matches?select=id,competition_code,utc_date,status,home_score,away_score,home_id,away_id,home:teams!matches_home_fk(${T}),away:teams!matches_away_fk(${T})&utc_date=gte.${from}&utc_date=lte.${to}&status=not.in.(POSTPONED,CANCELLED)`);
   if (!win.length) return { calls, window: 0 };
   const have = await sb(`match_live?select=match_id,af_id,status,home_goals,away_goals,map_tried_at,final_seen_at,ht_at:lineups->ht&match_id=in.(${win.map((m) => m.id).join(",")})`);
   const byId = Object.fromEntries(have.map((r) => [r.match_id, r]));
+  const manual = await manualRows(win.map((m) => m.id));
   for (const m of win) if (AF_LEAGUES[m.competition_code]) byId[m.id] = { ...byId[m.id], af_id: m.id - MOFF };
   const rows = [];
   const fixUp = [];
@@ -617,6 +701,12 @@ export async function runLive() {
     for (const f of await af(`/fixtures?ids=${ids.slice(i, i + 20).join("-")}&timezone=UTC`)) {
       const mid = back[f.fixture.id]; if (!mid) continue;
       const s = slim(f);
+      // অ্যাডমিনের হাতে দেওয়া খবর চলছে: API চূড়ান্ত ফল না দেওয়া পর্যন্ত সেটাই থাকে
+      if (manual[mid]) {
+        if (!["FT", "AET", "PEN"].includes(s.status)) continue;
+        await sb(`match_manual?match_id=eq.${mid}`, { method: "DELETE", prefer: "return=minimal" }).catch(() => {});
+        delete manual[mid];
+      }
       const prev = byId[mid];
       const wm = want.find((x) => x.id === mid);
       // সব লিগের ম্যাচের অবস্থা আর স্কোর এখান থেকেই (football-data-র ফ্রি স্তর খেলা চলা বা শেষ হওয়া দেরিতে জানায়)
@@ -636,6 +726,13 @@ export async function runLive() {
     }
   }
 
+  // হাতে দেওয়া খবর: মিনিট চালু রাখা, ডাটাবেসের অবস্থা আর স্কোর মেলানো
+  for (const mm of Object.values(manual)) {
+    rows.push(manualLive(mm, now));
+    const wm = win.find((x) => x.id === mm.match_id), st = manualStatus(mm.phase);
+    if (wm && (wm.status !== st || wm.home_score !== mm.home || wm.away_score !== mm.away))
+      fixUp.push({ id: mm.match_id, status: st, home_score: mm.home, away_score: mm.away });
+  }
   // একই ম্যাচের দুই সারি (মেলানো + বিস্তারিত) এক করে লেখা
   const merged = {};
   for (const r of rows) merged[r.match_id] = { ...merged[r.match_id], ...r };
