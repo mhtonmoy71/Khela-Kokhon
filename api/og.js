@@ -107,7 +107,7 @@ export default async function handler(req, res) {
           h("div", { style: { marginLeft: 16, fontSize: 34, fontWeight: 800, color: "#fff" } }, "Khela Kokhon")),
         h("div", { style: { fontSize: 30, fontWeight: 700, color: "rgba(255,255,255,.85)" } }, m?.competition?.name_en || "")),
       m ? h("div", { style: { flex: 1, display: "flex", alignItems: "center", justifyContent: "space-between" } }, team(m.home, hc), mid, team(m.away, ac))
-        : h("div", { style: { flex: 1, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 64, fontWeight: 800, color: "#fff" } }, "Live football in Bangla"),
+        : h("div", { style: { flex: 1, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 64, fontWeight: 800, color: "#fff" } }, "Football Live Scores"),
       h("div", { style: { display: "flex", justifyContent: "center", fontSize: 28, fontWeight: 700, color: "rgba(255,255,255,.75)" } }, "khelakokhon.com"));
     const img = new ImageResponse(el, { width: 1200, height: 630, fonts: f });
     const buf = Buffer.from(await img.arrayBuffer());
