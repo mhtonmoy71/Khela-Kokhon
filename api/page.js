@@ -3,6 +3,7 @@
 //  (ফেসবুক, মেসেঞ্জার, হোয়াটসঅ্যাপ লিংকের প্রিভিউ এখান থেকে নেয়; ব্যবহারকারীর কাছে সাইট আগের মতোই)
 // ═══════════════════════════════════════════════════════════════
 import { matchReport } from "../src/report.js";
+import { FAQ } from "../src/faq.js";
 const SITE = "https://khelakokhon.com";
 const BN = "০১২৩৪৫৬৭৮৯", bn = (n) => String(n).replace(/\d/g, (d) => BN[d]);
 const esc = (s) => String(s || "").replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;");
@@ -48,6 +49,16 @@ function setMeta(html, { title, desc, image, url }) {
   rep(/(<meta name="twitter:image" content=")[^"]*(")/, image);
   return html;
 }
+// পাতার ভেতরের লেখা (গুগল আর এআই পড়ে; React চালু হলে নিজের পাতা বসায়)
+const setRoot = (html, body) => html.replace(/<div id="root">[\s\S]*?<\/div><!--\/root-->/, `<div id="root">${body}</div><!--/root-->`);
+const addLd = (html, ld) => html.replace("</head>", `<script type="application/ld+json">${JSON.stringify(ld).replace(/</g, "\\u003c")}</script></head>`);
+// ── /faq: প্রশ্নোত্তর, গুগলের FAQPage তথ্যসহ ──
+function faqPage(html) {
+  const list = FAQ.bn;
+  html = setMeta(html, { title: "প্রশ্নোত্তর · খেলা কখন?", desc: "খেলা কখন? নিয়ে সাধারণ প্রশ্নের উত্তর: কোন লিগ, বাংলাদেশ সময়, লাইভ স্কোর, প্রেডিকশন গেম, কুইজ, নোটিফিকেশন আর অ্যাপ।", image: `${SITE}/api/og`, url: `${SITE}/faq` });
+  html = setRoot(html, `<main><h1>প্রশ্নোত্তর</h1>${list.map(([q, a]) => `<h2>${esc(q)}</h2><p>${esc(a)}</p>`).join("")}</main>`);
+  return addLd(html, { "@context": "https://schema.org", "@type": "FAQPage", mainEntity: list.map(([q, a]) => ({ "@type": "Question", name: q, acceptedAnswer: { "@type": "Answer", text: a } })) });
+}
 // ── /sitemap.xml: গুগলকে সব পাতার ঠিকানা জানানো (লিগ, দল, আশেপাশের ম্যাচ, সাধারণ পাতা) ──
 async function sitemap(res) {
   const now = Date.now(), day = 86400000, iso = (t) => new Date(t).toISOString();
@@ -58,7 +69,7 @@ async function sitemap(res) {
   ]);
   const u = (loc, freq, pri) => `<url><loc>${SITE}${loc}</loc><changefreq>${freq}</changefreq><priority>${pri}</priority></url>`;
   const urls = [
-    u("/", "always", "1.0"), u("/leagues", "daily", "0.8"), u("/quiz/daily", "daily", "0.6"), u("/predict", "daily", "0.6"), u("/ask", "weekly", "0.5"),
+    u("/", "always", "1.0"), u("/leagues", "daily", "0.8"), u("/quiz/daily", "daily", "0.6"), u("/predict", "daily", "0.6"), u("/ask", "weekly", "0.5"), u("/faq", "monthly", "0.5"), u("/bangladesh", "daily", "0.9"),
     u("/about", "monthly", "0.4"), u("/how-it-works", "monthly", "0.4"), u("/founder", "monthly", "0.3"), u("/contact", "yearly", "0.3"), u("/privacy", "yearly", "0.2"),
     ...comps.map((c) => (c.code === "BAN" ? u("/bangladesh", "daily", "0.9") : u(`/league/${c.code}`, "hourly", "0.9"))),
     ...teams.map((t) => u(`/team/${t.id}`, "daily", "0.6")),
@@ -128,9 +139,10 @@ export default async function handler(req, res) {
         homeTeam: { "@type": "SportsTeam", name: tn(m.home) }, awayTeam: { "@type": "SportsTeam", name: tn(m.away) },
         competitor: [{ "@type": "SportsTeam", name: tn(m.home) }, { "@type": "SportsTeam", name: tn(m.away) }], url: `${SITE}/match/${m.id}` };
       const body = rep ? `<article><h1>${esc(rep.title)}</h1>${rep.paras.map((p) => `<p>${esc(p)}</p>`).join("")}</article>` : `<h1>${esc(title)}</h1><p>${esc(desc)}</p>`;
-      html = html.replace('<div id="root"></div>', `<div id="root">${body}</div>`)
-        .replace("</head>", `<script type="application/ld+json">${JSON.stringify(ld).replace(/</g, "\\u003c")}</script></head>`);
+      html = setRoot(html, body);
+      html = addLd(html, ld);
     }
+    else if (q.p === "faq") html = faqPage(html);
     else if (q.l && /^[A-Za-z0-9]{2,6}$/.test(q.l)) { const mt = await leagueMeta(q.l.toUpperCase()); if (mt) html = setMeta(html, mt); }
     else if (/^\d+$/.test(q.t || "")) { const mt = await teamMeta(+q.t); if (mt) html = setMeta(html, mt); }
   } catch { /* না পেলে সাধারণ পাতা */ }

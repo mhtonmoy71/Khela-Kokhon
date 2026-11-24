@@ -1,0 +1,33 @@
+# খেলা কখন? (Khela Kokhon)
+
+> Khela Kokhon (khelakokhon.com) is a free, Bangla-language football platform for fans in Bangladesh. It shows live scores, fixtures, standings, lineups, player ratings and match stats, with all kick-off times in Bangladesh time (GMT+6). It also has a score prediction game with leaderboards, private leagues with friends, a daily football quiz and push notifications for favourite teams. It can be installed as an app from the browser.
+
+Founded by Mahbub Hasan Tonmoy (মাহবুব হাসান তন্ময়). Contact: khelakokhon@gmail.com · https://www.facebook.com/khelakokhon
+
+Competitions covered: UEFA Champions League, Premier League, La Liga, Bundesliga, Serie A, Ligue 1, Europa League, Conference League, Nations League, FA Cup, Copa del Rey, Saudi Pro League, MLS, AFC Champions League, Bangladesh Football League, Federation Cup and the Bangladesh national team.
+
+## Main pages
+
+- [Home: today's matches and live scores](https://khelakokhon.com/)
+- [All leagues](https://khelakokhon.com/leagues)
+- [Bangladesh national team: next match, results, squad](https://khelakokhon.com/bangladesh)
+- [Premier League](https://khelakokhon.com/league/PL)
+- [Champions League](https://khelakokhon.com/league/CL)
+- [Bangladesh Football League](https://khelakokhon.com/league/BPL)
+- [Prediction game](https://khelakokhon.com/predict)
+- [Daily football quiz](https://khelakokhon.com/quiz/daily)
+
+## About
+
+- [FAQ (Bangla)](https://khelakokhon.com/faq)
+- [About us](https://khelakokhon.com/about)
+- [How it works](https://khelakokhon.com/how-it-works)
+- [Founder](https://khelakokhon.com/founder)
+- [Contact](https://khelakokhon.com/contact)
+
+## URL patterns
+
+- Match page: https://khelakokhon.com/match/{id} (score, events, lineups, stats; Bangla match report after full time)
+- League page: https://khelakokhon.com/league/{code}
+- Team page: https://khelakokhon.com/team/{id}
+- Sitemap: https://khelakokhon.com/sitemap.xml
