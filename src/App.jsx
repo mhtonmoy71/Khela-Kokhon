@@ -74,6 +74,8 @@ img { display: block; }
 .mid { text-align: center; line-height: 1.15; }
 .mid .t { font-size: 13px; font-weight: 600; }
 .mid .sc { font-family: Inter, 'KK Score', 'Hind Siliguri', sans-serif; font-size: 16px; font-weight: 800; letter-spacing: .5px; }
+.nn { font-size: 10.5px; font-weight: 700; color: #d97706; line-height: 1.2; margin-top: 1px; white-space: nowrap; }
+.nn.big { font-size: 12.5px; white-space: normal; text-align: center; max-width: 200px; margin: 4px auto 0; }
 .mid .st { font-size: 10.5px; color: var(--muted); margin-top: 2px; }
 .mid .lv { color: var(--red); font-weight: 700; }
 .lv.lv-pill { display: inline-block; background: #16a34a; color: #fff; border-radius: 999px; padding: 0 7px; font: 700 11.5px Inter, 'Hind Siliguri', sans-serif; line-height: 18px; }
@@ -1692,6 +1694,8 @@ const LIVE = ["IN_PLAY", "PAUSED", "LIVE"];
 const isLive = (m) => LIVE.includes(m.status);
 const isDone = (m) => m.status === "FINISHED";
 const isOff = (m) => ["POSTPONED", "CANCELLED", "SUSPENDED"].includes(m.status);
+// নির্ধারিত সময়ের ৩০ মিনিট পরেও খেলা শুরুর খবর নেই (দেরি, পিছিয়ে যাওয়া, বা ডেটার উৎস লাইভ খবর দিচ্ছে না)
+const noNews = (m) => !!m && !isLive(m) && !isDone(m) && !isOff(m) && m.status !== "PAUSED" && Date.now() - Date.parse(m.utc_date) > 30 * 60000;
 // নকআউট ম্যাচ (টাইব্রেকার হতে পারে): লিগ/গ্রুপ পর্ব নয় এমন রাউন্ড
 // জাতীয় দলের ম্যাচে লিগের বদলে আসল টুর্নামেন্ট: "বাংলাদেশ · সাফ চ্যাম্পিয়নশিপ"
 const mComp = (m, lang) => (m?.competition_code === "BAN" && m.group_name ? `${lang === "bn" ? "বাংলাদেশ" : "Bangladesh"} · ${lang === "bn" ? m.group_name : (NT_EN[m.group_name] || m.group_name)}` : compName(m?.competition, lang));
@@ -3280,7 +3284,8 @@ function MatchRow({ m, pred, onOpen, badge: badge0, plain, sub }) {
         {showScore ? (
           <div className="sc">{num(m.home_score, lang)} - {num(m.away_score, lang)}</div>
         ) : (
-          <div className="t" style={isOff(m) ? { textDecoration: "line-through", opacity: 0.6 } : null}>{timeLabel(m.utc_date, lang)}</div>
+          <><div className="t" style={isOff(m) ? { textDecoration: "line-through", opacity: 0.6 } : null}>{timeLabel(m.utc_date, lang)}</div>
+          {noNews(m) && <div className="nn">{lang === "bn" ? "শুরুর খবর নেই" : "No kick-off info"}</div>}</>
         )}
         {sub ? <div className="st">{sub}</div> : null}
         {pred && (
@@ -4288,6 +4293,7 @@ function MatchPage({ id, m: mInit, user, pred, onSave, onLogin, toast }) {
             {showScore
               ? <div className="ms-score">{num(m.home_score, lang)} - {num(m.away_score, lang)}</div>
               : <div className="ms-time">{timeLabel(m.utc_date, lang)}</div>}
+            {!showScore && noNews(m) && <div className="nn big">{bn ? "নির্ধারিত সময় পেরিয়েছে, শুরুর খবর এখনো আসেনি" : "Past kick-off time, no start info yet"}</div>}
             <div className={"ms-date" + (isDone(m) ? " mp-ft" : "")}>{showScore ? <LiveClock m={m} L={L} lang={lang} /> : dayLabel(dayKey(m.utc_date), lang, { short: true })}</div>
             <HtCountdown m={m} L={L} lang={lang} />
             {m.pen_home != null && m.pen_away != null && <div className="mp-pen">{bn ? `টাইব্রেকারে ${num(m.pen_home, lang)}–${num(m.pen_away, lang)}` : `Pens ${m.pen_home}–${m.pen_away}`}</div>}
