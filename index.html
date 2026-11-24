@@ -68,59 +68,40 @@
       * { margin: 0; padding: 0; box-sizing: border-box; }
       body { font-family: 'Hind Siliguri', sans-serif; -webkit-tap-highlight-color: transparent; }
 
+      /* ── স্প্ল্যাশ ──
+         ব্রাউজারে: বড় লোগো মাঝখান থেকে মসৃণভাবে ছোট হয়ে উপরে ওঠে, নিচে নাম ফুটে ওঠে (প্রায় ১ সেকেন্ড)।
+         ইনস্টল করা অ্যাপে: ফোনের নিজের স্প্ল্যাশের হুবহু রূপ, নড়াচড়া ছাড়া (নিচে .app)। */
       #splash {
-        position: fixed; inset: 0;
-        background: linear-gradient(160deg, #060910 0%, #064e3b 60%, #0a1020 100%);
-        display: flex; flex-direction: column;
-        align-items: center; justify-content: center;
-        z-index: 9999;
-        transition: opacity 0.5s ease;
+        position: fixed; inset: 0; z-index: 9999; overflow: hidden; background: #064e3b;
+        transition: opacity .26s ease-out; --s: min(49.3vw, 240px);
       }
+      /* ইনস্টল করা অ্যাপ: ফোনের স্প্ল্যাশ আগেই লোগো দেখিয়েছে; আমাদেরটা হুবহু একই (মাপ ৪৯.৩% চওড়া, মাঝখানে, কোনো ছায়া/নড়াচড়া নয়),
+         তাই ফোনেরটা মিলিয়ে যাওয়ার সময় দুটো লোগো আলাদা দেখায় না; অ্যাপ তৈরি হলেই মিলিয়ে যায় */
+      #splash.app::before, #splash.app #splash-text { display: none; }
+      #splash.app #splash-logo { animation: none; width: var(--s); height: var(--s); transform: translate(-50%, -50%); filter: none; }
+      /* বেরোনো: আগে লোগো আর লেখা, তারপর পেছনের রং (একসাথে আবছা মেশে না) */
+      #splash.out #splash-logo, #splash.out #splash-text { opacity: 0; transition: opacity .16s ease-out; }
+      #splash::before { content: ""; position: absolute; inset: 0; background: radial-gradient(90% 60% at 50% 42%, rgba(0,230,118,.16), rgba(0,0,0,0) 60%), linear-gradient(180deg, rgba(0,0,0,0) 40%, rgba(0,0,0,.28)); opacity: 0; animation: spFade .9s ease forwards; }
       #splash.hide { opacity: 0; pointer-events: none; }
-      #splash-logo { animation: splashPulse 1.2s ease-in-out infinite alternate; position: relative; width: 100px; height: 100px; }
-      #splash-logo svg { display: block; }
-      #splash-kha {
-        position: absolute; top: 50%; left: 50%;
-        transform: translate(-58%, -52%);
-        font-family: 'Hind Siliguri', sans-serif;
-        font-size: 30px; font-weight: 800;
-        color: rgba(255,255,255,0.18);
-        pointer-events: none;
+      #splash-logo {
+        position: absolute; left: 50%; top: 50%; width: 104px; height: 104px; transform: translate(-50%, calc(-50% - 78px));
+        animation: spLogo .72s .05s cubic-bezier(.5, 0, .2, 1) both; filter: drop-shadow(0 8px 24px rgba(0,0,0,.35)); transition: opacity .16s ease-out;
       }
-      #splash-q {
-        position: absolute; bottom: 16px; right: 12px;
-        font-family: Arial, sans-serif;
-        font-size: 20px; font-weight: 800;
-        color: #f59e0b;
-        pointer-events: none;
-      }
-      @keyframes splashPulse {
-        from { transform: scale(0.92); opacity: 0.85; }
-        to   { transform: scale(1.04); opacity: 1; }
-      }
-      #splash-title {
-        font-family: 'Hind Siliguri', sans-serif;
-        font-size: 28px; font-weight: 800;
-        color: #fff; margin-top: 20px; letter-spacing: 1px;
-      }
-      #splash-tag {
-        font-family: 'Hind Siliguri', sans-serif;
-        font-size: 16px; font-weight: 600; color: #00e676; margin-top: 6px;
-      }
-      #splash-sub {
-        font-family: Arial, sans-serif;
-        font-size: 13px; color: rgba(255,255,255,0.4);
-        margin-top: 14px; letter-spacing: 2px;
-      }
-      #splash-dot {
-        width: 8px; height: 8px; border-radius: 50%;
-        background: #00e676; margin-top: 32px;
-        animation: dotBlink 0.8s ease-in-out infinite alternate;
-      }
-      @keyframes dotBlink {
-        from { opacity: 0.3; transform: scale(0.8); }
-        to   { opacity: 1;   transform: scale(1.2); }
-      }
+      #splash-logo svg { display: block; width: 100%; height: 100%; }
+      #splash-logo .h-s { transform-origin: 40px 40px; animation: spTick 1s .7s steps(1) infinite; }
+      #splash-text { position: absolute; left: 0; right: 0; top: calc(50% - 6px); display: flex; flex-direction: column; align-items: center; transition: opacity .16s ease-out; }
+      #splash-title { font-family: 'Hind Siliguri', sans-serif; font-size: 30px; font-weight: 800; color: #fff; letter-spacing: .5px; opacity: 0; animation: spRise .5s .36s cubic-bezier(.2, .8, .2, 1) forwards; }
+      #splash-title b { color: #f59e0b; }
+      #splash-tag { font-family: 'Hind Siliguri', sans-serif; font-size: 15.5px; font-weight: 600; color: #7dffb8; margin-top: 4px; opacity: 0; animation: spRise .5s .46s cubic-bezier(.2, .8, .2, 1) forwards; }
+      #splash-sub { font-family: Inter, Arial, sans-serif; font-size: 11px; font-weight: 600; color: rgba(255,255,255,.45); margin-top: 12px; letter-spacing: 3.5px; opacity: 0; animation: spFade .5s .58s ease forwards; }
+      #splash-bar { width: 110px; height: 3px; border-radius: 3px; margin-top: 26px; background: rgba(255,255,255,.08); overflow: hidden; opacity: 0; animation: spFade .4s .55s ease forwards; }
+      #splash-bar i { display: block; width: 40%; height: 100%; border-radius: 3px; background: linear-gradient(90deg, transparent, #00e676, transparent); animation: spBar 1s .55s ease-in-out infinite; }
+      @keyframes spLogo { from { width: var(--s); height: var(--s); transform: translate(-50%, -50%); } to { width: 104px; height: 104px; transform: translate(-50%, calc(-50% - 78px)); } }
+      @keyframes spFade { to { opacity: 1; } }
+      @keyframes spTick { 0% { transform: rotate(0); } 50% { transform: rotate(6deg); } }
+      @keyframes spRise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+      @keyframes spBar { from { transform: translateX(-110%); } to { transform: translateX(260%); } }
+      @media (prefers-reduced-motion: reduce) { #splash *, #splash::before { animation-duration: .01s !important; animation-delay: 0s !important; animation-iteration-count: 1 !important; } }
     </style>
   </head>
   <body>
@@ -128,7 +109,7 @@
     <!-- Splash Screen -->
     <div id="splash">
       <div id="splash-logo">
-        <svg width="100" height="100" viewBox="0 0 80 80">
+        <svg viewBox="0 0 80 80" aria-hidden="true">
           <circle cx="40" cy="40" r="38" fill="#064e3b" stroke="#00e676" stroke-width="3"/>
           <line x1="40" y1="4" x2="40" y2="12" stroke="rgba(255,255,255,0.5)" stroke-width="2.5"/>
           <line x1="76" y1="40" x2="68" y2="40" stroke="rgba(255,255,255,0.5)" stroke-width="2.5"/>
@@ -142,34 +123,43 @@
           <line x1="8.5" y1="59" x2="13.5" y2="56" stroke="rgba(255,255,255,0.2)" stroke-width="1.5"/>
           <line x1="8.5" y1="21" x2="13.5" y2="24" stroke="rgba(255,255,255,0.2)" stroke-width="1.5"/>
           <line x1="21" y1="8.5" x2="24" y2="13.5" stroke="rgba(255,255,255,0.2)" stroke-width="1.5"/>
+          <text x="32" y="50" font-family="'Hind Siliguri',sans-serif" font-size="34" font-weight="800" fill="rgba(255,255,255,0.18)">খ</text>
           <line x1="40" y1="40" x2="40" y2="24" stroke="#ffffff" stroke-width="5" stroke-linecap="round"/>
           <line x1="40" y1="40" x2="55" y2="32" stroke="#00e676" stroke-width="3" stroke-linecap="round"/>
-          <line x1="40" y1="40" x2="62" y2="22" stroke="#e11d48" stroke-width="1.5" stroke-linecap="round"/>
+          <line class="h-s" x1="40" y1="40" x2="62" y2="22" stroke="#e11d48" stroke-width="1.5" stroke-linecap="round"/>
           <circle cx="40" cy="40" r="3" fill="#e11d48"/>
           <circle cx="40" cy="40" r="1.5" fill="#064e3b"/>
-          <text x="32" y="50" font-family="'Hind Siliguri',sans-serif" font-size="34" font-weight="800" fill="rgba(255,255,255,0.18)">খ</text>
           <text x="54" y="62" font-family="'Hind Siliguri',sans-serif" font-size="22" font-weight="800" fill="#f59e0b" opacity="0.9">?</text>
         </svg>
-
       </div>
-      <div id="splash-title">খেলা কখন?</div>
-      <div id="splash-tag">ম্যাচের ঘড়ি আপনার হাতে</div>
-      <div id="splash-sub">KHELAKOKHON.COM</div>
-      <div id="splash-dot"></div>
+      <div id="splash-text">
+        <div id="splash-title">খেলা কখন<b>?</b></div>
+        <div id="splash-tag">ম্যাচের ঘড়ি আপনার হাতে</div>
+        <div id="splash-sub">FOOTBALL LIVE SCORES</div>
+        <div id="splash-bar"><i></i></div>
+      </div>
     </div>
+    <script>
+      // ইনস্টল করা অ্যাপ হলে প্রথম আঁকার আগেই: ফোনের স্প্ল্যাশের সাথে হুবহু মেলানো রূপ
+      try { if (matchMedia('(display-mode: standalone)').matches || navigator.standalone) document.getElementById('splash').classList.add('app'); } catch (e) {}
+    </script>
 
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
     <script>
-      window.addEventListener('load', () => {
-        setTimeout(() => {
-          const splash = document.getElementById('splash');
-          if (splash) {
-            splash.classList.add('hide');
-            setTimeout(() => splash.remove(), 500);
-          }
-        }, 1200);
-      });
+      // ব্রাউজারে: অ্যানিমেশন শেষ (প্রায় ১ সেকেন্ড) আর পাতা লোড, যেটা পরে। অ্যাপে: ফোনের স্প্ল্যাশ মিলিয়ে যাওয়ার সময়টুকু (০.৪৫ সে.) আর পাতা লোড।
+      (function () {
+        const t0 = performance.now();
+        const sp = document.getElementById('splash');
+        const minMs = sp && sp.classList.contains('app') ? 450 : 1050;
+        window.addEventListener('load', () => {
+          setTimeout(() => {
+            if (!sp) return;
+            sp.classList.add('out');
+            setTimeout(() => { sp.classList.add('hide'); setTimeout(() => sp.remove(), 300); }, 140);
+          }, Math.max(120, minMs - (performance.now() - t0)));
+        });
+      })();
     </script>
   </body>
 </html>
