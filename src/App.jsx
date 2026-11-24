@@ -1086,6 +1086,11 @@ button.pm { background: none; border: 0; padding: 0; cursor: pointer; font: inhe
 .adm-mm-t { text-align: center; min-width: 0; } .adm-mm-t b { display: block; font-size: 14.5px; margin-bottom: 8px; }
 .adm-mm-n { font-size: 26px; font-weight: 800; padding-top: 2px; white-space: nowrap; }
 .adm-mm-g { display: flex; flex-direction: column; gap: 6px; align-items: stretch; } .adm-mm-g .btn { height: 34px; padding: 0 10px; }
+.adm-gl { display: flex; justify-content: space-between; gap: 6px; font-size: 12.5px; text-align: left; padding: 2px 0; }
+.adm-gl span { min-width: 0; overflow-wrap: anywhere; } .adm-gl .link { font-size: 12px; color: var(--muted); }
+.adm-gf { border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; margin-bottom: 12px; display: flex; flex-direction: column; gap: 8px; }
+.adm-gf label { display: flex; flex-direction: column; gap: 4px; font-size: 12.5px; color: var(--muted); }
+.adm-gf input { height: 36px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); color: var(--text); padding: 0 10px; font-size: 15px; }
 .adm-min { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; font-size: 13px; }
 .adm-min span { flex: 1; min-width: 0; }
 .adm-min input { width: 76px; height: 34px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); color: var(--text); padding: 0 8px; font-size: 15px; text-align: center; }
@@ -3156,6 +3161,7 @@ const pbIndex = () => {
 };
 function bnPlayer(name, lang, full) {
   if (lang !== "bn" || !name) return name;
+  if (/[\u0980-\u09FF]/.test(name)) return name;  // আগে থেকেই বাংলায় লেখা (যেমন অ্যাডমিনের হাতে দেওয়া গোলদাতা)
   if (AF_NAME_BN[name]) return AF_NAME_BN[name];
   if (full && PLAYER_BN[full]) return PLAYER_BN[full];
   if (PLAYER_BN[name]) return PLAYER_BN[name];
@@ -7076,12 +7082,14 @@ function AdminApp({ user, toast, goProfile, onExit }) {
 
   // হাতে ম্যাচ আপডেট: চাপ দিলেই সার্ভারে যায়, উত্তর এলে তালিকায় বসে
   const [minIn, setMinIn] = useState({});
-  const act = async (m, action, ask, min) => {
+  const [gf, setGf] = useState(null);   // গোলের ফর্ম: {id, s, m, p}
+  const act = async (m, action, ask, min, goal) => {
     if (ask && !window.confirm(ask)) return;
     setBusy(m.id + action);
-    const r = await call({ manual: { id: m.id, action, min } }).catch(() => ({ ok: false }));
+    const r = await call({ manual: { id: m.id, action, min, goal } }).catch(() => ({ ok: false }));
     setBusy("");
     if (!r.ok) return toast(r.error || "হলো না, আবার চেষ্টা করুন");
+    if (action === "gh" || action === "ga") setGf(null);
     setD((x) => ({ ...x, manual: { ...x.manual, list: x.manual.list.map((y) => (y.id === m.id ? { ...y, man: r.cleared ? null : r.manual, status: r.cleared ? "TIMED" : y.status } : y)) } }));
     toast({ start: "খেলা শুরু হয়েছে", ht: "বিরতি", "2h": "দ্বিতীয়ার্ধ শুরু", ft: "খেলা শেষ, প্রেডিকশনের পয়েন্ট দেওয়া হচ্ছে", min: "মিনিট ঠিক হয়েছে, এখান থেকে গোনা চলবে", gh: "গোল যোগ হয়েছে", ga: "গোল যোগ হয়েছে", uh: "গোল বাদ দেওয়া হয়েছে", ua: "গোল বাদ দেওয়া হয়েছে", clear: "হাতের আপডেট মুছে API-তে ফেরানো হয়েছে" }[action] || "হয়েছে");
   };
@@ -7264,6 +7272,31 @@ function AdminApp({ user, toast, goProfile, onExit }) {
     const stuck = (m) => m.man || (["TIMED", "SCHEDULED"].includes(m.status) && Date.now() - Date.parse(m.utc) > 10 * 60000);
     const list = [...M.list].filter((m) => allM || stuck(m)).sort((a, b) => (!!b.man - !!a.man) || Date.parse(a.utc) - Date.parse(b.utc));
     const B = (m, a, label, cls = "btn ghost", ask) => <button className={cls} disabled={!!busy} onClick={() => act(m, a, ask)}>{busy === m.id + a ? "…" : label}</button>;
+    const mTxt = (g) => `${num(g.m ?? 0, "bn")}${g.x ? "+" + num(g.x, "bn") : ""}'`;
+    const side = (m, mm, sd) => {
+      const team = sd === "h" ? m.home : m.away;
+      const gs = (mm?.goals || []).map((g, i) => ({ ...g, i })).filter((g) => g.s === sd);
+      return (
+        <div className="adm-mm-t"><b>{team}</b>
+          {mm && <div className="adm-mm-g">
+            {gs.map((g) => <div key={g.i} className="adm-gl"><span>{mTxt(g)} {g.p || <i className="muted">নাম নেই</i>}</span><button className="link" disabled={!!busy} onClick={() => act(m, sd === "h" ? "uh" : "ua", `${team}-এর ${mTxt(g)} মিনিটের গোলটা বাদ দেবেন?`, null, { i: g.i })}>বাদ</button></div>)}
+            <button className="btn" disabled={!!busy} onClick={() => setGf({ id: m.id, s: sd, m: "", p: "" })}>+ গোল</button>
+          </div>}
+        </div>
+      );
+    };
+    const goalForm = (m, mm) => gf?.id === m.id && (
+      <div className="adm-gf">
+        <b>{gf.s === "h" ? m.home : m.away}-এর গোল</b>
+        <label>মিনিট<input inputMode="numeric" value={gf.m} placeholder={`এখন ${manMin(mm)}`} onChange={(e) => setGf({ ...gf, m: e.target.value })} /></label>
+        <label>গোলদাতা<input value={gf.p} maxLength={40} placeholder="যেমন রাকিব হোসেন (না দিলেও চলবে)" onChange={(e) => setGf({ ...gf, p: e.target.value })} /></label>
+        <small className="muted">মিনিট খালি রাখলে এখনকার মিনিট ধরা হবে। যোগ করা সময়ের গোল "45+2" এভাবে লিখুন।</small>
+        <div className="adm-actions">
+          <button className="btn ghost" onClick={() => setGf(null)}>বাদ দিন</button>
+          <button className="btn" disabled={!!busy} onClick={() => act(m, gf.s === "h" ? "gh" : "ga", null, null, { m: gf.m, p: gf.p })}>{busy === m.id + (gf.s === "h" ? "gh" : "ga") ? "…" : "গোল যোগ করুন"}</button>
+        </div>
+      </div>
+    );
     return (
       <>
         <div className="muted adm-note">API-Football কোনো খেলার লাইভ খবর না দিলে (যেমন বাংলাদেশের কিছু খেলা) টিভি দেখে এখান থেকে নিজে আপডেট করুন। সাইটে সাথে সাথে দেখাবে, মিনিট নিজে চলবে, গোলে নোটিফিকেশন যাবে, শেষ করলে প্রেডিকশনের পয়েন্ট দেওয়া হবে। পরে API-Football চূড়ান্ত ফল দিলে সেটাই বসবে।</div>
@@ -7275,10 +7308,11 @@ function AdminApp({ user, toast, goProfile, onExit }) {
             <div key={m.id} className={"card adm-mm" + (mm ? " on" : "")}>
               <div className="adm-mm-h"><span className="muted">{m.code} · {timeLabel(m.utc, "bn")}</span><span className={mm ? "adm-tag live" : "adm-tag"}>{mm ? `হাতে · ${manMin(mm)}` : m.status === "IN_PLAY" ? "API: চলছে" : m.status === "PAUSED" ? "API: বিরতি" : m.status === "FINISHED" ? "API: শেষ" : "API: শুরুর খবর নেই"}</span></div>
               <div className="adm-mm-sc">
-                <div className="adm-mm-t"><b>{m.home}</b>{mm && <div className="adm-mm-g">{B(m, "gh", "+ গোল", "btn")}{mm.home > 0 && B(m, "uh", "বাতিল", "btn ghost", `${m.home}-এর শেষ গোল বাদ দেবেন?`)}</div>}</div>
+                {side(m, mm, "h")}
                 <div className="adm-mm-n">{mm ? `${num(mm.home, "bn")} - ${num(mm.away, "bn")}` : m.hs != null ? `${num(m.hs, "bn")} - ${num(m.as, "bn")}` : "-"}</div>
-                <div className="adm-mm-t"><b>{m.away}</b>{mm && <div className="adm-mm-g">{B(m, "ga", "+ গোল", "btn")}{mm.away > 0 && B(m, "ua", "বাতিল", "btn ghost", `${m.away}-এর শেষ গোল বাদ দেবেন?`)}</div>}</div>
+                {side(m, mm, "a")}
               </div>
+              {mm && goalForm(m, mm)}
               {mm?.phase !== "FT" && (
                 <div className="adm-min">
                   <span className="muted">{mm ? "চলমান মিনিট" : "খেলা কত মিনিট চলছে"}</span>

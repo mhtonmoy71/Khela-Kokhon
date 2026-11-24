@@ -584,7 +584,7 @@ function manualLive(mm, now = Date.now()) {
   else if (mm.phase === "2H" && mm.k2) { const e = 45 + min(mm.k2); elapsed = Math.min(90, e); extra = e > 90 ? e - 90 : null; }
   else if (mm.phase === "HT") elapsed = 45;
   else if (mm.phase === "FT") elapsed = 90;
-  const events = (mm.goals || []).map((g) => ({ m: g.m, x: g.x ?? null, s: g.s, t: "Goal", d: "Normal Goal", p: null, pid: null, a: null, aid: null, c: null }));
+  const events = (mm.goals || []).map((g) => ({ m: g.m, x: g.x ?? null, s: g.s, t: "Goal", d: "Normal Goal", p: g.p || null, pid: null, a: null, aid: null, c: null }));
   return { match_id: mm.match_id, status: mm.phase, elapsed, extra, home_goals: mm.home, away_goals: mm.away, events, updated_at: new Date(now).toISOString() };
 }
 // দৈনিক সূচি আপডেটে হাতের খবর যেন মুছে না যায়: API চূড়ান্ত ফল না দেওয়া পর্যন্ত ওই ম্যাচ বাদ
@@ -639,13 +639,19 @@ export async function applyManual(id, action, arg) {
   else if (action === "gh" || action === "ga") {
     const s = action === "gh" ? "h" : "a";
     if (s === "h") mm.home++; else mm.away++;
-    const el = cur.elapsed, x = cur.extra;
-    mm.goals = [...mm.goals, { s, m: el, x }];
+    // মিনিট আর গোলদাতা দেওয়া থাকলে সেটাই (যেমন "৩৭" বা "45+2"), না থাকলে এখনকার মিনিট
+    let el = cur.elapsed, x = cur.extra;
+    const raw = String(arg?.m ?? "").replace(/[০-৯]/g, (c) => "০১২৩৪৫৬৭৮৯".indexOf(c)).trim();
+    const mt = /^(\d{1,3})(?:\s*\+\s*(\d{1,2}))?$/.exec(raw);
+    if (mt && +mt[1] >= 1 && +mt[1] <= 130) { el = +mt[1]; x = mt[2] ? +mt[2] : null; }
+    const p = String(arg?.p || "").replace(/\s+/g, " ").trim().slice(0, 40) || null;
+    mm.goals = [...mm.goals, { s, m: el, x, p }].sort((a, b) => (a.m ?? 0) - (b.m ?? 0) || (a.x ?? 0) - (b.x ?? 0));
   } else if (action === "uh" || action === "ua") {
     const s = action === "uh" ? "h" : "a";
     if (s === "h" ? mm.home > 0 : mm.away > 0) {
       if (s === "h") mm.home--; else mm.away--;
-      const i = mm.goals.map((g) => g.s).lastIndexOf(s);
+      const k = Number.isInteger(arg?.i) && mm.goals[arg.i]?.s === s ? arg.i : -1;
+      const i = k >= 0 ? k : mm.goals.map((g) => g.s).lastIndexOf(s);
       if (i >= 0) mm.goals = mm.goals.filter((_, j) => j !== i);
     }
   } else throw new Error("unknown");
