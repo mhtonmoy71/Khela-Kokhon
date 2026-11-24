@@ -1399,9 +1399,11 @@ button.scr { width: 100%; }
 .dl-t-x { position: absolute; top: 6px; right: 6px; width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; color: var(--muted); background: transparent; }
 .dl-t-x:hover, .dl-t-x:focus-visible { background: var(--card2); color: var(--text); }
 
-/* হোম: বড় স্ক্রিনে ম্যাচ বাঁ পাশে, কাজের তথ্য ডান পাশে */
-@media (min-width: 1100px) {
-  .home-grid { display: grid; grid-template-columns: 220px minmax(0, 1fr) 320px; gap: 24px; align-items: start; }
+/* হোম: ৯৬০px থেকে ম্যাচ বাঁয়ে, কাজের তথ্য (টেবিল, গোলদাতা, লিডারবোর্ড) ডানে — FotMob-এর মতো;
+   ১১০০px থেকে বাঁয়ে লিগের তালিকাও (তিন কলাম) */
+@media (min-width: 1100px) { .home-grid { grid-template-columns: 220px minmax(0, 1fr) 320px !important; } }
+@media (min-width: 960px) {
+  .home-grid { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 22px; align-items: start; }
   .home-grid .groups { columns: 1 !important; }
   .home-side { display: flex; flex-direction: column; gap: 16px; padding-top: 18px; }
   .side-card { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 14px 14px 10px; text-align: left; color: var(--text); }
@@ -4944,6 +4946,7 @@ function Matches({ user, myTeams, comps, preds, onOpen, goProfile }) {
   const fav = myTeams?.fav || [];
   const [mine, setMine] = useState(null);
   const wide = useWide();
+  const mid = useWide("(min-width: 960px)");   // ৯৬০–১০৯৯: ম্যাচ + ডান পাশের তথ্য (লিগের তালিকা ছাড়া)
 
   // প্রতিটা প্রিয় দলের একটা করে খেলা: চলতি খেলা, নইলে আজ শেষ হওয়া খেলা, নইলে পরের ম্যাচ
   useEffect(() => {
@@ -4968,7 +4971,7 @@ function Matches({ user, myTeams, comps, preds, onOpen, goProfile }) {
   }, [fav.join(",")]);
 
   return (
-    <div className={wide ? "home-grid" : undefined}>
+    <div className={mid ? "home-grid" : undefined}>
     {wide && <LeagueRail comps={comps} active={comp} onPick={setComp} all />}
     <div className="home-main">
       {fav.length > 0 && mine?.length > 0 && (
@@ -4977,7 +4980,7 @@ function Matches({ user, myTeams, comps, preds, onOpen, goProfile }) {
         </div>
       )}
 
-      {!wide && <div className="sec dl-teaser-wrap"><DailyTeaser user={user} /></div>}
+      {!mid && <div className="sec dl-teaser-wrap"><DailyTeaser user={user} /></div>}
       <div className={liveOn ? "ds-off" : undefined}><DateStrip day={day} setDay={setDay} /></div>
       {!wide && <div className="chips">
         <button className={"chip" + (comp === "ALL" ? " on" : "")} onClick={() => setComp("ALL")}>{t("all")}</button>
@@ -5005,7 +5008,7 @@ function Matches({ user, myTeams, comps, preds, onOpen, goProfile }) {
         })() : <DayMatches day={day} setDay={setDay} comp={comp} preds={preds} onOpen={onOpen} />}
       </div>
     </div>
-    {wide && <HomeSide comps={comps} comp={comp} user={user} />}
+    {mid && <HomeSide comps={comps} comp={comp} user={user} />}
     </div>
   );
 }
