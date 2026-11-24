@@ -70,15 +70,19 @@
 
       /* ── স্প্ল্যাশ ──
          ব্রাউজারে: বড় লোগো মাঝখান থেকে মসৃণভাবে ছোট হয়ে উপরে ওঠে, নিচে নাম ফুটে ওঠে (প্রায় ১ সেকেন্ড)।
-         ইনস্টল করা অ্যাপে: ফোনের নিজের স্প্ল্যাশের হুবহু রূপ, নড়াচড়া ছাড়া (নিচে .app)। */
+         ইনস্টল করা অ্যাপে: একই অ্যানিমেশন, তবে ফোনের স্প্ল্যাশ মিলিয়ে যাওয়া পর্যন্ত লোগো তার মাপে স্থির (নিচে .app)। */
       #splash {
         position: fixed; inset: 0; z-index: 9999; overflow: hidden; background: #064e3b;
         transition: opacity .26s ease-out; --s: min(49.3vw, 240px);
       }
-      /* ইনস্টল করা অ্যাপ: ফোনের স্প্ল্যাশ আগেই লোগো দেখিয়েছে; আমাদেরটা হুবহু একই (মাপ ৪৯.৩% চওড়া, মাঝখানে, কোনো ছায়া/নড়াচড়া নয়),
-         তাই ফোনেরটা মিলিয়ে যাওয়ার সময় দুটো লোগো আলাদা দেখায় না; অ্যাপ তৈরি হলেই মিলিয়ে যায় */
-      #splash.app::before, #splash.app #splash-text { display: none; }
-      #splash.app #splash-logo { animation: none; width: var(--s); height: var(--s); transform: translate(-50%, -50%); filter: none; }
+      /* ইনস্টল করা অ্যাপ: ফোনের নিজের স্প্ল্যাশ মিলিয়ে যেতে ~০.৩৫ সে. লাগে। ততক্ষণ লোগো ফোনেরটার হুবহু মাপে স্থির থাকে
+         (দুটো লোগো আলাদা দেখায় না), তারপর ব্রাউজারের মতোই উপরে ওঠে আর নাম ফুটে ওঠে — সব অ্যানিমেশন ০.৪ সে. পিছিয়ে */
+      #splash.app #splash-logo { animation-delay: .45s; filter: none; }
+      #splash.app::before { animation-delay: .4s; }
+      #splash.app #splash-title { animation-delay: .76s; }
+      #splash.app #splash-tag { animation-delay: .86s; }
+      #splash.app #splash-sub { animation-delay: .98s; }
+      #splash.app #splash-bar, #splash.app #splash-bar i { animation-delay: .95s; }
       /* বেরোনো: আগে লোগো আর লেখা, তারপর পেছনের রং (একসাথে আবছা মেশে না) */
       #splash.out #splash-logo, #splash.out #splash-text { opacity: 0; transition: opacity .16s ease-out; }
       #splash::before { content: ""; position: absolute; inset: 0; background: radial-gradient(90% 60% at 50% 42%, rgba(0,230,118,.16), rgba(0,0,0,0) 60%), linear-gradient(180deg, rgba(0,0,0,0) 40%, rgba(0,0,0,.28)); opacity: 0; animation: spFade .9s ease forwards; }
@@ -147,11 +151,11 @@
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
     <script>
-      // ব্রাউজারে: অ্যানিমেশন শেষ (প্রায় ১ সেকেন্ড) আর পাতা লোড, যেটা পরে। অ্যাপে: ফোনের স্প্ল্যাশ মিলিয়ে যাওয়ার সময়টুকু (০.৪৫ সে.) আর পাতা লোড।
+      // অ্যানিমেশন শেষ আর পাতা লোড, যেটা পরে (ব্রাউজারে ~১ সে., অ্যাপে ফোনের স্প্ল্যাশ মিলানোর সময়সহ ~১.৪৫ সে.)
       (function () {
         const t0 = performance.now();
         const sp = document.getElementById('splash');
-        const minMs = sp && sp.classList.contains('app') ? 450 : 1050;
+        const minMs = sp && sp.classList.contains('app') ? 1450 : 1050;
         window.addEventListener('load', () => {
           setTimeout(() => {
             if (!sp) return;
