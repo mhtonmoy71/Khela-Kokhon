@@ -3,6 +3,7 @@
 //  GET: ব্যবহারকারী, নোটিফিকেশন, প্রেডিকশন, লাইভ আপডেট, API-Football-এর মেয়াদ, ধরা পড়া ভুল
 //  POST {fix: fp} / {fixAll}: ভুল "ঠিক হয়েছে" (তালিকা থেকে মুছে ফেলা)
 //  POST {broadcast: {title, body, url}}: নোটিফিকেশন চালু থাকা সবাইকে ঘোষণা
+//  POST {manual: {id, action}}: API-Football খবর না দিলে টিভি দেখে নিজে আপডেট (শুরু, গোল, বিরতি, শেষ)
 //  POST {run: "..."}: এখনই আপডেট (লিগ, টেবিল, গোলদাতা, বাংলাদেশ, রিমাইন্ডার) — নিজেদের ক্রন পথই CRON_SECRET দিয়ে ডাকা
 //  লগিন টোকেন দিয়ে যাচাই; ADMIN_UIDS-এ না থাকলে ৪০৩
 // ═══════════════════════════════════════════════════════════════
@@ -88,6 +89,11 @@ export default async function handler(req, res) {
         const sent = await pushToUsers(only.map((u) => ({ uid: u, mid: 0, ev: `bc:${stamp}:${u}`, kind: "news", title, body, url, tag: "bc" + stamp })));
         return res.status(200).json({ ok: true, users: only.length, sent });
       }
+      if (b?.manual) {
+        const { applyManual } = await import("./live.js");
+        const out = await applyManual(b.manual.id, String(b.manual.action || ""));
+        return res.status(200).json(out);
+      }
       if (b?.run) {
         const RUNS = { "fd-quick": "/api/sync?mode=quick", "fd-full": "/api/sync", "fd-tables": "/api/sync?mode=tables", "fd-scorers": "/api/sync?mode=scorers",
           "af-all": "/api/live?mode=leagues", "af-tables": "/api/live?mode=tables", remind: "/api/live?mode=remind" };
@@ -111,6 +117,16 @@ export default async function handler(req, res) {
         if (list.length < 1000) break;
       }
       return all;
+    };
+    // হাতে আপডেটের জন্য: শুরুর সময় ৪ ঘণ্টা আগে থেকে ১ ঘণ্টা পর পর্যন্ত ম্যাচ
+    const TN = "name_en,short_en,name_bn";
+    const manualList = async () => {
+      const ms = await get(`matches?select=id,competition_code,utc_date,status,home_score,away_score,home:teams!matches_home_fk(${TN}),away:teams!matches_away_fk(${TN})&utc_date=gte.${new Date(now - 4 * 3600000).toISOString()}&utc_date=lte.${new Date(now + 3600000).toISOString()}&status=not.in.(POSTPONED,CANCELLED)&order=utc_date&limit=200`);
+      const man = await get("match_manual?select=*&limit=500");
+      const byId = Object.fromEntries((Array.isArray(man) ? man : []).map((x) => [x.match_id, x]));
+      return { tableOk: await fetch(`${base()}/rest/v1/match_manual?select=match_id&limit=1`, { headers: H() }).then((r) => r.ok).catch(() => false),
+        list: (Array.isArray(ms) ? ms : []).map((m) => ({ id: m.id, code: m.competition_code, utc: m.utc_date, status: m.status, hs: m.home_score, as: m.away_score,
+          home: m.home?.name_bn || m.home?.short_en || "", away: m.away?.name_bn || m.away?.short_en || "", homeEn: m.home?.short_en || "", awayEn: m.away?.short_en || "", man: byId[m.id] || null })) };
     };
     const [au, subs, pred24, predAll, leagues, errors, lastLive, lastErr, liveNow, pred7] = await Promise.all([
       authUsers(), get("push_subs?select=user_id"),
@@ -148,6 +164,7 @@ export default async function handler(req, res) {
       lastLiveError: lastErr[0] || null,
       errors, daily, recentUsers,
       usage: await usageStats(now).catch(() => null),
+      manual: await manualList().catch(() => null),
     });
   } catch (e) {
     return res.status(500).json({ ok: false, error: String(e.message || e).slice(0, 200) });
