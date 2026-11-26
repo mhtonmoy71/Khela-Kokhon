@@ -74,6 +74,7 @@ img { display: block; }
 .side .crw { position: relative; display: inline-flex; flex: none; overflow: visible; -webkit-line-clamp: none; }
 .fav-pin { position: absolute; top: -6px; right: -6px; font-style: normal; font-size: 11px; line-height: 1; color: var(--amber); text-shadow: 0 0 2px var(--card), 0 0 2px var(--card); }
 .side.win span { font-weight: 700; }
+.side span.lw { font-size: 12.5px; letter-spacing: -0.2px; overflow-wrap: anywhere; }
 .mid { text-align: center; line-height: 1.15; }
 .mid .t { font-size: 13px; font-weight: 600; }
 .mid .sc { font-family: Inter, 'KK Score', 'Hind Siliguri', sans-serif; font-size: 16px; font-weight: 800; letter-spacing: .5px; }
@@ -2612,7 +2613,7 @@ const TEAM_NAMES = {
 const teamName = (team, lang) =>
   !team ? (lang === "bn" ? "নির্ধারিত হয়নি" : "TBD")
     : TEAM_NAMES[team.id] ? TEAM_NAMES[team.id][lang === "bn" ? 1 : 0]
-    : lang === "bn" ? team.name_bn || clubBn(team.short_en) || clubBn(team.name_en) || (team.id >= 10000000 && team.short_en ? NAT_BN[team.short_en] || trName(team.short_en.replace(/\b(FC|SC|CF|AFC|CD|SD|UD|AC|SAD|SFC|FK|SK|BK)\b\.?/g, "").trim()) : null) || team.short_en || team.name_en : team.short_en || team.name_en;
+    : lang === "bn" ? clubBn(team.short_en) || clubBn(team.name_en) || team.name_bn || (team.id >= 10000000 && team.short_en ? NAT_BN[team.short_en] || trName(team.short_en.replace(/\b(FC|SC|CF|AFC|CD|SD|UD|AC|SAD|SFC|FK|SK|BK)\b\.?/g, "").trim()) : null) || team.short_en || team.name_en : team.short_en || team.name_en;
 // খোঁজার জন্য দলের সব নাম
 const teamAliases = (t) => [t.name_bn, clubBn(t.short_en), t.name_en, t.short_en, ...(TEAM_NAMES[t.id] || []), ...(TEAM_SHORT[t.id] || [])];
 // ম্যাচের সারিতে জায়গা কম: লম্বা নামের প্রচলিত ছোট রূপ (FotMob-এর মতো)। দলের পাতা, শিট, সার্চে পুরো নাম থাকে।
@@ -2625,6 +2626,8 @@ const TEAM_SHORT = {
   524: ["PSG", "পিএসজি"], 674: ["PSV", "পিএসভি"], 1887: ["Shakhtar", "শাখতার"], 7509: ["Slovan", "স্লোভান"], 930: ["Slavia", "স্লাভিয়া"],
   498: ["Sporting", "স্পোর্টিং"], 1899: ["AEK", "এইকে"],
 };
+// এক শব্দের লম্বা নাম (অলিম্পিয়াকোস) দুই লাইনে ভাঙে না, তাই একটু ছোট অক্ষরে
+const oneLong = (n) => !!n && !/\s/.test(n) && n.length > 9;
 const teamShort = (team, lang) => (team && TEAM_SHORT[team.id] ? TEAM_SHORT[team.id][lang === "bn" ? 1 : 0] : teamName(team, lang));
 // বাংলায় লিগ আঁ নয়, লিগ ওয়ান (ডেটাবেসের নাম যা-ই থাকুক)
 const COMP_BN_FIX = { FL1: "লিগ ওয়ান" };
@@ -2758,7 +2761,7 @@ function MatchRow({ m, pred, onOpen, badge: badge0, plain, sub }) {
     <button className={"row has-badge" + (favs.includes(m.home_id) || favs.includes(m.away_id) ? " my" : "")} onClick={() => onOpen?.(m)}>
       {badge}
       <div className={"side home" + (hw ? " win" : "")}>
-        <span>{teamShort(m.home, lang)}</span>
+        <span className={oneLong(teamShort(m.home, lang)) ? "lw" : undefined}>{teamShort(m.home, lang)}</span>
         <span className="crw"><Crest team={m.home} />{favs.includes(m.home_id) && <i className="fav-pin">★</i>}</span>
       </div>
       <div className="mid">
@@ -2778,7 +2781,7 @@ function MatchRow({ m, pred, onOpen, badge: badge0, plain, sub }) {
       </div>
       <div className={"side" + (aw ? " win" : "")}>
         <span className="crw"><Crest team={m.away} />{favs.includes(m.away_id) && <i className="fav-pin">★</i>}</span>
-        <span>{teamShort(m.away, lang)}</span>
+        <span className={oneLong(teamShort(m.away, lang)) ? "lw" : undefined}>{teamShort(m.away, lang)}</span>
       </div>
     </button>
   );
