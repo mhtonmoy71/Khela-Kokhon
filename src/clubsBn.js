@@ -38,7 +38,7 @@ export const CLUBS_BN = {
   "Celtic": "সেলটিক", "Rangers": "রেঞ্জার্স", "Aberdeen": "অ্যাবারডিন", "Hearts": "হার্টস", "Hibernian": "হিবারনিয়ান",
   // ── স্পেন: সেগুন্দা আর কোপা দেল রের ছোট দল ──
   "Real Valladolid": "ভায়াদোলিদ", "Valladolid": "ভায়াদোলিদ", "Las Palmas": "লাস পালমাস", "Leganes": "লেগানেস", "Leganés": "লেগানেস", "Mallorca": "মায়োর্কা", "Girona": "জিরোনা",
-  "Oviedo": "রিয়াল ওভিয়েদো", "Real Oviedo": "রিয়াল ওভিয়েদো", "Zaragoza": "রিয়াল সারাগোসা", "Real Zaragoza": "রিয়াল সারাগোসা", "Sporting Gijon": "স্পোর্তিং খিখন", "Sporting Gijón": "স্পোর্তিং খিখন",
+  "Oviedo": "রিয়াল ওভিয়েদো", "Real Oviedo": "রিয়াল ওভিয়েদো", "Zaragoza": "রিয়াল জারাগোজা", "Real Zaragoza": "রিয়াল জারাগোজা", "Sporting Gijon": "স্পোর্তিং খিখন", "Sporting Gijón": "স্পোর্তিং খিখন",
   "Granada CF": "গ্রানাদা", "Granada": "গ্রানাদা", "Cadiz": "কাদিস", "Cádiz": "কাদিস", "Almeria": "আলমেরিয়া", "Almería": "আলমেরিয়া", "Eibar": "এইবার", "Tenerife": "তেনেরিফে",
   "Huesca": "উয়েস্কা", "Albacete": "আলবাসেতে", "Burgos": "বুরগোস", "Cordoba": "কর্দোবা", "Córdoba": "কর্দোবা", "Castellon": "কাস্তেয়োন", "Castellón": "কাস্তেয়োন", "Mirandes": "মিরান্দেস", "Mirandés": "মিরান্দেস",
   // ── ইতালি, জার্মানি, ফ্রান্স: নিচের বিভাগ আর প্রথম আলোর বানান ──
