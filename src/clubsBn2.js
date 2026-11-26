@@ -56,7 +56,7 @@ export const CLUBS_BN2 = {
   "HNK Hajduk Split": "হাইদুক স্প্লিট", "HNK Rijeka": "রিয়েকা", "NK Varazdin": "ভারাজদিন",
   "Koper": "কোপার", "Celje": "সেলিয়ে", "Aluminij": "আলুমিনিয়ে", "Bravo": "ব্রাভো",
   "Ludogorets": "লুদোগোরেৎস", "CSKA Sofia": "সিএসকেএ সোফিয়া", "CSKA 1948": "সিএসকেএ ১৯৪৮", "Levski Sofia": "লেভস্কি সোফিয়া",
-  "FCSB": "এফসিএসবি", "CFR 1907 Cluj": "সিএফআর ক্লুজ", "Universitatea Cluj": "উনিভার্সিতাতেয়া ক্লুজ", "Universitatea Craiova": "উনিভার্সিতাতেয়া ক্রাইওভা",
+  "FCSB": "এফসিএসবি", "CFR 1907 Cluj": "সিএফআর ক্লুজ", "Universitatea Cluj": "ইউ ক্লুজ", "Universitatea Craiova": "ক্রাইওভা",
   "Ferencvarosi TC": "ফেরেন্তসভারোস", "Debreceni VSC": "দেব্রেৎসেন", "Paks": "পাকশ", "Gyori ETO FC": "জোর ইটিও",
   "Spartak Trnava": "স্পার্তাক ত্রনাভা", "Dunajska Streda": "দুনায়স্কা স্ট্রেদা", "Žilina": "জিলিনা",
   "Sparta Praha": "স্পার্তা প্রাহা", "Plzen": "ভিক্টোরিয়া প্লজেন", "FK Jablonec": "ইয়াবলোনেৎস", "Hradec Králové": "রাদেৎস ক্রালোভে",
@@ -95,7 +95,7 @@ export const CLUBS_BN2 = {
   "Estonia": "এস্তোনিয়া", "FYR Macedonia": "উত্তর মেসিডোনিয়া", "North Macedonia": "উত্তর মেসিডোনিয়া", "Faroe Islands": "ফারো দ্বীপপুঞ্জ",
   "Kazakhstan": "কাজাখস্তান", "Latvia": "লাটভিয়া", "Lithuania": "লিথুয়ানিয়া", "Luxembourg": "লুক্সেমবার্গ", "Moldova": "মলদোভা",
   "Montenegro": "মন্টিনিগ্রো", "Rep. Of Ireland": "আয়ারল্যান্ড", "Malta": "মাল্টা", "Andorra": "আন্দোরা", "San Marino": "সান মারিনো",
-  "Gibraltar": "জিব্রাল্টার", "Liechtenstein": "লিচেনস্টাইন",
+  "Gibraltar": "জিব্রাল্টার", "Liechtenstein": "লিশটেনস্টাইন",
 
   // ── ইংল্যান্ড: ন্যাশনাল লিগ আর নিচের বিভাগ (এফএ কাপ) ──
   "AFC Dunstable": "এএফসি ডানস্টেবল", "AFC Emley": "এএফসি এমলি", "AFC Fylde": "এএফসি ফাইল্ড", "AFC Hornchurch": "এএফসি হর্নচার্চ",

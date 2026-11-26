@@ -51,7 +51,7 @@ export const CLUBS_BN = {
   "Besiktas": "বেশিকতাস", "Beşiktaş": "বেশিকতাস", "Trabzonspor": "ত্রাবজোনস্পোর", "Olympiakos Piraeus": "অলিম্পিয়াকোস", "Olympiacos": "অলিম্পিয়াকোস", "PAOK": "পাওক", "Panathinaikos": "পানাথিনাইকোস",
   "Red Bull Salzburg": "রেড বুল জালৎসবুর্গ", "Salzburg": "রেড বুল জালৎসবুর্গ", "Sturm Graz": "স্টুর্ম গ্রাৎস", "Young Boys": "ইয়াং বয়েজ", "BSC Young Boys": "ইয়াং বয়েজ", "Basel": "বাসেল",
   "Dinamo Zagreb": "দিনামো জাগরেব", "Crvena Zvezda": "রেড স্টার বেলগ্রেড", "Red Star Belgrade": "রেড স্টার বেলগ্রেড", "Copenhagen": "কোপেনহেগেন", "FC Copenhagen": "কোপেনহেগেন", "Midtjylland": "মিডটিল্যান্ড",
-  "Anderlecht": "আন্ডারলেখট", "Union St. Gilloise": "উনিওঁ সাঁ জিলোয়াজ", "Genk": "গেংক", "Celtic FC": "সেলটিক", "Qarabag": "কারাবাগ", "Ferencvaros": "ফেরেঙ্কভারোস",
+  "Anderlecht": "আন্ডারলেখট", "Union St. Gilloise": "ইউনিয়ন সেন্ট-জিলোয়াজ", "Union Saint-Gilloise": "ইউনিয়ন সেন্ট-জিলোয়াজ", "Genk": "গেংক", "Celtic FC": "সেলটিক", "Qarabag": "কারাবাগ", "Ferencvaros": "ফেরেঙ্কভারোস",
 };
 
 // ইংরেজি নাম থেকে বাংলা (হুবহু, না মিললে FC/AFC ইত্যাদি বাদ দিয়ে)
