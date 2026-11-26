@@ -1,1 +1,8 @@
-[]
+[{
+      "relation": ["delegate_permission/common.handle_all_urls"],
+      "target": {
+        "namespace": "android_app",
+        "package_name": "com.khelakokhon.app",
+        "sha256_cert_fingerprints": ["05:85:CB:E0:CC:14:50:35:00:27:B0:A7:6F:6A:30:7B:3A:5C:AE:E9:88:6E:E3:34:25:A5:29:F8:47:03:8A:D2"]
+      }
+    }]
