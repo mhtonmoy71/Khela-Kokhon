@@ -2833,7 +2833,14 @@ function CompGroups({ matches, preds = {}, onOpen }) {
     if (!(k in idx)) { idx[k] = groups.length; groups.push({ c: m.competition, list: [] }); }
     groups[idx[k]].list.push(m);
   }
-  groups.sort((a, b) => lgRank(follow, a.c) - lgRank(follow, b.c));
+  // লাইভ খেলা সবার আগে, তারপর সামনের খেলা, শেষ হওয়া (আর স্থগিত) নিচে (FotMob-এর মতো)
+  // লিগের ভেতরেও একই ক্রম; একই ধাপে সময় ধরে। খেলা শেষ হলে নিজে থেকেই নিচে নামে।
+  const stage = (m) => (isLive(m) ? 0 : isDone(m) || isOff(m) ? 2 : 1);
+  for (const g of groups) {
+    g.list.sort((a, b) => stage(a) - stage(b) || Date.parse(a.utc_date) - Date.parse(b.utc_date));
+    g.stage = Math.min(...g.list.map(stage));
+  }
+  groups.sort((a, b) => a.stage - b.stage || lgRank(follow, a.c) - lgRank(follow, b.c));
   return (
     <div className="groups">
       {groups.map((g) => {
