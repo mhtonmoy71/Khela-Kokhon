@@ -38,6 +38,7 @@ img { display: block; }
 .pill-btn { height: 32px; min-width: 32px; padding: 0 10px; border-radius: 16px; background: var(--card); border: 1px solid var(--line);
   font-size: 13px; font-weight: 600; display: inline-flex; align-items: center; justify-content: center; gap: 4px; }
 
+.off-bar { background: color-mix(in srgb, var(--muted) 16%, transparent) !important; color: var(--text) !important; text-align: center; }
 .demo-bar { margin: 10px 16px 0; padding: 7px 12px; border-radius: 10px; background: color-mix(in srgb, var(--amber) 14%, transparent);
   color: var(--amber); font-size: 12.5px; text-align: center; }
 
@@ -2243,6 +2244,8 @@ async function signInGoogle() {
 async function signOut() {
   if (DEMO) { ls.set("user", null); demoListeners.forEach((f) => f(null)); return; }
   await sb.auth.signOut();
+  // লগআউট হলে ফোনে জমা রাখা তথ্য (অফলাইনের জন্য) মুছে ফেলা
+  try { await caches.delete("data"); } catch { /* না থাকলে কিছু নয় */ }
 }
 
 // ═════════ প্রোফাইল ═════════
@@ -9389,6 +9392,13 @@ export default function App() {
   const deskWide = useWide();
   const [lang, setLangS] = useState(() => stored("kk_lang", "bn"));
   const [theme, setThemeS] = useState(() => (stored("kk_theme", "light") === "dark" ? "dark" : "light"));
+  // নেট চলে গেলে ছোট একটা লেখা (তথ্য তখন ফোনে জমা থাকা শেষ সংস্করণ থেকে)
+  const [offline, setOffline] = useState(() => typeof navigator !== "undefined" && navigator.onLine === false);
+  useEffect(() => {
+    const on = () => setOffline(false), off = () => setOffline(true);
+    addEventListener("online", on); addEventListener("offline", off);
+    return () => { removeEventListener("online", on); removeEventListener("offline", off); };
+  }, []);
   const [tab, setTab] = useState(() => (/^\/(quiz|daily)/.test(window.location.pathname) ? "predict" : tabFromPath()));
   const [view, setView] = useState(viewFromPath);
   const [comps, setComps] = useState([]);
@@ -9602,6 +9612,7 @@ export default function App() {
             {theme === "dark" ? <SunIcon width={16} height={16} /> : <MoonIcon width={16} height={16} />}
           </button>
         </header>
+        {offline && <div className="demo-bar off-bar">{lang === "bn" ? "ইন্টারনেট নেই · শেষবার দেখা তথ্য দেখাচ্ছে" : "You're offline · showing last saved data"}</div>}
         {DEMO && <div className="demo-bar">{lang === "bn" ? "ডেমো মোড — নমুনা ডেটা দেখানো হচ্ছে" : "Demo mode — sample data"}</div>}
 
         <div className={railPage ? "rail-wrap" : undefined}>

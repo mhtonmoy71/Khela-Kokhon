@@ -20,11 +20,27 @@ export default defineConfig({
         display: "standalone",
         background_color: "#064e3b",
         theme_color: "#064e3b",
+        orientation: "portrait",
         icons: [
-          { src: "/icon-192x192.png", sizes: "192x192", type: "image/png", purpose: "any maskable" },
-          { src: "/icon-512x512.png", sizes: "512x512", type: "image/png", purpose: "any maskable" },
+          { src: "/icon-192x192.png", sizes: "192x192", type: "image/png", purpose: "any" },
+          { src: "/icon-512x512.png", sizes: "512x512", type: "image/png", purpose: "any" },
+          // অ্যান্ড্রয়েডের গোল/স্কয়ার্কল আইকনে কিনারা না কাটতে: লোগো নিরাপদ এলাকার ভেতরে
+          { src: "/icon-maskable-192.png", sizes: "192x192", type: "image/png", purpose: "maskable" },
+          { src: "/icon-maskable-512.png", sizes: "512x512", type: "image/png", purpose: "maskable" },
           // নোটিফিকেশনের ছোট আইকনের জন্য: শুধু সাদা, পেছন স্বচ্ছ
           { src: "/icon-mono-512.png?v=4", sizes: "512x512", type: "image/png", purpose: "monochrome" },
+        ],
+        // আইকন চেপে ধরলে সরাসরি এই পাতাগুলো
+        shortcuts: [
+          { name: "আজকের ম্যাচ", short_name: "ম্যাচ", url: "/", icons: [{ src: "/shortcuts/matches.png", sizes: "96x96", type: "image/png" }] },
+          { name: "প্রেডিকশন", short_name: "প্রেডিকশন", url: "/predict", icons: [{ src: "/shortcuts/predict.png", sizes: "96x96", type: "image/png" }] },
+          { name: "দৈনিক কুইজ", short_name: "কুইজ", url: "/quiz/daily", icons: [{ src: "/shortcuts/quiz.png", sizes: "96x96", type: "image/png" }] },
+          { name: "বাংলাদেশ দল", short_name: "বাংলাদেশ", url: "/bangladesh", icons: [{ src: "/shortcuts/bangladesh.png", sizes: "96x96", type: "image/png" }] },
+        ],
+        screenshots: [
+          { src: "/screenshots/phone-1.jpg", sizes: "1080x1920", type: "image/jpeg", form_factor: "narrow", label: "আজকের সব খেলা, বাংলাদেশ সময়ে" },
+          { src: "/screenshots/phone-2.jpg", sizes: "1080x1920", type: "image/jpeg", form_factor: "narrow", label: "বাংলায় ম্যাচ রিপোর্ট" },
+          { src: "/screenshots/phone-3.jpg", sizes: "1080x1920", type: "image/jpeg", form_factor: "narrow", label: "লাইভ পয়েন্ট টেবিল" },
         ],
       },
       workbox: {
@@ -33,6 +49,12 @@ export default defineConfig({
         clientsClaim: true,
         importScripts: ["/push-sw.js?v=7"],
         runtimeCaching: [
+          {
+            // খেলার তথ্য (Supabase থেকে পড়া): নেট থাকলে সবসময় নতুন, না থাকলে শেষবার দেখা তথ্য
+            urlPattern: ({ url, request }) => request.method === "GET" && url.hostname.endsWith(".supabase.co") && url.pathname.startsWith("/rest/v1/"),
+            handler: "NetworkFirst",
+            options: { cacheName: "data", networkTimeoutSeconds: 6, expiration: { maxEntries: 300, maxAgeSeconds: 60 * 60 * 24 * 3 }, cacheableResponse: { statuses: [200] } },
+          },
           {
             // ছোট করা লোগো/ছবি (/api/img): একবার এলে ফোনেই থাকে, পরের বার নেট ছাড়াই সাথে সাথে
             urlPattern: ({ url }) => url.origin === self.location.origin && url.pathname === "/api/img",
