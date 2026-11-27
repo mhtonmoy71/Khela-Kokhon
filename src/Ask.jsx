@@ -85,22 +85,6 @@ const chime = () => {
     });
   } catch { /* ignore */ }
 };
-// পাঠানোর শব্দ: ছোট একটা ওপরে ওঠা "ফুস" (মেসেজ চলে যাওয়ার অনুভূতি), উত্তরের শব্দের চেয়ে আস্তে
-const whoosh = () => {
-  try {
-    if (!audioCtx) return;
-    const t0 = audioCtx.currentTime + 0.005;
-    const o = audioCtx.createOscillator(), g = audioCtx.createGain();
-    o.type = "sine";
-    o.frequency.setValueAtTime(420, t0);
-    o.frequency.exponentialRampToValueAtTime(980, t0 + 0.12);
-    g.gain.setValueAtTime(0.0001, t0);
-    g.gain.exponentialRampToValueAtTime(0.05, t0 + 0.02);
-    g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.14);
-    o.connect(g); g.connect(audioCtx.destination);
-    o.start(t0); o.stop(t0 + 0.16);
-  } catch { /* ignore */ }
-};
 const SoundIcon = ({ on }) => (
   <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
     <path d="M11 5 6 9H3v6h3l5 4z" />
@@ -146,7 +130,7 @@ function AskPage({ teams, preds, onOpen, chat, setChat }) {
     const t = text.trim();
     if (!t || busy) return;
     setQ(""); setBusy(true);
-    if (sound) { wakeAudio(); whoosh(); }
+    if (sound) wakeAudio();
     setChat((c) => [...c, { me: t }]);
     try {
       const a = await answer(t, teams, lang, ctx, favIds);
