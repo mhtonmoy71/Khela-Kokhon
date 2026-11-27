@@ -42,7 +42,7 @@ async function usageStats(now) {
   const ids = [...new Set([...top.map((t) => t.uid), ...Object.keys(per)])].slice(0, 80);
   const profs = ids.length ? await get(`profiles?select=id,display_name&id=in.(${ids.join(",")})`) : [];
   const nm = (id) => profs.find((p) => p.id === id)?.display_name || "নাম নেই";
-  const people = top.map((t) => ({ name: nm(t.uid), total: Math.round(t.total_seconds / 60), week: Math.round((per[t.uid]?.week || 0) / 60), today: Math.round((per[t.uid]?.today || 0) / 60), last: t.last_seen, platform: t.platform }))
+  const people = top.map((t) => ({ id: t.uid, name: nm(t.uid), total: Math.round(t.total_seconds / 60), week: Math.round((per[t.uid]?.week || 0) / 60), today: Math.round((per[t.uid]?.today || 0) / 60), last: t.last_seen, platform: t.platform }))
     .sort((a, b) => b.week - a.week || b.total - a.total);
   // ফিরে আসা: গত ১৪ দিনে প্রথম এসেছেন এমনদের মধ্যে পরের দিন (D1) আর পরের ৭ দিনের মধ্যে (D7) আবার এসেছেন কতজন
   const has = new Set(rows.map((x) => x.uid + "|" + x.day));
@@ -63,6 +63,119 @@ async function usageStats(now) {
     sources: Object.entries(src).map(([k, n]) => ({ k, n })).sort((a, b) => b.n - a.n),
     platforms: Object.entries(plat).map(([k, n]) => ({ k, n })).sort((a, b) => b.n - a.n),
   };
+}
+
+
+// সব লগইন অ্যাকাউন্ট (Supabase auth)
+async function allAuthUsers() {
+  const all = [];
+  for (let page = 1; page <= 20; page++) {
+    const r = await fetch(`${base()}/auth/v1/admin/users?page=${page}&per_page=1000`, { headers: H() }).then((x) => (x.ok ? x.json() : null)).catch(() => null);
+    const list = r?.users || [];
+    all.push(...list);
+    if (list.length < 1000) break;
+  }
+  return all;
+}
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const arr = (x) => (Array.isArray(x) ? x : []);
+// অনেক আইডির নাম, ১৫০টা করে
+async function namesOf(ids) {
+  const out = {};
+  const u = [...new Set(ids.filter(Boolean))];
+  for (let i = 0; i < u.length; i += 150) for (const x of arr(await get(`profiles?select=id,display_name&id=in.(${u.slice(i, i + 150).join(",")})`))) out[x.id] = x.display_name || "নাম নেই";
+  return out;
+}
+const leagueOwner = (l) => l.owner || l.owner_id || l.created_by || l.user_id || null;
+const TNAME = "name_en,short_en,name_bn";
+const mLite = (m) => m && ({ id: m.id, code: m.competition_code, utc: m.utc_date, status: m.status, hs: m.home_score, as: m.away_score, home: m.home?.name_bn || m.home?.short_en || "", away: m.away?.name_bn || m.away?.short_en || "" });
+
+// ── সবার তালিকা: প্রত্যেকের মূল হিসাব (/admin → ইউজার) ──
+async function peopleList() {
+  const [au, profs, preds, plays, act, subs, mem, teams] = await Promise.all([
+    allAuthUsers(), get("profiles?select=id,display_name&limit=50000"),
+    get("predictions?select=user_id,points&limit=200000"), get("daily_plays?select=user_id,points,day&limit=200000"),
+    get("activity_users?select=uid,total_seconds,last_seen,platform,ref,first_day&is_user=eq.true&limit=50000"),
+    get("push_subs?select=user_id&limit=50000"), get("pleague_members?select=user_id&limit=50000"), get("user_teams?select=user_id&limit=50000"),
+  ]);
+  const by = (list, k) => { const m = {}; for (const x of arr(list)) (m[x[k]] ||= []).push(x); return m; };
+  const P = by(preds, "user_id"), D = by(plays, "user_id"), S = by(subs, "user_id"), M = by(mem, "user_id"), T = by(teams, "user_id");
+  const A = Object.fromEntries(arr(act).map((x) => [x.uid, x]));
+  const N = Object.fromEntries(arr(profs).map((x) => [x.id, x.display_name]));
+  return au.map((u) => {
+    const p = P[u.id] || [], d = D[u.id] || [], a = A[u.id];
+    return {
+      id: u.id, name: N[u.id] || u.user_metadata?.full_name || u.user_metadata?.name || "নাম নেই", email: u.email || "",
+      via: u.app_metadata?.provider || "email", at: u.created_at, last: u.last_sign_in_at,
+      preds: p.length, points: p.reduce((n, x) => n + (x.points || 0), 0), exact: p.filter((x) => x.points === 3 || x.points === 5).length,
+      daily: d.length, dailyPts: d.reduce((n, x) => n + (x.points || 0), 0), lastDaily: d.map((x) => x.day).sort().pop() || null,
+      min: a ? Math.round(a.total_seconds / 60) : 0, seen: a?.last_seen || null, platform: a?.platform || null, ref: a?.ref || null,
+      push: (S[u.id] || []).length, leagues: (M[u.id] || []).length, teams: (T[u.id] || []).length,
+    };
+  }).sort((a, b) => Date.parse(b.at) - Date.parse(a.at));
+}
+
+// ── একজন ইউজারের সবকিছু ──
+async function personDetail(id) {
+  const au = await fetch(`${base()}/auth/v1/admin/users/${id}`, { headers: H() }).then((r) => (r.ok ? r.json() : null)).catch(() => null);
+  const since = new Date(Date.now() - 29 * 86400000 + 6 * 3600000).toISOString().slice(0, 10);
+  const [prof, ut, pr0, plays, qp, mem, subs, actU, actD] = await Promise.all([
+    get(`profiles?select=*&id=eq.${id}`), get(`user_teams?select=team_id,kind&user_id=eq.${id}`),
+    get(`predictions?select=*&user_id=eq.${id}&order=created_at.desc&limit=500`),
+    get(`daily_plays?select=day,correct,raw,points,streak,started_at,finished_at&user_id=eq.${id}&order=day.desc&limit=400`),
+    get(`quiz_players?select=room_id,display_name,joined_at&user_id=eq.${id}&order=joined_at.desc&limit=100`),
+    get(`pleague_members?select=league_id&user_id=eq.${id}`), get(`push_subs?select=*&user_id=eq.${id}`),
+    get(`activity_users?select=*&uid=eq.${id}`), get(`activity_daily?select=day,seconds,sessions,pages&uid=eq.${id}&day=gte.${since}&order=day.desc`),
+  ]);
+  const tids = arr(ut).map((t) => t.team_id);
+  const mids = [...new Set(arr(pr0).map((p) => p.match_id))];
+  const roomIds = arr(qp).map((r) => r.room_id);
+  const [tms, ms, rms, ra] = await Promise.all([
+    tids.length ? get(`teams?select=id,${TNAME}&id=in.(${tids.join(",")})`) : [],
+    (async () => { const out = []; for (let i = 0; i < mids.length; i += 150) out.push(...arr(await get(`matches?select=id,competition_code,utc_date,status,home_score,away_score,home:teams!matches_home_fk(${TNAME}),away:teams!matches_away_fk(${TNAME})&id=in.(${mids.slice(i, i + 150).join(",")})`))); return out; })(),
+    roomIds.length ? get(`quiz_rooms?select=id,code,status,created_at,question_ids&id=in.(${roomIds.join(",")})`) : [],
+    roomIds.length ? get(`quiz_answers?select=room_id,correct&user_id=eq.${id}&room_id=in.(${roomIds.join(",")})&limit=5000`) : [],
+  ]);
+  const teams = arr(ut).map((t) => ({ ...t, team: arr(tms).find((x) => x.id === t.team_id) }));
+  const preds = arr(pr0).map((p) => ({ ...p, match: arr(ms).find((m) => m.id === p.match_id) }));
+  const rooms = arr(qp).map((r) => ({ ...r, room: arr(rms).find((x) => x.id === r.room_id) }));
+  const lids = arr(mem).map((m) => m.league_id);
+  const ls = lids.length ? await get(`pleagues?select=*&id=in.(${lids.join(",")})`) : [];
+  const pr = arr(prof)[0] || {};
+  const pages = {};
+  for (const x of arr(actD)) for (const [k, v] of Object.entries(x.pages || {})) pages[k] = (pages[k] || 0) + (+v || 0);
+  return {
+    ok: true,
+    user: { id, name: pr.display_name || au?.user_metadata?.full_name || "নাম নেই", email: au?.email || "", phone: au?.phone || "", via: au?.app_metadata?.provider || "email",
+      at: au?.created_at, last: au?.last_sign_in_at, confirmed: !!(au?.email_confirmed_at || au?.confirmed_at), avatar: pr.avatar_url || au?.user_metadata?.avatar_url || null,
+      follow: pr.follow_lg || [], profile: Object.fromEntries(Object.entries(pr).filter(([k]) => !["id"].includes(k))) },
+    teams: arr(teams).map((t) => ({ kind: t.kind, name: t.team?.name_bn || t.team?.short_en || t.team?.name_en || t.team_id })),
+    preds: arr(preds).map((p) => ({ home: p.home, away: p.away, points: p.points, at: p.created_at, m: mLite(p.match) })),
+    plays: arr(plays),
+    rooms: arr(rooms).map((r) => ({ code: r.room?.code, status: r.room?.status, at: r.room?.created_at || r.joined_at, n: (r.room?.question_ids || []).length,
+      correct: arr(ra).filter((a) => a.room_id === r.room_id && a.correct).length })),
+    leagues: arr(ls).map((l) => ({ id: l.id, name: l.name, code: l.code, owner: leagueOwner(l) === id })),
+    push: arr(subs).map((x) => ({ at: x.created_at || null, ua: x.ua || x.user_agent || "", follow: x.follow ?? x.prefs ?? null })),
+    activity: arr(actU)[0] || null, days: arr(actD).map((x) => ({ d: x.day, min: Math.round(x.seconds / 60), ses: x.sessions || 0 })),
+    pages: Object.entries(pages).map(([k, v]) => ({ k, min: Math.round(v / 60) })).sort((a, b) => b.min - a.min),
+  };
+}
+
+// ── একটা বন্ধুদের লিগ: সদস্য আর লিডারবোর্ড ──
+async function leagueDetail(id) {
+  const l = arr(await get(`pleagues?select=*&id=eq.${id}`))[0];
+  if (!l) return { ok: false, error: "নেই" };
+  const mem = arr(await get(`pleague_members?select=*&league_id=eq.${id}`));
+  const uids = mem.map((m) => m.user_id);
+  const preds = uids.length ? arr(await get(`predictions?select=user_id,points&user_id=in.(${uids.join(",")})&limit=100000`)) : [];
+  const names = await namesOf([...uids, leagueOwner(l)]);
+  const rows = mem.map((m) => {
+    const p = preds.filter((x) => x.user_id === m.user_id);
+    const done = p.filter((x) => x.points != null);
+    return { id: m.user_id, name: names[m.user_id] || "নাম নেই", joined: m.joined_at || m.created_at || null, points: done.reduce((n, x) => n + x.points, 0),
+      exact: done.filter((x) => x.points === 3 || x.points === 5).length, played: done.length, pending: p.length - done.length, owner: m.user_id === leagueOwner(l) };
+  }).sort((a, b) => b.points - a.points || b.exact - a.exact);
+  return { ok: true, league: { id: l.id, name: l.name, code: l.code, at: l.created_at || null, owner: names[leagueOwner(l)] || null }, rows };
 }
 
 export default async function handler(req, res) {
@@ -134,6 +247,9 @@ export default async function handler(req, res) {
       }
       return res.status(200).json({ ok: true, from, to, plays, answers, sets, questions, names, rooms, roomPlayers: rp, roomAnswers: ra });
     }
+    if (qq.people) return res.status(200).json({ ok: true, people: await peopleList() });
+    if (qq.person) return UUID.test(qq.person) ? res.status(200).json(await personDetail(qq.person)) : res.status(400).json({ ok: false });
+    if (qq.league) return /^[\w-]{1,64}$/.test(qq.league) ? res.status(200).json(await leagueDetail(qq.league)) : res.status(400).json({ ok: false });
     const now = Date.now(), day = new Date(now - 86400000).toISOString(), week = new Date(now - 7 * 86400000).toISOString();
     // লগিন অ্যাকাউন্ট (Supabase auth): মোট আর কবে খোলা
     const authUsers = async () => {
@@ -173,7 +289,7 @@ export default async function handler(req, res) {
     const recent = [...au].sort((a, b) => Date.parse(b.created_at) - Date.parse(a.created_at)).slice(0, 15);
     const profs = recent.length ? await get(`profiles?select=id,display_name&id=in.(${recent.map((u) => u.id).join(",")})`) : [];
     const pushSet = new Set(subs.map((x) => x.user_id));
-    const recentUsers = recent.map((u) => ({ name: profs.find((p) => p.id === u.id)?.display_name || u.user_metadata?.full_name || u.user_metadata?.name || "নাম নেই",
+    const recentUsers = recent.map((u) => ({ id: u.id, name: profs.find((p) => p.id === u.id)?.display_name || u.user_metadata?.full_name || u.user_metadata?.name || "নাম নেই",
       at: u.created_at, last: u.last_sign_in_at, via: u.app_metadata?.provider || "email", push: pushSet.has(u.id) }));
     // বন্ধুদের লিগ: নাম, কোড, কে খুলেছেন, কতজন সদস্য (টেবিলের কলামের নাম ধরে না নিয়ে যা আছে তা থেকে)
     const leagueList = async () => {
@@ -187,7 +303,7 @@ export default async function handler(req, res) {
       const nm = (id) => (Array.isArray(names) && names.find((x) => x.id === id)?.display_name) || (au.find((u) => u.id === id)?.user_metadata?.full_name) || "নাম নেই";
       return ls.map((l) => {
         const ms = members.filter((m) => String(m.league_id) === String(l.id));
-        return { name: l.name, code: l.code, at: l.created_at || null, owner: ownerOf(l) ? nm(ownerOf(l)) : null, members: ms.map((m) => nm(m.user_id)) };
+        return { id: l.id, name: l.name, code: l.code, at: l.created_at || null, owner: ownerOf(l) ? nm(ownerOf(l)) : null, members: ms.map((m) => nm(m.user_id)) };
       }).sort((a, b) => (Date.parse(b.at || 0) || 0) - (Date.parse(a.at || 0) || 0));
     };
     let af = null;

@@ -1,6 +1,6 @@
 // Admin.jsx: App.jsx থেকে আলাদা (দরকার হলে তখনই নামে)
 import { useEffect, useState } from "react";
-import { BN_DAYS_SHORT, DEMO, Loading, Logo, S, answer, everyMin, ls, num, ok, sb, timeLabel } from "./App.jsx";
+import { BN_DAYS_SHORT, DEMO, Loading, Logo, S, answer, compLabel, everyMin, ls, num, ok, sb, timeLabel } from "./App.jsx";
 
 const agoBn = (iso) => {
   if (!iso) return "—";
@@ -216,11 +216,179 @@ function AdminQuiz({ fetchQ }) {
     </>
   );
 }
+
+// ── অ্যাডমিন: সব ইউজার, খুঁজে আর সাজিয়ে; চাপলে বিস্তারিত ──
+const VIA_BN = { google: "Google", email: "ইমেইল", phone: "ফোন" };
+function useAdminGet(fetchQ, qs) {
+  const [data, setData] = useState(null);
+  const [err, setErr] = useState(false);
+  useEffect(() => {
+    let a = true; setData(null); setErr(false);
+    fetchQ(qs).then((x) => a && (x?.ok ? setData(x) : setErr(true))).catch(() => a && setErr(true));
+    return () => { a = false; };
+  }, [qs]);
+  return [data, err];
+}
+function AdminPeople({ fetchQ, openPerson }) {
+  const [data, err] = useAdminGet(fetchQ, "people=1");
+  const [q, setQ] = useState("");
+  const [sort, setSort] = useState("new");
+  const [n, setN] = useState(40);
+  if (err) return <div className="card empty">ইউজারের তালিকা আনা গেল না।</div>;
+  if (!data) return <div className="card"><div className="spin" /></div>;
+  const key = { new: (x) => -Date.parse(x.at), seen: (x) => -(Date.parse(x.seen || x.last || 0) || 0), points: (x) => -x.points, preds: (x) => -x.preds, min: (x) => -x.min, daily: (x) => -x.daily };
+  const t = q.trim().toLowerCase();
+  const list = data.people.filter((u) => !t || u.name.toLowerCase().includes(t) || u.email.toLowerCase().includes(t)).sort((a, b) => key[sort](a) - key[sort](b));
+  const S2 = [["new", "নতুন"], ["seen", "সম্প্রতি সক্রিয়"], ["points", "পয়েন্ট"], ["preds", "প্রেডিকশন"], ["daily", "চ্যালেঞ্জ"], ["min", "সময়"]];
+  return (
+    <>
+      <div className="adm-h">সব ইউজার <span className="muted">{num(data.people.length, "bn")} জন</span></div>
+      <div className="search-box ap-find"><input value={q} onChange={(e) => { setQ(e.target.value); setN(40); }} placeholder="নাম বা ইমেইল দিয়ে খুঁজুন" /></div>
+      <div className="aq-seg ap-sort">{S2.map(([k, l]) => <button key={k} className={sort === k ? "on" : ""} onClick={() => setSort(k)}>{l}</button>)}</div>
+      <div className="card adm-list">
+        {list.slice(0, n).map((u) => (
+          <button key={u.id} className="adm-user ap-row" onClick={() => openPerson(u.id)}>
+            <div style={{ minWidth: 0, flex: 1, textAlign: "left" }}>
+              <b>{u.name}</b>
+              <small className="muted">{u.email || VIA_BN[u.via] || u.via} · যোগ {agoBn(u.at)} · সক্রিয় {agoBn(u.seen || u.last)}</small>
+              <small className="ap-stats">প্রেডিকশন {num(u.preds, "bn")} · {num(u.points, "bn")} পয়েন্ট · চ্যালেঞ্জ {num(u.daily, "bn")} দিন · {minBn(u.min)}{u.leagues ? ` · লিগ ${num(u.leagues, "bn")}` : ""}</small>
+            </div>
+            {u.push > 0 && <span className="adm-tag">নোটিফিকেশন</span>}
+          </button>
+        ))}
+        {!list.length && <div className="card empty">কেউ মেলেনি</div>}
+      </div>
+      {list.length > n && <button className="btn ghost block" style={{ marginTop: 10 }} onClick={() => setN(n + 60)}>আরও দেখুন ({num(list.length - n, "bn")})</button>}
+    </>
+  );
+}
+const scoreBn = (h, a) => (h == null || a == null ? "–" : `${num(h, "bn")}–${num(a, "bn")}`);
+function AdminPerson({ fetchQ, id, onBack, openLeague }) {
+  const [d, err] = useAdminGet(fetchQ, "person=" + id);
+  const [showAll, setShowAll] = useState(false);
+  const back = <button className="link ap-back" onClick={onBack}>← ফিরে যান</button>;
+  if (err) return <>{back}<div className="card empty">তথ্য আনা গেল না।</div></>;
+  if (!d) return <>{back}<div className="card"><div className="spin" /></div></>;
+  const u = d.user, done = d.preds.filter((p) => p.points != null);
+  const pts = done.reduce((n, p) => n + p.points, 0), exact = done.filter((p) => p.points === 3 || p.points === 5).length;
+  const dPts = d.plays.reduce((n, p) => n + (p.points || 0), 0);
+  const best = d.plays.reduce((m, p) => Math.max(m, p.streak || 0), 0);
+  const a = d.activity;
+  const maxM = Math.max(1, ...d.days.map((x) => x.min));
+  const tile = (v, l) => <div className="card adm-tile"><b>{v}</b><span>{l}</span></div>;
+  return (
+    <>
+      {back}
+      <div className="card ap-head">
+        {u.avatar ? <img src={u.avatar} alt="" referrerPolicy="no-referrer" /> : <div className="ap-av">{(u.name || "?").slice(0, 1)}</div>}
+        <div style={{ minWidth: 0 }}>
+          <b>{u.name}</b>
+          <small className="muted">{u.email || u.phone || "—"} · {VIA_BN[u.via] || u.via}{u.confirmed ? "" : " · যাচাই হয়নি"}</small>
+          <small className="muted">যোগ দিয়েছেন {agoBn(u.at)} · শেষ লগইন {agoBn(u.last)}{a?.last_seen ? ` · শেষ দেখা ${agoBn(a.last_seen)}` : ""}</small>
+          {a && <small className="muted">{PLAT_BN[a.platform] || a.platform || ""}{a.ref ? ` · এসেছেন ${SRC_BN[a.ref] || a.ref} থেকে` : ""}</small>}
+        </div>
+      </div>
+      <div className="adm-grid">
+        {tile(num(pts, "bn"), `প্রেডিকশনের পয়েন্ট (${num(d.preds.length, "bn")}টা প্রেডিকশন)`)}
+        {tile(num(exact, "bn"), `হুবহু ঠিক স্কোর (${num(done.length, "bn")}টার ফল এসেছে)`)}
+        {tile(num(d.plays.length, "bn"), `দিন চ্যালেঞ্জ খেলেছেন (${num(dPts, "bn")} পয়েন্ট)`)}
+        {tile(num(best, "bn"), "সবচেয়ে লম্বা টানা খেলা")}
+        {tile(minBn(a ? Math.round(a.total_seconds / 60) : 0), "সাইটে মোট সময়")}
+        {tile(num(d.push.length, "bn"), "নোটিফিকেশন চালু ডিভাইস")}
+      </div>
+      {(d.teams.length > 0 || u.follow.length > 0) && <>
+        <div className="adm-h">প্রিয় দল আর লিগ</div>
+        <div className="card ap-chips">
+          {d.teams.map((t, i) => <span key={"t" + i} className="adm-tag">{t.name}</span>)}
+          {u.follow.map((c) => <span key={c} className="adm-tag ap-lg">{compLabel(c, "bn")}</span>)}
+        </div>
+      </>}
+      {d.leagues.length > 0 && <>
+        <div className="adm-h">বন্ধুদের লিগ</div>
+        <div className="card adm-list">{d.leagues.map((l) => (
+          <button key={l.id} className="adm-user ap-row" onClick={() => openLeague(l.id)}>
+            <div style={{ flex: 1, textAlign: "left" }}><b>{l.name}</b><small className="muted">কোড {l.code}{l.owner ? " · উনিই খুলেছেন" : ""}</small></div><span className="ap-go">›</span>
+          </button>))}
+        </div>
+      </>}
+      {d.days.length > 0 && <>
+        <div className="adm-h">গত ৩০ দিনে সাইটে সময় <span className="muted">{num(d.days.length, "bn")} দিন এসেছেন</span></div>
+        <div className="card adm-list">{d.days.slice(0, 14).map((x) => (
+          <div key={x.d} className="ap-bar"><span>{dayBn(x.d)}</span><i style={{ width: `${(x.min / maxM) * 100}%` }} /><b>{minBn(x.min)}</b></div>
+        ))}</div>
+        {d.pages.length > 0 && <div className="card adm-shares" style={{ marginTop: 8 }}>{d.pages.slice(0, 6).map((p) => <div key={p.k} className="ap-pg"><span>{SEC_BN[p.k] || p.k}</span><b>{minBn(p.min)}</b></div>)}</div>}
+      </>}
+      <div className="adm-h">প্রেডিকশন <span className="muted">{num(d.preds.length, "bn")}টা</span></div>
+      {!d.preds.length ? <div className="card empty">কোনো প্রেডিকশন নেই</div> : (
+        <div className="card adm-list">
+          {(showAll ? d.preds : d.preds.slice(0, 25)).map((p, i) => (
+            <div key={i} className="adm-user">
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <b>{p.m ? `${p.m.home} বনাম ${p.m.away}` : "ম্যাচ"}</b>
+                <small className="muted">প্রেডিকশন {scoreBn(p.home, p.away)} · ফল {p.m && p.m.status === "FINISHED" ? scoreBn(p.m.hs, p.m.as) : p.m?.status === "IN_PLAY" || p.m?.status === "PAUSED" ? "চলছে" : "বাকি"}{p.m ? ` · ${compLabel(p.m.code, "bn")} · ${dayBn(bdDayStr(Date.parse(p.m.utc)))}` : ""}</small>
+              </div>
+              <span className={"adm-tag" + (p.points ? "" : " ap-zero")}>{p.points == null ? "—" : `${num(p.points, "bn")} পয়েন্ট`}</span>
+            </div>
+          ))}
+        </div>
+      )}
+      {d.preds.length > 25 && !showAll && <button className="btn ghost block" style={{ marginTop: 10 }} onClick={() => setShowAll(true)}>সব প্রেডিকশন দেখুন</button>}
+      <div className="adm-h">দৈনিক চ্যালেঞ্জ <span className="muted">{num(d.plays.length, "bn")} দিন</span></div>
+      {!d.plays.length ? <div className="card empty">এখনো খেলেননি</div> : (
+        <div className="card adm-list">{d.plays.slice(0, 30).map((p) => (
+          <div key={p.day} className="adm-user">
+            <div style={{ flex: 1 }}><b>{dayBn(p.day)}</b><small className="muted">{num(p.correct ?? 0, "bn")}টা ঠিক · {p.finished_at ? `সময় লেগেছে ${durBn(Date.parse(p.finished_at) - Date.parse(p.started_at))}` : "শেষ করেননি"} · টানা {num(p.streak || 0, "bn")} দিন</small></div>
+            <span className="adm-tag">{num(p.points || 0, "bn")} পয়েন্ট</span>
+          </div>))}
+        </div>
+      )}
+      {d.rooms.length > 0 && <>
+        <div className="adm-h">লাইভ কুইজ রুম <span className="muted">{num(d.rooms.length, "bn")}টা</span></div>
+        <div className="card adm-list">{d.rooms.map((r, i) => (
+          <div key={i} className="adm-user"><div style={{ flex: 1 }}><b>রুম {r.code || "—"}</b><small className="muted">{agoBn(r.at)} · {num(r.correct, "bn")}/{num(r.n, "bn")} ঠিক</small></div></div>))}
+        </div>
+      </>}
+      {d.push.length > 0 && <>
+        <div className="adm-h">নোটিফিকেশনের ডিভাইস</div>
+        <div className="card adm-list">{d.push.map((x, i) => <div key={i} className="adm-user"><div><b>{uaShort(x.ua) || "ডিভাইস"}</b><small className="muted">{x.at ? `চালু করেছেন ${agoBn(x.at)}` : ""}</small></div></div>)}</div>
+      </>}
+    </>
+  );
+}
+function AdminLeague({ fetchQ, id, onBack, openPerson }) {
+  const [d, err] = useAdminGet(fetchQ, "league=" + encodeURIComponent(id));
+  const back = <button className="link ap-back" onClick={onBack}>← ফিরে যান</button>;
+  if (err) return <>{back}<div className="card empty">তথ্য আনা গেল না।</div></>;
+  if (!d) return <>{back}<div className="card"><div className="spin" /></div></>;
+  const L = d.league;
+  return (
+    <>
+      {back}
+      <div className="card ap-head"><div className="ap-av">{(L.name || "?").slice(0, 1)}</div>
+        <div><b>{L.name}</b><small className="muted">কোড {L.code}{L.owner ? ` · খুলেছেন ${L.owner}` : ""}{L.at ? ` · ${agoBn(L.at)}` : ""}</small><small className="muted">{num(d.rows.length, "bn")} জন সদস্য</small></div>
+      </div>
+      <div className="adm-h">লিডারবোর্ড <span className="muted">পুরো সিজন</span></div>
+      <div className="card adm-list">
+        {d.rows.map((r, i) => (
+          <button key={r.id} className="adm-user ap-row" onClick={() => openPerson(r.id)}>
+            <span className="ap-rank">{num(i + 1, "bn")}</span>
+            <div style={{ flex: 1, minWidth: 0, textAlign: "left" }}><b>{r.name}{r.owner ? " (খুলেছেন)" : ""}</b>
+              <small className="muted">{num(r.played, "bn")}টার ফল এসেছে · হুবহু {num(r.exact, "bn")} · বাকি {num(r.pending, "bn")}{r.joined ? ` · যোগ ${agoBn(r.joined)}` : ""}</small></div>
+            <span className="adm-tag">{num(r.points, "bn")} পয়েন্ট</span>
+          </button>
+        ))}
+      </div>
+    </>
+  );
+}
 function AdminApp({ user, toast, goProfile, onExit }) {
   const [d, setD] = useState(null);
   const [err, setErr] = useState("");
   const [tab, setTab] = useState(() => ls.get("adm_tab", "ov"));
   const [open, setOpen] = useState(null);
+  const [view, setView] = useState(null);   // {k: "person"|"league", id}
+  const openPerson = (id) => { if (id) { setView({ k: "person", id }); window.scrollTo(0, 0); } };
+  const openLeague = (id) => { if (id) { setView({ k: "league", id }); window.scrollTo(0, 0); } };
   const [busy, setBusy] = useState("");
   const [runOut, setRunOut] = useState({});
   const [bc, setBc] = useState({ title: "", body: "", url: "/" });
@@ -291,7 +459,7 @@ function AdminApp({ user, toast, goProfile, onExit }) {
         {d && <button className="adm-ref" onClick={load} aria-label="রিফ্রেশ">রিফ্রেশ</button>}
         <button className="adm-exit" onClick={onExit}>সাইটে ফিরুন</button>
       </header>
-      {d && <nav className="adm-tabs">{ADMIN_TABS.map(([k, l]) => <button key={k} className={tab === k ? "on" : ""} onClick={() => setTab(k)}>{l}{k === "errors" && d.errors.length > 0 ? <em>{num(d.errors.length, "bn")}</em> : null}</button>)}</nav>}
+      {d && <nav className="adm-tabs">{ADMIN_TABS.map(([k, l]) => <button key={k} className={tab === k ? "on" : ""} onClick={() => { setTab(k); setView(null); }}>{l}{k === "errors" && d.errors.length > 0 ? <em>{num(d.errors.length, "bn")}</em> : null}</button>)}</nav>}
       <main className="adm-main">{body}</main>
     </div>
   );
@@ -372,7 +540,7 @@ function AdminApp({ user, toast, goProfile, onExit }) {
         <div className="card adm-list">
           <div className="adm-ppl adm-ppl-h"><span>নাম</span><span>আজ</span><span>৭ দিন</span><span>মোট</span></div>
           {U.people.map((p, i) => (
-            <div key={i} className="adm-ppl"><span><b>{p.name}</b><small className="muted">{agoBn(p.last)} · {PLAT_BN[p.platform] || p.platform || ""}</small></span><span>{minBn(p.today)}</span><span>{minBn(p.week)}</span><span>{minBn(p.total)}</span></div>
+            <div key={i} className="adm-ppl ap-row" role="button" tabIndex={0} onClick={() => openPerson(p.id)}><span><b>{p.name}</b><small className="muted">{agoBn(p.last)} · {PLAT_BN[p.platform] || p.platform || ""}</small></span><span>{minBn(p.today)}</span><span>{minBn(p.week)}</span><span>{minBn(p.total)}</span></div>
           ))}
         </div>
       )}
@@ -398,14 +566,14 @@ function AdminApp({ user, toast, goProfile, onExit }) {
         <div className="adm-h">বন্ধুদের লিগ <span className="muted">{num(d.leagueList.length, "bn")}টা</span></div>
         <div className="card adm-list">
           {d.leagueList.map((l, i) => (
-            <div key={i} className="adm-user">
-              <div style={{ minWidth: 0 }}>
+            <button key={i} className="adm-user ap-row" onClick={() => openLeague(l.id)}>
+              <div style={{ minWidth: 0, flex: 1, textAlign: "left" }}>
                 <b>{l.name}</b>
                 <small className="muted">কোড {l.code}{l.owner ? ` · খুলেছেন ${l.owner}` : ""}{l.at ? ` · ${agoBn(l.at)}` : ""}</small>
                 {l.members.length > 0 && <small className="muted">সদস্য: {l.members.join(", ")}</small>}
               </div>
               <span className="adm-tag">{num(l.members.length, "bn")} জন</span>
-            </div>
+            </button>
           ))}
         </div>
       </>}
@@ -414,12 +582,13 @@ function AdminApp({ user, toast, goProfile, onExit }) {
       <div className="adm-h">নতুন ইউজার</div>
       <div className="card adm-list">
         {(d.recentUsers || []).map((u, i) => (
-          <div key={i} className="adm-user">
-            <div style={{ minWidth: 0 }}><b>{u.name}</b><small className="muted">যোগ দিয়েছেন {agoBn(u.at)} · শেষ লগইন {agoBn(u.last)} · {u.via === "google" ? "Google" : u.via === "email" ? "ইমেইল" : u.via}</small></div>
+          <button key={i} className="adm-user ap-row" onClick={() => openPerson(u.id)}>
+            <div style={{ minWidth: 0, flex: 1, textAlign: "left" }}><b>{u.name}</b><small className="muted">যোগ দিয়েছেন {agoBn(u.at)} · শেষ লগইন {agoBn(u.last)} · {u.via === "google" ? "Google" : u.via === "email" ? "ইমেইল" : u.via}</small></div>
             {u.push && <span className="adm-tag">নোটিফিকেশন</span>}
-          </div>
+          </button>
         ))}
       </div>
+      <AdminPeople fetchQ={fetchQ} openPerson={openPerson} />
     </>
   );
   const errors = (
@@ -549,7 +718,9 @@ function AdminApp({ user, toast, goProfile, onExit }) {
       </div>
     </>
   );
+  if (view?.k === "person") return shell(<AdminPerson key={view.id} fetchQ={fetchQ} id={view.id} onBack={() => setView(null)} openLeague={openLeague} />);
+  if (view?.k === "league") return shell(<AdminLeague key={view.id} fetchQ={fetchQ} id={view.id} onBack={() => setView(null)} openPerson={openPerson} />);
   return shell(tab === "quiz" ? <AdminQuiz fetchQ={fetchQ} /> : tab === "live" ? live : tab === "usage" ? usage : tab === "users" ? users : tab === "errors" ? errors : tab === "news" ? news : tab === "sync" ? sync : ov);
 }
 
-export { ADMIN_TABS, AdminApp, AdminQuiz, PLAT_BN, RUN_LIST, SEC_BN, SRC_BN, agoBn, bdDayStr, clockBn, dayBn, durBn, minBn, uaShort };
+export { ADMIN_TABS, AdminApp, AdminLeague, AdminPeople, AdminPerson, AdminQuiz, PLAT_BN, RUN_LIST, SEC_BN, SRC_BN, agoBn, bdDayStr, clockBn, dayBn, durBn, minBn, uaShort };
