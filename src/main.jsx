@@ -34,7 +34,12 @@ addEventListener("unhandledrejection", (e) => {
 class Guard extends React.Component {
   constructor(p) { super(p); this.state = { err: null }; }
   static getDerivedStateFromError(err) { return { err }; }
-  componentDidCatch(err, info) { report(err?.message || String(err), (err?.stack || "") + "\n" + (info?.componentStack || "").slice(0, 800), "render"); }
+  componentDidCatch(err, info) {
+    // পুরোনো সংস্করণের ফাইল না পাওয়া: নতুন সংস্করণে নিজে থেকে ফেরা (২ মিনিটে একবার)
+    if (/dynamically imported module|Importing a module script failed|ChunkLoadError|Loading chunk/i.test(String(err?.message || err))) {
+      const last = +(sessionStorage.getItem("kk_chunk_reload") || 0);
+      if (Date.now() - last > 120000) { try { sessionStorage.setItem("kk_chunk_reload", String(Date.now())); } catch { /* ignore */ } location.reload(); return; }
+    } report(err?.message || String(err), (err?.stack || "") + "\n" + (info?.componentStack || "").slice(0, 800), "render"); }
   render() {
     if (!this.state.err) return this.props.children;
     return (

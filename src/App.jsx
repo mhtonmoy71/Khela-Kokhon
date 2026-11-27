@@ -6180,7 +6180,18 @@ function useActivity(userId) {
 }
 
 // কম ব্যবহৃত বড় পাতা: প্রথম খোলায় নামে না, সেই পাতায় গেলে তখন (মূল কোড ছোট থাকে)
-const lazyPick = (load, name) => lazy(() => load().then((m) => ({ default: m[name] })));
+// পাতার আলাদা অংশ (কুইজ, প্রশ্ন, তথ্য) নামাতে না পারলে: সাধারণত পুরোনো খোলা ট্যাব, আর সার্ভারে নতুন সংস্করণ এসে পুরোনো ফাইল সরে গেছে।
+// তখন একবার নিজে থেকেই নতুন সংস্করণ নামিয়ে আনা (বারবার নয়: ২ মিনিটে একবার), এরর পর্দা না দেখিয়ে
+const CHUNK_RE = /dynamically imported module|Importing a module script failed|error loading dynamically imported|ChunkLoadError|Loading chunk/i;
+const lazyPick = (load, name) => lazy(() => load().then((m) => ({ default: m[name] })).catch((e) => {
+  const last = +(sessionStorage.getItem("kk_chunk_reload") || 0);
+  if (CHUNK_RE.test(String(e?.message || e)) && Date.now() - last > 120000) {
+    try { sessionStorage.setItem("kk_chunk_reload", String(Date.now())); } catch { /* ignore */ }
+    location.reload();
+    return new Promise(() => {});   // রিলোড হওয়া পর্যন্ত লোডিংই দেখাবে
+  }
+  throw e;
+}));
 const AskPage = lazyPick(() => import("./Ask.jsx"), "AskPage");
 const AdminApp = lazyPick(() => import("./Admin.jsx"), "AdminApp");
 const QuizPage = lazyPick(() => import("./Quiz.jsx"), "QuizPage");
