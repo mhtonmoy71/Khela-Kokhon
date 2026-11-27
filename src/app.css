@@ -712,6 +712,7 @@ button.pm { background: none; border: 0; padding: 0; cursor: pointer; font: inhe
 .ptbadge.live { border: 1px dashed #e11d48; }
 .pt-live { color: #e11d48; }
 .lb-live-note { font-size: 12px; padding: 10px 14px; border-top: 1px solid var(--line); display: flex; align-items: center; }
+.lg-find { flex: none; margin: 0 0 16px; border: 1px solid var(--line); box-shadow: 0 1px 2px rgba(0,0,0,.04); }
 .lgx-h { display: flex; align-items: center; justify-content: space-between; font-size: 13px; font-weight: 700; color: var(--muted); margin: 6px 4px 8px; }
 .lgx-card { padding: 2px 0; overflow: hidden; }
 .lgx { display: flex; align-items: center; min-height: 48px; padding: 0 10px 0 4px; }

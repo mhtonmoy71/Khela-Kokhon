@@ -2824,7 +2824,12 @@ function Leagues({ comps, toast }) {
   const rest = orderComps(comps.filter((c) => !follow.includes(c.code)), []);
   const flip = (c) => { const now = toggle(c.code); toast?.(now ? (bn ? `${compName(c, lang)} ফলো করছেন` : `Following ${compName(c, lang)}`) : (bn ? "ফলো বাদ দেওয়া হয়েছে" : "Unfollowed")); };
   const [edit, setEdit] = useState(false);
+  const [q, setQ] = useState("");
   useEffect(() => { if (!mine.length) setEdit(false); }, [mine.length]);
+  // খোঁজা: বাংলা, ইংরেজি বা চলতি নাম ("ইপিএল", "ucl")
+  const query = q.trim();
+  const found = query ? comps.map((c) => [c, nameScore(query, [c.name_bn, c.name_en, COMP_BN_FIX[c.code], c.code, ...(COMP_WORDS[c.code] || [])].filter(Boolean))])
+    .filter(([, sc]) => sc != null).sort((a, b) => a[1] - b[1]).map(([c]) => c) : null;
   const row = (c, i, followed) => (
     <div key={c.code} className="lgx">
       <button className="lgx-open" onClick={() => !edit && nav.openLeague(c.code)} disabled={edit && followed}>
@@ -2844,7 +2849,15 @@ function Leagues({ comps, toast }) {
   return (
     <div className="sec">
       <div className="sec-h"><h2 style={{ fontSize: 19 }}>{t("leagues")}</h2></div>
-      {!comps.length ? <Loading /> : (
+      <div className="search-box lg-find">
+        <SearchIcon width={18} height={18} />
+        <input value={q} onChange={(e) => { setQ(e.target.value); setEdit(false); }} placeholder={bn ? "লিগ খুঁজুন" : "Find leagues"} enterKeyHint="search" aria-label={bn ? "লিগ খুঁজুন" : "Find leagues"} />
+        {q && <button className="search-x" onClick={() => setQ("")} aria-label="clear">×</button>}
+      </div>
+      {!comps.length ? <Loading /> : found ? (
+        found.length ? <div className="card lgx-card">{found.map((c, i) => row(c, i, follow.includes(c.code)))}</div>
+          : <div className="card empty">{bn ? `"${query}" নামে কোনো লিগ পাওয়া যায়নি` : `No league matches "${query}"`}</div>
+      ) : (
         <>
           <div className="lgx-h"><span>{bn ? "আমার লিগ" : "Following"}</span>{mine.length > 0 && <button className="link" onClick={() => setEdit(!edit)}>{edit ? (bn ? "হয়ে গেছে" : "Done") : (bn ? "সাজান" : "Edit")}</button>}</div>
           {mine.length ? (
