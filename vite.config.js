@@ -44,7 +44,7 @@ export default defineConfig({
         ],
       },
       workbox: {
-        navigateFallbackDenylist: [/^\/api\//],
+        navigateFallbackDenylist: [/^\/api\//, /^\/widget\//],
         skipWaiting: true,   // নতুন সংস্করণ অপেক্ষায় না থেকে সাথে সাথে চালু
         clientsClaim: true,
         importScripts: ["/push-sw.js?v=7"],
@@ -78,7 +78,8 @@ export default defineConfig({
   build: {
     outDir: "dist", sourcemap: false,
     // React আর Supabase আলাদা ফাইলে: এগুলো কালেভদ্রে বদলায়, তাই প্রতিবার আপডেটে ফোনে আবার নামাতে হয় না
-    rollupOptions: { output: { manualChunks: (id) => (id.includes("node_modules/react") || id.includes("node_modules/scheduler") ? "react" : id.includes("node_modules/@supabase") ? "supabase" : undefined) } },
+    // পোর্টালের উইজেট আলাদা হালকা পাতা (মূল অ্যাপের কোড ছাড়া): /widget/live.html আর সাজানোর পাতা /widget/
+    rollupOptions: { input: { main: "index.html", widget: "widget/live.html", widgetConfig: "widget/index.html" }, output: { manualChunks: (id) => (id.includes("node_modules/react") || id.includes("node_modules/scheduler") ? "react" : id.includes("node_modules/@supabase") ? "supabase" : undefined) } },
   },
   // কোন সংস্করণ চলছে (হালনাগাদ যাচাইয়ের জন্য)
   define: { __BUILD__: JSON.stringify(new Date().toISOString()) },

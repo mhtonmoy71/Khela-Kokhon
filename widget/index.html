@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>লাইভ স্কোর উইজেট · খেলা কখন?</title>
+  <meta name="description" content="আপনার নিউজ পোর্টালে বাংলায় ফুটবলের লাইভ স্কোর। দুই লাইনের কোড, বাংলাদেশ সময়, প্রতি মিনিটে হালনাগাদ।" />
+  <link rel="icon" href="/favicon.ico" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Anek+Bangla:wght@700;800&family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root { --bg: #eef2f1; --card: #fff; --line: #e1e8e5; --text: #0e1a16; --muted: #5f726b; --green: #00875a; --brand: #064e3b; --mint: #7dffb8; --amber: #f59e0b; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: var(--bg); color: var(--text); font-family: 'Hind Siliguri', sans-serif; font-size: 15px; line-height: 1.6; }
+    .hero { background: var(--brand); color: #fff; padding: 44px max(16px, env(safe-area-inset-left)) 40px; }
+    .in { max-width: 1040px; margin: 0 auto; }
+    .mark { display: inline-flex; align-items: center; gap: 10px; font-family: 'Anek Bangla'; font-weight: 800; font-size: 20px; color: #fff; text-decoration: none; }
+    .mark img { width: 34px; height: 34px; border-radius: 9px; }
+    .mark b { color: var(--amber); }
+    h1 { font-family: 'Anek Bangla'; font-weight: 800; font-size: clamp(30px, 5vw, 46px); line-height: 1.15; margin: 22px 0 12px; text-wrap: balance; }
+    h1 em { font-style: normal; color: var(--mint); }
+    .hero p { max-width: 60ch; opacity: .88; font-size: 16.5px; }
+    .pts { display: flex; flex-wrap: wrap; gap: 8px 18px; margin-top: 18px; font-size: 14px; color: var(--mint); font-weight: 600; }
+    main { padding: 28px max(16px, env(safe-area-inset-left)) 48px; }
+    .grid { display: grid; grid-template-columns: 340px 1fr; gap: 20px; align-items: start; }
+    .card { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 18px; min-width: 0; }
+    h2 { font-family: 'Anek Bangla'; font-weight: 800; font-size: 22px; margin-bottom: 12px; }
+    h3 { font-size: 13px; font-weight: 700; color: var(--muted); margin: 16px 0 8px; letter-spacing: .02em; }
+    h3:first-of-type { margin-top: 0; }
+    .chips { display: flex; flex-wrap: wrap; gap: 6px; }
+    .chips label { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--line); border-radius: 999px; padding: 5px 11px; font-size: 13.5px; cursor: pointer; user-select: none; }
+    .chips input { accent-color: var(--green); }
+    .chips label:has(input:checked) { border-color: var(--green); background: #e1f5ec; }
+    .seg { display: inline-flex; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+    .seg button { border: 0; background: none; padding: 7px 14px; font: inherit; font-size: 14px; cursor: pointer; color: var(--text); }
+    .seg button.on { background: var(--green); color: #fff; }
+    .code { margin-top: 16px; }
+    pre { background: #0c1311; color: #d6f5e6; border-radius: 12px; padding: 14px; font-size: 12.5px; line-height: 1.5; overflow-x: auto; white-space: pre; }
+    .btn { margin-top: 10px; width: 100%; border: 0; border-radius: 10px; background: var(--green); color: #fff; font: inherit; font-weight: 700; padding: 10px; cursor: pointer; }
+    .btn:focus-visible, .seg button:focus-visible { outline: 3px solid var(--mint); outline-offset: 2px; }
+    .pv { background: repeating-linear-gradient(45deg, #f7faf9, #f7faf9 10px, #f1f5f4 10px, #f1f5f4 20px); border-radius: 16px; padding: 18px; }
+    .pv-h { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; color: var(--muted); font-size: 13px; }
+    .pv-box { margin: 0 auto; transition: max-width .2s; }
+    .feat { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 22px; }
+    .feat div { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px; }
+    .feat b { display: block; font-size: 15.5px; margin-bottom: 2px; }
+    .feat span { color: var(--muted); font-size: 13.5px; }
+    .tiers { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+    .tier { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 16px; }
+    .tier.hl { border: 2px solid var(--green); }
+    .tier b { font-family: 'Anek Bangla'; font-size: 19px; }
+    .tier ul { list-style: none; margin-top: 8px; display: grid; gap: 4px; font-size: 14px; color: var(--muted); }
+    .tier li::before { content: "– "; color: var(--green); }
+    .contact { margin-top: 22px; text-align: center; color: var(--muted); }
+    .contact b { color: var(--text); user-select: all; }
+    @media (max-width: 820px) { .grid { grid-template-columns: 1fr; } .feat, .tiers { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <header class="hero"><div class="in">
+    <a class="mark" href="/"><img src="/icon-192x192.png" alt="" width="34" height="34" /><span>খেলা কখন<b>?</b></span></a>
+    <h1>আপনার পোর্টালে <em>বাংলায় লাইভ স্কোর</em>,<br />দুই লাইনের কোডে</h1>
+    <p>চ্যাম্পিয়নস লিগ থেকে বাংলাদেশের মাঠ পর্যন্ত আজকের সব খেলা, বাংলাদেশ সময়ে। প্রতি মিনিটে নিজে থেকে হালনাগাদ হয়। আপনার কোনো সার্ভার বা ডেভেলপার লাগবে না।</p>
+    <div class="pts"><span>পুরো বাংলায়</span><span>প্রথম আলোর বানানে ক্লাবের নাম</span><span>মোবাইলে হালকা</span><span>লাইট আর ডার্ক</span></div>
+  </div></header>
+
+  <main><div class="in">
+    <div class="grid">
+      <div class="card">
+        <h2>সাজিয়ে নিন</h2>
+        <h3>কোন লিগ দেখাবে</h3>
+        <div class="chips" id="lg"></div>
+        <h3>থিম</h3>
+        <div class="seg" id="theme"><button class="on" data-v="light">লাইট</button><button data-v="dark">ডার্ক</button></div>
+        <h3>ভাষা</h3>
+        <div class="seg" id="lang"><button class="on" data-v="bn">বাংলা</button><button data-v="en">English</button></div>
+        <h3>প্রস্থ</h3>
+        <div class="seg" id="width"><button data-v="340px">সাইডবার</button><button class="on" data-v="100%">পুরো চওড়া</button></div>
+        <div class="code">
+          <h3>আপনার সাইটে বসানোর কোড</h3>
+          <pre id="code"></pre>
+          <button class="btn" id="copy">কোড কপি করুন</button>
+        </div>
+      </div>
+      <div class="pv">
+        <div class="pv-h"><span>লাইভ প্রিভিউ (আসল তথ্য)</span><span id="pv-w"></span></div>
+        <div class="pv-box" id="pv"></div>
+      </div>
+    </div>
+
+    <div class="feat">
+      <div><b>প্রতি মিনিটে লাইভ</b><span>গোল, মিনিট আর ফল নিজে থেকে বদলায়, পাঠকের পাতা রিফ্রেশ করতে হয় না।</span></div>
+      <div><b>বাংলাদেশ সময়ে</b><span>রাত একটা না ভোর চারটা, সময় বাংলায় লেখা থাকে।</span></div>
+      <div><b>ম্যাচে চাপলে বিস্তারিত</b><span>লাইনআপ, পরিসংখ্যান আর বাংলায় ম্যাচ রিপোর্ট খোলে খেলা কখন?-এ।</span></div>
+    </div>
+
+    <h2 style="margin-top:34px">প্যাকেজ</h2>
+    <div class="tiers">
+      <div class="tier"><b>ফ্রি</b><ul><li>লাইভ স্কোর বোর্ড</li><li>বড় পাঁচ লিগ আর বাংলাদেশ</li><li>"খেলা কখন?" লেখা থাকে</li></ul></div>
+      <div class="tier hl"><b>স্ট্যান্ডার্ড</b><ul><li>সব লিগ আর সব উইজেট</li><li>পয়েন্ট টেবিল, সূচি, একক ম্যাচ</li><li>নিজের রঙে</li></ul></div>
+      <div class="tier"><b>প্রিমিয়াম</b><ul><li>স্ট্যান্ডার্ডের সব</li><li>খেলা শেষেই বাংলা ম্যাচ রিপোর্ট</li><li>অগ্রাধিকার সাপোর্ট</li></ul></div>
+    </div>
+    <p class="contact">যোগাযোগ: <b>khelakokhon@gmail.com</b></p>
+  </div></main>
+  <script type="module" src="./config.js"></script>
+</body>
+</html>
