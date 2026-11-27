@@ -4,6 +4,7 @@ import { createClient } from "@supabase/supabase-js";
 import { matchReport } from "./report.js";
 import { clubBn } from "./clubsBn.js";
 import { FAQ } from "./faq.js";
+import Penalty from "./Penalty.jsx";
 import { PLAYER_BN, AF_FULL_EN, AF_NAME_BN, BD_PLAYERS_BN, trName, asciiLow, bnPlayer } from "./playersBn.js";
 
 // ════════════════ স্টাইল ════════════════
@@ -908,10 +909,31 @@ button.pm { background: none; border: 0; padding: 0; cursor: pointer; font: inhe
 .ms-cd { text-align: center; font-size: 12.5px; color: var(--muted); padding-bottom: 4px; }
 .ms-row { width: 100%; display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; font-size: 14.5px; font-weight: 600; text-align: left; }
 .pick .pred-box { padding: 14px 8px 4px; }
-.game-sw { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 14px; }
+.game-sw { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 14px; }
 .game-sw button { display: flex; align-items: center; justify-content: center; gap: 7px; height: 46px; border-radius: 14px; background: var(--card); border: 1.5px solid var(--line); font-weight: 700; font-size: 14.5px; color: var(--muted); }
 .game-sw button.on { border-color: var(--green); background: var(--greenDim); color: var(--green); }
 .game-sw button svg { flex: none; }
+.pen { padding: 12px; overflow: hidden; }
+.pen-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+.pen-dots { display: flex; gap: 7px; }
+.pen-dots i { width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--line); }
+.pen-dots i.g { background: var(--green); border-color: var(--green); }
+.pen-dots i.x { background: var(--red); border-color: var(--red); }
+.pen-dots i.now { border-color: var(--green); }
+.pen-score b { font-size: 22px; font-weight: 800; } .pen-score span { color: var(--muted); font-weight: 700; }
+.pen-field { display: block; width: 100%; height: auto; border-radius: 14px; touch-action: manipulation; user-select: none; -webkit-user-select: none; }
+.pen-field.aiming { cursor: crosshair; }
+.pen-aim circle { fill: none; stroke: #fff; stroke-width: 2.5; } .pen-aim path { stroke: rgba(255,255,255,.85); stroke-width: 2; }
+.pen-msg { font: 800 40px 'Hind Siliguri', sans-serif; fill: #fff; paint-order: stroke; stroke: rgba(0,0,0,.35); stroke-width: 6px; animation: penPop .35s cubic-bezier(.2,1.4,.4,1); transform-box: fill-box; transform-origin: center; }
+.pen-msg.goal { fill: #7dffb8; } .pen-msg.post, .pen-msg.miss { font-size: 30px; }
+@keyframes penPop { from { transform: scale(.4); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+.pen-meter { position: relative; height: 34px; margin-top: 12px; border-radius: 999px; background: linear-gradient(90deg, var(--red), var(--amber) 30%, var(--green) 45%, var(--green) 55%, var(--amber) 70%, var(--red)); opacity: .35; transition: opacity .2s; cursor: pointer; touch-action: manipulation; }
+.pen-meter.on { opacity: 1; }
+.pen-meter i { position: absolute; top: -5px; width: 6px; height: 44px; margin-left: -3px; border-radius: 3px; background: var(--text); box-shadow: 0 0 0 2px var(--card); }
+.pen-hint { text-align: center; font-size: 13.5px; margin-top: 8px; }
+.pen-end { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 14px 0 4px; text-align: center; }
+.pen-end b { font-size: 20px; } .pen-end .btn { margin-top: 10px; min-width: 180px; }
+@media (prefers-reduced-motion: reduce) { .pen-msg { animation: none; } }
 @keyframes qzIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
 @keyframes qzPop { 0% { opacity: 0; transform: scale(.6); } 60% { opacity: 1; transform: scale(1.08); } 100% { transform: scale(1); } }
 @keyframes qzShake { 0%, 100% { transform: none; } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
@@ -5096,7 +5118,8 @@ function GameSwitch({ on }) {
   return (
     <div className="game-sw">
       <button className={on === "predict" ? "on" : ""} onClick={() => on !== "predict" && nav.go("predict")}><TargetIcon width={18} height={18} />{bn ? "প্রেডিকশন" : "Predict"}</button>
-      <button className={on === "quiz" ? "on" : ""} onClick={() => on !== "quiz" && nav.openQuizArea()}><QuizIcon width={18} height={18} />{bn ? "স্পোর্টস কুইজ" : "Sports quiz"}</button>
+      <button className={on === "quiz" ? "on" : ""} onClick={() => on !== "quiz" && nav.openQuizArea()}><QuizIcon width={18} height={18} />{bn ? "কুইজ" : "Quiz"}</button>
+      <button className={on === "penalty" ? "on" : ""} onClick={() => on !== "penalty" && nav.openPenalty()}><BallIcon width={18} height={18} />{bn ? "পেনাল্টি" : "Penalty"}</button>
     </div>
   );
 }
@@ -9296,6 +9319,7 @@ const viewFromPath = () => {
   if (kind === "daily" && !id) return { kind: "daily" };
   if (PAGE_PATHS[kind] && !id) return { kind: "page", id: PAGE_PATHS[kind] };
   if (kind === "admin" && !id) return { kind: "admin" };
+  if (kind === "games" && id === "penalty") return { kind: "penalty" };
   return null;
 };
 // পাতার আসল ঠিকানা (পুরনো লিংক খুললে ঠিকানার ঘরে এটা বসে যায়)
@@ -9472,8 +9496,9 @@ export default function App() {
     openSearch: () => { setSheet(null); setSearching(true); },
     openDaily: () => { setTab("predict"); openView("/quiz/daily", { kind: "daily" }); },
     // গেম ট্যাব: শেষবার যেখানে ছিলেন সেখানে (প্রথমবার প্রেডিকশন)
-    openGames: () => { const g = ls.get("game_last", "predict"); if (g === "daily") nav.openDaily(); else if (g === "quiz") nav.openQuiz(); else go("predict"); },
+    openGames: () => { const g = ls.get("game_last", "predict"); if (g === "daily") nav.openDaily(); else if (g === "quiz") nav.openQuiz(); else if (g === "penalty") nav.openPenalty(); else go("predict"); },
     // স্পোর্টস কুইজ বোতাম: কুইজের ভেতরের শেষ ভাগে (প্রথমবার দৈনিক চ্যালেঞ্জ)
+    openPenalty: () => { setTab("predict"); openView("/games/penalty", { kind: "penalty" }); },
     openQuizArea: () => (ls.get("quiz_last", "daily") === "quiz" ? nav.openQuiz() : nav.openDaily()),
     openQuiz: (code, replace) => {
       setTab("predict");
@@ -9485,7 +9510,7 @@ export default function App() {
   };
 
   useEffect(() => {
-    const g = view?.kind === "daily" ? "daily" : view?.kind === "quiz" ? "quiz" : !view && tab === "predict" ? "predict" : null;
+    const g = view?.kind === "daily" ? "daily" : view?.kind === "quiz" ? "quiz" : view?.kind === "penalty" ? "penalty" : !view && tab === "predict" ? "predict" : null;
     if (g) ls.set("game_last", g);
     if (g === "daily" || g === "quiz") ls.set("quiz_last", g);
   }, [view?.kind, tab]);
@@ -9647,6 +9672,8 @@ export default function App() {
           <InfoPage key={view.id} id={view.id} user={user} goProfile={() => go("profile")} />
         ) : view?.kind === "daily" ? (
           <DailyPage user={user} goProfile={() => go("profile")} toast={toast} />
+        ) : view?.kind === "penalty" ? (
+          <Penalty lang={lang} head={<GameSwitch on="penalty" />} />
         ) : view?.kind === "quiz" ? (
           <QuizPage code={view.code} user={user} goProfile={() => go("profile")} toast={toast} />
         ) : view?.kind === "player" ? (
