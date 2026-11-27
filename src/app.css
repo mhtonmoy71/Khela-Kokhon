@@ -312,6 +312,9 @@ img { display: block; }
 .guide-tips p::before { content: ""; position: absolute; left: 0; top: .65em; width: 5px; height: 5px; border-radius: 50%; background: var(--amber); }
 .guide-cta { margin-top: 12px; }
 .ask-follow .chip { font-size: 12.5px; padding: 6px 11px; }
+.ask-snd { margin-left: auto; width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; background: none; border: 1px solid var(--line); color: var(--muted); padding: 0; flex: none; }
+.ask-snd[aria-pressed="true"] { color: var(--text); }
+.ask-snd + .ask-new { margin-left: 8px; }
 .ask-new { margin-left: auto; font-size: 12.5px; font-weight: 600; color: var(--green); }
 .ask-mic { width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; color: var(--muted); background: var(--card2); flex: none; }
 .ask-mic.on { color: #fff; background: var(--red); animation: dotBlink .8s ease-in-out infinite alternate; }
