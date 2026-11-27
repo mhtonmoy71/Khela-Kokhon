@@ -1355,7 +1355,7 @@ button.scr { width: 100%; }
 .fv-bar { display: flex; height: 5px; border-radius: 999px; overflow: hidden; margin-top: 8px; background: var(--card2); gap: 2px; }
 .fv-bar span { height: 100%; transition: width .8s cubic-bezier(.2, .8, .2, 1); }
 .fv-bar .k0 { background: var(--green); } .fv-bar .k1 { background: #8b97a6; } .fv-bar .k2 { background: var(--amber); }
-.fv-bar.empty span { opacity: .18; }
+.fv-bar.novote span { opacity: .18; }
 .fv-verdict { margin-top: 8px; font-size: 12px; font-weight: 600; text-align: center; padding: 5px 8px; border-radius: 8px; background: color-mix(in srgb, var(--amber) 14%, transparent); }
 .fv-verdict.ok { background: var(--greenDim); color: var(--green); }
 
@@ -1536,3 +1536,9 @@ button.scr { width: 100%; }
 .push-ask h3 { font-size: 19px; line-height: 1.35; margin-bottom: 6px; }
 .push-ask p { font-size: 14px; line-height: 1.6; margin-bottom: 16px; }
 .push-ask .btn + .btn { margin-top: 8px; }
+.fol-ph { background: linear-gradient(90deg, var(--card) 30%, var(--card2) 50%, var(--card) 70%); background-size: 300% 100%; animation: phShine 1.2s linear infinite; }
+@keyframes phShine { from { background-position: 100% 0; } to { background-position: 0 0; } }
+/* পাতার তথ্য লোড হওয়ার সময় ফুটার ওপরে উঠে এসে আবার নামে না: লোডিং চলাকালে ফুটার লুকানো */
+body:has(.main .card > .spin:only-child) .foot { visibility: hidden; }
+body:has(.main .card > .spin:only-child) .main { min-height: 75vh; }
+.dl-marks.still span { animation: none; }
