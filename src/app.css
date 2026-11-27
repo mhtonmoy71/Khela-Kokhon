@@ -62,7 +62,7 @@ img { display: block; }
 .side span { overflow: hidden; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; white-space: normal; line-height: 1.2; overflow-wrap: normal; word-break: normal; hyphens: none; }
 /* প্রিয় দলের ★ লোগোর কোণে, নামের জায়গা না নিয়ে */
 .side .crw { position: relative; display: inline-flex; flex: none; overflow: visible; -webkit-line-clamp: none; }
-.fav-pin { position: absolute; top: -6px; right: -6px; font-style: normal; font-size: 11px; line-height: 1; color: var(--amber); text-shadow: 0 0 2px var(--card), 0 0 2px var(--card); }
+.fav-pin { position: absolute; top: -6px; right: -6px; font-style: normal; font-size: 11px; line-height: 1; color: var(--text); text-shadow: 0 0 2px var(--card), 0 0 2px var(--card); }
 .side.win span { font-weight: 700; }
 .side span.lw { font-size: 12.5px; letter-spacing: -0.2px; overflow-wrap: anywhere; }
 .mid { text-align: center; line-height: 1.15; }
@@ -173,7 +173,7 @@ img { display: block; }
 .team-pick.fav { border-color: var(--green); background: var(--greenDim); }
 .team-pick.rival { border-color: var(--red); background: color-mix(in srgb, var(--red) 10%, transparent); }
 .team-pick:disabled { opacity: .35; }
-.team-pick .mark { position: absolute; top: 6px; right: 7px; font-size: 13px; }
+.team-pick .mark { position: absolute; top: 6px; right: 7px; font-size: 13px; color: var(--text); }
 .lg-h { font-size: 13px; font-weight: 700; color: var(--muted); margin: 16px 0 8px; display: flex; align-items: center; gap: 7px; }
 .lg-h img { background: #fff; border-radius: 4px; padding: 1px; }
 .sticky-foot { position: sticky; bottom: 0; background: var(--bg); padding: 12px 0 4px; display: flex; gap: 8px; }
@@ -757,8 +757,8 @@ button.pm { background: none; border: 0; padding: 0; cursor: pointer; font: inhe
 .btn.danger { background: #dc2626; color: #fff; }
 .btn.danger:disabled { opacity: .45; }
 .fav-btn { display: inline-flex; align-items: center; gap: 7px; margin-top: 10px; height: 36px; padding: 0 16px; border-radius: 18px; border: 1.5px solid var(--line); background: var(--card); font-weight: 700; font-size: 13.5px; color: var(--text); }
-.fav-btn span { color: var(--amber); font-size: 17px; }
-.fav-btn.on { border-color: var(--amber); background: rgba(245,158,11,.12); }
+.fav-btn span { color: var(--text); font-size: 17px; }
+.fav-btn.on { border-color: var(--text); background: var(--card); }
 .team-pos { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; margin-top: 8px; }
 .stat-row { display: grid; grid-template-columns: repeat(6, 1fr); padding: 12px 6px; text-align: center; }
 .stat-row b { display: block; font-size: 16px; }
@@ -828,7 +828,7 @@ button.pm { background: none; border: 0; padding: 0; cursor: pointer; font: inhe
 /* অতিথির জন্য সরু লাইন */
 .slim { width: 100%; display: flex; align-items: center; gap: 10px; padding: 12px 14px; border-radius: 14px; background: var(--card); border: 1px dashed color-mix(in srgb, var(--green) 45%, transparent); font-size: 14px; text-align: left; }
 .slim span:nth-child(2) { flex: 1; }
-.slim-star { color: var(--amber); font-size: 16px; }
+.slim-star { color: var(--text); font-size: 16px; }
 /* লিগ — ছোট গোল আইকন */
 .league-strip { gap: 14px; }
 .league-tile { width: 64px; padding: 0; background: none; border: 0; gap: 6px; font-size: 11px; font-weight: 500; color: var(--muted); }
@@ -855,7 +855,7 @@ button.pm { background: none; border: 0; padding: 0; cursor: pointer; font: inhe
 .league-tile img { object-fit: contain; padding: 10px; }
 
 /* ── প্রিয় দলের চিহ্ন ── */
-.fav-star { font-style: normal; color: var(--amber); font-size: .9em; margin-right: 4px; }
+.fav-star { font-style: normal; color: var(--text); font-size: .9em; margin-right: 4px; }
 .fav-star.r { margin: 0 0 0 4px; }
 .row.my { background: color-mix(in srgb, var(--amber) 6%, transparent); }
 .my-h { display: flex; align-items: center; gap: 6px; }
