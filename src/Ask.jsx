@@ -60,6 +60,38 @@ function AskTable({ t, lang }) {
   );
 }
 
+// উত্তর এলে হালকা টুং শব্দ (কোনো অডিও ফাইল ছাড়া, ব্রাউজারেই তৈরি)। প্রশ্ন পাঠানোর চাপেই শব্দ চালু হয়, তাই ফোনে আটকায় না
+let audioCtx = null;
+const wakeAudio = () => {
+  try {
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return;
+    audioCtx ||= new AC();
+    if (audioCtx.state === "suspended") audioCtx.resume();
+  } catch { /* শব্দ না হলেও চলবে */ }
+};
+const chime = () => {
+  try {
+    if (!audioCtx || document.visibilityState !== "visible") return;
+    const t0 = audioCtx.currentTime + 0.01;
+    [[784, 0], [1175, 0.09]].forEach(([f, d]) => {
+      const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+      o.type = "sine"; o.frequency.value = f;
+      g.gain.setValueAtTime(0.0001, t0 + d);
+      g.gain.exponentialRampToValueAtTime(0.08, t0 + d + 0.015);
+      g.gain.exponentialRampToValueAtTime(0.0001, t0 + d + 0.22);
+      o.connect(g); g.connect(audioCtx.destination);
+      o.start(t0 + d); o.stop(t0 + d + 0.25);
+    });
+  } catch { /* ignore */ }
+};
+const SoundIcon = ({ on }) => (
+  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <path d="M11 5 6 9H3v6h3l5 4z" />
+    {on ? <><path d="M15.5 8.5a5 5 0 0 1 0 7" /><path d="M18.5 5.5a9 9 0 0 1 0 13" /></> : <path d="m16 9 5 6m0-6-5 6" />}
+  </svg>
+);
+
 function AskPage({ teams, preds, onOpen, chat, setChat }) {
   const { lang } = useT();
   const nav = useNav();
@@ -67,6 +99,8 @@ function AskPage({ teams, preds, onOpen, chat, setChat }) {
   const [q, setQ] = useState("");
   const [busy, setBusy] = useState(false);
   const [listening, setListening] = useState(false);
+  const [sound, setSound] = useState(() => { try { return localStorage.getItem("kk_ask_sound") !== "0"; } catch { return true; } });
+  const flipSound = () => { const n = !sound; setSound(n); try { localStorage.setItem("kk_ask_sound", n ? "1" : "0"); } catch { /* ignore */ } if (n) { wakeAudio(); chime(); } };
   const recRef = useRef(null);
   // আগের প্রশ্নের দল বা লিগ মনে রাখা
   const ctx = [...chat].reverse().find((m) => m.ctx && (m.ctx.ids?.length || m.ctx.comp))?.ctx || {};
@@ -96,10 +130,12 @@ function AskPage({ teams, preds, onOpen, chat, setChat }) {
     const t = text.trim();
     if (!t || busy) return;
     setQ(""); setBusy(true);
+    if (sound) wakeAudio();
     setChat((c) => [...c, { me: t }]);
     try {
       const a = await answer(t, teams, lang, ctx, favIds);
       setChat((c) => [...c, a || { text: "…", matches: [] }]);
+      if (sound) chime();
     } catch {
       setChat((c) => [...c, { text: lang === "bn" ? "দুঃখিত, এখন উত্তর আনা যাচ্ছে না। একটু পরে চেষ্টা করুন।" : "Sorry, couldn't fetch that right now.", matches: [] }]);
     }
@@ -109,6 +145,7 @@ function AskPage({ teams, preds, onOpen, chat, setChat }) {
   return (
     <div className="ask-page">
         <div className="ask-head"><span className="ask-orb sm"><SparkIcon /></span>{lang === "bn" ? "খেলা কখন? জিজ্ঞেস করুন" : "Ask Khela Kokhon"}
+          <button className="ask-snd" onClick={flipSound} aria-pressed={sound} aria-label={sound ? (lang === "bn" ? "উত্তরের শব্দ বন্ধ করুন" : "Mute reply sound") : (lang === "bn" ? "উত্তরের শব্দ চালু করুন" : "Unmute reply sound")} title={sound ? (lang === "bn" ? "শব্দ চালু" : "Sound on") : (lang === "bn" ? "শব্দ বন্ধ" : "Sound off")}><SoundIcon on={sound} /></button>
           {chat.length > 0 && <button className="ask-new" onClick={() => setChat([])}>{lang === "bn" ? "নতুন করে" : "New chat"}</button>}
         </div>
         <div className="ask-body">
