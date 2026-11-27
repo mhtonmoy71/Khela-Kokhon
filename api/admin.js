@@ -175,6 +175,21 @@ export default async function handler(req, res) {
     const pushSet = new Set(subs.map((x) => x.user_id));
     const recentUsers = recent.map((u) => ({ name: profs.find((p) => p.id === u.id)?.display_name || u.user_metadata?.full_name || u.user_metadata?.name || "নাম নেই",
       at: u.created_at, last: u.last_sign_in_at, via: u.app_metadata?.provider || "email", push: pushSet.has(u.id) }));
+    // বন্ধুদের লিগ: নাম, কোড, কে খুলেছেন, কতজন সদস্য (টেবিলের কলামের নাম ধরে না নিয়ে যা আছে তা থেকে)
+    const leagueList = async () => {
+      const ls = await get("pleagues?select=*&limit=200");
+      if (!Array.isArray(ls) || !ls.length) return [];
+      const mem = await get("pleague_members?select=league_id,user_id&limit=20000");
+      const members = Array.isArray(mem) ? mem : [];
+      const ownerOf = (l) => l.owner || l.owner_id || l.created_by || l.user_id || null;
+      const ids = [...new Set([...ls.map(ownerOf), ...members.map((m) => m.user_id)].filter(Boolean))];
+      const names = ids.length ? await get(`profiles?select=id,display_name&id=in.(${ids.join(",")})`) : [];
+      const nm = (id) => (Array.isArray(names) && names.find((x) => x.id === id)?.display_name) || (au.find((u) => u.id === id)?.user_metadata?.full_name) || "নাম নেই";
+      return ls.map((l) => {
+        const ms = members.filter((m) => String(m.league_id) === String(l.id));
+        return { name: l.name, code: l.code, at: l.created_at || null, owner: ownerOf(l) ? nm(ownerOf(l)) : null, members: ms.map((m) => nm(m.user_id)) };
+      }).sort((a, b) => (Date.parse(b.at || 0) || 0) - (Date.parse(a.at || 0) || 0));
+    };
     let af = null;
     try {
       const r = await fetch("https://v3.football.api-sports.io/status", { headers: { "x-apisports-key": process.env.APIF_KEY } }).then((x) => x.json());
@@ -191,6 +206,7 @@ export default async function handler(req, res) {
       live: lastLive[0] ? { at: lastLive[0].updated_at } : null,
       lastLiveError: lastErr[0] || null,
       errors, daily, recentUsers,
+      leagueList: await leagueList().catch(() => null),
       usage: await usageStats(now).catch(() => null),
       manual: await manualList().catch(() => null),
     });

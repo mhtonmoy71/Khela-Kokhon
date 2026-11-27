@@ -394,6 +394,21 @@ function AdminApp({ user, toast, goProfile, onExit }) {
         {tile(num(d.pushUsers ?? 0, "bn"), `নোটিফিকেশন চালু (${num(d.pushDevices ?? 0, "bn")} ডিভাইস)`)}
         {tile(num(d.leagues ?? 0, "bn"), "বন্ধুদের লিগ")}
       </div>
+      {d.leagueList?.length > 0 && <>
+        <div className="adm-h">বন্ধুদের লিগ <span className="muted">{num(d.leagueList.length, "bn")}টা</span></div>
+        <div className="card adm-list">
+          {d.leagueList.map((l, i) => (
+            <div key={i} className="adm-user">
+              <div style={{ minWidth: 0 }}>
+                <b>{l.name}</b>
+                <small className="muted">কোড {l.code}{l.owner ? ` · খুলেছেন ${l.owner}` : ""}{l.at ? ` · ${agoBn(l.at)}` : ""}</small>
+                {l.members.length > 0 && <small className="muted">সদস্য: {l.members.join(", ")}</small>}
+              </div>
+              <span className="adm-tag">{num(l.members.length, "bn")} জন</span>
+            </div>
+          ))}
+        </div>
+      </>}
       <div className="adm-h">গত ৭ দিন: নতুন ইউজার</div>
       <div className="card adm-chart">{bars("users", maxU, "u")}</div>
       <div className="adm-h">নতুন ইউজার</div>
