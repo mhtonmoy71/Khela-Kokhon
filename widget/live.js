@@ -105,3 +105,6 @@ setInterval(() => { if (!document.hidden) tick(); }, 60000);
 document.addEventListener("visibilitychange", () => { if (!document.hidden) tick(); });
 addEventListener("resize", sendH);
 addEventListener("load", sendH);
+// ফন্ট বা লোগো লোড হয়ে আকার বদলালেও উচ্চতা আবার জানানো
+try { new ResizeObserver(sendH).observe(document.getElementById("w")); } catch { /* পুরনো ব্রাউজারে load-এর মাপই */ }
+document.fonts?.ready.then(sendH);
