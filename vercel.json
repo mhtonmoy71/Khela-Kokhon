@@ -43,7 +43,7 @@
       "destination": "/api/page?t=:id"
     },
     {
-      "source": "/((?!api/|\\.well-known/).*)",
+      "source": "/((?!api/|\\.well-known/|widget/).*)",
       "destination": "/index.html"
     }
   ],
