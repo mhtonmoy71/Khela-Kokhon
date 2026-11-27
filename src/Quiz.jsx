@@ -1,6 +1,6 @@
 // Quiz.jsx: App.jsx থেকে আলাদা (দরকার হলে তখনই নামে)
 import { useEffect, useRef, useState } from "react";
-import { BN_MONTHS, BadgeGrid, BadgeIcon, CARD_FONT, CARD_W, CalIcon, DAILY_Q, DEMO, DEMO_QUIZ_Q, EN_MONTHS, FlameIcon, GameSwitch, LevelBadges, LevelIcon, Loading, PlayIcon, QuizIcon, RankBadge, ReplayIcon, ShareIcon, TargetIcon, TrophyIcon, UserAvatar, UserIcon, UsersIcon, W, answer, badgeOf, clockLogo, countdown, dailyCall, dayLabel, has, ls, lvParse, lvTier, num, ok, ord, rpc, sb, useBackClose, useDaily, useDailyProgress, useNav, useT, useWide } from "./App.jsx";
+import { BN_MONTHS, BadgeGrid, BadgeIcon, CARD_FONT, CARD_W, CalIcon, DAILY_Q, DAILY_SEC, DEMO, DEMO_QUIZ_Q, EN_MONTHS, FlameIcon, GameSwitch, LevelBadges, LevelIcon, Loading, PlayIcon, QuizIcon, RankBadge, ReplayIcon, ShareIcon, TargetIcon, TrophyIcon, UserAvatar, UserIcon, UsersIcon, W, answer, badgeOf, clockLogo, countdown, dailyCall, dayLabel, has, ls, lvParse, lvTier, num, ok, ord, rpc, sb, useBackClose, useDaily, useDailyProgress, useNav, useT, useWide } from "./App.jsx";
 
 // ════════════════ স্পোর্টস কুইজ (লাইভ) ════════════════
 // খেলার সব নিয়ম ডেটাবেসের ফাংশনে (supabase/quiz.sql); এখানে শুধু দেখানো আর প্রতি সেকেন্ডে অবস্থা জানা
