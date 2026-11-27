@@ -4,7 +4,6 @@ import { createClient } from "@supabase/supabase-js";
 import { matchReport } from "./report.js";
 import { clubBn } from "./clubsBn.js";
 import { FAQ } from "./faq.js";
-import Penalty from "./Penalty.jsx";
 import { PLAYER_BN, AF_FULL_EN, AF_NAME_BN, BD_PLAYERS_BN, trName, asciiLow, bnPlayer } from "./playersBn.js";
 
 // ════════════════ স্টাইল ════════════════
@@ -909,66 +908,10 @@ button.pm { background: none; border: 0; padding: 0; cursor: pointer; font: inhe
 .ms-cd { text-align: center; font-size: 12.5px; color: var(--muted); padding-bottom: 4px; }
 .ms-row { width: 100%; display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; font-size: 14.5px; font-weight: 600; text-align: left; }
 .pick .pred-box { padding: 14px 8px 4px; }
-.game-sw { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 14px; }
+.game-sw { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 14px; }
 .game-sw button { display: flex; align-items: center; justify-content: center; gap: 7px; height: 46px; border-radius: 14px; background: var(--card); border: 1.5px solid var(--line); font-weight: 700; font-size: 14.5px; color: var(--muted); }
 .game-sw button.on { border-color: var(--green); background: var(--greenDim); color: var(--green); }
 .game-sw button svg { flex: none; }
-.pen2 { padding: 12px; overflow: hidden; }
-.pen2.k0 .pen-stage { animation: penShake0 .45s; } .pen2.k1 .pen-stage { animation: penShake1 .45s; }
-@keyframes penShake0 { 20% { transform: translate(-4px, 2px); } 40% { transform: translate(4px, -2px); } 60% { transform: translate(-3px, 1px); } 80% { transform: translate(2px, 0); } }
-@keyframes penShake1 { 20% { transform: translate(4px, 2px); } 40% { transform: translate(-4px, -2px); } 60% { transform: translate(3px, 1px); } 80% { transform: translate(-2px, 0); } }
-.pen-top { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
-.pen-dots { display: flex; gap: 7px; }
-.pen-dots i { width: 15px; height: 15px; border-radius: 50%; border: 2px solid var(--line); transition: all .25s; }
-.pen-dots i.g { background: var(--green); border-color: var(--green); box-shadow: 0 0 0 3px var(--greenDim); }
-.pen-dots i.x { background: var(--red); border-color: var(--red); }
-.pen-dots i.now { border-color: var(--green); animation: penNow 1s infinite; }
-@keyframes penNow { 50% { transform: scale(1.25); } }
-.pen-streak { font-size: 12px; font-weight: 800; color: #fff; background: linear-gradient(90deg, #f97316, #e11d48); padding: 2px 9px; border-radius: 999px; animation: penPop .3s; }
-.pen-right { margin-left: auto; display: flex; align-items: center; gap: 8px; }
-.pen-score b { font-size: 22px; font-weight: 800; } .pen-score span { color: var(--muted); font-weight: 700; }
-.pen-mute { width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; background: var(--card2); color: var(--text); border: 1px solid var(--line); }
-.pen-stage { position: relative; border-radius: 16px; overflow: hidden; background: #07111f; }
-.pen-field { display: block; width: 100%; height: auto; touch-action: manipulation; user-select: none; -webkit-user-select: none; }
-.pen-field.aiming { cursor: crosshair; }
-.pen-ad { font: 800 9.5px 'Hind Siliguri', Inter, sans-serif; fill: #7dffb8; letter-spacing: .5px; }
-.pen-num { font: 800 13px 'Hind Siliguri', sans-serif; fill: #7c2d12; }
-.pen-flash { opacity: 0; animation: penFlash 4.2s infinite; }
-@keyframes penFlash { 0%, 92%, 100% { opacity: 0; } 94% { opacity: 1; } }
-.pen-crowd { transition: transform .2s; } .pen-crowd.jump { animation: penJump .35s 4 alternate; }
-@keyframes penJump { to { transform: translateY(-4px); } }
-.pen-gk.idle { animation: penIdle 1.1s ease-in-out infinite alternate; }
-@keyframes penIdle { from { transform: translateX(-5px) rotate(-2deg); } to { transform: translateX(5px) rotate(2deg); } }
-.pen-net { transition: transform .2s; } .pen-net.bulge { animation: penBulge .6s ease-out; }
-@keyframes penBulge { 30% { transform: scale(1.06, 1.04); } 100% { transform: scale(1); } }
-.pen-spin { animation: penSpin .55s linear; } @keyframes penSpin { to { transform: rotate(900deg); } }
-.pen-trail { fill: none; stroke: rgba(255,255,255,.55); stroke-width: 3; stroke-linecap: round; stroke-dasharray: 6 7; animation: penTrail .55s ease-out forwards; }
-@keyframes penTrail { from { opacity: .9; } to { opacity: 0; } }
-.pen-aim circle:first-child { fill: none; stroke: #fff; stroke-width: 2.5; animation: penAim 1s infinite; transform-box: fill-box; transform-origin: center; } .pen-aim path { stroke: #fff; stroke-width: 2.5; stroke-linecap: round; }
-@keyframes penAim { 50% { transform: scale(.85); } }
-.pen-banner { animation: penPop .38s cubic-bezier(.2,1.5,.4,1); transform-box: fill-box; transform-origin: center; }
-.pen-msg { font: 800 38px 'Anek Bangla', 'Hind Siliguri', sans-serif; fill: #fff; paint-order: stroke; stroke: rgba(0,0,0,.5); stroke-width: 7px; }
-.pen-banner.goal .pen-msg { fill: #7dffb8; font-size: 46px; } .pen-banner.post .pen-msg { font-size: 30px; } .pen-banner.save .pen-msg { fill: #fbbf24; }
-.pen-tim { font: 700 14px 'Hind Siliguri', sans-serif; fill: rgba(255,255,255,.9); paint-order: stroke; stroke: rgba(0,0,0,.5); stroke-width: 4px; }
-@keyframes penPop { from { transform: scale(.3); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-.pen-confetti { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
-.pen-confetti i { position: absolute; top: -12px; width: 7px; height: 12px; border-radius: 2px; animation: penFall 1.6s cubic-bezier(.3,.6,.5,1) forwards; }
-@keyframes penFall { to { top: 105%; transform: rotate(540deg) translateX(30px); opacity: .9; } }
-.pen-intro { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; text-align: center; color: #fff;
-  background: radial-gradient(70% 60% at 50% 45%, rgba(6,78,59,.85), rgba(4,20,16,.92)); backdrop-filter: blur(2px); padding: 20px; animation: penFade .3s; }
-.pen-intro b { font-family: 'Anek Bangla', 'Hind Siliguri', sans-serif; font-size: 30px; line-height: 1.15; }
-.pen-intro span { font-size: 15px; color: #b9f5d6; } .pen-intro small { font-size: 13px; color: rgba(255,255,255,.75); }
-.pen-intro .btn { margin-top: 10px; min-width: 190px; height: 48px; font-size: 17px; box-shadow: 0 8px 24px rgba(0,230,118,.35); }
-.pen-intro .pen-big { font: 800 64px/1 'Anek Bangla', sans-serif; color: #7dffb8; } .pen-intro .pen-big small { font-size: 26px; color: rgba(255,255,255,.7); }
-.pen-intro .pen-sound { margin-top: 2px; }
-@keyframes penFade { from { opacity: 0; } }
-.pen-meter2 { position: relative; height: 40px; margin-top: 12px; border-radius: 999px; background: var(--card2); border: 1px solid var(--line); cursor: pointer; touch-action: manipulation; opacity: .45; transition: opacity .2s; overflow: hidden; }
-.pen-meter2.on { opacity: 1; box-shadow: 0 0 0 3px var(--greenDim); }
-.pen-track { position: absolute; inset: 6px; border-radius: 999px; background: linear-gradient(90deg, #e11d48, #f59e0b 30%, #00e676 44%, #00e676 56%, #f59e0b 70%, #e11d48); }
-.pen-sweet { position: absolute; top: 3px; bottom: 3px; left: 44%; width: 12%; border: 2px solid #fff; border-radius: 999px; box-shadow: 0 0 10px rgba(255,255,255,.6); }
-.pen-meter2 i { position: absolute; top: 2px; bottom: 2px; width: 7px; margin-left: -3.5px; border-radius: 4px; background: #0f172a; box-shadow: 0 0 0 2px #fff, 0 2px 6px rgba(0,0,0,.4); }
-.pen-hint { text-align: center; font-size: 13.5px; margin-top: 8px; }
-@media (prefers-reduced-motion: reduce) { .pen-gk.idle, .pen-flash, .pen-spin, .pen-confetti i, .pen2 .pen-stage { animation: none !important; } }
 @keyframes qzIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
 @keyframes qzPop { 0% { opacity: 0; transform: scale(.6); } 60% { opacity: 1; transform: scale(1.08); } 100% { transform: scale(1); } }
 @keyframes qzShake { 0%, 100% { transform: none; } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
@@ -5153,8 +5096,7 @@ function GameSwitch({ on }) {
   return (
     <div className="game-sw">
       <button className={on === "predict" ? "on" : ""} onClick={() => on !== "predict" && nav.go("predict")}><TargetIcon width={18} height={18} />{bn ? "প্রেডিকশন" : "Predict"}</button>
-      <button className={on === "quiz" ? "on" : ""} onClick={() => on !== "quiz" && nav.openQuizArea()}><QuizIcon width={18} height={18} />{bn ? "কুইজ" : "Quiz"}</button>
-      <button className={on === "penalty" ? "on" : ""} onClick={() => on !== "penalty" && nav.openPenalty()}><BallIcon width={18} height={18} />{bn ? "পেনাল্টি" : "Penalty"}</button>
+      <button className={on === "quiz" ? "on" : ""} onClick={() => on !== "quiz" && nav.openQuizArea()}><QuizIcon width={18} height={18} />{bn ? "স্পোর্টস কুইজ" : "Sports quiz"}</button>
     </div>
   );
 }
@@ -9354,7 +9296,6 @@ const viewFromPath = () => {
   if (kind === "daily" && !id) return { kind: "daily" };
   if (PAGE_PATHS[kind] && !id) return { kind: "page", id: PAGE_PATHS[kind] };
   if (kind === "admin" && !id) return { kind: "admin" };
-  if (kind === "games" && id === "penalty") return { kind: "penalty" };
   return null;
 };
 // পাতার আসল ঠিকানা (পুরনো লিংক খুললে ঠিকানার ঘরে এটা বসে যায়)
@@ -9531,9 +9472,8 @@ export default function App() {
     openSearch: () => { setSheet(null); setSearching(true); },
     openDaily: () => { setTab("predict"); openView("/quiz/daily", { kind: "daily" }); },
     // গেম ট্যাব: শেষবার যেখানে ছিলেন সেখানে (প্রথমবার প্রেডিকশন)
-    openGames: () => { const g = ls.get("game_last", "predict"); if (g === "daily") nav.openDaily(); else if (g === "quiz") nav.openQuiz(); else if (g === "penalty") nav.openPenalty(); else go("predict"); },
+    openGames: () => { const g = ls.get("game_last", "predict"); if (g === "daily") nav.openDaily(); else if (g === "quiz") nav.openQuiz(); else go("predict"); },
     // স্পোর্টস কুইজ বোতাম: কুইজের ভেতরের শেষ ভাগে (প্রথমবার দৈনিক চ্যালেঞ্জ)
-    openPenalty: () => { setTab("predict"); openView("/games/penalty", { kind: "penalty" }); },
     openQuizArea: () => (ls.get("quiz_last", "daily") === "quiz" ? nav.openQuiz() : nav.openDaily()),
     openQuiz: (code, replace) => {
       setTab("predict");
@@ -9545,7 +9485,7 @@ export default function App() {
   };
 
   useEffect(() => {
-    const g = view?.kind === "daily" ? "daily" : view?.kind === "quiz" ? "quiz" : view?.kind === "penalty" ? "penalty" : !view && tab === "predict" ? "predict" : null;
+    const g = view?.kind === "daily" ? "daily" : view?.kind === "quiz" ? "quiz" : !view && tab === "predict" ? "predict" : null;
     if (g) ls.set("game_last", g);
     if (g === "daily" || g === "quiz") ls.set("quiz_last", g);
   }, [view?.kind, tab]);
@@ -9707,8 +9647,7 @@ export default function App() {
           <InfoPage key={view.id} id={view.id} user={user} goProfile={() => go("profile")} />
         ) : view?.kind === "daily" ? (
           <DailyPage user={user} goProfile={() => go("profile")} toast={toast} />
-        ) : view?.kind === "penalty" ? (
-          <Penalty lang={lang} head={<GameSwitch on="penalty" />} />
+
         ) : view?.kind === "quiz" ? (
           <QuizPage code={view.code} user={user} goProfile={() => go("profile")} toast={toast} />
         ) : view?.kind === "player" ? (
