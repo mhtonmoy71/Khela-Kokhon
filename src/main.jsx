@@ -30,6 +30,23 @@ addEventListener("unhandledrejection", (e) => {
   report(r.message, r.stack, "promise");
 });
 
+// ── লেখার ঘরে কিবোর্ড খুললে নিচের ন্যাভ লুকানো (সব পাতায়: রেজিস্ট্রেশন, লগইন, প্রোফাইল, সার্চ, লিগ খোঁজা) ──
+// নইলে ফোনে ন্যাভ কিবোর্ডের ঠিক ওপরে উঠে লেখার ঘর ঢেকে দেয়। ঘরটাকেও দেখা যায় এমন জায়গায় আনা
+const isField = (el) => el && (el.tagName === "TEXTAREA" || el.tagName === "SELECT" || el.isContentEditable ||
+  (el.tagName === "INPUT" && !/^(checkbox|radio|button|submit|reset|range|color|file|image|hidden)$/i.test(el.type || "text")));
+let kbOff = 0;
+addEventListener("focusin", (e) => {
+  if (!isField(e.target)) return;
+  clearTimeout(kbOff);
+  document.documentElement.classList.add("kb-open");
+  const el = e.target;
+  if (!el.closest(".ask-input")) setTimeout(() => { if (document.activeElement === el) el.scrollIntoView({ block: "center", behavior: "smooth" }); }, 320);
+});
+addEventListener("focusout", () => {
+  clearTimeout(kbOff);
+  kbOff = setTimeout(() => { if (!isField(document.activeElement)) document.documentElement.classList.remove("kb-open"); }, 150);
+});
+
 // পাতার কোনো অংশ ভেঙে গেলে পুরো সাইট সাদা না হয়ে একটা বার্তা আর আবার চেষ্টার বোতাম
 class Guard extends React.Component {
   constructor(p) { super(p); this.state = { err: null }; }
