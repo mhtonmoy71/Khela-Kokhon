@@ -446,12 +446,10 @@ function DailyPage({ user, goProfile, toast }) {
       {pl.correct >= 4 && <Celebrate code={"daily-" + st.day} />}
       <div className="card dl-done">
         <div className="dl-done-h"><CalIcon width={18} height={18} />{bn ? "আজকের চ্যালেঞ্জ শেষ" : "Today's challenge done"} · {dayLabel(st.day, lang, { short: true, abs: true })}</div>
-        <div className="dl-score"><CountUp to={pl.correct} lang={lang} /><small>/{num(DAILY_Q, lang)}</small></div>
-        <div className="dl-marks">{(pl.marks || []).map((ok, i) => <span key={i} className={ok ? "ok" : "bad"}>{ok ? "✓" : "✕"}</span>)}</div>
-        <div className="dl-pts"><b><CountUp to={pl.points ?? pl.raw} lang={lang} /></b> {bn ? "পয়েন্ট" : "points"}</div>
-        <div className="muted dl-break">
-          {num(pl.raw, lang)}{pl.correct === DAILY_Q ? ` + ${bn ? "নিখুঁত" : "perfect"} ${num(10, lang)}` : ""}
-        </div>
+        <div className="dl-score"><CountUp to={pl.correct} lang={lang} id={"dc" + st.day} /><small>/{num(DAILY_Q, lang)}</small></div>
+        <div className={"dl-marks" + (MARKS_SEEN.has(st.day) ? " still" : "")} ref={() => { setTimeout(() => MARKS_SEEN.add(st.day), 1200); }}>{(pl.marks || []).map((ok, i) => <span key={i} className={ok ? "ok" : "bad"}>{ok ? "✓" : "✕"}</span>)}</div>
+        <div className="dl-pts"><b><CountUp to={pl.points ?? pl.raw} lang={lang} id={"dp" + st.day} /></b> {bn ? "পয়েন্ট" : "points"}</div>
+        {pl.correct === DAILY_Q && <div className="muted dl-break">{num(pl.raw, lang)} + {bn ? "নিখুঁত" : "perfect"} {num(10, lang)}</div>}
         <div className="dl-stats">
           <div><FlameIcon width={20} height={20} className="fl" /><b>{num(st.streak, lang)}</b><small>{bn ? "দিন টানা" : "day streak"}</small></div>
           <div><TrophyIcon width={20} height={20} /><b>{st.week?.rank ? `#${num(st.week.rank, lang)}` : "–"}</b><small>{bn ? "এই সপ্তাহে" : "this week"}</small></div>
@@ -527,9 +525,15 @@ function Celebrate({ code }) {
   return show ? <Confetti /> : null;
 }
 
-function CountUp({ to, lang }) {
-  const [v, setV] = useState(0);
+// একই সংখ্যা একবার গুনে দেখানো হলে পরে ঢুকলে সরাসরি (প্রতিবার ১ থেকে গোনা নয়)
+const COUNTED = new Set();
+const MARKS_SEEN = new Set();
+function CountUp({ to, lang, id }) {
+  const key = id ? id + ":" + to : null;
+  const [v, setV] = useState(() => (key && COUNTED.has(key) ? to : 0));
   useEffect(() => {
+    if (key && COUNTED.has(key)) { setV(to); return; }
+    if (key) COUNTED.add(key);
     let raf, t0;
     const step = (t) => { t0 ??= t; const k = Math.min(1, (t - t0) / 700); setV(Math.round(to * (1 - Math.pow(1 - k, 3)))); if (k < 1) raf = requestAnimationFrame(step); };
     raf = requestAnimationFrame(step);

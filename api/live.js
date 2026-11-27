@@ -1117,7 +1117,8 @@ export default async function handler(req, res) {
     try {
       const d = await leagueInfo(code, kind);
       if (!d) return res.status(404).json({ ok: false });
-      res.setHeader("Cache-Control", `public, s-maxage=${kind === "seasons" ? 2592000 : kind === "players" ? 21600 : 30}, max-age=${kind === "table" ? 20 : 3600}`);
+      // stale-while-revalidate: জমা থাকা উত্তর সাথে সাথে, পেছনে নতুনটা আনা (ইউজার ধীর API-র অপেক্ষা করেন না)
+      res.setHeader("Cache-Control", `public, s-maxage=${kind === "seasons" ? 2592000 : kind === "players" ? 21600 : 30}, max-age=${kind === "table" ? 20 : 3600}, stale-while-revalidate=${kind === "table" ? 3600 : 86400}`);
       return res.status(200).json(d);
     } catch (e) { return res.status(500).json({ ok: false, error: String(e.message || e).slice(0, 200) }); }
   }

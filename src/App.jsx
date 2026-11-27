@@ -527,6 +527,32 @@ const ls = {
 };
 const demoListeners = new Set();
 
+// ── একবার আনা তথ্য মনে রাখা: পরেরবার সাথে সাথে দেখায়, পেছনে নতুনটা এনে বদলায় ──
+// "p:" দিয়ে শুরু হলে ফোনেও জমা থাকে (৬ ঘণ্টা), যাতে অ্যাপ খুললেই শেষ দেখা তালিকা চোখে পড়ে
+const MEMO = new Map();
+const keep = {
+  get(k) {
+    if (MEMO.has(k)) return MEMO.get(k);
+    if (k.startsWith("p:")) {
+      try { const v = JSON.parse(localStorage.getItem("kkc_" + k) || "null"); if (v && Date.now() - v.t < 6 * 3600000) { MEMO.set(k, v.d); return v.d; } } catch { /* নেই */ }
+    }
+    return undefined;
+  },
+  set(k, d) {
+    MEMO.set(k, d);
+    if (!k.startsWith("p:")) return;
+    try {
+      // একই ধরনের পুরনো জমা (অন্য দিন) মুছে জায়গা রাখা
+      const kind = k.split(":")[1];
+      for (let i = localStorage.length - 1; i >= 0; i--) { const x = localStorage.key(i); if (x && x.startsWith("kkc_p:" + kind + ":") && x !== "kkc_" + k) localStorage.removeItem(x); }
+      localStorage.setItem("kkc_" + k, JSON.stringify({ t: Date.now(), d }));
+    } catch { /* জায়গা না থাকলে শুধু মেমরিতে */ }
+  },
+};
+// অ্যাপ প্রথম তথ্যসহ আঁকা হলে স্প্ল্যাশ সরানোর সংকেত (index.html শোনে)
+let kkReadySent = false;
+const kkReady = () => { if (kkReadySent) return; kkReadySent = true; try { requestAnimationFrame(() => window.dispatchEvent(new Event("kk-ready"))); } catch { /* */ } };
+
 // ═════════ ম্যাচ ═════════
 async function getCompetitions() {
   if (DEMO) return DEMO_COMPETITIONS;
@@ -595,7 +621,9 @@ async function getNextMatchTime(afterISO) {
 // ═════════ লিগ টেবিল, গোলদাতা, সাম্প্রতিক ফল ═════════
 async function getStandings(code) {
   if (DEMO) return demoStandings(code);
-  return ok(await sb.from("standings").select("*, team:teams(*)").eq("competition_code", code).order("position"));
+  const r = ok(await sb.from("standings").select("*, team:teams(*)").eq("competition_code", code).order("position"));
+  keep.set("st:" + code, r);
+  return r;
 }
 
 async function getScorers(code) {
@@ -1511,7 +1539,7 @@ function FanVote({ m }) {
           </button>
         ))}
       </div>
-      <div className={"fv-bar" + (total ? "" : " empty")}>
+      <div className={"fv-bar" + (total ? "" : " novote")}>
         {[0, 1, 2].map((k) => <span key={k} className={"k" + k} style={{ width: grow && total ? `${pct[k]}%` : total ? "0%" : "33.33%" }} />)}
       </div>
       {result != null && total > 0 && (
@@ -1995,7 +2023,7 @@ function MatchTable({ m, lang }) {
   const nav = useNav();
   const bn = lang === "bn";
   const code = m.competition_code;
-  const [table, setTable] = useState(null);
+  const [table, setTable] = useState(() => keep.get("st:" + code) ?? null);
   // খেলা চলার সময় টেবিল প্রতি মিনিটে নতুন (গোল হলেই পয়েন্ট বদলায়)
   useEffect(() => {
     let a = true;
@@ -2442,13 +2470,16 @@ function DateStrip({ day, setDay }) {
 // ── একটা দিনের ম্যাচ; ফাঁকা হলে পরের ম্যাচের দিনে যাওয়ার বাটন ──
 function DayMatches({ day, setDay, comp = "ALL", preds, onOpen }) {
   const { t, lang } = useT();
-  const [list, setList] = useState(null);
+  const ck = (day === dayKey(new Date()) ? "p:day:" : "day:") + day;
+  const [list, setList] = useState(() => keep.get(ck) ?? null);
   const [next, setNext] = useState(null);
+  useEffect(() => { if (list !== null) kkReady(); }, [list !== null]);
 
   useEffect(() => {
     let live = true;
-    setList(null); setNext(null);
+    setList(keep.get(ck) ?? null); setNext(null);
     getMatchesOnDay(day).then(withLive).then((r) => {
+      keep.set(ck, r);
       if (!live) return;
       setList(r);
       if (!r.length) getNextMatchTime(dayRangeUTC(day)[1]).then((n) => live && setNext(n)).catch(() => {});
@@ -2466,7 +2497,7 @@ function DayMatches({ day, setDay, comp = "ALL", preds, onOpen }) {
   useEffect(() => {
     if (!busy) return;
     let alive = true;
-    const pull = () => { if (document.visibilityState === "visible") getMatchesOnDay(day).then(withLive).then((r) => alive && setList(r)).catch(() => {}); };
+    const pull = () => { if (document.visibilityState === "visible") getMatchesOnDay(day).then(withLive).then((r) => { keep.set(ck, r); alive && setList(r); }).catch(() => {}); };
     const i = setInterval(pull, 60000);
     document.addEventListener("visibilitychange", pull);
     return () => { alive = false; clearInterval(i); document.removeEventListener("visibilitychange", pull); };
@@ -2548,10 +2579,10 @@ function SideLeague({ comps, code, setCode }) {
   const { lang } = useT();
   const nav = useNav();
   const bn = lang === "bn";
-  const [table, setTable] = useState(null);
+  const [table, setTable] = useState(() => keep.get("st:" + code) ?? null);
   const [scorers, setScorers] = useState(null);
   useEffect(() => {
-    let live = true; setTable(null); setScorers(null);
+    let live = true; setTable(keep.get("st:" + code) ?? null); setScorers(null);
     getStandings(code).then((r) => live && setTable(r)).catch(() => live && setTable([]));
     getScorers(code).then((r) => live && setScorers(r)).catch(() => live && setScorers([]));
     return () => { live = false; };
@@ -2709,7 +2740,8 @@ function Matches({ user, myTeams, comps, preds, onOpen, goProfile }) {
   const [comp, setComp] = useState("ALL");
   const nav = useNav();
   const fav = myTeams?.fav || [];
-  const [mine, setMine] = useState(null);
+  const mineKey = "p:mine:" + fav.join(",");
+  const [mine, setMine] = useState(() => keep.get(mineKey) ?? null);
   const wide = useWide();
   const mid = useWide("(min-width: 960px)");   // ৯৬০–১০৯৯: ম্যাচ + ডান পাশের তথ্য (লিগের তালিকা ছাড়া)
 
@@ -2717,6 +2749,7 @@ function Matches({ user, myTeams, comps, preds, onOpen, goProfile }) {
   useEffect(() => {
     let live = true;
     if (!fav.length) { setMine([]); return; }
+    const c = keep.get(mineKey); if (c) setMine(c);
     Promise.all([getTeamMatches(fav, { upcoming: true, limit: 30 }), getTeamMatches(fav, { upcoming: false, limit: 10 })])
       .then(([up, past]) => {
         if (!live) return;
@@ -2729,6 +2762,7 @@ function Matches({ user, myTeams, comps, preds, onOpen, goProfile }) {
           if (m && !picked.some((x) => x.id === m.id)) picked.push(m);
         }
         picked.sort((a, b) => new Date(a.utc_date) - new Date(b.utc_date));
+        keep.set(mineKey, picked);
         setMine(picked);
       })
       .catch(() => live && setMine([]));
@@ -2744,6 +2778,8 @@ function Matches({ user, myTeams, comps, preds, onOpen, goProfile }) {
           <Following list={mine} preds={preds} onOpen={onOpen} />
         </div>
       )}
+      {/* প্রথমবার: প্রিয় দলের খেলা আসার আগে জায়গা রাখা, যাতে নিচের তালিকা লাফিয়ে না নামে */}
+      {fav.length > 0 && mine === null && <div className="sec"><div className="card fol-ph" style={{ height: 56 + Math.min(fav.length, 3) * 44 }} /></div>}
 
       {!mid && <div className="sec dl-teaser-wrap"><DailyTeaser user={user} /></div>}
       <div className={liveOn ? "ds-off" : undefined}><DateStrip day={day} setDay={setDay} /></div>
@@ -2850,9 +2886,10 @@ function Board({ league, user, onBack, onLeft, toast }) {
   const [comp, setComp] = useState(null);
   const [wk, setWk] = useState(null);
   useEffect(() => {
-    setRows(null); setErr("");
+    const ck = `lb:${league.id}:${comp}:${wk}`;
+    setRows(keep.get(ck) ?? null); setErr("");
     let a = true;
-    leagueBoard(league.id, comp, wk).then((r) => a && setRows(r)).catch((e) => { if (!a) return; setErr(e.missing ? "missing" : e.message); setRows([]); });
+    leagueBoard(league.id, comp, wk).then((r) => { keep.set(ck, r); a && setRows(r); }).catch((e) => { if (!a) return; setErr(e.missing ? "missing" : e.message); setRows([]); });
     const iv = everyMin(() => leagueBoard(league.id, comp, wk).then((r) => a && r && setRows(r)).catch(() => {}));
     return () => { a = false; iv(); };
   }, [league.id, comp, wk]);
@@ -2984,9 +3021,10 @@ function Leaderboard({ me }) {
   const [comp, setComp] = useState(null);
   const [wk, setWk] = useState(null);
   useEffect(() => {
-    setRows(null); setErr("");
+    const ck = `gb:${comp}:${wk}`;
+    setRows(keep.get(ck) ?? null); setErr("");
     let a = true;
-    getLeaderboard(comp, wk).then((r) => a && setRows(r)).catch((e) => { if (!a) return; setErr(e?.missing ? "missing" : "x"); setRows([]); });
+    getLeaderboard(comp, wk).then((r) => { keep.set(ck, r); a && setRows(r); }).catch((e) => { if (!a) return; setErr(e?.missing ? "missing" : "x"); setRows([]); });
     // রিয়েল টাইম: প্রতি মিনিটে নতুন (খেলা চলার সময় পয়েন্ট বদলায়)
     const iv = everyMin(() => getLeaderboard(comp, wk).then((r) => a && r && setRows(r)).catch(() => {}));
     return () => { a = false; iv(); };
@@ -3008,13 +3046,14 @@ function Leaderboard({ me }) {
 
 function Mine({ user, preds, fav, onOpen, goProfile }) {
   const { t, lang } = useT();
-  const [made, setMade] = useState(null);
-  const [todo, setTodo] = useState(null);
   const ids = Object.keys(preds).map(Number);
+  const mk = "made:" + ids.join(","), tk = "todo:" + fav.join(",") + "|" + ids.join(",");
+  const [made, setMade] = useState(() => keep.get(mk) ?? null);
+  const [todo, setTodo] = useState(() => keep.get(tk) ?? null);
 
   useEffect(() => {
     let live = true;
-    const load = (first) => getMatchesByIds(ids).then((r) => live && setMade(r.sort((a, b) => b.utc_date.localeCompare(a.utc_date)))).catch(() => live && first && setMade([]));
+    const load = (first) => getMatchesByIds(ids).then((r) => { const v = r.sort((a, b) => b.utc_date.localeCompare(a.utc_date)); keep.set(mk, v); live && setMade(v); }).catch(() => live && first && setMade((x) => x ?? []));
     load(true);
     // খেলা চলার সময় স্কোর আর এখন পর্যন্ত পয়েন্ট প্রতি মিনিটে
     const iv = everyMin(() => load(false));
@@ -3024,7 +3063,7 @@ function Mine({ user, preds, fav, onOpen, goProfile }) {
   useEffect(() => {
     let live = true;
     getTeamMatches(fav, { upcoming: true, limit: 10 })
-      .then((r) => live && setTodo(r.filter((m) => canPredict(m) && !preds[m.id]).slice(0, 5)))
+      .then((r) => { const v = r.filter((m) => canPredict(m) && !preds[m.id]).slice(0, 5); keep.set(tk, v); live && setTodo(v); })
       .catch(() => live && setTodo([]));
     return () => { live = false; };
   }, [fav.join(","), ids.join(",")]);
@@ -5274,7 +5313,7 @@ function League({ code, comps, preds, onOpen, teamsById }) {
         <button className="afp-back" onClick={() => window.history.back()} aria-label="back"><ChevronIcon style={{ transform: "rotate(-90deg)" }} /></button>
         <div className="lg-hero-id">
           <span className="lg-hero-ic"><CompIcon c={c} size={40} /></span>
-          <div><h1>{compName(c, lang)}</h1><small>{[tbl?.country && natName(tbl.country, lang), seTxt(tbl?.season)].filter(Boolean).join(" · ")}</small></div>
+          <div><h1>{compName(c, lang)}</h1><small>{[tbl?.country && (tbl.country === "World" ? (bn ? (["CL", "UEL", "UECL", "UNL", "EURO"].includes(code) ? "ইউরোপ" : "আন্তর্জাতিক") : (["CL", "UEL", "UECL", "UNL", "EURO"].includes(code) ? "Europe" : "International")) : natName(tbl.country, lang)), seTxt(tbl?.season)].filter(Boolean).join(" · ")}</small></div>
         </div>
       </div>
       <div className="mp-tabs afp-tabs" role="tablist">{tabs.map(([k, l]) => <button key={k} role="tab" aria-selected={tab === k} className={tab === k ? "on" : ""} onClick={() => setTab(k)}>{l}</button>)}</div>
@@ -5337,12 +5376,12 @@ function LeagueClassic({ code, comps, preds, onOpen, onlyTable }) {
   const wide = useWide();
   const c = comps.find((x) => x.code === code) || { code, name_bn: code, name_en: code };
   const [tab, setTab] = useState("table");
-  const [table, setTable] = useState(null);
+  const [table, setTable] = useState(() => keep.get("st:" + code) ?? null);
   const [scorers, setScorers] = useState(null);
   const [games, setGames] = useState(null);
   const bn = lang === "bn";
 
-  useEffect(() => { setTable(null); getStandings(code).then(setTable).catch(() => setTable([])); }, [code]);
+  useEffect(() => { setTable(keep.get("st:" + code) ?? null); getStandings(code).then(setTable).catch(() => setTable((x) => x ?? [])); }, [code]);
   useEffect(() => {
     if ((wide || tab === "scorers") && scorers === null) getScorers(code).then(setScorers).catch(() => setScorers([]));
     if ((wide || tab === "matches") && games === null)
@@ -6136,6 +6175,17 @@ const DailyPage = lazyPick(() => import("./Quiz.jsx"), "DailyPage");
 const InfoPage = lazyPick(() => import("./Info.jsx"), "InfoPage");
 
 export default function App() {
+  // হোম ছাড়া অন্য পাতায় খুললেও স্প্ল্যাশ বেশিক্ষণ না থাকে
+  useEffect(() => { const t = setTimeout(kkReady, 1200); return () => clearTimeout(t); }, []);
+  // অ্যাপ খোলার একটু পরে, ফাঁকা সময়ে: ফলো করা লিগের টেবিল আগেই এনে রাখা (পরে খুললে সাথে সাথে দেখায়)
+  useEffect(() => {
+    if (DEMO) return;
+    const t = setTimeout(() => {
+      const codes = getFollowLg().filter((c) => TABLE_CODES.includes(c)).slice(0, 6);
+      codes.forEach((c, i) => setTimeout(() => { if (!keep.get("st:" + c)) getStandings(c).catch(() => {}); }, i * 700));
+    }, 3500);
+    return () => clearTimeout(t);
+  }, []);
   const deskWide = useWide();
   const [lang, setLangS] = useState(() => stored("kk_lang", "bn"));
   const [theme, setThemeS] = useState(() => (stored("kk_theme", "light") === "dark" ? "dark" : "light"));
