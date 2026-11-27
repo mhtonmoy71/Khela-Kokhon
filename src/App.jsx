@@ -1,5 +1,5 @@
 // খেলা কখন? v2 — পুরো অ্যাপ এক ফাইলে
-import { Fragment, createContext, useContext, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Fragment, Suspense, createContext, lazy, useContext, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { createClient } from "@supabase/supabase-js";
 import { matchReport } from "./report.js";
 import { clubBn } from "./clubsBn.js";
@@ -2393,134 +2393,6 @@ function Footer({ comps = [] }) {
   );
 }
 
-// ── ফুটারের আলাদা পাতা: আমাদের কথা / কীভাবে কাজ করে / প্রতিষ্ঠাতা ──
-function InfoPage({ id, user, goProfile }) {
-  const { t, lang } = useT();
-  const A = ABOUT[lang === "bn" ? "bn" : "en"];
-  const back = <div className="page-head"><button className="back" onClick={() => window.history.back()} aria-label="back">←</button></div>;
-  if (id === "founder") return (
-    <>
-      {back}
-      <div className="sec info">
-        <div className="founder">
-          <img className="founder-photo" src={DEV_PHOTO} alt={A.devName} width="120" height="120" />
-          <h1>{A.devName}</h1>
-          <div className="muted">{A.devRole}</div>
-          <div className="foot-social" style={{ justifyContent: "center", marginTop: 12 }}>
-            <a href="mailto:khelakokhon@gmail.com" aria-label="Email"><MailIcon /></a>
-            <a href="https://www.facebook.com/mahbub.tonmoy.71/" target="_blank" rel="noopener noreferrer" aria-label="Facebook"><FbIcon /></a>
-          </div>
-        </div>
-        {[].concat(A.dev).map((t, i) => <p key={i} className="founder-p">{t}</p>)}
-        {A.devFacts && (
-          <div className="card founder-facts">
-            {A.devFacts.map(([k, v]) => <div key={k} className="info-row"><span className="muted">{k}</span><b>{v}</b></div>)}
-          </div>
-        )}
-      </div>
-    </>
-  );
-  if (id === "privacy") {
-    const bn = lang === "bn";
-    const parts = bn
-      ? [["কী তথ্য রাখা হয়", "Google বা ইমেইল দিয়ে লগইন করলে আপনার নাম, ইমেইল আর প্রোফাইল ছবি রাখা হয়। আপনার প্রিয় দল, ম্যাচের প্রেডিকশন আর বন্ধুদের লিগের তথ্যও জমা থাকে। লগইন ছাড়া ব্যবহার করলে কোনো ব্যক্তিগত তথ্য নেওয়া হয় না।"],
-         ["কেন রাখা হয়", "শুধু আপনার দল, প্রেডিকশন, পয়েন্ট আর লিডারবোর্ড দেখানোর জন্য। লিডারবোর্ড আর বন্ধুদের লিগে অন্যরা শুধু আপনার নাম ও ছবি দেখে, ইমেইল নয়।"],
-         ["সাইট ব্যবহারের হিসাব", "সাইট আরো ভালো করতে আমরা দেখি সাইটে কতক্ষণ সময় কাটানো হয়, কোন অংশ (ম্যাচ, লিগ, প্রেডিকশন, কুইজ ইত্যাদি) বেশি দেখা হয়, প্রথমবার কোথা থেকে এসেছেন (যেমন ফেসবুক বা গুগল) আর কোন ধরনের ডিভাইস (অ্যান্ড্রয়েড, আইফোন, কম্পিউটার)। সাইট খোলা আর স্ক্রিনে সামনে থাকলেই শুধু সময় গোনা হয়। লগইন করা থাকলে এই হিসাব আপনার অ্যাকাউন্টের সাথে থাকে, না থাকলে ফোনের একটা বেনামি আইডির সাথে। আপনি কী লিখছেন, কী টাইপ করছেন বা অন্য কোনো ব্যক্তিগত তথ্য এতে জমা হয় না, আর এই হিসাব শুধু সাইটের পরিচালক দেখেন। অ্যাকাউন্ট মুছে ফেললে এই হিসাবও মুছে যায়।"],
-         ["ফোনে কী জমা থাকে", "ভাষা, থিম, সাম্প্রতিক খোঁজ আর এমন কিছু পছন্দ আপনার ফোনের ব্রাউজারেই থাকে, আমাদের কাছে আসে না।"],
-         ["কারও সাথে ভাগ করা হয় না", "আপনার তথ্য বিক্রি করা হয় না, বিজ্ঞাপনদাতা বা অন্য কাউকে দেওয়া হয় না। তথ্য নিরাপদে Supabase-এর সার্ভারে রাখা হয়।"],
-         ["অ্যাকাউন্ট ও তথ্য মুছে ফেলা", "অ্যাপের ভেতর থেকেই মুছতে পারবেন: প্রোফাইল → একদম নিচে \"অ্যাকাউন্ট মুছুন\" → নিশ্চিত করতে \"ডিলিট একাউন্ট\" লিখে চাপুন। আপনার প্রোফাইল, প্রিয় দল, প্রেডিকশন, পয়েন্ট, লিগের সদস্যপদ, কুইজ ও দৈনিক চ্যালেঞ্জের রেকর্ড আর নোটিফিকেশন সাথে সাথে স্থায়ীভাবে মুছে যায়। লগিন করতে না পারলে khelakokhon@gmail.com-এ ইমেইল করুন, আমরা মুছে দেব।"]]
-      : [["What we store", "If you sign in with Google or email, we keep your name, email and profile photo, plus your favourite teams, match predictions and friends' leagues. Nothing personal is collected if you use the site without signing in."],
-         ["Why", "Only to show your teams, predictions, points and leaderboards. Others see just your name and photo on leaderboards, never your email."],
-         ["Usage statistics", "To improve the site we measure how long it is used, which sections (matches, leagues, predictions, quizzes and so on) are viewed most, where you first came from (for example Facebook or Google) and the type of device (Android, iPhone, computer). Time is only counted while the site is open and on screen. If you are signed in this is linked to your account; otherwise to an anonymous device ID. Nothing you type and no other personal information is collected, and only the site's operator can see these figures. Deleting your account deletes them too."],
-         ["On your device", "Language, theme, recent searches and similar preferences stay in your browser and are never sent to us."],
-         ["No sharing", "Your data is never sold or given to advertisers or anyone else. It is stored securely on Supabase servers."],
-         ["Deleting your account and data", "You can delete it in the app: Profile → \"Delete account\" at the bottom → type DELETE ACCOUNT to confirm. Your profile, teams, predictions, points, league memberships, quiz and daily-challenge records and notifications are deleted permanently, right away. If you can't log in, email khelakokhon@gmail.com and we'll delete it for you."]];
-    return (
-      <>
-        {back}
-        <div className="sec info">
-          <h1>{bn ? "গোপনীয়তা নীতি" : "Privacy policy"}</h1>
-          <p className="muted">{bn ? "খেলা কখন? (khelakokhon.com) আপনার তথ্য কীভাবে ব্যবহার করে।" : "How Khela Kokhon (khelakokhon.com) uses your information."}</p>
-          {parts.map(([h, d]) => <div key={h}><h2>{h}</h2><p>{d}</p></div>)}
-        </div>
-      </>
-    );
-  }
-  if (id === "contact") {
-    const bn = lang === "bn";
-    const topics = bn
-      ? [["মতামত ও পরামর্শ", "সাইটের কোনো অংশ ভালো লাগলে বা কিছু বদলানো দরকার মনে হলে জানান।"],
-         ["ভুল বা সমস্যা", "কোনো সময়, ফল বা নাম ভুল দেখলে, অথবা কিছু কাজ না করলে লিখুন। কোন পাতায় কী দেখছেন, সম্ভব হলে স্ক্রিনশটসহ।"],
-         ["নতুন ফিচারের অনুরোধ", "নতুন লিগ, নতুন সুবিধা বা অন্য কোনো ভাবনা থাকলে জানাতে পারেন।"],
-         ["সহযোগিতা ও বিজ্ঞাপন", "যৌথ কাজ, স্পনসরশিপ বা বিজ্ঞাপন নিয়ে কথা বলতে চাইলে ইমেইল করুন।"]]
-      : [["Feedback", "Tell us what you like or what should change."],
-         ["Errors and problems", "Spotted a wrong time, score or name, or something not working? Tell us which page, with a screenshot if you can."],
-         ["Feature requests", "New leagues, new features or any other idea."],
-         ["Partnerships and ads", "For collaborations, sponsorship or advertising, please email."]];
-    return (
-      <>
-        {back}
-        <div className="sec info">
-          <h1>{bn ? "যোগাযোগ" : "Contact"}</h1>
-          <p>{bn ? "খেলা কখন? একজন মানুষের হাতে বানানো আর চালানো সাইট। আপনার মতামত, প্রশ্ন বা ভুল ধরিয়ে দেওয়া, সবই সাইটটাকে আরও ভালো করে। নিচের যেকোনো উপায়ে লিখতে পারেন, প্রতিটা বার্তা পড়া হয়।" : "Khela Kokhon is built and run by one person. Your feedback, questions and bug reports all make it better. Reach out any way below; every message is read."}</p>
-          <div className="contact-cards">
-            <a className="card contact-card" href="mailto:khelakokhon@gmail.com">
-              <span className="contact-ic"><MailIcon /></span>
-              <span><b>{bn ? "ইমেইল" : "Email"}</b><small>khelakokhon@gmail.com</small></span>
-            </a>
-            <a className="card contact-card" href="https://www.facebook.com/khelakokhon" target="_blank" rel="noopener noreferrer">
-              <span className="contact-ic fb"><FbIcon /></span>
-              <span><b>{bn ? "ফেসবুক পেজ" : "Facebook page"}</b><small>facebook.com/khelakokhon</small></span>
-            </a>
-          </div>
-          <h2>{bn ? "কী নিয়ে লিখতে পারেন" : "What you can write about"}</h2>
-          <div className="contact-topics">
-            {topics.map(([h, d]) => <div key={h}><b>{h}</b><p>{d}</p></div>)}
-          </div>
-          <p className="muted" style={{ fontSize: 13.5, marginTop: 14 }}>{bn ? "ভুল জানানোর সময় কোন ম্যাচ বা পাতা, আর কোন ফোন বা ব্রাউজার ব্যবহার করছেন লিখলে দ্রুত ঠিক করা সহজ হয়।" : "When reporting a problem, mentioning the match or page and your phone or browser helps fix it faster."}</p>
-        </div>
-      </>
-    );
-  }
-  if (id === "faq") return (
-    <>
-      {back}
-      <div className="sec info">
-        <h1>{lang === "bn" ? "প্রশ্নোত্তর" : "Frequently asked questions"}</h1>
-        <div className="faq">
-          {FAQ[lang === "bn" ? "bn" : "en"].map(([q, a], i) => <details key={q} open={i === 0}><summary>{q}</summary><p>{a}</p></details>)}
-        </div>
-      </div>
-    </>
-  );
-  if (id === "how") return (
-    <>
-      {back}
-      <div className="sec info">
-        <h1>{A.howH}</h1>
-        <div className="steps">
-          {A.steps.map(([h, d], i) => <div key={h}><span className="step-n">{num(i + 1, lang)}</span><b>{h}</b><p>{d}</p></div>)}
-        </div>
-        <h2>{lang === "bn" ? "পয়েন্টের নিয়ম" : "Scoring"}</h2>
-        <p>{t("rules")}</p>
-        {!user && <button className="btn" style={{ marginTop: 16 }} onClick={goProfile}>{A.cta} →</button>}
-      </div>
-    </>
-  );
-  return (
-    <>
-      {back}
-      <div className="sec info">
-        <h1>{A.whatH}</h1>
-        {[].concat(A.what).map((t, i) => <p key={i} className="founder-p">{t}</p>)}
-        <div className="facts">{A.facts.map(([b, s]) => <div key={s}><b>{b}</b><span>{s}</span></div>)}</div>
-        {A.sections && <div className="about-secs">{A.sections.map(([h, t]) => <div key={h} className="card about-sec"><h2>{h}</h2><p>{t}</p></div>)}</div>}
-        {!user && <button className="btn" style={{ marginTop: 18 }} onClick={goProfile}>{A.cta} →</button>}
-      </div>
-    </>
-  );
-}
-
 // ── আইকন ──
 const I = (d) => (p) => (
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...p}>{d}</svg>
@@ -2540,87 +2412,6 @@ const PlayIcon = I(<path d="M8 5.5v13l10-6.5z" />);
 const SearchIcon = I(<><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" /></>);
 const SunIcon = I(<><circle cx="12" cy="12" r="4" /><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" /></>);
 const MoonIcon = I(<path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z" />);
-
-// ════════════════ pages/Home.jsx ════════════════
-// ── খেলা কখন? কী / কীভাবে কাজ করে / ডেভেলপার ──
-const DEV_PHOTO = "/founder.jpg";
-const ABOUT = {
-  bn: {
-    whatH: "খেলা কখন? সম্পর্কে",
-    what: [
-      "খেলা কখন? বাংলাদেশের ফুটবলপ্রেমীদের জন্য বানানো একটি পূর্ণাঙ্গ ফুটবল প্ল্যাটফর্ম। ইউরোপের বড় লিগ থেকে দেশের মাঠ, প্রতিটি ম্যাচের ফিক্সচার, লাইভ স্কোর আর স্ট্যাটস এখানে পাওয়া যায় বাংলায়, বাংলাদেশ সময়ে।",
-      "রাত একটার খেলা নাকি ভোর চারটার, সময় মেলানোর ঝামেলা নেই। প্রিয় দল বেছে নিলে তাদের খেলা থাকে সবার আগে, আর কিকঅফ থেকে ফুলটাইম পর্যন্ত প্রতিটি মুহূর্তের খবর পৌঁছে যায় আপনার ফোনে।",
-    ],
-    facts: [["১৯", "প্রতিযোগিতা"], ["৯০০+", "দল"], ["প্রতি মিনিটে", "লাইভ হালনাগাদ"]],
-    sections: [
-      ["লাইভ ম্যাচ সেন্টার", "মিনিট ধরে লাইভ স্কোর, গোলদাতা, কার্ড, বদলি আর বাংলায় কমেন্ট্রি। মাঠের ছবিতে দুই দলের লাইনআপ ও প্লেয়ার রেটিং, ম্যাচের পুরো স্ট্যাটস আর হেড-টু-হেড। নকআউটে অ্যাগ্রিগেট স্কোর আর পুরো রাউন্ডের চিত্র।"],
-      ["১৯টি প্রতিযোগিতা", "চ্যাম্পিয়ন্স লিগ, প্রিমিয়ার লিগ, লা লিগা, বুন্দেসলিগা, সিরি আ ও লিগ ওয়ান থেকে শুরু করে ইউরোপা লিগ, কনফারেন্স লিগ, নেশনস লিগ, এফএ কাপ, কোপা দেল রে, সৌদি প্রো লিগ, এমএলএস আর এএফসি চ্যাম্পিয়ন্স লিগ। দেশের ফুটবলে আছে বাংলাদেশ ফুটবল লিগ ও ফেডারেশন কাপ।"],
-      ["লিগ, দল ও প্লেয়ার", "খেলা চলাকালেই বদলানো পয়েন্ট টেবিল, হোম-অ্যাওয়ে হিসাব আর শেষ পাঁচ ম্যাচের ফর্ম। প্রতিটি দলের ফিক্সচার, রেজাল্ট ও স্কোয়াড; প্রতিটি প্লেয়ারের সিজনের স্ট্যাটস আর পুরো ক্যারিয়ার।"],
-      ["প্রেডিকশন গেম", "খেলা শুরুর আগে স্কোর প্রেডিক্ট করুন। হুবহু মিললে ৩ পয়েন্ট, শুধু রেজাল্ট মিললে ১; নকআউটে টাইব্রেকারের উইনার ঠিক হলে ৪ বা ৫। খেলা চলাকালেই লিডারবোর্ডে বদলায় র‍্যাঙ্কিং। নিজের লিগ খুলে বন্ধুদের সাথেও চলে লড়াই।"],
-      ["কুইজ ও দৈনিক চ্যালেঞ্জ", "প্রতিদিন পাঁচটি নতুন প্রশ্নে জ্ঞান ঝালিয়ে নিন, ধরে রাখুন স্ট্রিক, জিতে নিন ব্যাজ। বন্ধুদের সাথে লাইভ স্পোর্টস কুইজও খেলা যায়।"],
-      ["জিজ্ঞেস করুন", "বাংলায় প্রশ্ন করলেই উত্তর: পরের ম্যাচ কবে, টেবিলে কততম, কে কত গোল করেছেন, ক্লাব আর জাতীয় দল মিলিয়ে।"],
-      ["নোটিফিকেশন", "প্রিয় দলের কিকঅফ, প্রতিটি গোল আর ফুলটাইমের খবর সাথে সাথে। সাথে ম্যাচ ডে, প্রেডিকশন আর দৈনিক চ্যালেঞ্জের রিমাইন্ডার।"],
-    ],
-    howH: "কীভাবে কাজ করে",
-    steps: [
-      ["রেজিস্ট্রেশন", "ইমেইল দিয়ে, অথবা এক চাপে Google দিয়ে।"],
-      ["দল বাছাই", "সর্বোচ্চ তিনটা প্রিয় দল, তাদের খেলা সবার উপরে।"],
-      ["প্রেডিকশন", "কিকঅফের আগ পর্যন্ত যেকোনো ম্যাচের স্কোর প্রেডিক্ট করুন।"],
-      ["পয়েন্ট", "হুবহু স্কোরে ৩, শুধু ফল মিললে ১। সব লিগ মিলিয়ে বা আলাদা লিগে লিডারবোর্ডে জায়গা করে নিন।"],
-      ["বন্ধুদের লিগ", "নিজের লিগ খুলে লিংক পাঠান, বন্ধুরা যোগ দিলেই নিজেদের মধ্যে লড়াই।"],
-      ["স্পোর্টস কুইজ", "১০টা প্রশ্ন, প্রতিটায় ৩০ সেকেন্ড। একা খেলে নিজেকে যাচাই করুন, বা বন্ধুদের সাথে লাইভ।"],
-      ["জিজ্ঞেস করুন", "বাংলায় প্রশ্ন করুন: পরের খেলা, টেবিল, ফর্ম, হেড টু হেড, গোল, কোচ।"],
-    ],
-    devH: "ডেভেলপার পরিচিতি",
-    devName: "মাহবুব হাসান তন্ময়",
-    devRole: "প্রতিষ্ঠাতা ও ডেভেলপার",
-    dev: [
-      "ক্রীড়া লেখক, খেলার ইতিহাসের অনুরাগী। বাংলা ও ইংরেজিতে লিখেছেন ১,৭০০-র বেশি ক্রীড়া প্রতিবেদন।",
-      "২০২২ সালের অমর একুশে বইমেলায় প্রকাশিত হয় তাঁর প্রথম বই ‘ক্রিকেট ৩৬৫’।",
-      "প্রোগ্রামিংয়ে প্রাতিষ্ঠানিক পড়াশোনা নেই। এআই-এর সাথে ‘ভাইব কোডিং’ করে নিজেই বানিয়েছেন খেলা কখন?, যাতে বাংলাদেশের ফুটবলপ্রেমীরা নিজের ভাষায়, নিজের সময়ে খেলার সব খবর পান।",
-    ],
-    devFacts: [["জন্মস্থান", "গাংনী, মেহেরপুর"], ["পড়াশোনা", "বিবিএ (ফাইন্যান্স অ্যান্ড ব্যাংকিং), গোপালগঞ্জ বিজ্ঞান ও প্রযুক্তি বিশ্ববিদ্যালয়"], ["প্রথম বই", "ক্রিকেট ৩৬৫ (২০২২)"], ["আগ্রহ", "খেলার ইতিহাস"]],
-    cta: "শুরু করুন",
-  },
-  en: {
-    whatH: "What is Khela Kokhon?",
-    what: [
-      "Khela Kokhon is a complete football platform built for fans in Bangladesh. From Europe's biggest leagues to the game at home, every fixture, live score and analysis is here, in Bangla and in Bangladesh time.",
-      "No more working out whether a match is at 1 AM or 4 AM. Pick your teams and their matches come first, with every moment from kick-off to the final whistle delivered to your phone.",
-    ],
-    facts: [["19", "competitions"], ["900+", "teams"], ["Every minute", "live updates"]],
-    sections: [
-      ["Live match centre", "Minute-by-minute scores, scorers, cards, substitutions and commentary. Lineups on a pitch with player ratings, full stats and head-to-head history. In knockouts, two-leg aggregates and the whole round at a glance."],
-      ["19 competitions", "From the Champions League, Premier League, La Liga, Bundesliga, Serie A and Ligue 1 to the Europa League, Conference League, Nations League, FA Cup, Copa del Rey, Saudi Pro League, MLS and AFC Champions League. At home, the Bangladesh Football League and the Federation Cup."],
-      ["Leagues, teams and players", "Tables that update during matches, home and away splits and last-five form. Every team's fixtures, results and squad; every player's season stats and full career."],
-      ["Prediction game", "Predict the score before kick-off: 3 points for the exact score, 1 for the right result, 4 or 5 for calling a knockout shootout. Leaderboards move as matches play out, and you can start your own league with friends."],
-      ["Quiz and daily challenge", "Five new questions every day to sharpen your knowledge, keep your streak and earn badges. Or play a live sports quiz with friends."],
-      ["Ask", "Ask in Bangla and get an answer: when the next match is, where a team stands, how many goals a player has, club and country combined."],
-      ["Notifications", "Kick-off, every goal and full time for your teams, instantly. Plus match-day, prediction and daily-challenge reminders."],
-    ],
-    howH: "How it works",
-    steps: [
-      ["Sign up", "With email, or with Google in one tap."],
-      ["Pick teams", "Up to three favourites, shown first."],
-      ["Predict", "Guess the score of any match until kickoff."],
-      ["Score points", "3 for the exact score, 1 for the right result. Climb the overall or per-league leaderboard."],
-      ["Friends' leagues", "Start your own league and share the link."],
-      ["Sports quiz", "10 questions, 30 seconds each. Solo, or live with friends."],
-      ["Ask", "Ask in Bangla: next match, table, form, head to head, goals, coach."],
-    ],
-    devH: "About the Developer",
-    devName: "Mahbub Hasan Tonmoy",
-    devRole: "Founder & developer",
-    dev: [
-      "Sports writer with a passion for sports history, and the author of more than 1,700 sports reports in Bangla and English.",
-      "His first book, ‘Cricket 365’, was published at the Ekushey Book Fair in 2022.",
-      "With no formal training in programming, he built Khela Kokhon himself through ‘vibe coding’ with AI, so that football fans in Bangladesh can follow every match in their own language and their own time zone.",
-    ],
-    devFacts: [["Born", "Gangni, Meherpur"], ["Education", "BBA (Finance and Banking), Gopalganj Science and Technology University"], ["First book", "Cricket 365 (2022)"], ["Interest", "Sports history"]],
-    cta: "Get started",
-  },
-};
-
 
 // ════════════════ pages/Matches.jsx ════════════════
 // ── তারিখের স্ট্রিপ ──
@@ -3334,18 +3125,6 @@ function Predict({ user, profile, preds, fav, onOpen, goProfile, toast, initialT
   );
 }
 
-// ════════════════ স্পোর্টস কুইজ (লাইভ) ════════════════
-// খেলার সব নিয়ম ডেটাবেসের ফাংশনে (supabase/quiz.sql); এখানে শুধু দেখানো আর প্রতি সেকেন্ডে অবস্থা জানা
-const QUIZ_N = 10;
-const QUIZ_ERR = {
-  "room not found": ["এই কোডের কোনো কুইজ নেই। কোডটা আবার দেখুন।", "No quiz with this code."],
-  "already started": ["এই কুইজ শুরু হয়ে গেছে। হোস্ট আবার খেললে যোগ দিতে পারবেন।", "This quiz has already started."],
-  "login required": ["কুইজ খেলতে আগে লগইন করুন।", "Log in to play."],
-  "time over": ["সময় শেষ!", "Time's up!"],
-  "room closed": ["এই কুইজ শেষ হয়ে গেছে, লিংকটি আর চালু নেই।", "This quiz has ended; the link no longer works."],
-};
-const quizMsg = (e, lang) => { const m = String(e?.message || e); const k = Object.keys(QUIZ_ERR).find((x) => m.includes(x)); return k ? QUIZ_ERR[k][lang === "bn" ? 0 : 1] : (lang === "bn" ? "কিছু একটা গোলমাল হলো, আবার চেষ্টা করুন।" : "Something went wrong."); };
-
 // ডেমো মোড: ব্রাউজারেই নকল কুইজ, দুজন অনুশীলনের সঙ্গীসহ (সাইটের আসল নিয়মের মতোই)
 const DEMO_QUIZ_Q = [
   ["১৯৩০ সালের ফিফা বিশ্বকাপ জেতে কোন দেশ?", ["ব্রাজিল", "উরুগুয়ে", "ইতালি", "আর্জেন্টিনা"], 1, "প্রথম বিশ্বকাপের আয়োজক ও চ্যাম্পিয়ন উরুগুয়ে।"],
@@ -3359,196 +3138,10 @@ const DEMO_QUIZ_Q = [
   ["ক্রিকেটে এক ওভারে কয়টি বৈধ বল?", ["৫টি", "৮টি", "৪টি", "৬টি"], 3, ""],
   ["উসাইন বোল্ট কোন দেশের?", ["যুক্তরাষ্ট্র", "জ্যামাইকা", "কানাডা", "কেনিয়া"], 1, ""],
 ];
-const demoQuiz = {};
-function demoQuizCall(fn, a) {
-  const now = Date.now(), Q = 30000, GAP = 3000, n = DEMO_QUIZ_Q.length;
-  const room = demoQuiz[(a.p_code || "").toUpperCase()];
-  const bots = [["রাফি (অনুশীলন)", 0.7], ["নুসরাত (অনুশীলন)", 0.5]];
-  if (fn === "quiz_create") {
-    const code = Math.random().toString(16).slice(2, 8).toUpperCase();
-    demoQuiz[code] = { code, status: "lobby", started: null, next: null, answers: {},
-      players: [{ id: "me", name: ls.get("user", {})?.user_metadata?.name || "আপনি", joined: now }, ...bots.map(([nm, sk], i) => ({ id: "b" + i, name: nm, skill: sk, joined: now + i + 1 }))] };
-    return code;
-  }
-  if (!room) throw new Error("room not found");
-  // সার্ভারের quiz_progress-এর মতোই: সময় পেরোনো প্রশ্নে "উত্তর দেননি", অনুশীলনের সঙ্গীরা নিজের সময়ে উত্তর দেয়
-  const progress = (p) => {
-    const list = (room.answers[p.id] ||= []);
-    let qstart = list.length ? list[list.length - 1].at + GAP : room.started;
-    while (list.length < n) {
-      const i = list.length;
-      if (p.skill) {
-        const d = ((i * 7 + p.id.charCodeAt(1) * 3) % 14 + 3) * 1000;
-        if (now >= qstart + d) { list.push({ choice: Math.random() < p.skill ? DEMO_QUIZ_Q[i][2] : (DEMO_QUIZ_Q[i][2] + 1) % 4, ms: d, at: qstart + d }); qstart += d + GAP; continue; }
-      }
-      if (now >= qstart + Q) { list.push({ choice: null, ms: Q, at: qstart + Q }); qstart += Q + GAP; continue; }
-      break;
-    }
-    return { idx: list.length, qstart };
-  };
-  if (fn === "quiz_join") return null;
-  if (fn === "quiz_start") { room.status = "running"; room.started = now + 3000; return null; }
-  if (fn === "quiz_again") { if (!room.next) { room.next = demoQuizCall("quiz_create", {}); room.status = "closed"; } return room.next; }
-  if (fn === "quiz_close") { room.status = "closed"; return null; }
-  if (fn === "quiz_next") { const l = room.answers.me || [], last = l[l.length - 1]; if (last && now < last.at + GAP) last.at = now - GAP; return null; }
-  if (room.status === "closed") return { code: room.code, status: "closed", is_host: true, next_code: room.next, member: true, players: [] };
-  const me = room.players[0];
-  if (fn === "quiz_answer") {
-    if (room.status !== "running") throw new Error("not running");
-    const pr = progress(me);
-    if (pr.idx !== a.p_index || now < pr.qstart) throw new Error("time over");
-    room.answers.me.push({ choice: a.p_choice, ms: now - pr.qstart, at: now });
-    return { ok: true };
-  }
-  // quiz_state
-  let ndone = 0, phase = room.status, ends = null, cur = null;
-  if (room.status === "running" && now >= room.started) {
-    ndone = room.players.filter((p) => { const g = progress(p); return g.idx >= n && now >= g.qstart; }).length;
-    if (ndone === room.players.length) { room.status = "finished"; phase = "finished"; }
-  }
-  if (room.status === "running") {
-    if (now < room.started) { phase = "countdown"; ends = room.started; }
-    else {
-      const pr = progress(me);
-      if (pr.idx >= n && !(now < pr.qstart)) phase = "waiting";
-      else {
-        const reveal = pr.idx > 0 && now < pr.qstart, ci = reveal ? pr.idx - 1 : pr.idx;
-        const [qq, opts, ans, ex] = DEMO_QUIZ_Q[ci];
-        phase = reveal ? "reveal" : "question"; ends = reveal ? pr.qstart : pr.qstart + Q;
-        cur = { index: ci, category: "খেলাধুলা", question: qq, options: opts, started_at: reveal ? null : new Date(pr.qstart).toISOString() };
-        if (reveal) { const m = room.answers.me[ci]; cur = { ...cur, answer: ans, explanation: ex, mine: { choice: m.choice, correct: m.choice === ans, ms: m.ms } }; }
-      }
-    }
-  }
-  const fin = room.status === "finished";
-  const players = room.players.map((p) => {
-    const list = room.answers[p.id] || [], show = fin || p.id === "me";
-    return { name: p.name, me: p.id === "me", host: p.id === "me", joined: p.joined,
-      score: show ? list.filter((x, i) => x.choice === DEMO_QUIZ_Q[i][2]).length : null, ms: show ? list.reduce((t, x) => t + x.ms, 0) : null };
-  }).sort((x, y) => (y.score ?? -1) - (x.score ?? -1) || (x.ms ?? 1e9) - (y.ms ?? 1e9) || x.joined - y.joined);
-  const review = fin ? DEMO_QUIZ_Q.map(([qq, opts, ans, ex], i) => ({ question: qq, options: opts, answer: ans, explanation: ex, choice: room.answers.me?.[i]?.choice ?? null })) : null;
-  return { code: room.code, status: room.status, phase, total: n, finished_count: ndone, q_seconds: 30, gap_seconds: 3,
-    started_at: room.started && new Date(room.started).toISOString(), ends_at: ends && new Date(ends).toISOString(), now: new Date(now).toISOString(),
-    is_host: true, next_code: room.next, current: cur, review, players };
-}
-async function quizCall(fn, args = {}) {
-  if (DEMO) return demoQuizCall(fn, args);
-  const { data, error } = await sb.rpc(fn, args);
-  if (error) throw new Error(error.message || "error");
-  return data;
-}
-const quizLink = (code) => `${window.location.origin}/quiz/play/${code}`;
-async function shareQuiz(code, bn, toast) {
-  const text = bn ? `⚽ খেলা কখন?-এ স্পোর্টস কুইজে চ্যালেঞ্জ! ১০টা প্রশ্ন, প্রতিটায় ৩০ সেকেন্ড। কে জেতে দেখি 😎\n\n${quizLink(code)}\nকোড: ${code}` : `⚽ Sports quiz challenge on Khela Kokhon! 10 questions, 30 seconds each.\n\n${quizLink(code)}\nCode: ${code}`;
-  try { if (navigator.share) { await navigator.share({ text }); return; } } catch (e) { if (e?.name === "AbortError") return; }
-  try { await navigator.clipboard.writeText(text); toast(bn ? "লিংক কপি হয়েছে, বন্ধুদের পাঠান" : "Link copied"); } catch { /* ignore */ }
-}
 // র‍্যাঙ্ক: ১–৩ সোনা/রুপা/ব্রোঞ্জ রঙের গোল চিহ্ন, বাকিরা সাধারণ
 function RankBadge({ rank, lang, big }) {
   return <span className={"qz-badge r" + Math.min(rank, 4) + (big ? " big" : "")}>{num(rank, lang)}</span>;
 }
-const LETTERS = ["ক", "খ", "গ", "ঘ"];
-const secTxt = (ms, lang) => (lang === "bn" ? `${num((ms / 1000).toFixed(1), "bn")} সে.` : `${(ms / 1000).toFixed(1)}s`);
-
-// কুইজের শব্দ: ব্রাউজারেই তৈরি হালকা মিউজিক (ফাইল ছাড়া, ফাঁক ছাড়া লুপ) আর সঠিক/ভুলের শব্দ
-const quizAudio = (() => {
-  let ctx = null, master = null, music = null, timer = null, step = 0, nextT = 0;
-  let on = true;
-  try { on = localStorage.getItem("kk_quiz_sound") !== "0"; } catch { /* ignore */ }
-  const CH = [[57, 60, 64], [53, 57, 60], [48, 52, 55], [55, 59, 62]], RT = [45, 41, 48, 43];
-  const hz = (m) => 440 * 2 ** ((m - 69) / 12);
-  const ensure = () => {
-    if (!ctx) {
-      const AC = window.AudioContext || window.webkitAudioContext;
-      if (!AC) return null;
-      ctx = new AC(); master = ctx.createGain(); master.gain.value = on ? 1 : 0; master.connect(ctx.destination);
-    }
-    if (ctx.state === "suspended") ctx.resume().catch(() => {});
-    return ctx;
-  };
-  const tone = (f, t, dur, type, vol, dest, attack = 0.005) => {
-    const o = ctx.createOscillator(), g = ctx.createGain();
-    o.type = type; o.frequency.value = f;
-    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(vol, t + attack); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
-    o.connect(g); g.connect(dest || master); o.start(t); o.stop(t + dur + 0.05);
-  };
-  const kick = (t) => {
-    const o = ctx.createOscillator(), g = ctx.createGain();
-    o.frequency.setValueAtTime(110, t); o.frequency.exponentialRampToValueAtTime(45, t + 0.12);
-    g.gain.setValueAtTime(0.35, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.25);
-    o.connect(g); g.connect(music); o.start(t); o.stop(t + 0.3);
-  };
-  // ১২০ BPM, প্রতি ধাপ ১৬ভাগ নোট; Am–F–C–G ঘুরে ঘুরে
-  const schedule = () => {
-    while (nextT < ctx.currentTime + 0.3) {
-      const bar = Math.floor(step / 16) % 4, k = step % 16, c = CH[bar], t = nextT;
-      if (k % 2 === 0) tone(hz([c[0] + 12, c[2] + 12, c[1] + 24, c[2] + 12][(k / 2) % 4]), t, 0.3, "triangle", k % 4 === 0 ? 0.07 : 0.045, music);
-      if (k === 0) c.forEach((m) => tone(hz(m + 12), t, 2.1, "sine", 0.028, music, 0.4));
-      if (k === 4 || k === 12) tone(hz(RT[bar]), t, 0.35, "sine", 0.14, music, 0.01);
-      if (k === 0 || k === 8) kick(t);
-      step++; nextT += 0.125;
-    }
-  };
-  return {
-    get on() { return on; },
-    setOn(v) {
-      on = v; try { localStorage.setItem("kk_quiz_sound", v ? "1" : "0"); } catch { /* ignore */ }
-      if (master) master.gain.setTargetAtTime(v ? 1 : 0, ctx.currentTime, 0.05);
-    },
-    unlock() { ensure(); },
-    start() {
-      if (timer || !ensure()) return;
-      music = ctx.createGain(); music.gain.setValueAtTime(0, ctx.currentTime); music.gain.linearRampToValueAtTime(0.9, ctx.currentTime + 1.5);
-      const f = ctx.createBiquadFilter(); f.type = "lowpass"; f.frequency.value = 2600; music.connect(f); f.connect(master);
-      step = 0; nextT = ctx.currentTime + 0.05; schedule(); timer = setInterval(schedule, 100);
-    },
-    stop() {
-      if (!timer) return;
-      clearInterval(timer); timer = null;
-      const m = music; m.gain.setTargetAtTime(0, ctx.currentTime, 0.25); setTimeout(() => m.disconnect(), 1500);
-    },
-    sfx(kind) {
-      if (!ensure() || !on) return;
-      const t = ctx.currentTime;
-      if (kind === "ok") { tone(hz(84), t, 0.25, "sine", 0.22); tone(hz(88), t + 0.08, 0.3, "sine", 0.22); tone(hz(91), t + 0.16, 0.45, "sine", 0.2); }
-      else if (kind === "bad") { tone(180, t, 0.25, "triangle", 0.18); tone(120, t + 0.12, 0.35, "triangle", 0.18); }
-      else if (kind === "win") [72, 76, 79, 84].forEach((m, i) => tone(hz(m), t + i * 0.11, 0.6, "triangle", 0.18));
-    },
-  };
-})();
-
-const SoundIcon = ({ off, ...p }) => (
-  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...p}>
-    <path d="M4 9v6h4l5 4V5L8 9z" />{off ? <path d="m16 9 5 6M21 9l-5 6" /> : <><path d="M16 9.5a3.5 3.5 0 0 1 0 5" /><path d="M18.5 7a7 7 0 0 1 0 10" /></>}
-  </svg>
-);
-
-// রঙিন কাগজের ঝরনা (ফলাফলের পাতায়, ৩.৫ সেকেন্ড)
-function Confetti() {
-  const ref = useRef(null);
-  useEffect(() => {
-    const cv = ref.current, cx = cv.getContext("2d"), dpr = window.devicePixelRatio || 1;
-    const W = (cv.width = window.innerWidth * dpr), H = (cv.height = window.innerHeight * dpr);
-    const colors = ["#00e676", "#f59e0b", "#ffffff", "#ff4d5e", "#38bdf8", "#facc15"];
-    const ps = Array.from({ length: 140 }, () => ({
-      x: W / 2 + (Math.random() - 0.5) * W * 0.3, y: H * 0.35, vx: (Math.random() - 0.5) * 16 * dpr, vy: (-Math.random() * 15 - 6) * dpr,
-      w: (6 + Math.random() * 6) * dpr, h: (8 + Math.random() * 8) * dpr, r: Math.random() * 6, vr: (Math.random() - 0.5) * 0.3, c: colors[(Math.random() * colors.length) | 0],
-    }));
-    let raf, t0 = performance.now();
-    const draw = (t) => {
-      const k = (t - t0) / 3500; cx.clearRect(0, 0, W, H);
-      for (const p of ps) {
-        p.vy += 0.45 * dpr; p.vx *= 0.99; p.x += p.vx; p.y += p.vy; p.r += p.vr;
-        cx.save(); cx.globalAlpha = Math.max(0, 1 - k); cx.translate(p.x, p.y); cx.rotate(p.r); cx.fillStyle = p.c; cx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h * Math.abs(Math.cos(p.r * 2))); cx.restore();
-      }
-      if (k < 1) raf = requestAnimationFrame(draw);
-    };
-    raf = requestAnimationFrame(draw);
-    return () => cancelAnimationFrame(raf);
-  }, []);
-  return <canvas ref={ref} className="confetti" aria-hidden="true" />;
-}
-
 // প্রেডিকশন আর কুইজের মধ্যে বদলানোর বোতাম
 function GameSwitch({ on }) {
   const { lang } = useT();
@@ -3558,19 +3151,6 @@ function GameSwitch({ on }) {
     <div className="game-sw">
       <button className={on === "predict" ? "on" : ""} onClick={() => on !== "predict" && nav.go("predict")}><TargetIcon width={18} height={18} />{bn ? "প্রেডিকশন" : "Predict"}</button>
       <button className={on === "quiz" ? "on" : ""} onClick={() => on !== "quiz" && nav.openQuizArea()}><QuizIcon width={18} height={18} />{bn ? "স্পোর্টস কুইজ" : "Sports quiz"}</button>
-    </div>
-  );
-}
-
-// স্পোর্টস কুইজের ভেতরের দুই ভাগ: দৈনিক চ্যালেঞ্জ আর একা/বন্ধুদের সাথে
-function QuizSub({ on }) {
-  const { lang } = useT();
-  const nav = useNav();
-  const bn = lang === "bn";
-  return (
-    <div className="qz-sub-tabs" role="tablist">
-      <button role="tab" aria-selected={on === "daily"} className={on === "daily" ? "on" : ""} onClick={() => on !== "daily" && nav.openDaily()}><CalIcon width={17} height={17} />{bn ? "দৈনিক চ্যালেঞ্জ" : "Daily challenge"}</button>
-      <button role="tab" aria-selected={on === "live"} className={on === "live" ? "on" : ""} onClick={() => on !== "live" && nav.openQuiz()}><UsersIcon width={17} height={17} />{bn ? "একা বা বন্ধুদের সাথে" : "Solo or with friends"}</button>
     </div>
   );
 }
@@ -3833,54 +3413,6 @@ async function dailyCall(fn, args = {}) {
   if (error) throw rpcMissing(error) ? Object.assign(new Error("missing"), { missing: true }) : new Error(error.message || "error");
   return data;
 }
-// নতুন ব্যাজ একবারই উদযাপন
-const seenBadges = () => ls.get("badges_seen", []);
-const markBadgesSeen = (ids) => ls.set("badges_seen", [...new Set([...seenBadges(), ...ids])]);
-
-// ── দৈনিক চ্যালেঞ্জের শেয়ার কার্ড (১০৮০×১০৮০) ──
-async function makeDailyCard(st, lang) {
-  try { await Promise.all([document.fonts.load(`700 60px ${CARD_FONT}`, "খেলা০১২৩৪৫৬৭৮৯."), document.fonts.load(`500 40px ${CARD_FONT}`, "খেলা০১২৩৪৫৬৭৮৯.")]); } catch { /* ignore */ }
-  const W = CARD_W, c = document.createElement("canvas"); c.width = W; c.height = W;
-  const ctx = c.getContext("2d"), bn = lang === "bn", pl = st.play;
-  const g = ctx.createLinearGradient(0, 0, W, W); g.addColorStop(0, "#0a3d2f"); g.addColorStop(0.55, "#064e3b"); g.addColorStop(1, "#06201a");
-  ctx.fillStyle = g; ctx.fillRect(0, 0, W, W);
-  const glow = ctx.createRadialGradient(W * 0.5, W * 0.42, 0, W * 0.5, W * 0.42, W * 0.6); glow.addColorStop(0, "rgba(0,230,118,0.22)"); glow.addColorStop(1, "rgba(0,230,118,0)");
-  ctx.fillStyle = glow; ctx.fillRect(0, 0, W, W);
-  clockLogo(ctx, 110, 108, 44);
-  ctx.textBaseline = "middle"; ctx.textAlign = "left"; ctx.fillStyle = "#fff"; ctx.font = `700 50px ${CARD_FONT}`; ctx.fillText("খেলা কখন", 172, 112);
-  ctx.fillStyle = "#f59e0b"; ctx.fillText("?", 172 + ctx.measureText("খেলা কখন").width + 4, 112);
-  ctx.textAlign = "right"; ctx.fillStyle = "rgba(255,255,255,0.8)"; ctx.font = `600 36px ${CARD_FONT}`;
-  ctx.fillText(dayLabel(st.day, lang, { short: true, abs: true }), W - 70, 112);
-  ctx.textAlign = "center"; ctx.fillStyle = "#00e676"; ctx.font = `700 46px ${CARD_FONT}`; ctx.fillText(bn ? "দৈনিক চ্যালেঞ্জ" : "Daily Challenge", W / 2, 250);
-  ctx.fillStyle = "#fff"; ctx.font = `800 210px Inter, ${CARD_FONT}`; ctx.fillText(`${num(pl.correct, lang)}/${num(DAILY_Q, lang)}`, W / 2, 420);
-  const sz = 92, gap = 22, x0 = W / 2 - (DAILY_Q * sz + (DAILY_Q - 1) * gap) / 2;
-  (pl.marks || []).forEach((ok, i) => {
-    const x = x0 + i * (sz + gap), y = 560; ctx.fillStyle = ok ? "#00c853" : "#ef4444";
-    ctx.beginPath(); ctx.roundRect ? ctx.roundRect(x, y, sz, sz, 20) : ctx.rect(x, y, sz, sz); ctx.fill();
-    ctx.strokeStyle = "#fff"; ctx.lineWidth = 9; ctx.lineCap = "round"; ctx.lineJoin = "round"; ctx.beginPath();
-    if (ok) { ctx.moveTo(x + 26, y + 48); ctx.lineTo(x + 41, y + 63); ctx.lineTo(x + 67, y + 33); } else { ctx.moveTo(x + 30, y + 30); ctx.lineTo(x + 62, y + 62); ctx.moveTo(x + 62, y + 30); ctx.lineTo(x + 30, y + 62); }
-    ctx.stroke();
-  });
-  ctx.fillStyle = "#fff"; ctx.font = `700 52px ${CARD_FONT}`;
-  ctx.fillText(bn ? `${num(pl.points ?? pl.raw, "bn")} পয়েন্ট` : `${pl.points ?? pl.raw} points`, W / 2, 760);
-  if (st.streak > 1) { ctx.fillStyle = "#fdba74"; ctx.font = `600 40px ${CARD_FONT}`; ctx.fillText(bn ? `টানা ${num(st.streak, "bn")} দিন` : `${st.streak}-day streak`, W / 2, 830); }
-  ctx.fillStyle = "rgba(255,255,255,0.85)"; ctx.font = `500 38px ${CARD_FONT}`; ctx.fillText(bn ? "আপনি পারবেন? আজকের চ্যালেঞ্জ খেলুন" : "Can you beat it? Play today's challenge", W / 2, 940);
-  ctx.fillStyle = "#00e676"; ctx.font = `700 40px Inter, ${CARD_FONT}`; ctx.fillText("khelakokhon.com/quiz/daily", W / 2, 1000);
-  return await new Promise((r) => c.toBlob(r, "image/png"));
-}
-async function shareDaily(st, lang, toast) {
-  const bn = lang === "bn";
-  const text = (bn ? `খেলা কখন? দৈনিক চ্যালেঞ্জ: ${num(st.play.correct, "bn")}/${num(DAILY_Q, "bn")} · ${num(st.play.points ?? st.play.raw, "bn")} পয়েন্ট${st.streak > 1 ? ` · টানা ${num(st.streak, "bn")} দিন` : ""}\n` : `Khela Kokhon daily: ${st.play.correct}/${DAILY_Q} · ${st.play.points ?? st.play.raw} pts\n`)
-    + (st.play.marks || []).map((x) => (x ? "🟩" : "🟥")).join("") + "\nkhelakokhon.com/quiz/daily";
-  try {
-    const blob = await makeDailyCard(st, lang);
-    const file = blob && new File([blob], `khelakokhon-daily-${st.day}.png`, { type: "image/png" });
-    if (file && navigator.canShare?.({ files: [file] })) { await navigator.share({ files: [file], text }); return; }
-    if (navigator.share) { await navigator.share({ text }); return; }
-  } catch (e) { if (e?.name === "AbortError") return; }
-  try { await navigator.clipboard.writeText(text); toast(bn ? "ফল কপি হয়েছে, বন্ধুদের পাঠান" : "Result copied"); } catch { /* ignore */ }
-}
-
 function useDaily(user) {
   const [st, setSt] = useState(null);
   const off = useRef(0);
@@ -3888,29 +3420,6 @@ function useDaily(user) {
     .catch((e) => { setSt({ error: e.missing ? "missing" : "x" }); return null; }), []);
   useEffect(() => { load(); }, [user?.id, load]);
   return [st, setSt, load, off];
-}
-
-function NewBadgePop({ ids, onClose }) {
-  const { lang } = useT();
-  const bn = lang === "bn";
-  useEffect(() => { quizAudio.sfx("win"); markBadgesSeen(ids); }, []);
-  useBackClose(true, onClose);
-  return (
-    <div className="veil bdg-veil" onClick={onClose}>
-      <Confetti />
-      <div className="bdg-pop" onClick={(e) => e.stopPropagation()}>
-        <small>{bn ? (ids.length > 1 ? `${num(ids.length, "bn")}টা নতুন ব্যাজ!` : "নতুন ব্যাজ!") : (ids.length > 1 ? `${ids.length} new badges!` : "New badge!")}</small>
-        <div className="bdg-pop-row">{ids.map((id) => { const L = lvParse(id); return L ? <LevelIcon key={id} m={L.meta.m} level={L.level} stars={L.stars} size={ids.length > 1 ? 84 : 112} /> : <BadgeIcon key={id} id={id} size={ids.length > 1 ? 84 : 112} />; })}</div>
-        {ids.map((id) => {
-          const L = lvParse(id);
-          if (L) { const t = lvTier(L.meta, L.level), x = L.meta.steps[Math.min(L.level, L.meta.steps.length) - 1] + L.stars * L.meta.star;
-            return <div key={id} className="bdg-pop-t"><b>{bn ? L.meta.bn : L.meta.en} · {bn ? t[0] : t[1]}{L.stars ? ` ★${num(L.stars, lang)}` : ""}</b><span className="muted">{bn ? `${num(x, "bn")} ${L.meta.ubn} পূর্ণ হয়েছে` : `${x} ${L.meta.uen} reached`}</span></div>; }
-          const b = badgeOf(id); return b && <div key={id} className="bdg-pop-t"><b>{bn ? b[1] : b[2]}</b><span className="muted">{bn ? b[3] : b[4]}</span></div>;
-        })}
-        <button className="btn block" onClick={onClose}>{bn ? "দারুণ!" : "Awesome!"}</button>
-      </div>
-    </div>
-  );
 }
 
 function BadgeGrid({ have = [], compact }) {
@@ -3927,242 +3436,6 @@ function BadgeGrid({ have = [], compact }) {
         </div>
       ))}
     </div>
-  );
-}
-
-function WeekBoard() {
-  const { lang } = useT();
-  const bn = lang === "bn";
-  const [off, setOff] = useState(0);
-  const [d, setD] = useState(null);
-  useEffect(() => { setD(null); dailyCall("daily_week", { p_offset: off }).then(setD).catch(() => setD({ rows: [] })); }, [off]);
-  const range = d?.start && d?.end && d.start !== d.end ? (() => { const [s, e] = [new Date(d.start + "T00:00:00"), new Date(d.end + "T00:00:00")]; return bn ? `${num(s.getDate(), "bn")} ${BN_MONTHS[s.getMonth()]} – ${num(e.getDate(), "bn")} ${BN_MONTHS[e.getMonth()]}` : `${s.getDate()} ${EN_MONTHS[s.getMonth()]} – ${e.getDate()} ${EN_MONTHS[e.getMonth()]}`; })() : null;
-  return (
-    <div className="card dl-week">
-      <div className="seg" style={{ margin: "12px 12px 6px" }}>
-        <button className={off === 0 ? "on" : ""} onClick={() => setOff(0)}>{bn ? "এই সপ্তাহ" : "This week"}</button>
-        <button className={off === -1 ? "on" : ""} onClick={() => setOff(-1)}>{bn ? "গত সপ্তাহ" : "Last week"}</button>
-      </div>
-      {range && <div className="muted dl-range">{range}{off === 0 ? (bn ? " · শুক্রবার রাতে শেষ" : " · ends Friday night") : ""}</div>}
-      {d === null ? <div className="spin" /> : !d.rows.length ? <div className="empty muted" style={{ padding: "18px 16px" }}>{bn ? "এখনো কেউ খেলেননি। প্রথম হোন!" : "Nobody yet. Be the first!"}</div> : (
-        d.rows.map((r, i) => (
-          <div key={i} className={"qz-pl dl-row" + (r.is_me ? " me" : "")}>
-            <RankBadge rank={r.rank} lang={lang} />
-            <UserAvatar src={r.avatar} name={r.name} size={30} />
-            <span className="qz-nm">{r.name}{(() => { const L = r.top && lvParse(r.top); return L ? <span className="lvb-mini" title={bn ? L.meta.bn : L.meta.en}><LevelIcon m={L.meta.m} level={L.level} size={18} /></span> : null; })()}{r.is_me ? (bn ? " (আপনি)" : " (you)") : ""}<small className="muted"> · {bn ? `${num(r.days, "bn")} দিন` : `${r.days}d`}</small></span>
-            <span className="qz-sc"><b>{num(r.points, lang)}</b><small>{bn ? "পয়েন্ট" : "pts"}</small></span>
-          </div>
-        ))
-      )}
-    </div>
-  );
-}
-
-function DailyPage({ user, goProfile, toast }) {
-  const { lang } = useT();
-  const bn = lang === "bn";
-  const wide = useWide();
-  const [st, setSt, load, off] = useDaily(user);
-  const prog = useDailyProgress(user, st?.play?.finished ? "done" : st?.day);
-  const [rev, setRev] = useState(null);   // সর্বশেষ প্রশ্নের ফল
-  const [picked, setPicked] = useState(null);
-  const [busy, setBusy] = useState(false);
-  const [now, setNow] = useState(Date.now());
-  const [pop, setPop] = useState(null);
-  const [soundOn, setSoundOn] = useState(quizAudio.on);
-  const playing = !!st?.play && !st.play.finished;
-  const cur = st?.current;
-
-  useEffect(() => { const t = setInterval(() => setNow(Date.now()), playing ? 200 : 1000); return () => clearInterval(t); }, [playing]);
-  useEffect(() => { document.documentElement.classList.toggle("quiz-focus", playing); return () => document.documentElement.classList.remove("quiz-focus"); }, [playing]);
-  useEffect(() => { if (playing) quizAudio.start(); else quizAudio.stop(); return () => quizAudio.stop(); }, [playing]);
-  // নতুন ব্যাজ (সাপ্তাহিক ব্যাজ পরে আসে, তাই যেকোনো সময়)
-  useEffect(() => {
-    let ids = [...new Set([...(st?.new_badges || []), ...(st?.badges || []).map((b) => b.id)])].filter((id) => !seenBadges().includes(id));
-    // লেভেল ব্যবস্থা চালু থাকলে: পুরনো ব্যাজ নয়, প্রতি ব্যাজের সবচেয়ে উঁচু নতুন ধাপটা
-    if ((st?.badges || []).some((b) => String(b.id).startsWith("lv:"))) {
-      markBadgesSeen(ids.filter((id) => !String(id).startsWith("lv:")));
-      const best = {};
-      for (const id of ids.filter((x) => String(x).startsWith("lv:"))) { const L = lvParse(id); if (!L) continue; const sc = L.level * 1000 + L.stars; if (!best[L.meta.m] || sc > best[L.meta.m][0]) best[L.meta.m] = [sc, id]; }
-      markBadgesSeen(ids);
-      ids = Object.values(best).map((x) => x[1]);
-    }
-    if (ids.length && !playing) setPop(ids);
-  }, [st?.badges?.length, playing]);
-
-  const nowS = now + (off.current || 0);
-  const el = cur ? (nowS - Date.parse(cur.started_at)) / 1000 : 0;
-  const left = cur ? Math.max(0, Math.ceil(DAILY_SEC - el)) : 0;
-  // সময় শেষ
-  useEffect(() => {
-    if (cur && !rev && picked == null && left === 0) { quizAudio.sfx("bad"); setRev({ index: cur.index, timeout: true }); }
-  }, [left, cur?.index]);
-
-  async function start() {
-    if (!user && !DEMO) return goProfile();
-    quizAudio.unlock(); setBusy(true);
-    try { const s = await dailyCall("daily_start"); off.current = Date.parse(s.now) - Date.now(); setSt(s); setRev(null); setPicked(null); }
-    catch (e) { toast(e.message === "login required" ? (bn ? "আগে লগইন করুন" : "Please log in") : (bn ? "শুরু করা গেল না, আবার চেষ্টা করুন" : "Couldn't start")); }
-    setBusy(false);
-  }
-  async function answer(i) {
-    if (!cur || rev || picked != null) return;
-    quizAudio.unlock(); setPicked(i);
-    try {
-      const r = await dailyCall("daily_answer", { p_index: cur.index, p_choice: i });
-      quizAudio.sfx(r.correct ? "ok" : "bad");
-      setRev({ ...r, index: cur.index, choice: i });
-      setSt((s) => ({ ...s, play: { ...s.play, correct: s.play.correct + (r.correct ? 1 : 0), raw: s.play.raw + r.pts, marks: [...(s.play.marks || []), r.correct] } }));
-    } catch { setRev({ index: cur.index, timeout: true }); }
-  }
-  async function next() {
-    setBusy(true);
-    try { const s = await dailyCall(rev?.finished ? "daily_state" : "daily_next"); off.current = Date.parse(s.now) - Date.now(); setSt(s); }
-    catch { await load(); }
-    setRev(null); setPicked(null); setBusy(false);
-  }
-
-  const switcher = <><GameSwitch on="quiz" /><QuizSub on="daily" /></>;
-  if (!st) return <div className="sec">{switcher}<Loading /></div>;
-  if (st.error) return <div className="sec">{switcher}<div className="card empty">{st.error === "missing" ? (bn ? "দৈনিক চ্যালেঞ্জ খুব শিগগিরই চালু হচ্ছে।" : "The daily challenge is coming soon.") : (bn ? "লোড করা গেল না। একটু পরে আবার চেষ্টা করুন।" : "Couldn't load. Try again shortly.")}</div></div>;
-
-  // ── খেলা চলছে ──
-  if (playing && (cur || rev)) {
-    const idx = rev ? rev.index : cur.index;
-    const marks = st.play.marks || [];
-    return (
-      <div className="sec qz-play dl-play">
-        <div className="qz-top">
-          <span className="dl-tag"><CalIcon width={15} height={15} />{bn ? "দৈনিক চ্যালেঞ্জ" : "Daily"}</span>
-          <span className="qz-dots">{Array.from({ length: DAILY_Q }, (_, i) => <i key={i} className={i < marks.length ? (marks[i] ? "ok" : "bad") : i === idx ? "cur" : ""} />)}</span>
-          <button className="qz-x" onClick={() => { quizAudio.setOn(!soundOn); setSoundOn(!soundOn); }} aria-label={soundOn ? (bn ? "শব্দ বন্ধ" : "Mute") : (bn ? "শব্দ চালু" : "Unmute")}><SoundIcon off={!soundOn} width={16} height={16} /></button>
-        </div>
-        <div className="qz-sub"><span>{bn ? `প্রশ্ন ${num(idx + 1, "bn")}/${num(DAILY_Q, "bn")}` : `Q ${idx + 1}/${DAILY_Q}`}{cur?.category ? ` · ${cur.category}` : ""}</span><span className="qz-myscore">{num(st.play.raw, lang)} {bn ? "পয়েন্ট" : "pts"}</span></div>
-        {cur && !rev && <>
-          <div className="qz-timer"><i style={{ width: `${Math.max(0, (DAILY_SEC - el) / DAILY_SEC) * 100}%` }} className={left <= 5 ? "low" : ""} /></div>
-          <div className={"qz-left" + (left <= 5 ? " low" : "")}>{num(left, lang)}</div>
-        </>}
-        {cur && cur.index === idx && (
-          <div className="qz-stage" key={idx}>
-            <h2 className="qz-q">{cur.question}</h2>
-            <div className="qz-opts">
-              {cur.options.map((o, i) => {
-                const cls = rev && !rev.timeout ? (i === rev.answer ? " right" : i === picked ? " wrong" : " dim") : rev?.timeout ? " dim" : picked === i ? " picked" : picked != null ? " dim" : "";
-                return <button key={i} style={{ animationDelay: `${120 + i * 70}ms` }} className={"qz-opt" + cls} disabled={!!rev || picked != null} onClick={() => answer(i)}><span className="qz-l">{bn ? LETTERS[i] : "ABCD"[i]}</span>{o}</button>;
-              })}
-            </div>
-          </div>
-        )}
-        {rev ? (
-          <>
-            <div className={"qz-verdict " + (rev.correct ? "ok" : "bad")}>
-              <b>{rev.timeout ? (bn ? "সময় শেষ!" : "Time's up!") : rev.correct ? (bn ? `✓ সঠিক! +${num(rev.pts, "bn")} পয়েন্ট` : `✓ Correct! +${rev.pts}`) : (bn ? "✗ ভুল" : "✗ Wrong")}</b>
-              {rev.correct && rev.pts > 10 && <span>{bn ? `দ্রুত উত্তরের বোনাস +${num(rev.pts - 10, "bn")}` : `Speed bonus +${rev.pts - 10}`}</span>}
-              {rev.explanation && <span>{rev.explanation}</span>}
-            </div>
-            <button className="btn block qz-next qz-ic-btn" disabled={busy} onClick={next}>
-              {rev.finished || idx + 1 >= DAILY_Q ? (bn ? "ফলাফল দেখুন" : "See result") : (bn ? "পরের প্রশ্ন" : "Next question")}
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
-            </button>
-          </>
-        ) : picked != null ? <div className="qz-wait"><span className="spin sm" />{bn ? "উত্তর জমা হচ্ছে…" : "Locking in…"}</div> : null}
-      </div>
-    );
-  }
-  if (playing && !cur) {
-    // মাঝপথে ফিরে এলে: পরের প্রশ্ন খোলা হয়নি
-    return (
-      <div className="sec">{switcher}
-        <div className="card dl-hero">
-          <div className="dl-hero-ic"><CalIcon width={30} height={30} /></div>
-          <h2>{bn ? "চ্যালেঞ্জ চলছে" : "Challenge in progress"}</h2>
-          <p className="muted">{bn ? `${num(st.play.idx, "bn")}/${num(DAILY_Q, "bn")} প্রশ্ন শেষ · ${num(st.play.raw, "bn")} পয়েন্ট` : `${st.play.idx}/${DAILY_Q} done · ${st.play.raw} pts`}</p>
-          <button className="btn block dl-go" disabled={busy} onClick={next}>{bn ? "পরের প্রশ্নে চলুন" : "Continue"}</button>
-        </div>
-      </div>
-    );
-  }
-
-  const nextIn = Math.max(0, Date.parse(st.next_at) - nowS);
-  const hms = (() => { const t = Math.floor(nextIn / 1000), h = Math.floor(t / 3600), m = Math.floor((t % 3600) / 60), s2 = t % 60; return [h, m, s2].map((x) => String(x).padStart(2, "0")).join(":"); })();
-  const pl = st.play;
-
-  const main = pl?.finished ? (
-    <>
-      {pl.correct >= 4 && <Celebrate code={"daily-" + st.day} />}
-      <div className="card dl-done">
-        <div className="dl-done-h"><CalIcon width={18} height={18} />{bn ? "আজকের চ্যালেঞ্জ শেষ" : "Today's challenge done"} · {dayLabel(st.day, lang, { short: true, abs: true })}</div>
-        <div className="dl-score"><CountUp to={pl.correct} lang={lang} /><small>/{num(DAILY_Q, lang)}</small></div>
-        <div className="dl-marks">{(pl.marks || []).map((ok, i) => <span key={i} className={ok ? "ok" : "bad"}>{ok ? "✓" : "✕"}</span>)}</div>
-        <div className="dl-pts"><b><CountUp to={pl.points ?? pl.raw} lang={lang} /></b> {bn ? "পয়েন্ট" : "points"}</div>
-        <div className="muted dl-break">
-          {num(pl.raw, lang)}{pl.correct === DAILY_Q ? ` + ${bn ? "নিখুঁত" : "perfect"} ${num(10, lang)}` : ""}
-        </div>
-        <div className="dl-stats">
-          <div><FlameIcon width={20} height={20} className="fl" /><b>{num(st.streak, lang)}</b><small>{bn ? "দিন টানা" : "day streak"}</small></div>
-          <div><TrophyIcon width={20} height={20} /><b>{st.week?.rank ? `#${num(st.week.rank, lang)}` : "–"}</b><small>{bn ? "এই সপ্তাহে" : "this week"}</small></div>
-          <div><TargetIcon width={20} height={20} /><b>{num(st.week?.points || 0, lang)}</b><small>{bn ? "সপ্তাহের পয়েন্ট" : "week pts"}</small></div>
-        </div>
-        <button className="btn block dl-share" onClick={() => shareDaily(st, lang, toast)}><ShareIcon width={18} height={18} />{bn ? "ফল শেয়ার করুন" : "Share result"}</button>
-        <div className="dl-next">{bn ? "পরের চ্যালেঞ্জ" : "Next challenge in"} <b>{bn ? num(hms, "bn") : hms}</b></div>
-      </div>
-      {st.review && (
-        <details className="card qz-review">
-          <summary>{bn ? "আজকের প্রশ্ন আর সঠিক উত্তর" : "Today's questions & answers"}</summary>
-          {st.review.map((r, i) => (
-            <div key={i} className="qz-rv">
-              <b>{num(i + 1, lang)}. {r.question}</b>
-              <div className={r.choice === r.answer ? "ok" : "bad"}>{r.choice === r.answer ? "✓ " : "✗ "}{bn ? "সঠিক উত্তর" : "Answer"}: {r.options[r.answer]}{r.choice != null && r.choice !== r.answer ? ` · ${bn ? "আপনার" : "you"}: ${r.options[r.choice]}` : r.choice == null ? ` · ${bn ? "উত্তর দেননি" : "no answer"}` : ` · +${num(r.pts, lang)}`}</div>
-              {r.explanation && <small className="muted">{r.explanation}</small>}
-            </div>
-          ))}
-        </details>
-      )}
-    </>
-  ) : (
-    <div className="card dl-hero">
-      <div className="dl-hero-top">
-        <div className="dl-hero-ic"><CalIcon width={30} height={30} /></div>
-        <div>
-          <h2>{bn ? "আজকের চ্যালেঞ্জ" : "Today's challenge"}</h2>
-          <div className="muted" style={{ fontSize: 13.5 }}>{dayLabel(st.day, lang, { abs: true })}</div>
-        </div>
-      </div>
-      <div className="dl-chips">
-        <span>{bn ? "৫টা প্রশ্ন" : "5 questions"}</span><span>{bn ? "প্রতিটায় ২০ সেকেন্ড" : "20s each"}</span><span>{bn ? "দিনে একবার" : "Once a day"}</span>
-      </div>
-      {st.streak > 0 && (
-        <div className="dl-streak"><FlameIcon width={22} height={22} /><span><b>{bn ? `টানা ${num(st.streak, "bn")} দিন` : `${st.streak}-day streak`}</b><small>{bn ? "আজ খেলে ধারাবাহিকতা ধরে রাখুন" : "Play today to keep it going"}</small></span></div>
-      )}
-      <button className="btn block dl-go" disabled={busy} onClick={start}>{!user && !DEMO ? (bn ? "লগইন করে খেলুন" : "Log in to play") : (bn ? "চ্যালেঞ্জ শুরু করুন" : "Start the challenge")}</button>
-      <div className="muted dl-meta">{st.players_today > 0 ? (bn ? `আজ ${num(st.players_today, "bn")} জন খেলেছেন · ` : `${st.players_today} played today · `) : ""}{bn ? "নতুন চ্যালেঞ্জ রাত ১২টায়" : "New challenge at midnight"}</div>
-      <div className="dl-rules">
-        <div><b>+১০</b><span>{bn ? "প্রতিটা সঠিক উত্তর" : "each right answer"}</span></div>
-        <div><b>+৫</b><span>{bn ? "পর্যন্ত দ্রুততার বোনাস" : "speed bonus, max"}</span></div>
-        <div><b>+১০</b><span>{bn ? "৫টাই সঠিক হলে" : "all 5 right"}</span></div>
-        <div><b>{num(85, lang)}</b><span>{bn ? "দিনে সর্বোচ্চ পয়েন্ট" : "max points a day"}</span></div>
-      </div>
-    </div>
-  );
-
-  const side = (
-    <>
-      <div className="sec"><div className="sec-h"><h2>{bn ? "সাপ্তাহিক র‍্যাঙ্কিং" : "Weekly ranking"}</h2></div><WeekBoard /></div>
-      {(user || DEMO) && <div className="sec"><div className="sec-h"><h2>{bn ? "আপনার ব্যাজ" : "Your badges"}</h2></div><div className="card">{prog ? <LevelBadges progress={prog} have={st.badges} /> : <BadgeGrid have={st.badges} />}</div></div>}
-    </>
-  );
-
-  return (
-    <>
-      {pop && <NewBadgePop ids={pop} onClose={() => setPop(null)} />}
-      {wide ? (
-        <>
-          <div className="pg-grid"><div className="pg-main"><div className="sec">{switcher}{main}</div></div><aside className="pg-side">{side}</aside></div>
-        </>
-      ) : (
-        <div className="sec">{switcher}{main}{side}</div>
-      )}
-    </>
   );
 }
 
@@ -4194,338 +3467,6 @@ function DailyTeaser({ user, side }) {
       <button className="dl-t-x" onClick={close} aria-label={bn ? "আজকের জন্য লুকান" : "Hide for today"} title={bn ? "আজকের জন্য লুকান" : "Hide for today"}>
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round"><path d="M6 6l12 12M18 6L6 18" /></svg>
       </button>
-    </div>
-  );
-}
-
-// একই কুইজে একবারই উদযাপন (আবার লোড করলে নয়)
-function Celebrate({ code }) {
-  const [show] = useState(() => { try { if (sessionStorage.getItem("kk_qz_win_" + code)) return false; sessionStorage.setItem("kk_qz_win_" + code, "1"); } catch { /* ignore */ } return true; });
-  useEffect(() => { if (show) quizAudio.sfx("win"); }, [show]);
-  return show ? <Confetti /> : null;
-}
-
-function CountUp({ to, lang }) {
-  const [v, setV] = useState(0);
-  useEffect(() => {
-    let raf, t0;
-    const step = (t) => { t0 ??= t; const k = Math.min(1, (t - t0) / 700); setV(Math.round(to * (1 - Math.pow(1 - k, 3)))); if (k < 1) raf = requestAnimationFrame(step); };
-    raf = requestAnimationFrame(step);
-    return () => cancelAnimationFrame(raf);
-  }, [to]);
-  return <>{num(v, lang)}</>;
-}
-
-// খেলোয়াড়দের ছবি: খেলোয়াড়ের তালিকা বদলালে একবার আনা (একই নামের দুজন হলে ছবি নয়, আদ্যক্ষর)
-function useQuizAvatars(code, players) {
-  const [av, setAv] = useState({});
-  const key = (players || []).map((p) => p.name).sort().join("|");
-  useEffect(() => {
-    if (!code || DEMO || !key) return;
-    let alive = true;
-    quizCall("quiz_avatars", { p_code: code }).then((rows) => {
-      if (!alive) return;
-      const m = {};
-      for (const r of rows || []) m[r.name] = r.name in m ? null : r.avatar;
-      setAv(m);
-    }).catch(() => {});
-    return () => { alive = false; };
-  }, [code, key]);
-  return av;
-}
-
-function QuizBoard({ players, lang, limit, lobby, code }) {
-  const av = useQuizAvatars(code, players);
-  const list = limit ? players.filter((p, i) => i < limit || p.me) : players;
-  return (
-    <div className="card qz-board">
-      {list.map((p) => {
-        const rank = players.indexOf(p);
-        return (
-          <div key={p.name + rank} className={"qz-pl" + (p.me ? " me" : "")}>
-            {!lobby && <RankBadge rank={rank + 1} lang={lang} />}
-            {av[p.name] || lobby ? <UserAvatar src={av[p.name]} name={p.name} size={lobby ? 36 : 30} /> : null}
-            <span className="qz-nm">{p.name}{p.me ? (lang === "bn" ? " (আপনি)" : " (you)") : ""}{p.host ? <small> · {lang === "bn" ? "হোস্ট" : "host"}</small> : null}</span>
-            {!lobby && <span className="qz-sc"><b>{num(p.score, lang)}</b><small>{secTxt(p.ms, lang)}</small></span>}
-          </div>
-        );
-      })}
-    </div>
-  );
-}
-
-function QuizPage({ code, user, goProfile, toast }) {
-  const { lang } = useT();
-  const bn = lang === "bn";
-  const nav = useNav();
-  const [st, setSt] = useState(null);
-  const [err, setErr] = useState("");
-  const [busy, setBusy] = useState(false);
-  const [joinCode, setJoinCode] = useState("");
-  const [picked, setPicked] = useState({});
-  const [, tick] = useState(0);
-  const offset = useRef(0);
-  const joined = useRef(false);
-  const status = useRef(null);
-  const reload = useRef(() => {});
-  const playing = st?.status === "running";
-  useEffect(() => {
-    document.documentElement.classList.toggle("quiz-focus", playing);
-    return () => document.documentElement.classList.remove("quiz-focus");
-  }, [playing]);
-  // মিউজিক: খেলা চলাকালীন বাজে, শেষ হলে বা পাতা ছাড়লে থামে
-  const [soundOn, setSoundOn] = useState(quizAudio.on);
-  useEffect(() => { if (playing && st?.phase !== "waiting") quizAudio.start(); else quizAudio.stop(); }, [playing, st?.phase]);
-  useEffect(() => () => quizAudio.stop(), []);
-  const toggleSound = () => { quizAudio.unlock(); quizAudio.setOn(!soundOn); setSoundOn(!soundOn); };
-  // অগ্রগতির বিন্দু: কোন প্রশ্নে সঠিক/ভুল (এই কুইজের জন্য ফোনে মনে রাখে)
-  const [marks, setMarks] = useState({});
-  useEffect(() => { try { setMarks(JSON.parse(sessionStorage.getItem("kk_qz_" + code) || "{}")); } catch { setMarks({}); } }, [code]);
-  useEffect(() => {
-    const c = st?.current;
-    if (st?.phase !== "reveal" || !c || marks[c.index]) return;
-    const res = c.mine?.choice == null ? "miss" : c.mine.correct ? "ok" : "bad";
-    const next = { ...marks, [c.index]: res };
-    setMarks(next); try { sessionStorage.setItem("kk_qz_" + code, JSON.stringify(next)); } catch { /* ignore */ }
-    quizAudio.sfx(res === "ok" ? "ok" : "bad");
-  }, [st?.phase, st?.current?.index]);
-  const quit = () => {
-    if (window.confirm(bn ? "কুইজ ছেড়ে যাবেন? বাকি প্রশ্নগুলো উত্তর না দেওয়া হিসেবে ধরা হবে।" : "Leave the quiz? Remaining questions count as unanswered.")) nav.openQuiz(null, true);
-  };
-
-  // অবস্থা জানা: খেলা চলাকালীন প্রতি সেকেন্ডে, অপেক্ষার সময় একটু ধীরে
-  useEffect(() => {
-    if (!code) { setSt(null); return; }
-    let alive = true, timer;
-    setSt(null); setErr(""); setPicked({}); joined.current = false;
-    // পরের খোঁজ: সাধারণত ০.৯–১.৬ সেকেন্ডে, কিন্তু ধাপ বদলের (প্রশ্ন শেষ, উত্তর দেখানো শেষ) ঠিক পরেই
-    const nextDelay = (s) => {
-      if (s.status !== "running") return 1600;
-      if (!s.ends_at) return 1200; // নিজে শেষ করে অন্যদের অপেক্ষা
-      return Math.max(120, Math.min(900, Date.parse(s.ends_at) - Date.parse(s.now) + 80));
-    };
-    let last = null;
-    const load = async () => {
-      clearTimeout(timer);
-      try {
-        const s = await quizCall("quiz_state", { p_code: code });
-        if (!alive) return;
-        offset.current = Date.parse(s.now) - Date.now();
-        setSt(s); setErr(""); status.current = s.status; last = s;
-        if (user && !joined.current && s.status === "lobby" && !s.players.some((p) => p.me)) {
-          joined.current = true;
-          await quizCall("quiz_join", { p_code: code }).catch((e) => setErr(quizMsg(e, lang)));
-        }
-        if (s.next_code && (s.member || s.players.some((p) => p.me))) { nav.openQuiz(s.next_code, true); return; }
-      } catch (e) { if (alive) setErr(quizMsg(e, lang)); }
-      if (alive) timer = setTimeout(load, last ? nextDelay(last) : 1600);
-    };
-    reload.current = () => alive && load();
-    load();
-    const t2 = setInterval(() => tick((x) => x + 1), 250);
-    return () => { alive = false; clearTimeout(timer); clearInterval(t2); };
-  }, [code, user?.id]);
-
-  // solo = একা খেলা: বানিয়েই সঙ্গে সঙ্গে শুরু, অপেক্ষার ঘর ছাড়াই
-  async function create(solo) {
-    if (!user) { try { localStorage.setItem("kk_quiz", "new"); } catch { /* ignore */ } toast(bn ? "কুইজ খেলতে আগে লগইন করুন" : "Log in to play"); goProfile(); return; }
-    setBusy(true);
-    try {
-      if (solo === true) quizAudio.unlock();
-      const c = await quizCall("quiz_create", { n: QUIZ_N });
-      if (solo === true) await quizCall("quiz_start", { p_code: c });
-      nav.openQuiz(c, true);
-    }
-    catch (e) { setErr(quizMsg(e, lang)); }
-    setBusy(false);
-  }
-  async function close() {
-    setBusy(true);
-    try { await quizCall("quiz_close", { p_code: code }); nav.openQuiz(null, true); }
-    catch (e) { setErr(quizMsg(e, lang)); }
-    setBusy(false);
-  }
-  async function next() { try { await quizCall("quiz_next", { p_code: code }); } catch { /* ৩ সেকেন্ড পরে এমনিতেই আসবে */ } reload.current(); }
-  async function start() { quizAudio.unlock(); setBusy(true); try { await quizCall("quiz_start", { p_code: code }); reload.current(); } catch (e) { setErr(quizMsg(e, lang)); } setBusy(false); }
-  async function again() {
-    setBusy(true);
-    try {
-      const c = await quizCall("quiz_again", { p_code: code });
-      if (st?.players?.length === 1) await quizCall("quiz_start", { p_code: c }); // একা খেলায় অপেক্ষার ঘর লাগে না
-      nav.openQuiz(c, true);
-    } catch (e) { setErr(quizMsg(e, lang)); }
-    setBusy(false);
-  }
-  async function answer(i, choice) {
-    quizAudio.unlock();
-    if (picked[i] != null) return;
-    setPicked((p) => ({ ...p, [i]: choice }));
-    try { await quizCall("quiz_answer", { p_code: code, p_index: i, p_choice: choice }); reload.current(); }
-    catch (e) { toast(quizMsg(e, lang)); }
-  }
-
-  // ── শুরুর পাতা ──
-  if (!code) return (
-    <div className="sec">
-      <GameSwitch on="quiz" />
-      <QuizSub on="live" />
-      <div className="card qz-hero">
-        <div className="qz-hero-ic"><QuizIcon width={34} height={34} /></div>
-        <h2>{bn ? "স্পোর্টস কুইজ" : "Sports quiz"}</h2>
-        <p className="muted">{bn ? "১০টা প্রশ্ন, প্রতিটায় ৩০ সেকেন্ড। একা খেলে নিজেকে যাচাই করুন, বা লিংক পাঠিয়ে বন্ধুদের সাথে লাইভ। সমান স্কোর হলে যে দ্রুত উত্তর দিয়েছে, সে এগিয়ে।" : "10 questions, 30 seconds each. Test yourself solo, or send a link and play live with friends. Ties go to the faster player."}</p>
-        <div className="qz-modes">
-          <button className="btn block qz-mode" disabled={busy} onClick={() => create(true)}><UserIcon width={20} height={20} /><span><b>{bn ? "একা খেলুন" : "Play solo"}</b><small>{bn ? "নিজেকে যাচাই করুন" : "Test yourself"}</small></span></button>
-          <button className="btn ghost block qz-mode" disabled={busy} onClick={() => create(false)}><UsersIcon width={20} height={20} /><span><b>{bn ? "বন্ধুদের সাথে খেলুন" : "Play with friends"}</b><small>{bn ? "লিংক পাঠিয়ে লাইভ" : "Live, by link"}</small></span></button>
-        </div>
-      </div>
-      <div className="card qz-join">
-        <b>{bn ? "বন্ধুর কুইজে যোগ দিন" : "Join a friend's quiz"}</b>
-        <form onSubmit={(e) => { e.preventDefault(); const c = joinCode.trim().toUpperCase(); if (c.length >= 4) nav.openQuiz(c); }}>
-          <input value={joinCode} onChange={(e) => setJoinCode(e.target.value)} placeholder={bn ? "কোড লিখুন, যেমন 9A0FFC" : "Enter code"} maxLength={8} autoCapitalize="characters" />
-          <button className="btn" disabled={joinCode.trim().length < 4}>{bn ? "যোগ দিন" : "Join"}</button>
-        </form>
-      </div>
-      {err && <div className="err">{err}</div>}
-    </div>
-  );
-
-  if (!st) return <div className="sec"><GameSwitch on="quiz" />{err ? <div className="card empty">{err}<div style={{ marginTop: 12 }}><button className="btn ghost" onClick={() => nav.openQuiz()}>{bn ? "কুইজের পাতায় ফিরুন" : "Back"}</button></div></div> : <Loading />}</div>;
-
-  const me = st.players.find((p) => p.me);
-  const myRank = st.players.indexOf(me);
-
-  // শেষ হওয়া বা বন্ধ কুইজ: লিংক আর চলে না (খেলোয়াড়রা ফল দেখতে পান, হোস্ট বন্ধ করার আগ পর্যন্ত)
-  if (st.status === "closed" || (st.status === "finished" && !me)) return (
-    <div className="sec">
-      <GameSwitch on="quiz" />
-      <div className="card qz-hero">
-        <div className="qz-hero-ic"><QuizIcon width={34} height={34} /></div>
-        <h2>{bn ? "এই কুইজ শেষ হয়ে গেছে" : "This quiz has ended"}</h2>
-        <p className="muted">{bn ? "লিংকটি আর চালু নেই। চাইলে নতুন একটা কুইজ শুরু করুন।" : "The link no longer works. Start a new quiz instead."}</p>
-        <button className="btn block" onClick={() => nav.openQuiz(null, true)}>{bn ? "নতুন কুইজ খেলুন" : "Play a new quiz"}</button>
-      </div>
-    </div>
-  );
-  const el = st.started_at ? (Date.now() + offset.current - Date.parse(st.started_at)) / 1000 : 0;
-  const cur = st.current;
-  const intoQ = cur?.started_at ? (Date.now() + offset.current - Date.parse(cur.started_at)) / 1000 : 0;
-  const left = Math.max(0, Math.ceil(st.q_seconds - intoQ));
-
-  // ── অপেক্ষা (লবি) ──
-  if (st.status === "lobby") return (
-    <div className="sec">
-      <GameSwitch on="quiz" />
-      <div className="card qz-lobby">
-        <small className="muted">{bn ? "কুইজের কোড" : "Quiz code"}</small>
-        <div className="qz-code">{st.code}</div>
-        <button className="btn ghost block qz-ic-btn" onClick={() => shareQuiz(st.code, bn, toast)}><ShareIcon width={18} height={18} />{bn ? "বন্ধুদের লিংক পাঠান" : "Send link to friends"}</button>
-      </div>
-      <div className="sec-h" style={{ marginTop: 14 }}><h2>{bn ? `খেলোয়াড় · ${num(st.players.length, "bn")} জন` : `Players · ${st.players.length}`}</h2></div>
-      <QuizBoard players={st.players} lang={lang} lobby code={code} />
-      {!user ? (
-        <div className="card empty">{bn ? "এই কুইজে খেলতে আগে লগইন করুন।" : "Log in to play this quiz."}<div style={{ marginTop: 10 }}><button className="btn" onClick={() => { try { localStorage.setItem("kk_quiz", st.code); } catch { /* ignore */ } goProfile(); }}>{bn ? "লগইন করুন" : "Log in"}</button></div></div>
-      ) : st.is_host ? (
-        <button className="btn block qz-go qz-ic-btn" disabled={busy} onClick={start}>{busy ? "…" : <><PlayIcon width={18} height={18} />{bn ? (st.players.length > 1 ? "সবাই এসেছে? শুরু করুন" : "একা শুরু করুন") : "Start"}</>}</button>
-      ) : <div className="qz-wait"><span className="spin sm" />{bn ? "হোস্ট শুরু করলেই খেলা শুরু হবে…" : "Waiting for the host to start…"}</div>}
-      {err && <div className="err">{err}</div>}
-    </div>
-  );
-
-  // ── শেষ ──
-  if (st.status === "finished") return (
-    <div className="sec">
-      <GameSwitch on="quiz" />
-      {me && (me.score >= 8 || (st.players.length > 1 && myRank === 0 && me.score > 0)) && <Celebrate code={st.code} />}
-      {me ? (
-        <div className="card qz-result">
-          <div className="qz-big">{st.players.length > 1 ? <RankBadge rank={myRank + 1} lang={lang} big /> : <span className="qz-badge big r1"><TrophyIcon width={30} height={30} /></span>}</div>
-          <h2>{st.players.length > 1 ? (bn ? `আপনি ${num(st.players.length, "bn")} জনের মধ্যে ${ord(myRank + 1, "bn")}` : `You finished ${ord(myRank + 1, "en")} of ${st.players.length}`) : (bn ? "কুইজ শেষ!" : "Quiz over!")}</h2>
-          <div className="qz-score"><CountUp to={me.score} lang={lang} /><small>/{num(st.total, lang)}</small></div>
-          <div className="muted">{bn ? `সঠিক উত্তর · মোট সময় ${secTxt(me.ms, "bn")}` : `correct · total time ${secTxt(me.ms, "en")}`}</div>
-        </div>
-      ) : <div className="card empty">{bn ? "কুইজ শেষ। আপনি এই কুইজে ছিলেন না।" : "This quiz is over."}</div>}
-      {st.players.length > 1 && <><div className="sec-h" style={{ marginTop: 14 }}><h2>{bn ? "ফলাফল" : "Results"}</h2></div><QuizBoard players={st.players} lang={lang} code={code} /></>}
-      <div className="qz-actions">
-        {st.is_host ? (
-          <>
-            <button className="btn block qz-ic-btn" disabled={busy} onClick={again}><ReplayIcon width={18} height={18} />{bn ? "আবার খেলুন (নতুন ১০টা প্রশ্ন)" : "Play again"}</button>
-            <button className="btn ghost block" disabled={busy} onClick={close}>{bn ? "না, খেলা শেষ করুন" : "No, end the game"}</button>
-            {st.players.length > 1 && <small className="muted qz-note">{bn ? "খেলা শেষ করলে এই লিংকটি আর কাজ করবে না।" : "Ending closes this link for everyone."}</small>}
-          </>
-        ) : (
-          <>
-            <div className="qz-wait"><span className="spin sm" />{bn ? "হোস্ট আবার খেললে নিজে থেকেই যোগ হয়ে যাবেন" : "You'll join automatically if the host plays again"}</div>
-            <button className="btn ghost block" onClick={() => nav.openQuiz(null, true)}>{bn ? "বের হোন" : "Leave"}</button>
-          </>
-        )}
-      </div>
-      {st.review && (
-        <details className="card qz-review">
-          <summary>{bn ? "সব প্রশ্ন আর সঠিক উত্তর দেখুন" : "Review answers"}</summary>
-          {st.review.map((r, i) => (
-            <div key={i} className="qz-rv">
-              <b>{num(i + 1, lang)}. {r.question}</b>
-              <div className={r.choice === r.answer ? "ok" : "bad"}>{r.choice === r.answer ? "✓ " : "✗ "}{bn ? "সঠিক উত্তর" : "Answer"}: {r.options[r.answer]}{r.choice != null && r.choice !== r.answer ? ` · ${bn ? "আপনার" : "you"}: ${r.options[r.choice]}` : r.choice == null ? ` · ${bn ? "উত্তর দেননি" : "no answer"}` : ""}</div>
-              {r.explanation && <small className="muted">{r.explanation}</small>}
-            </div>
-          ))}
-        </details>
-      )}
-      {err && <div className="err">{err}</div>}
-    </div>
-  );
-
-  // ── চলছে ──
-  if (st.phase === "countdown") return (
-    <div className="sec"><div className="qz-count" key={Math.ceil(-el)}>{num(Math.max(1, Math.ceil(-el)), lang)}</div><p className="muted" style={{ textAlign: "center" }}>{bn ? "প্রস্তুত হোন…" : "Get ready…"}</p></div>
-  );
-  if (st.phase === "waiting") return (
-    <div className="sec">
-      <div className="card qz-result">
-        <div className="qz-big"><span className="qz-badge big r1"><TrophyIcon width={30} height={30} /></span></div>
-        <h2>{bn ? "আপনি সব প্রশ্ন শেষ করেছেন!" : "You're done!"}</h2>
-        {me && <div className="qz-score"><CountUp to={me.score} lang={lang} /><small>/{num(st.total, lang)}</small></div>}
-        <div className="qz-wait"><span className="spin sm" />{bn ? `অন্যদের শেষ হওয়ার অপেক্ষা · ${num(st.finished_count, "bn")}/${num(st.players.length, "bn")} জন শেষ করেছেন` : `Waiting for others · ${st.finished_count}/${st.players.length} done`}</div>
-        <small className="muted">{bn ? "সবাই শেষ করলেই কে কততম, দেখা যাবে।" : "Rankings appear when everyone finishes."}</small>
-      </div>
-    </div>
-  );
-  if (st.phase === "watching") return <div className="sec"><GameSwitch on="quiz" /><div className="card empty">{bn ? "খেলা চলছে। আপনি এই কুইজে নেই।" : "A quiz is in progress. You're not in it."}</div></div>;
-  if (!cur) return <div className="sec"><Loading /></div>;
-  const mine = cur.mine?.choice ?? picked[cur.index];
-  const reveal = st.phase === "reveal";
-  return (
-    <div className="sec qz-play">
-      <div className="qz-top">
-        <button className="qz-x" onClick={quit} aria-label={bn ? "কুইজ ছেড়ে যান" : "Leave quiz"}>✕</button>
-        <span className="qz-dots" aria-label={bn ? `প্রশ্ন ${num(cur.index + 1, "bn")}/${num(st.total, "bn")}` : `Question ${cur.index + 1} of ${st.total}`}>
-          {Array.from({ length: st.total }, (_, i) => <i key={i} className={marks[i] || (i === cur.index ? "cur" : "")} />)}
-        </span>
-        <button className="qz-x" onClick={toggleSound} aria-label={soundOn ? (bn ? "শব্দ বন্ধ" : "Mute") : (bn ? "শব্দ চালু" : "Unmute")}><SoundIcon off={!soundOn} width={16} height={16} /></button>
-      </div>
-      <div className="qz-sub"><span>{bn ? `প্রশ্ন ${num(cur.index + 1, "bn")}/${num(st.total, "bn")}` : `Q ${cur.index + 1}/${st.total}`} · {cur.category}</span>{me && <span className="qz-myscore">{bn ? "স্কোর" : "Score"} {num(me.score, lang)}</span>}</div>
-      <div className="qz-timer"><i style={{ width: reveal ? 0 : `${Math.max(0, (st.q_seconds - intoQ) / st.q_seconds) * 100}%` }} className={left <= 5 && !reveal ? "low" : ""} /></div>
-      {!reveal && <div className={"qz-left" + (left <= 5 ? " low" : "")}>{num(left, lang)}</div>}
-      <div className="qz-stage" key={cur.index}>
-      <h2 className="qz-q">{cur.question}</h2>
-      <div className="qz-opts">
-        {cur.options.map((o, i) => {
-          const cls = reveal ? (i === cur.answer ? " right" : i === mine ? " wrong" : " dim") : mine === i ? " picked" : mine != null ? " dim" : "";
-          return <button key={i} style={{ animationDelay: `${120 + i * 70}ms` }} className={"qz-opt" + cls} disabled={!me || reveal || mine != null} onClick={() => answer(cur.index, i)}><span className="qz-l">{bn ? LETTERS[i] : "ABCD"[i]}</span>{o}</button>;
-        })}
-      </div>
-      </div>
-      {reveal ? (
-        <div className={"qz-verdict " + (mine === cur.answer ? "ok" : "bad")}>
-          <b>{mine === cur.answer ? (bn ? "✓ সঠিক!" : "✓ Correct!") : mine == null ? (bn ? "সময় শেষ" : "Time's up") : (bn ? "✗ ভুল" : "✗ Wrong")}</b>
-          {cur.explanation && <span>{cur.explanation}</span>}
-        </div>
-      ) : null}
-      {reveal ? (
-        <button className="btn block qz-next qz-ic-btn" onClick={next} ref={(el) => el && !el.dataset.seen && (el.dataset.seen = "1", setTimeout(() => el.scrollIntoView({ behavior: "smooth", block: "nearest" }), 60))}>{cur.index + 1 >= st.total ? (bn ? "শেষ করুন" : "Finish") : (bn ? "পরের প্রশ্ন" : "Next question")}<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14M13 6l6 6-6 6" /></svg></button>
-      ) : mine != null ? (
-        <div className="qz-wait"><span className="spin sm" />{bn ? "উত্তর জমা হচ্ছে…" : "Locking in…"}</div>
-      ) : !me ? <div className="qz-wait">{bn ? "আপনি এই কুইজে নেই, শুধু দেখছেন।" : "You're watching."}</div> : null}
     </div>
   );
 }
@@ -4739,6 +3680,48 @@ const b64u = (s) => { const p = "=".repeat((4 - (s.length % 4)) % 4); const r = 
 const pushOk = () => typeof window !== "undefined" && "serviceWorker" in navigator && "PushManager" in window && "Notification" in window;
 const isIOS = () => /iPhone|iPad|iPod/i.test(navigator.userAgent || "");
 const standalone = () => window.matchMedia?.("(display-mode: standalone)").matches || navigator.standalone === true;
+// ── নোটিফিকেশন চালুর অনুরোধ: প্রিয় দল বাছা বা প্রেডিকশনের পর, ভদ্রভাবে ──
+// "এখন না" বললে ৭ দিন, দ্বিতীয়বার থেকে ৩০ দিন আর আসে না। অনুমতি আগেই দেওয়া/আটকানো থাকলে আসে না।
+const pushAskReady = () => {
+  if (DEMO || !pushOk() || Notification.permission !== "default") return false;
+  if (isIOS() && !standalone()) return false;   // আইফোনের ব্রাউজারে ওয়েব নোটিফিকেশন চলে না
+  return Date.now() > (ls.get("push_ask_until", 0) || 0);
+};
+function PushAsk({ ask, user, onClose, toast }) {
+  const { lang } = useT();
+  const bn = lang === "bn";
+  const [busy, setBusy] = useState(false);
+  useBackClose(!!ask, onClose);
+  if (!ask) return null;
+  const later = () => {
+    const n = (ls.get("push_ask_no", 0) || 0) + 1;
+    ls.set("push_ask_no", n);
+    ls.set("push_ask_until", Date.now() + (n > 1 ? 30 : 7) * 86400000);
+    onClose();
+  };
+  const yes = async () => {
+    setBusy(true);
+    const r = await enablePush(user);
+    setBusy(false);
+    if (r === "ok") { ls.set("push_ask_until", Date.now() + 3650 * 86400000); toast(bn ? "নোটিফিকেশন চালু হয়েছে" : "Notifications on"); onClose(); }
+    else if (r === "blocked") { ls.set("push_ask_until", Date.now() + 30 * 86400000); toast(bn ? "ব্রাউজারে নোটিফিকেশন আটকানো আছে। সাইটের সেটিংস থেকে চালু করুন" : "Notifications are blocked in your browser settings", 4200); onClose(); }
+    else if (r === "dismissed") later();
+    else { toast(bn ? "চালু করা গেল না, পরে প্রোফাইল থেকে চেষ্টা করুন" : "Couldn't turn on; try again from Profile"); onClose(); }
+  };
+  const team = ask.team;
+  return (
+    <div className="veil" onClick={later}>
+      <div className="sheet push-ask" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true">
+        <div className="pa-ic"><BellIcon on size={26} /></div>
+        <h3>{bn ? (team ? `${team}-এর গোলের খবর সাথে সাথে?` : "গোলের খবর সাথে সাথে পেতে চান?") : (team ? `Get ${team} goals instantly?` : "Get goal alerts instantly?")}</h3>
+        <p className="muted">{bn ? "খেলা শুরু, প্রতিটা গোল আর ফুলটাইমের খবর ফোনে চলে আসবে। প্রেডিকশনের ফলও। যখন খুশি প্রোফাইল থেকে বন্ধ করা যায়।" : "Kick-off, every goal and full-time, plus your prediction results. Turn off anytime in Profile."}</p>
+        <button className="btn block" disabled={busy} onClick={yes}>{busy ? "…" : bn ? "চালু করুন" : "Turn on"}</button>
+        <button className="btn ghost block" onClick={later}>{bn ? "এখন না" : "Not now"}</button>
+      </div>
+    </div>
+  );
+}
+
 // ── 🔔 ম্যাচ বা দলের নোটিফিকেশন (প্রিয় দল ছাড়াও) ──
 // এই ফোনে নোটিফিকেশন চালু করা (অনুমতি + ঠিকানা জমা)। ফেরত: "ok" | "blocked" | "dismissed" | "unsupported" | "error"
 async function enablePush(user) {
@@ -4959,540 +3942,6 @@ function PushCard({ user, hasFav, toast, bn }) {
 
 // ═════════ অ্যাডমিন প্যানেল (/admin): শুধু প্রতিষ্ঠাতার অ্যাকাউন্টে, সাইটের অবস্থা এক নজরে ═════════
 const ADMIN_IDS = ["b9593729-5ea4-44f4-9083-7cf4d19721ee"];
-const agoBn = (iso) => {
-  if (!iso) return "—";
-  const m = Math.round((Date.now() - Date.parse(iso)) / 60000);
-  return m < 1 ? "এইমাত্র" : m < 60 ? `${num(m, "bn")} মিনিট আগে` : m < 1440 ? `${num(Math.round(m / 60), "bn")} ঘণ্টা আগে` : `${num(Math.round(m / 1440), "bn")} দিন আগে`;
-};
-const uaShort = (ua) => (!ua ? "" : `${/iPhone|iPad/.test(ua) ? "আইফোন" : /Android/.test(ua) ? "অ্যান্ড্রয়েড" : /Windows/.test(ua) ? "উইন্ডোজ" : /Mac/.test(ua) ? "ম্যাক" : "অন্য"} · ${/SamsungBrowser/.test(ua) ? "স্যামসাং" : /Edg\//.test(ua) ? "এজ" : /Firefox/.test(ua) ? "ফায়ারফক্স" : /Chrome/.test(ua) ? "ক্রোম" : /Safari/.test(ua) ? "সাফারি" : "ব্রাউজার"}`);
-const ADMIN_TABS = [["ov", "ওভারভিউ"], ["live", "ম্যাচ"], ["quiz", "কুইজ"], ["usage", "ব্যবহার"], ["users", "ইউজার"], ["errors", "এরর"], ["news", "ঘোষণা"], ["sync", "আপডেট"]];
-const RUN_LIST = [
-  ["fd-quick", "আজকের ম্যাচ (ইউরোপের ৬ লিগ)", "গতকাল থেকে আগামীকাল পর্যন্ত স্কোর আর সময়"],
-  ["fd-full", "পুরো সূচি (ইউরোপের ৬ লিগ)", "সিজনের সব ম্যাচ নতুন করে"],
-  ["fd-tables", "পয়েন্ট টেবিল (ইউরোপের ৬ লিগ)", ""],
-  ["fd-scorers", "গোলদাতার তালিকা (ইউরোপের ৬ লিগ)", ""],
-  ["af-tables", "রিয়েল টাইম টেবিল (সব লিগ)", "খেলার ফল থেকে টেবিল আবার হিসাব"],
-  ["af:BAN", "বাংলাদেশ জাতীয় দল", "শেষ ১০ আর সামনের ১০ ম্যাচ"],
-  ["af:BPL", "বাংলাদেশ ফুটবল লিগ", ""],
-  ["af:BFC", "ফেডারেশন কাপ", ""],
-  ["af-all", "বাকি সব লিগ একসাথে", "সময় লাগে (১ মিনিট পর্যন্ত), বেশি API কল খরচ হয়"],
-  ["remind", "রিমাইন্ডার আর প্রেডিকশনের ফল", "যার যা পাওনা, এখনই পাঠানো"],
-];
-const SEC_BN = { matches: "ম্যাচের তালিকা", match: "ম্যাচের পাতা", leagues: "লিগ ট্যাব", league: "লিগের পাতা", team: "দলের পাতা", player: "প্লেয়ার", predict: "প্রেডিকশন", quiz: "কুইজ ও চ্যালেঞ্জ", ask: "জিজ্ঞেস করুন", profile: "প্রোফাইল", bangladesh: "বাংলাদেশ দল", pages: "অন্যান্য পাতা", admin: "অ্যাডমিন", other: "অন্যান্য" };
-const SRC_BN = { facebook: "ফেসবুক", google: "গুগল সার্চ", search: "অন্য সার্চ", app: "ইনস্টল করা অ্যাপ", direct: "সরাসরি লিংক", x: "এক্স (টুইটার)", youtube: "ইউটিউব", instagram: "ইনস্টাগ্রাম", other: "অন্য সাইট", unknown: "অজানা" };
-const PLAT_BN = { android: "অ্যান্ড্রয়েড ব্রাউজার", "android-app": "অ্যান্ড্রয়েড অ্যাপ", ios: "আইফোন ব্রাউজার", "ios-app": "আইফোন অ্যাপ", desktop: "কম্পিউটার", "desktop-app": "কম্পিউটার অ্যাপ", unknown: "অজানা" };
-const minBn = (m) => (m >= 60 ? `${num(Math.floor(m / 60), "bn")} ঘ ${num(m % 60, "bn")} মি` : `${num(m, "bn")} মি`);
-// ── অ্যাডমিন: কুইজের খুঁটিনাটি (কে কখন খেলল, কত সময়ে শেষ করল, কত পেল, কোন প্রশ্ন কঠিন) ──
-const bdDayStr = (t = Date.now()) => new Date(t + 6 * 3600000).toISOString().slice(0, 10);
-const durBn = (ms) => {
-  if (ms == null || !isFinite(ms) || ms < 0) return "–";
-  const s = Math.round(ms / 1000);
-  return s < 60 ? `${num(s, "bn")} সে` : `${num(Math.floor(s / 60), "bn")} মি ${num(s % 60, "bn")} সে`;
-};
-const clockBn = (iso) => { if (!iso) return "–"; const d = new Date(Date.parse(iso) + 6 * 3600000); const h = d.getUTCHours(); const part = h < 4 ? "রাত" : h < 6 ? "ভোর" : h < 12 ? "সকাল" : h < 15 ? "দুপুর" : h < 18 ? "বিকাল" : h < 20 ? "সন্ধ্যা" : "রাত"; return `${part} ${num(h % 12 || 12, "bn")}:${num(String(d.getUTCMinutes()).padStart(2, "0"), "bn")}`; };
-const dayBn = (d) => { const x = new Date(d + "T00:00:00Z"); return `${num(x.getUTCDate(), "bn")} ${["জানু", "ফেব্রু", "মার্চ", "এপ্রিল", "মে", "জুন", "জুলাই", "আগস্ট", "সেপ্টে", "অক্টো", "নভে", "ডিসে"][x.getUTCMonth()]}`; };
-function AdminQuiz({ fetchQ }) {
-  const today = bdDayStr();
-  const [range, setRange] = useState("today");
-  const [day, setDay] = useState(today);
-  const [mode, setMode] = useState("daily");
-  const [status, setStatus] = useState("all");
-  const [sort, setSort] = useState("points");
-  const [q, setQ] = useState("");
-  const [minC, setMinC] = useState(0);
-  const [open, setOpen] = useState(null);
-  const [data, setData] = useState(null);
-  const [err, setErr] = useState(false);
-  const span = range === "today" ? [today, today] : range === "yday" ? [bdDayStr(Date.now() - 86400000), bdDayStr(Date.now() - 86400000)]
-    : range === "7" ? [bdDayStr(Date.now() - 6 * 86400000), today] : range === "30" ? [bdDayStr(Date.now() - 29 * 86400000), today] : [day, day];
-  useEffect(() => {
-    let a = true; setData(null); setErr(false);
-    const go = () => fetchQ(`quiz=1&from=${span[0]}&to=${span[1]}`).then((x) => a && (x?.ok ? setData(x) : setErr(true))).catch(() => a && setErr(true));
-    go();
-    const stop = everyMin(go);
-    return () => { a = false; stop(); };
-  }, [span[0], span[1]]);
-
-  const Seg = ({ v, set, opts }) => <div className="aq-seg">{opts.map(([k, l]) => <button key={k} className={v === k ? "on" : ""} onClick={() => set(k)}>{l}</button>)}</div>;
-  const filters = (
-    <div className="card aq-f">
-      <Seg v={range} set={setRange} opts={[["today", "আজ"], ["yday", "গতকাল"], ["7", "৭ দিন"], ["30", "৩০ দিন"], ["day", "নির্দিষ্ট দিন"]]} />
-      {range === "day" && <input type="date" value={day} max={today} onChange={(e) => e.target.value && setDay(e.target.value)} />}
-      <Seg v={mode} set={setMode} opts={[["daily", "দৈনিক চ্যালেঞ্জ"], ["rooms", "কুইজ রুম"]]} />
-      {mode === "daily" && <>
-        <Seg v={status} set={setStatus} opts={[["all", "সবাই"], ["done", "শেষ করেছেন"], ["left", "মাঝপথে ছেড়েছেন"]]} />
-        <div className="aq-row">
-          <label>সাজানো<select value={sort} onChange={(e) => setSort(e.target.value)}>
-            <option value="points">বেশি পয়েন্ট আগে</option><option value="fast">কম সময়ে শেষ আগে</option><option value="slow">বেশি সময় আগে</option>
-            <option value="correct">বেশি সঠিক আগে</option><option value="early">আগে খেলেছেন আগে</option><option value="late">পরে খেলেছেন আগে</option><option value="streak">বড় স্ট্রিক আগে</option>
-          </select></label>
-          <label>কমপক্ষে সঠিক<select value={minC} onChange={(e) => setMinC(+e.target.value)}>{[0, 1, 2, 3, 4, 5].map((n) => <option key={n} value={n}>{n ? num(n, "bn") + "টি" : "যেকোনো"}</option>)}</select></label>
-        </div>
-      </>}
-      <input className="aq-search" placeholder="নাম দিয়ে খুঁজুন" value={q} onChange={(e) => setQ(e.target.value)} />
-    </div>
-  );
-  if (err) return <>{filters}<div className="card empty">তথ্য আনা গেল না। একটু পরে আবার চেষ্টা করুন।</div></>;
-  if (!data) return <>{filters}<Loading /></>;
-
-  const nm = (u) => data.names[u] || "নাম নেই";
-  const match = (u) => !q.trim() || nm(u).toLowerCase().includes(q.trim().toLowerCase());
-
-  if (mode === "rooms") {
-    const rooms = data.rooms.map((r) => {
-      const ps = data.roomPlayers.filter((p) => p.room_id === r.id).map((p) => {
-        const an = data.roomAnswers.filter((a) => a.room_id === r.id && a.user_id === p.user_id);
-        return { uid: p.user_id, name: p.display_name || nm(p.user_id), correct: an.filter((a) => a.correct).length, answered: an.length, ms: an.reduce((n, a) => n + (a.ms || 0), 0) };
-      }).sort((a, b) => b.correct - a.correct || a.ms - b.ms);
-      return { ...r, ps, total: (r.question_ids || []).length };
-    }).filter((r) => r.ps.some((p) => match(p.uid) || (p.name || "").toLowerCase().includes(q.trim().toLowerCase())));
-    return (
-      <>
-        {filters}
-        <div className="adm-grid">
-          <div className="adm-tile"><b>{num(rooms.length, "bn")}</b><small>কুইজ রুম</small></div>
-          <div className="adm-tile"><b>{num(rooms.reduce((n, r) => n + r.ps.length, 0), "bn")}</b><small>মোট অংশগ্রহণ</small></div>
-        </div>
-        {!rooms.length ? <div className="card empty">এই সময়ে কোনো কুইজ রুম নেই।</div> : rooms.map((r) => (
-          <div key={r.id} className="card aq-room">
-            <div className="aq-room-h"><b>{r.code}</b><span className="muted">{dayBn(bdDayStr(Date.parse(r.created_at)))} · {clockBn(r.created_at)} · {num(r.total, "bn")} প্রশ্ন · {r.status === "finished" || r.status === "closed" ? "শেষ" : r.status === "running" ? "চলছে" : "লবিতে"}</span></div>
-            {r.ps.map((p, i) => <div key={p.uid} className="aq-rp"><span>{num(i + 1, "bn")}. {p.name}{p.uid === r.host ? <small className="muted"> (হোস্ট)</small> : null}</span><span>{num(p.correct, "bn")}/{num(r.total, "bn")} সঠিক</span><span className="muted">{durBn(p.ms)}</span></div>)}
-          </div>
-        ))}
-      </>
-    );
-  }
-
-  const qById = Object.fromEntries(data.questions.map((x) => [x.id, x]));
-  const ansBy = {};
-  for (const a of data.answers) (ansBy[a.user_id + "|" + a.day] ||= []).push(a);
-  let rows = data.plays.map((p) => {
-    const an = (ansBy[p.user_id + "|" + p.day] || []).sort((a, b) => a.q_index - b.q_index);
-    const think = an.reduce((n, a) => n + (a.ms || 0), 0);
-    const total = p.finished_at ? Date.parse(p.finished_at) - Date.parse(p.started_at) : null;
-    return { ...p, an, think, total, done: !!p.finished_at };
-  });
-  const all = rows;
-  rows = rows.filter((r) => match(r.user_id) && (status === "all" || (status === "done" ? r.done : !r.done)) && r.correct >= minC);
-  const S = { points: (a, b) => (b.points ?? -1) - (a.points ?? -1) || a.think - b.think, fast: (a, b) => (a.total ?? 1e12) - (b.total ?? 1e12), slow: (a, b) => (b.total ?? -1) - (a.total ?? -1),
-    correct: (a, b) => b.correct - a.correct || a.think - b.think, early: (a, b) => Date.parse(a.started_at) - Date.parse(b.started_at), late: (a, b) => Date.parse(b.started_at) - Date.parse(a.started_at), streak: (a, b) => b.streak - a.streak };
-  rows.sort(S[sort]);
-  const done = rows.filter((r) => r.done);
-  const avg = (xs) => (xs.length ? xs.reduce((n, x) => n + x, 0) / xs.length : null);
-  const multi = span[0] !== span[1];
-  // প্রশ্ন ধরে: কতজন ঠিক, গড় সময় (একদিন বাছাই করলে)
-  const set = !multi ? data.sets.find((x) => x.day === span[0]) : null;
-  const perQ = set ? (set.question_ids || []).map((qid, i) => {
-    const an = data.answers.filter((a) => a.day === span[0] && a.q_index === i);
-    return { i, q: qById[qid], n: an.length, ok: an.filter((a) => a.correct).length, ms: avg(an.map((a) => a.ms)) };
-  }) : [];
-  const days = multi ? [...new Set(all.map((r) => r.day))].sort().reverse().map((d) => {
-    const r = all.filter((x) => x.day === d), f = r.filter((x) => x.done);
-    return { d, n: r.length, f: f.length, pts: avg(f.map((x) => x.points || 0)), t: avg(f.map((x) => x.total)), c: avg(f.map((x) => x.correct)) };
-  }) : [];
-  return (
-    <>
-      {filters}
-      <div className="adm-grid">
-        <div className="adm-tile"><b>{num(rows.length, "bn")}</b><small>খেলেছেন</small></div>
-        <div className="adm-tile"><b>{num(done.length, "bn")}</b><small>শেষ করেছেন</small></div>
-        <div className="adm-tile"><b>{durBn(avg(done.map((r) => r.total)))}</b><small>গড় সময়</small></div>
-        <div className="adm-tile"><b>{avg(done.map((r) => r.correct)) == null ? "–" : num(Math.round(avg(done.map((r) => r.correct)) * 10) / 10, "bn")}/৫</b><small>গড় সঠিক</small></div>
-        <div className="adm-tile"><b>{avg(done.map((r) => r.points || 0)) == null ? "–" : num(Math.round(avg(done.map((r) => r.points || 0))), "bn")}</b><small>গড় পয়েন্ট</small></div>
-        <div className="adm-tile"><b>{done.length ? durBn(Math.min(...done.map((r) => r.total))) : "–"}</b><small>সবচেয়ে দ্রুত</small></div>
-      </div>
-      {multi && days.length > 0 && <>
-        <div className="adm-h">দিন ধরে</div>
-        <div className="card aq-tbl"><div className="aq-tr aq-th"><span>দিন</span><span>খেলেছেন</span><span>শেষ</span><span>গড় সময়</span><span>গড় সঠিক</span><span>গড় পয়েন্ট</span></div>
-          {days.map((x) => <div key={x.d} className="aq-tr"><span>{dayBn(x.d)}</span><span>{num(x.n, "bn")}</span><span>{num(x.f, "bn")}</span><span>{durBn(x.t)}</span><span>{x.c == null ? "–" : num(Math.round(x.c * 10) / 10, "bn")}</span><span>{x.pts == null ? "–" : num(Math.round(x.pts), "bn")}</span></div>)}
-        </div>
-      </>}
-      {perQ.length > 0 && <>
-        <div className="adm-h">প্রশ্ন ধরে <span className="muted">কোনটা কঠিন ছিল</span></div>
-        <div className="card aq-qs">
-          {perQ.map((x) => { const pc = x.n ? Math.round((x.ok / x.n) * 100) : 0; return (
-            <div key={x.i} className="aq-q">
-              <div className="aq-q-t"><b>{num(x.i + 1, "bn")}.</b> {x.q?.question || "প্রশ্ন পাওয়া যায়নি"}{x.q && <small className="muted"> · উত্তর: {x.q.options?.[x.q.answer]}</small>}</div>
-              <div className="aq-bar"><i style={{ width: pc + "%" }} className={pc < 35 ? "bad" : pc < 65 ? "mid" : ""} /></div>
-              <small className="muted">{num(pc, "bn")}% সঠিক ({num(x.ok, "bn")}/{num(x.n, "bn")}) · গড়ে {durBn(x.ms)}</small>
-            </div>); })}
-        </div>
-      </>}
-      <div className="adm-h">প্রত্যেকের হিসাব <span className="muted">{num(rows.length, "bn")} জন</span></div>
-      {!rows.length ? <div className="card empty">এই ফিল্টারে কেউ নেই।</div> : (
-        <div className="card aq-list">
-          {rows.map((r, i) => {
-            const k = r.user_id + r.day;
-            return (
-              <div key={k} className="aq-p">
-                <button className="aq-p-h" onClick={() => setOpen(open === k ? null : k)}>
-                  <span className="aq-rank">{num(i + 1, "bn")}</span>
-                  <span className="aq-who"><b>{nm(r.user_id)}</b><small className="muted">{multi ? dayBn(r.day) + " · " : ""}{clockBn(r.started_at)}{r.done ? "" : " · মাঝপথে"}{r.streak > 1 ? ` · স্ট্রিক ${num(r.streak, "bn")}` : ""}</small></span>
-                  <span className="aq-dots">{[0, 1, 2, 3, 4].map((j) => { const a = r.an.find((x) => x.q_index === j); return <i key={j} className={!a ? "" : a.correct ? "ok" : "no"} />; })}</span>
-                  <span className="aq-num"><b>{r.points == null ? "–" : num(r.points, "bn")}</b><small className="muted">{r.done ? durBn(r.total) : `${num(r.idx, "bn")}/৫`}</small></span>
-                </button>
-                {open === k && (
-                  <div className="aq-more">
-                    <div className="muted">শুরু {clockBn(r.started_at)}{r.done ? ` · শেষ ${clockBn(r.finished_at)} · মোট ${durBn(r.total)} · উত্তর ভাবতে ${durBn(r.think)}` : " · মাঝপথে ছেড়েছেন"}</div>
-                    <div className="aq-qgrid">
-                      {[0, 1, 2, 3, 4].map((j) => {
-                        const a = r.an.find((x) => x.q_index === j), qq = a ? qById[a.qid] : null;
-                        if (!a) return <div key={j} className="aq-qb none"><div className="aq-qb-h"><b>প্রশ্ন {num(j + 1, "bn")}</b><span>খেলেননি</span></div><div className="aq-qb-p">–</div></div>;
-                        const bonus = a.correct ? Math.max(0, a.pts - 10) : 0;
-                        return (
-                          <div key={j} className={"aq-qb " + (a.correct ? "ok" : "no")}>
-                            <div className="aq-qb-h"><b>প্রশ্ন {num(j + 1, "bn")}</b><span>{a.correct ? "সঠিক" : a.choice == null ? "সময় শেষ" : "ভুল"} · {durBn(a.ms)}</span></div>
-                            <div className="aq-qb-p">{a.correct ? <>১০ <small>সঠিক</small> + {num(bonus, "bn")} <small>দ্রুততা</small> = <b>{num(a.pts, "bn")}</b></> : <b>০</b>}</div>
-                            <div className="aq-qb-q">{qq?.question || "প্রশ্ন"}</div>
-                            <div className="aq-qb-a">{a.choice == null ? "উত্তর দেননি" : `উত্তর: ${qq?.options?.[a.choice] ?? "–"}`}{!a.correct && qq ? ` · সঠিক: ${qq.options?.[qq.answer]}` : ""}</div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                    {(() => {
-                      const perfect = r.done && r.correct === 5 ? 10 : 0;
-                      const calc = r.raw + perfect;
-                      return (
-                        <div className="aq-sum">
-                          <div className="aq-sb"><small>৫ প্রশ্নের পয়েন্ট</small><b>{num(r.raw, "bn")}</b></div>
-                          <i>+</i>
-                          <div className={"aq-sb" + (perfect ? " hi" : "")}><small>পারফেক্ট বোনাস</small><b>{num(perfect, "bn")}</b><em>{perfect ? "৫টাই সঠিক" : "৫টা সঠিক হলে +১০"}</em></div>
-                          <i>=</i>
-                          <div className="aq-sb total"><small>{r.done ? "দিনের পয়েন্ট" : "এখন পর্যন্ত"}</small><b>{num(r.done ? (r.points ?? calc) : r.raw, "bn")}</b>{r.done && r.points != null && r.points !== calc && <em>নতুন নিয়মে {num(calc, "bn")} (আগের গুণকসহ হিসাব)</em>}</div>
-                          <div className="aq-sb"><small>স্ট্রিক</small><b>{num(r.streak, "bn")}</b><em>দিন টানা · পয়েন্টে প্রভাব নেই</em></div>
-                        </div>
-                      );
-                    })()}
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      )}
-    </>
-  );
-}
-function AdminApp({ user, toast, goProfile, onExit }) {
-  const [d, setD] = useState(null);
-  const [err, setErr] = useState("");
-  const [tab, setTab] = useState(() => ls.get("adm_tab", "ov"));
-  const [open, setOpen] = useState(null);
-  const [busy, setBusy] = useState("");
-  const [runOut, setRunOut] = useState({});
-  const [bc, setBc] = useState({ title: "", body: "", url: "/" });
-  const [allM, setAllM] = useState(false);
-  const [, tick] = useState(0);
-  useEffect(() => { if (tab !== "live") return; const i = setInterval(() => tick((x) => x + 1), 20000); return () => clearInterval(i); }, [tab]);
-  useEffect(() => { ls.set("adm_tab", tab); window.scrollTo(0, 0); }, [tab]);
-  const call = async (body) => {
-    const { data } = await sb.auth.getSession();
-    const tk = data?.session?.access_token;
-    if (!tk) throw Object.assign(new Error("login"), { code: 401 });
-    const r = await fetch("/api/admin", body ? { method: "POST", headers: { Authorization: `Bearer ${tk}`, "Content-Type": "application/json" }, body: JSON.stringify(body) } : { headers: { Authorization: `Bearer ${tk}` } });
-    if (r.status === 401 || r.status === 403) throw Object.assign(new Error("no"), { code: r.status });
-    return r.json();
-  };
-  const fetchQ = async (qs) => {
-    const { data } = await sb.auth.getSession();
-    const tk = data?.session?.access_token;
-    const r = await fetch("/api/admin?" + qs, { headers: { Authorization: `Bearer ${tk}` } });
-    return r.json();
-  };
-  const load = () => call().then((x) => { setD(x); setErr(""); }).catch((e) => setErr(e.code === 403 ? "forbidden" : e.code === 401 ? "login" : "x"));
-  useEffect(() => { if (DEMO) { setErr("x"); return; } if (user) load(); const i = setInterval(() => !document.hidden && user && load(), 60000); return () => clearInterval(i); }, [user?.id]);
-  const errText = (e) => `[খেলা কখন এরর] ${e.count}× · ${e.msg}\nপাতা: ${e.url || "-"}\nডিভাইস: ${e.ua || "-"}\nসংস্করণ: ${e.build || "-"} · প্রথম ${e.first_seen} · শেষ ${e.last_seen}\nকোডের জায়গা: ${e.src || "-"}\n${(e.stack || "").slice(0, 1500)}`;
-  const copy = async (txt) => { try { await navigator.clipboard.writeText(txt); toast("কপি হয়েছে, এখন Claude-এর চ্যাটে পেস্ট করুন"); } catch { window.prompt("কপি করুন:", txt); } };
-  const fix = async (fp) => { await call(fp ? { fix: fp } : { fixAll: true }).catch(() => {}); toast(fp ? "তালিকা থেকে সরানো হয়েছে" : "সব সরানো হয়েছে"); load(); };
-  const run = async (k) => {
-    setBusy(k); setRunOut((o) => ({ ...o, [k]: null }));
-    const r = await call({ run: k }).catch(() => ({ ok: false }));
-    setBusy(""); setRunOut((o) => ({ ...o, [k]: r }));
-    toast(r.ok ? "আপডেট হয়ে গেছে" : "আপডেট করা গেল না");
-  };
-  const send = async (test) => {
-    if (!bc.title.trim()) return toast("শিরোনাম লিখুন");
-    if (!test && !window.confirm(`নোটিফিকেশন চালু থাকা ${num(d?.pushUsers ?? 0, "bn")} জনের কাছে পাঠাবেন?`)) return;
-    setBusy(test ? "bc-test" : "bc");
-    const r = await call({ broadcast: { ...bc, test } }).catch(() => ({ ok: false }));
-    setBusy("");
-    toast(r.ok ? (test ? "শুধু আপনার ফোনে পাঠানো হয়েছে" : `${num(r.users ?? 0, "bn")} জনের কাছে পাঠানো হয়েছে`) : "পাঠানো গেল না");
-    if (r.ok && !test) setBc({ title: "", body: "", url: "/" });
-  };
-
-  // হাতে ম্যাচ আপডেট: চাপ দিলেই সার্ভারে যায়, উত্তর এলে তালিকায় বসে
-  const [minIn, setMinIn] = useState({});
-  const [gf, setGf] = useState(null);   // গোলের ফর্ম: {id, s, m, p}
-  const act = async (m, action, ask, min, goal) => {
-    if (ask && !window.confirm(ask)) return;
-    setBusy(m.id + action);
-    const r = await call({ manual: { id: m.id, action, min, goal } }).catch(() => ({ ok: false }));
-    setBusy("");
-    if (!r.ok) return toast(r.error || "হলো না, আবার চেষ্টা করুন");
-    if (action === "gh" || action === "ga") setGf(null);
-    setD((x) => ({ ...x, manual: { ...x.manual, list: x.manual.list.map((y) => (y.id === m.id ? { ...y, man: r.cleared ? null : r.manual, status: r.cleared ? "TIMED" : y.status } : y)) } }));
-    toast({ start: "খেলা শুরু হয়েছে", ht: "বিরতি", "2h": "দ্বিতীয়ার্ধ শুরু", ft: "খেলা শেষ, প্রেডিকশনের পয়েন্ট দেওয়া হচ্ছে", min: "মিনিট ঠিক হয়েছে, এখান থেকে গোনা চলবে", gh: "গোল যোগ হয়েছে", ga: "গোল যোগ হয়েছে", uh: "গোল বাদ দেওয়া হয়েছে", ua: "গোল বাদ দেওয়া হয়েছে", clear: "হাতের আপডেট মুছে API-তে ফেরানো হয়েছে" }[action] || "হয়েছে");
-  };
-  const manMin = (mm) => {
-    const mn = (t) => Math.max(1, Math.floor((Date.now() - Date.parse(t)) / 60000) + 1);
-    if (mm.phase === "1H" && mm.k1) { const e = mn(mm.k1); return e > 45 ? `৪৫+${num(e - 45, "bn")}'` : `${num(e, "bn")}'`; }
-    if (mm.phase === "2H" && mm.k2) { const e = 45 + mn(mm.k2); return e > 90 ? `৯০+${num(e - 90, "bn")}'` : `${num(e, "bn")}'`; }
-    return mm.phase === "HT" ? "বিরতি" : mm.phase === "FT" ? "শেষ" : "";
-  };
-  const shell = (body) => (
-    <div className="adm-app">
-      <header className="adm-top">
-        <Logo size={30} />
-        <div className="adm-brand"><b>খেলা কখন<i>?</i></b><span>অ্যাডমিন</span></div>
-        <div className="sp" />
-        {d && <button className="adm-ref" onClick={load} aria-label="রিফ্রেশ">রিফ্রেশ</button>}
-        <button className="adm-exit" onClick={onExit}>সাইটে ফিরুন</button>
-      </header>
-      {d && <nav className="adm-tabs">{ADMIN_TABS.map(([k, l]) => <button key={k} className={tab === k ? "on" : ""} onClick={() => setTab(k)}>{l}{k === "errors" && d.errors.length > 0 ? <em>{num(d.errors.length, "bn")}</em> : null}</button>)}</nav>}
-      <main className="adm-main">{body}</main>
-    </div>
-  );
-  if (!user || err === "login") return shell(<div className="card empty"><div style={{ marginBottom: 12 }}>অ্যাডমিন প্যানেল দেখতে লগইন করুন</div><button className="btn" onClick={goProfile}>লগইন</button></div>);
-  if (err === "forbidden") return shell(<div className="card empty">এই পাতা শুধু অ্যাডমিনের জন্য।</div>);
-  if (err) return shell(<div className="card empty">তথ্য আনা গেল না। একটু পরে আবার চেষ্টা করুন।</div>);
-  if (!d) return shell(<div className="card"><div className="spin" /></div>);
-
-  const af = d.af;
-  const liveAge = d.live?.at ? (Date.now() - Date.parse(d.live.at)) / 60000 : 9999;
-  const liveState = d.liveNow > 0 ? (liveAge <= 6 ? "ok" : "bad") : "idle";
-  const tile = (v, l, tone) => <div className={"adm-tile" + (tone ? " " + tone : "")}><b>{v}</b><small>{l}</small></div>;
-  const daily = d.daily || [];
-  const maxU = Math.max(1, ...daily.map((x) => x.users)), maxP = Math.max(1, ...daily.map((x) => x.preds));
-  const dayLbl = (k) => { const [y, m, dd] = k.split("-").map(Number); return `${BN_DAYS_SHORT[new Date(Date.UTC(y, m - 1, dd)).getUTCDay()]} ${num(dd, "bn")}`; };
-  const bars = (key, max, cls) => (
-    <div className="adm-bars">
-      {daily.map((x) => (
-        <div key={x.d} className="adm-bar">
-          <span className="adm-bar-v">{num(x[key], "bn")}</span>
-          <i className={cls} style={{ height: `${Math.max(3, (x[key] / max) * 100)}%` }} />
-          <span className="adm-bar-d">{dayLbl(x.d)}</span>
-        </div>
-      ))}
-    </div>
-  );
-
-  const ov = (
-    <>
-      <div className="adm-h">সাইটের অবস্থা</div>
-      <div className="adm-grid">
-        {tile(liveState === "ok" ? "চালু" : liveState === "bad" ? "থেমে আছে" : "অপেক্ষায়", `লাইভ আপডেট · শেষ ${agoBn(d.live?.at)}`, liveState === "idle" ? "" : liveState)}
-        {tile(af ? (af.active ? `${num(af.days ?? 0, "bn")} দিন` : "বন্ধ") : "—", "API-Football-এর মেয়াদ", !af ? "" : !af.active || af.days <= 7 ? "bad" : af.days <= 30 ? "warn" : "ok")}
-        {tile(af ? `${num(af.used ?? 0, "bn")}/${num(af.limit ?? 0, "bn")}` : "—", "আজকের API কল", af && af.used / af.limit > 0.9 ? "bad" : "")}
-        {tile(num(d.liveNow ?? 0, "bn"), "এখন লাইভ ম্যাচ")}
-        {tile(num(d.errors.length, "bn"), "ধরা পড়া ভুল", d.errors.length ? "bad" : "ok")}
-        {d.usage && tile(num((d.usage.onlineUsers || 0) + (d.usage.onlineGuests || 0), "bn"), "এখন সাইটে আছেন", "ok")}
-      </div>
-      {d.lastLiveError && d.lastLiveError.created_at && Date.now() - Date.parse(d.lastLiveError.created_at) < 6 * 3600000 && <div className="adm-warn">শেষ লাইভ ভুল ({agoBn(d.lastLiveError.created_at)}): {String(d.lastLiveError.detail || "").slice(0, 160)}</div>}
-      <div className="adm-h">এক নজরে</div>
-      <div className="adm-grid">
-        {tile(num(d.users ?? 0, "bn"), "মোট অ্যাকাউন্ট")}
-        {tile(num(d.users7 ?? 0, "bn"), `গত ৭ দিনে নতুন (আজ ${num(d.users24 ?? 0, "bn")})`)}
-        {tile(num(d.pred24 ?? 0, "bn"), `২৪ ঘণ্টায় প্রেডিকশন (মোট ${num(d.predAll ?? 0, "bn")})`)}
-        {tile(num(d.pushUsers ?? 0, "bn"), "নোটিফিকেশন চালু")}
-      </div>
-      <div className="adm-h">গত ৭ দিন: প্রেডিকশন</div>
-      <div className="card adm-chart">{bars("preds", maxP, "p")}</div>
-    </>
-  );
-  const U = d.usage;
-  const share = (list, label) => { const tot = list.reduce((n, x) => n + (x.n ?? x.min), 0) || 1; return list.slice(0, 8).map((x) => { const v = x.n ?? x.min; return (
-    <div key={x.k} className="adm-share"><span>{label[x.k] || x.k}</span><i><b style={{ width: `${Math.max(2, (v / tot) * 100)}%` }} /></i><em>{x.min != null ? minBn(x.min) : num(x.n, "bn")} · {num(Math.round((v / tot) * 100), "bn")}%</em></div>); }); };
-  const usage = !U ? <div className="card empty">ব্যবহারের হিসাব এখনো চালু হয়নি। activity.sql চালানোর পর থেকে জমা শুরু হবে।</div> : (
-    <>
-      <div className="adm-grid">
-        {tile(num(U.onlineUsers + U.onlineGuests, "bn"), `এখন অনলাইন (লগইন ${num(U.onlineUsers, "bn")}, অতিথি ${num(U.onlineGuests, "bn")})`, "ok")}
-        {tile(num(U.visitors7, "bn"), "গত ৭ দিনে এসেছেন (অতিথিসহ)")}
-        {tile(minBn(U.minutes7), "গত ৭ দিনে মোট সময়")}
-        {tile(`${num(U.avgSession, "bn")} মি`, "গড়ে একবারে কতক্ষণ থাকেন")}
-        {tile(U.retention.d1 == null ? "—" : `${num(U.retention.d1, "bn")}%`, `পরের দিন আবার এসেছেন (${num(U.retention.d1n, "bn")} জনের মধ্যে)`, U.retention.d1 == null ? "" : U.retention.d1 >= 30 ? "ok" : U.retention.d1 >= 15 ? "warn" : "bad")}
-        {tile(U.retention.d7 == null ? "—" : `${num(U.retention.d7, "bn")}%`, `৭ দিনের মধ্যে আবার এসেছেন (${num(U.retention.d7n, "bn")} জনের মধ্যে)`, U.retention.d7 == null ? "" : U.retention.d7 >= 40 ? "ok" : U.retention.d7 >= 20 ? "warn" : "bad")}
-      </div>
-      <div className="adm-h">দৈনিক সক্রিয় (লগইন + অতিথি)</div>
-      <div className="card adm-chart">
-        <div className="adm-bars">
-          {U.dau.map((x) => { const mx = Math.max(1, ...U.dau.map((y) => y.users + y.guests)); return (
-            <div key={x.d} className="adm-bar">
-              <span className="adm-bar-v">{num(x.users + x.guests, "bn")}</span>
-              <div className="adm-stack" style={{ height: `${Math.max(3, ((x.users + x.guests) / mx) * 100)}%` }}><i className="g" style={{ flex: x.guests }} /><i className="u" style={{ flex: x.users }} /></div>
-              <span className="adm-bar-d">{dayLbl(x.d)}</span>
-            </div>); })}
-        </div>
-        <div className="muted adm-legend"><i className="u" /> লগইন করা <i className="g" /> অতিথি</div>
-      </div>
-      <div className="adm-h">কে কত সময় দিচ্ছেন <span className="muted">লগইন করা ইউজার</span></div>
-      {!U.people.length ? <div className="card empty">এখনো কোনো হিসাব জমেনি।</div> : (
-        <div className="card adm-list">
-          <div className="adm-ppl adm-ppl-h"><span>নাম</span><span>আজ</span><span>৭ দিন</span><span>মোট</span></div>
-          {U.people.map((p, i) => (
-            <div key={i} className="adm-ppl"><span><b>{p.name}</b><small className="muted">{agoBn(p.last)} · {PLAT_BN[p.platform] || p.platform || ""}</small></span><span>{minBn(p.today)}</span><span>{minBn(p.week)}</span><span>{minBn(p.total)}</span></div>
-          ))}
-        </div>
-      )}
-      <div className="adm-h">কোন অংশে সময় কাটে <span className="muted">গত ৭ দিন</span></div>
-      <div className="card adm-shares">{U.pages.length ? share(U.pages, SEC_BN) : <div className="muted">এখনো হিসাব নেই</div>}</div>
-      <div className="adm-h">কোথা থেকে আসছেন <span className="muted">গত ৩০ দিনের নতুনরা</span></div>
-      <div className="card adm-shares">{U.sources.length ? share(U.sources, SRC_BN) : <div className="muted">এখনো হিসাব নেই</div>}</div>
-      <div className="adm-h">কোন ডিভাইসে</div>
-      <div className="card adm-shares">{U.platforms.length ? share(U.platforms, PLAT_BN) : <div className="muted">এখনো হিসাব নেই</div>}</div>
-      <div className="muted adm-note" style={{ marginTop: 10 }}>সাইট খোলা আর স্ক্রিনে সামনে থাকলেই শুধু সময় গোনা হয়। অতিথি মানে লগইন ছাড়া ভিজিটর (ফোন ধরে গোনা, নাম ছাড়া)।</div>
-    </>
-  );
-  const users = (
-    <>
-      <div className="adm-grid">
-        {tile(num(d.users ?? 0, "bn"), "মোট অ্যাকাউন্ট")}
-        {tile(num(d.users7 ?? 0, "bn"), `গত ৭ দিনে নতুন (আজ ${num(d.users24 ?? 0, "bn")})`)}
-        {tile(num(d.active7 ?? 0, "bn"), "গত ৭ দিনে লগইন করেছেন")}
-        {tile(num(d.pushUsers ?? 0, "bn"), `নোটিফিকেশন চালু (${num(d.pushDevices ?? 0, "bn")} ডিভাইস)`)}
-        {tile(num(d.leagues ?? 0, "bn"), "বন্ধুদের লিগ")}
-      </div>
-      <div className="adm-h">গত ৭ দিন: নতুন ইউজার</div>
-      <div className="card adm-chart">{bars("users", maxU, "u")}</div>
-      <div className="adm-h">নতুন ইউজার</div>
-      <div className="card adm-list">
-        {(d.recentUsers || []).map((u, i) => (
-          <div key={i} className="adm-user">
-            <div style={{ minWidth: 0 }}><b>{u.name}</b><small className="muted">যোগ দিয়েছেন {agoBn(u.at)} · শেষ লগইন {agoBn(u.last)} · {u.via === "google" ? "Google" : u.via === "email" ? "ইমেইল" : u.via}</small></div>
-            {u.push && <span className="adm-tag">নোটিফিকেশন</span>}
-          </div>
-        ))}
-      </div>
-    </>
-  );
-  const errors = (
-    <>
-      <div className="adm-h">ধরা পড়া ভুল <span className="muted">{num(d.errors.length, "bn")}টা</span>{d.errors.length > 0 && <><button className="link" onClick={() => copy(d.errors.map(errText).join("\n\n---\n\n"))}>সব কপি</button><button className="link" style={{ marginLeft: 10, color: "var(--muted)" }} onClick={() => window.confirm("সব ভুল তালিকা থেকে সরাবেন?") && fix(null)}>সব সরান</button></>}</div>
-      {!d.errors.length ? <div className="card empty">কোনো ভুল নেই। সব ঠিকঠাক চলছে।</div> : (
-        <div className="card adm-errs">
-          {d.errors.map((e) => (
-            <div key={e.fp} className="adm-err">
-              <button className="adm-err-h" onClick={() => setOpen(open === e.fp ? null : e.fp)}>
-                <span className="adm-cnt">{num(e.count, "bn")}×</span>
-                <span className="adm-msg">{e.msg}</span>
-              </button>
-              <div className="muted adm-meta">{agoBn(e.last_seen)} · {(e.url || "").replace(/^https?:\/\/[^/]+/, "") || "/"} · {uaShort(e.ua)}</div>
-              {open === e.fp && (
-                <div className="adm-more">
-                  <div className="muted">প্রথম: {agoBn(e.first_seen)} · সংস্করণ: {(e.build || "").slice(0, 16)}</div>
-                  {e.stack && <pre>{e.stack.slice(0, 900)}</pre>}
-                  <button className="btn" onClick={() => copy(errText(e))}>Claude-কে পাঠাতে কপি করুন</button>
-                  <button className="btn ghost" onClick={() => fix(e.fp)}>ঠিক হয়েছে, তালিকা থেকে সরান</button>
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
-      )}
-      <div className="muted adm-note" style={{ marginTop: 10 }}>নতুন ভুল ধরা পড়লে আপনার ফোনে নোটিফিকেশনও যায়। ঠিক করাতে "সব কপি" চেপে Claude-এর চ্যাটে পেস্ট করে লিখুন "এগুলো ঠিক করো"।</div>
-    </>
-  );
-  const news = (
-    <>
-      <div className="muted adm-note">নোটিফিকেশন চালু থাকা {num(d.pushUsers ?? 0, "bn")} জনের ফোনে যাবে। যাঁরা "ঘোষণা" বন্ধ রেখেছেন, তাঁরা পাবেন না।</div>
-      <div className="card adm-form">
-        <label>শিরোনাম<input value={bc.title} maxLength={80} onChange={(e) => setBc({ ...bc, title: e.target.value })} placeholder="যেমন: আজ রাতে এল ক্লাসিকো" /></label>
-        <label>লেখা<textarea value={bc.body} maxLength={200} rows={3} onChange={(e) => setBc({ ...bc, body: e.target.value })} placeholder="যেমন: রাত ২টায় রিয়াল বনাম বার্সা। প্রেডিক্ট করে পয়েন্ট জিতুন" /></label>
-        <label>চাপলে কোন পাতা খুলবে<input value={bc.url} onChange={(e) => setBc({ ...bc, url: e.target.value })} placeholder="/match/123 বা /predict" /></label>
-        <div className="adm-prev"><small className="muted">ফোনে যেমন দেখাবে</small><div className="adm-note-prev"><img src="/icon-192x192.png" alt="" width="34" height="34" /><div><b>{bc.title || "শিরোনাম"}</b><span>{bc.body || "লেখা"}</span></div></div></div>
-        <div className="adm-actions">
-          <button className="btn ghost" disabled={!!busy} onClick={() => send(true)}>{busy === "bc-test" ? "পাঠানো হচ্ছে…" : "আগে শুধু নিজেকে পাঠান"}</button>
-          <button className="btn" disabled={!!busy} onClick={() => send(false)}>{busy === "bc" ? "পাঠানো হচ্ছে…" : "সবাইকে পাঠান"}</button>
-        </div>
-      </div>
-    </>
-  );
-  const live = (() => {
-    const M = d.manual;
-    if (!M) return <div className="card empty">ম্যাচের তালিকা আনা গেল না। রিফ্রেশ করুন।</div>;
-    const stuck = (m) => m.man || (["TIMED", "SCHEDULED"].includes(m.status) && Date.now() - Date.parse(m.utc) > 10 * 60000);
-    const list = [...M.list].filter((m) => allM || stuck(m)).sort((a, b) => (!!b.man - !!a.man) || Date.parse(a.utc) - Date.parse(b.utc));
-    const B = (m, a, label, cls = "btn ghost", ask) => <button className={cls} disabled={!!busy} onClick={() => act(m, a, ask)}>{busy === m.id + a ? "…" : label}</button>;
-    const mTxt = (g) => `${num(g.m ?? 0, "bn")}${g.x ? "+" + num(g.x, "bn") : ""}'`;
-    const side = (m, mm, sd) => {
-      const team = sd === "h" ? m.home : m.away;
-      const gs = (mm?.goals || []).map((g, i) => ({ ...g, i })).filter((g) => g.s === sd);
-      return (
-        <div className="adm-mm-t"><b>{team}</b>
-          {mm && <div className="adm-mm-g">
-            {gs.map((g) => <div key={g.i} className="adm-gl"><span>{mTxt(g)} {g.p || <i className="muted">নাম নেই</i>}</span><button className="link" disabled={!!busy} onClick={() => act(m, sd === "h" ? "uh" : "ua", `${team}-এর ${mTxt(g)} মিনিটের গোলটা বাদ দেবেন?`, null, { i: g.i })}>বাদ</button></div>)}
-            <button className="btn" disabled={!!busy} onClick={() => setGf({ id: m.id, s: sd, m: "", p: "" })}>+ গোল</button>
-          </div>}
-        </div>
-      );
-    };
-    const goalForm = (m, mm) => gf?.id === m.id && (
-      <div className="adm-gf">
-        <b>{gf.s === "h" ? m.home : m.away}-এর গোল</b>
-        <label>মিনিট<input inputMode="numeric" value={gf.m} placeholder={`এখন ${manMin(mm)}`} onChange={(e) => setGf({ ...gf, m: e.target.value })} /></label>
-        <label>গোলদাতা<input value={gf.p} maxLength={40} placeholder="যেমন রাকিব হোসেন (না দিলেও চলবে)" onChange={(e) => setGf({ ...gf, p: e.target.value })} /></label>
-        <small className="muted">মিনিট খালি রাখলে এখনকার মিনিট ধরা হবে। যোগ করা সময়ের গোল "45+2" এভাবে লিখুন।</small>
-        <div className="adm-actions">
-          <button className="btn ghost" onClick={() => setGf(null)}>বাদ দিন</button>
-          <button className="btn" disabled={!!busy} onClick={() => act(m, gf.s === "h" ? "gh" : "ga", null, null, { m: gf.m, p: gf.p })}>{busy === m.id + (gf.s === "h" ? "gh" : "ga") ? "…" : "গোল যোগ করুন"}</button>
-        </div>
-      </div>
-    );
-    return (
-      <>
-        <div className="muted adm-note">API-Football কোনো খেলার লাইভ খবর না দিলে (যেমন বাংলাদেশের কিছু খেলা) টিভি দেখে এখান থেকে নিজে আপডেট করুন। সাইটে সাথে সাথে দেখাবে, মিনিট নিজে চলবে, গোলে নোটিফিকেশন যাবে, শেষ করলে প্রেডিকশনের পয়েন্ট দেওয়া হবে। পরে API-Football চূড়ান্ত ফল দিলে সেটাই বসবে।</div>
-        {!M.tableOk && <div className="adm-warn">আগে Supabase-এ supabase/match_manual.sql চালাতে হবে, তারপর এটা কাজ করবে।</div>}
-        <div className="adm-h">{allM ? "আশপাশের সব ম্যাচ" : "খবর নেই এমন ম্যাচ"} <span className="muted">{num(list.length, "bn")}টা</span><button className="link" onClick={() => setAllM(!allM)}>{allM ? "শুধু খবর নেই এমন" : "সব ম্যাচ দেখান"}</button></div>
-        {!list.length ? <div className="card empty">{allM ? "এখন আশপাশে কোনো ম্যাচ নেই।" : "সব ম্যাচের খবর ঠিকঠাক আসছে।"}</div> : list.map((m) => {
-          const mm = m.man;
-          return (
-            <div key={m.id} className={"card adm-mm" + (mm ? " on" : "")}>
-              <div className="adm-mm-h"><span className="muted">{m.code} · {timeLabel(m.utc, "bn")}</span><span className={mm ? "adm-tag live" : "adm-tag"}>{mm ? `হাতে · ${manMin(mm)}` : m.status === "IN_PLAY" ? "API: চলছে" : m.status === "PAUSED" ? "API: বিরতি" : m.status === "FINISHED" ? "API: শেষ" : "API: শুরুর খবর নেই"}</span></div>
-              <div className="adm-mm-sc">
-                {side(m, mm, "h")}
-                <div className="adm-mm-n">{mm ? `${num(mm.home, "bn")} - ${num(mm.away, "bn")}` : m.hs != null ? `${num(m.hs, "bn")} - ${num(m.as, "bn")}` : "-"}</div>
-                {side(m, mm, "a")}
-              </div>
-              {mm && goalForm(m, mm)}
-              {mm?.phase !== "FT" && (
-                <div className="adm-min">
-                  <span className="muted">{mm ? "চলমান মিনিট" : "খেলা কত মিনিট চলছে"}</span>
-                  <input type="number" inputMode="numeric" min="1" max="130" placeholder={mm ? manMin(mm) : "যেমন ৪৬"}
-                    value={minIn[m.id] ?? ""} onChange={(e) => setMinIn((o) => ({ ...o, [m.id]: e.target.value }))} />
-                  <button className="btn ghost" disabled={!!busy || !(+minIn[m.id] >= 1)} onClick={async () => { await act(m, "min", mm ? null : `${m.home} বনাম ${m.away}: ${minIn[m.id]} মিনিট থেকে লাইভ দেখাবেন?`, +minIn[m.id]); setMinIn((o) => ({ ...o, [m.id]: "" })); }}>{busy === m.id + "min" ? "…" : mm ? "ঠিক করুন" : "এখান থেকে চালু"}</button>
-                </div>
-              )}
-              <div className="adm-actions">
-                {!mm && B(m, "start", "খেলা শুরু", "btn", `${m.home} বনাম ${m.away}: খেলা শুরু হয়েছে বলে দেখাবেন? মিনিট এখন থেকে গোনা শুরু হবে।`)}
-                {mm?.phase === "1H" && B(m, "ht", "বিরতি")}
-                {mm?.phase === "HT" && B(m, "2h", "দ্বিতীয়ার্ধ শুরু", "btn")}
-                {mm && mm.phase !== "FT" && B(m, "ft", "খেলা শেষ", mm.phase === "2H" ? "btn" : "btn ghost", `খেলা শেষ, ফল ${mm.home}-${mm.away}? প্রেডিকশনের পয়েন্ট দেওয়া হবে।`)}
-                {mm && B(m, "clear", "হাতের আপডেট মুছুন", "btn ghost", "হাতে দেওয়া সব খবর মুছে আবার API-Football-এর ওপর ছেড়ে দেবেন?")}
-              </div>
-            </div>
-          );
-        })}
-      </>
-    );
-  })();
-  const sync = (
-    <>
-      <div className="muted adm-note">সাধারণত সব নিজে থেকেই আপডেট হয়। কোনো তথ্য পুরনো দেখালে এখান থেকে সাথে সাথে আবার আনা যায়।</div>
-      <div className="card adm-list">
-        {RUN_LIST.map(([k, l, sub]) => {
-          const o = runOut[k];
-          return (
-            <div key={k} className="adm-run">
-              <div style={{ minWidth: 0 }}><b>{l}</b>{sub && <small className="muted">{sub}</small>}
-                {o && <small className={o.ok ? "adm-ok" : "adm-bad"}>{o.ok ? "হয়ে গেছে" : "হয়নি"}{o.result ? ` · ${JSON.stringify(o.result).replace(/[{}"]/g, " ").slice(0, 140)}` : ""}</small>}</div>
-              <button className="btn ghost" disabled={!!busy} onClick={() => run(k)}>{busy === k ? "চলছে…" : "এখনই"}</button>
-            </div>
-          );
-        })}
-      </div>
-    </>
-  );
-  return shell(tab === "quiz" ? <AdminQuiz fetchQ={fetchQ} /> : tab === "live" ? live : tab === "usage" ? usage : tab === "users" ? users : tab === "errors" ? errors : tab === "news" ? news : tab === "sync" ? sync : ov);
-}
 function Profile({ user, profile, setProfile, toast, myTeams, teamsById, lang, setLang, theme, setTheme, onEditTeams }) {
   const [editName, setEditName] = useState(null);   // নাম বদলানো (হুক সব রিটার্নের আগে)
   const { t } = useT();
@@ -6484,11 +4933,6 @@ function describe(m, id, past, lang) {
     : `${home} vs ${away}: ${whenText(m.utc_date, "en")} Bangladesh time (${comp}). Kickoff in ${left}.`;
 }
 
-const EXAMPLES = {
-  bn: ["রিয়ালের পরের খেলা কবে", "লা লিগায় এমবাপ্পে কয়টা গোল করেছে", "প্রিমিয়ার লিগের সর্বোচ্চ গোলদাতা", "বার্সার শেষ ম্যাচের ফল", "আজ কী খেলা"],
-  en: ["Real Madrid next match", "Mbappé La Liga goals", "Premier League top scorer", "Barça last result", "Today's matches"],
-};
-
 // ── সার্চ: লিগ, দল, খেলোয়াড় (টাইপ করতে করতে) ──
 const plainMemo = new Map();
 const plain = (s) => {
@@ -6644,182 +5088,6 @@ function SearchSheet({ comps, teams, onClose }) {
           </>)}</Fragment>
         ))}
       </div>
-    </div>
-  );
-}
-
-// ── জিজ্ঞেস করো: আলাদা পাতা (/ask) ──
-// মাইকে বলে জিজ্ঞেস (যে ব্রাউজারে আছে)
-const SpeechRec = typeof window !== "undefined" ? window.SpeechRecognition || window.webkitSpeechRecognition : null;
-
-// গাইডের ইনফোগ্রাফিক: আইকন, ধাপের সিঁড়ি, মূল সংখ্যা, টিপস আর "এখনই চেষ্টা করুন"
-const LockIcon = I(<><rect x="5" y="11" width="14" height="10" rx="2" /><path d="M8 11V7a4 4 0 0 1 8 0v4" /></>);
-const PhoneIcon = I(<><rect x="7" y="2.5" width="10" height="19" rx="2.5" /><path d="M11 18.5h2" /></>);
-const GUIDE_ICON = { quiz: QuizIcon, target: TargetIcon, trophy: TrophyIcon, users: UsersIcon, search: SearchIcon, user: UserIcon, phone: PhoneIcon, moon: MoonIcon, lock: LockIcon, mail: MailIcon };
-function GuideCard({ g, lang }) {
-  const nav = useNav();
-  const Ic = GUIDE_ICON[g.icon];
-  const act = { quiz: () => nav.openQuiz(), predict: () => nav.go("predict"), friends: () => nav.openFriends(), search: () => nav.openSearch(), profile: () => nav.go("profile"), privacy: () => nav.openPage("privacy"), contact: () => nav.openPage("contact") };
-  return (
-    <div className="guide">
-      <div className="guide-h"><span className="guide-ic">{Ic ? <Ic width={22} height={22} /> : "★"}</span><b>{g.title}</b></div>
-      {g.facts && <div className="guide-facts">{g.facts.map(([v, l]) => <div key={l}><b>{v}</b><span>{l}</span></div>)}</div>}
-      <ol className="guide-steps">
-        {g.steps.map(([h, d], i) => (
-          <li key={i} style={{ animationDelay: `${i * 70}ms` }}><span className="guide-n">{num(i + 1, lang)}</span><div><b>{h}</b>{d && <p>{d}</p>}</div></li>
-        ))}
-      </ol>
-      {g.tips?.length > 0 && <div className="guide-tips"><b>{lang === "bn" ? "মনে রাখুন" : "Good to know"}</b>{g.tips.map((t) => <p key={t}>{t}</p>)}</div>}
-      {g.cta && act[g.cta[1]] && <button className="btn block guide-cta" onClick={act[g.cta[1]]}>{g.cta[0]} →</button>}
-    </div>
-  );
-}
-
-// উত্তরের ভেতরের ছোট টেবিল
-function AskTable({ t, lang }) {
-  const nav = useNav();
-  const bn = lang === "bn";
-  let prev = 0;
-  return (
-    <div className="card ask-tbl" style={{ marginTop: 8 }}>
-      <div className="tbl tbl-h ask"><span>#</span><span>{bn ? "দল" : "Team"}</span><span>{bn ? "ম্যাচ" : "P"}</span><span>+/-</span><span>{bn ? "পয়েন্ট" : "Pts"}</span></div>
-      {t.rows.map((r) => {
-        const gapRow = prev > 0 && r.position > prev + 1; prev = r.position;
-        return (
-          <Fragment key={r.team_id}>
-            {gapRow && <div className="ask-gap">⋯</div>}
-            <button className={"tbl ask " + (t.hl.includes(r.team_id) ? "hl " : "") + zone(t.code, r.position, 99)} onClick={() => nav.openTeam(r.team_id)}>
-              <span className="pos">{num(r.position, lang)}</span>
-              <span className="tm"><Crest team={r.team} size={20} /><b>{teamName(r.team, lang)}</b></span>
-              <span>{num(r.played, lang)}</span><span>{r.gd > 0 ? "+" : ""}{num(r.gd, lang)}</span><span className="pts">{num(r.points, lang)}</span>
-            </button>
-          </Fragment>
-        );
-      })}
-      <button className="ask-more" onClick={() => nav.openLeague(t.code)}>{bn ? "পুরো টেবিল দেখুন →" : "Full table →"}</button>
-    </div>
-  );
-}
-
-function AskPage({ teams, preds, onOpen, chat, setChat }) {
-  const { lang } = useT();
-  const nav = useNav();
-  const favIds = useContext(FavCtx);
-  const [q, setQ] = useState("");
-  const [busy, setBusy] = useState(false);
-  const [listening, setListening] = useState(false);
-  const recRef = useRef(null);
-  // আগের প্রশ্নের দল বা লিগ মনে রাখা
-  const ctx = [...chat].reverse().find((m) => m.ctx && (m.ctx.ids?.length || m.ctx.comp))?.ctx || {};
-  function listen() {
-    if (!SpeechRec) return;
-    if (listening) { recRef.current?.stop(); return; }
-    const r = new SpeechRec();
-    r.lang = lang === "bn" ? "bn-BD" : "en-US"; r.interimResults = false; r.maxAlternatives = 1;
-    r.onresult = (e) => { const t = e.results?.[0]?.[0]?.transcript; if (t) ask(t); };
-    r.onend = () => setListening(false);
-    r.onerror = () => setListening(false);
-    recRef.current = r; setListening(true);
-    try { r.start(); } catch { setListening(false); }
-  }
-  const endRef = useRef(null);
-  useEffect(() => { if (chat.length || busy) endRef.current?.scrollIntoView({ block: "end", behavior: "smooth" }); }, [chat, busy]);
-  // কিবোর্ড খুললে নিচের ন্যাভ লুকায়, যাতে লেখার ঘর কিবোর্ডের ঠিক ওপরে বসে
-  const kbTimer = useRef(null);
-  const kb = (on) => {
-    clearTimeout(kbTimer.current);
-    if (on) document.documentElement.classList.add("kb-open");
-    else kbTimer.current = setTimeout(() => document.documentElement.classList.remove("kb-open"), 150);
-  };
-  useEffect(() => () => { clearTimeout(kbTimer.current); document.documentElement.classList.remove("kb-open"); }, []);
-
-  async function ask(text) {
-    const t = text.trim();
-    if (!t || busy) return;
-    setQ(""); setBusy(true);
-    setChat((c) => [...c, { me: t }]);
-    try {
-      const a = await answer(t, teams, lang, ctx, favIds);
-      setChat((c) => [...c, a || { text: "…", matches: [] }]);
-    } catch {
-      setChat((c) => [...c, { text: lang === "bn" ? "দুঃখিত, এখন উত্তর আনা যাচ্ছে না। একটু পরে চেষ্টা করুন।" : "Sorry, couldn't fetch that right now.", matches: [] }]);
-    }
-    setBusy(false);
-  }
-
-  return (
-    <div className="ask-page">
-        <div className="ask-head"><span className="ask-orb sm"><SparkIcon /></span>{lang === "bn" ? "খেলা কখন? জিজ্ঞেস করুন" : "Ask Khela Kokhon"}
-          {chat.length > 0 && <button className="ask-new" onClick={() => setChat([])}>{lang === "bn" ? "নতুন করে" : "New chat"}</button>}
-        </div>
-        <div className="ask-body">
-          {chat.length === 0 && (
-            <>
-              <p className="muted" style={{ fontSize: 13.5, lineHeight: 1.6, marginBottom: 10 }}>
-                {lang === "bn" ? "দল, লিগ বা খেলোয়াড় নিয়ে যা খুশি জিজ্ঞেস করুন: সূচি, ফল, টেবিল, ফর্ম, হেড টু হেড, গোল, কোচ, স্টেডিয়াম। সময় বলব বাংলাদেশ সময়ে।" : "Ask anything about teams, leagues or players: fixtures, results, tables, form, head to head, goals, coach, stadium."}
-              </p>
-              <div className="ask-ex">
-                {[...HELP_CHIPS[lang === "bn" ? "bn" : "en"], lang === "bn" ? "কী কী জিজ্ঞেস করা যায়" : "What can I ask?"].map((e) => <button key={e} className="chip" onClick={() => ask(e)}>{e}</button>)}
-              </div>
-            </>
-          )}
-          {chat.map((m, i) => m.me ? (
-            <div key={i} className="bubble me">{m.me}</div>
-          ) : (
-            <div key={i} className="bubble bot">
-              <div style={{ whiteSpace: "pre-line" }}>{m.text}</div>
-              {m.players?.length > 0 && (
-                <div className="card" style={{ marginTop: 8 }}>
-                  {m.players.map((x) => (
-                    <button key={x.player_id + (x.code || x.label)} className="ask-pl" onClick={() => nav.openPlayer(x.player_id)}>
-                      <Crest team={x.team} size={26} />
-                      <span className="ask-pl-n"><b>{pName(x, lang)}</b><small className="muted">{x.label || (x.code ? compLabel(x.code, lang) : x.team ? teamName(x.team, lang) : "")}</small></span>
-                      <span className="ask-pl-g">{x.goals == null ? "—" : num(x.goals, lang)}<small>{lang === "bn" ? "গোল" : "goals"}</small></span>
-                    </button>
-                  ))}
-                </div>
-              )}
-              {m.guide && <GuideCard g={m.guide} lang={lang} />}
-              {m.table && <AskTable t={m.table} lang={lang} />}
-              {m.form && (
-                <div className="form-row" style={{ marginTop: 10 }}>
-                  {[...m.form.list].reverse().map((x) => { const me = x.home_id === m.form.id ? x.home_score : x.away_score, th = x.home_id === m.form.id ? x.away_score : x.home_score; const r = me > th ? "W" : me < th ? "L" : "D";
-                    return <button key={x.id} className={"badge big " + r + (lang === "bn" ? " word" : "")} onClick={() => onOpen(x)}>{RES[r][lang === "bn" ? 0 : 1]}</button>; })}
-                </div>
-              )}
-              {m.h2h && (
-                <div className="card ask-h2h" style={{ marginTop: 8 }}>
-                  <div className="h2h-bar">
-                    <span style={{ flex: m.h2h.ra.w || 0.001 }} className="a">{m.h2h.ra.w ? num(m.h2h.ra.w, lang) : ""}</span>
-                    <span style={{ flex: m.h2h.ra.d || 0.001 }} className="d">{m.h2h.ra.d ? num(m.h2h.ra.d, lang) : ""}</span>
-                    <span style={{ flex: m.h2h.rb.w || 0.001 }} className="b">{m.h2h.rb.w ? num(m.h2h.rb.w, lang) : ""}</span>
-                  </div>
-                  <div className="h2h-legend"><span><i className="a" />{teamName(teams.find((t) => t.id === m.h2h.a), lang)}</span><span><i className="d" />{lang === "bn" ? "ড্র" : "Draw"}</span><span><i className="b" />{teamName(teams.find((t) => t.id === m.h2h.b), lang)}</span></div>
-                  {m.h2h.rows.map((x) => {
-                    const hn = teams.find((t) => t.id === x.homeTeam?.id), an = teams.find((t) => t.id === x.awayTeam?.id);
-                    return <div key={x.id} className="ah-row"><small className="muted">{(() => { const [y, mo, d] = dayKey(x.utcDate).split("-").map(Number); return lang === "bn" ? `${num(d, "bn")} ${BN_MONTHS[mo - 1].slice(0, 4)} ’${num(String(y).slice(2), "bn")}` : `${d} ${EN_MONTHS[mo - 1].slice(0, 3)} ’${String(y).slice(2)}`; })()}</small><span>{hn ? teamName(hn, lang) : x.homeTeam?.shortName || x.homeTeam?.name}</span><b>{num(x.score.home, lang)}–{num(x.score.away, lang)}</b><span>{an ? teamName(an, lang) : x.awayTeam?.shortName || x.awayTeam?.name}</span></div>;
-                  })}
-                </div>
-              )}
-              {m.matches?.length > 0 && (
-                <div className="card" style={{ marginTop: 8 }}>
-                  {m.dated ? <DatedRows list={m.matches.slice(0, 12)} preds={preds} onOpen={onOpen} /> : m.matches.slice(0, 8).map((x) => <MatchRow key={x.id} m={x} pred={preds[x.id]} onOpen={onOpen} />)}
-                </div>
-              )}
-              {m.teamLink && <button className="chip" style={{ marginTop: 8 }} onClick={() => nav.openTeam(m.teamLink)}>{lang === "bn" ? (m.squadLink ? "পুরো স্কোয়াড দেখুন →" : "দলের পাতা খুলুন →") : (m.squadLink ? "Full squad →" : "Open team page →")}</button>}
-              {i === chat.length - 1 && m.chips?.length > 0 && (
-                <div className="ask-ex ask-follow">{m.chips.slice(0, 6).map((e) => <button key={e} className="chip" onClick={() => ask(e)}>{e}</button>)}</div>
-              )}
-            </div>
-          ))}
-          {busy && <div className="bubble bot muted">…</div>}
-          <div ref={endRef} />
-        </div>
-        <form className="ask-input" onSubmit={(e) => { e.preventDefault(); ask(q); }}>
-          <input value={q} onChange={(e) => setQ(e.target.value)} onFocus={() => kb(true)} onBlur={() => kb(false)} enterKeyHint="send" placeholder={listening ? (lang === "bn" ? "শুনছি… বলুন" : "Listening…") : lang === "bn" ? "যেমন: বার্সার ফর্ম কেমন" : "e.g. Barcelona form"} />
-          {SpeechRec && <button type="button" className={"ask-mic" + (listening ? " on" : "")} onClick={listen} aria-label="voice"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="9" y="3" width="6" height="11" rx="3" /><path d="M5 11a7 7 0 0014 0M12 18v3" /></svg></button>}
-          <button className="btn" disabled={!q.trim() || busy}>{lang === "bn" ? "পাঠান" : "Send"}</button>
-        </form>
     </div>
   );
 }
@@ -7859,6 +6127,14 @@ function useActivity(userId) {
   }, [userId]);
 }
 
+// কম ব্যবহৃত বড় পাতা: প্রথম খোলায় নামে না, সেই পাতায় গেলে তখন (মূল কোড ছোট থাকে)
+const lazyPick = (load, name) => lazy(() => load().then((m) => ({ default: m[name] })));
+const AskPage = lazyPick(() => import("./Ask.jsx"), "AskPage");
+const AdminApp = lazyPick(() => import("./Admin.jsx"), "AdminApp");
+const QuizPage = lazyPick(() => import("./Quiz.jsx"), "QuizPage");
+const DailyPage = lazyPick(() => import("./Quiz.jsx"), "DailyPage");
+const InfoPage = lazyPick(() => import("./Info.jsx"), "InfoPage");
+
 export default function App() {
   const deskWide = useWide();
   const [lang, setLangS] = useState(() => stored("kk_lang", "bn"));
@@ -8026,19 +6302,23 @@ export default function App() {
   const onboarding = user && profile && editing;
 
   // দলের পাতা থেকে প্রিয় দল যোগ/বাদ (সর্বোচ্চ ৩টা)
+  // নোটিফিকেশনের অনুরোধ: সুযোগ এলে (একটু পরে, যাতে আগের টোস্ট দেখা যায়)
+  const [pushAsk, setPushAsk] = useState(null);
+  const askPush = (team) => { if (user && pushAskReady()) setTimeout(() => setPushAsk({ team: team || null }), 900); };
   async function toggleFav(id) {
     if (!user) { toast(lang === "bn" ? "প্রিয় দল যোগ করতে আগে লগইন করুন" : "Log in to add favourites"); go("profile"); return; }
     const has = myTeams.fav.includes(id);
     if (!has && myTeams.fav.length >= MAX.fav) { toast(lang === "bn" ? `সর্বোচ্চ ${num(MAX.fav, "bn")}টা প্রিয় দল রাখা যায়। প্রোফাইল থেকে বদলাতে পারবেন।` : `Up to ${MAX.fav} favourites. Change them in Profile.`); return; }
     const next = { fav: has ? myTeams.fav.filter((x) => x !== id) : [...myTeams.fav, id], rival: (myTeams.rival || []).filter((x) => x !== id) };
     setMyTeams(next);
-    try { await saveMyTeams(user, next); toast(has ? (lang === "bn" ? "প্রিয় দল থেকে বাদ দেওয়া হয়েছে" : "Removed from favourites") : (lang === "bn" ? "প্রিয় দলে যোগ হয়েছে ★" : "Added to favourites ★")); }
+    try { await saveMyTeams(user, next); if (!has) askPush(teamName(teamsById[id], lang)); toast(has ? (lang === "bn" ? "প্রিয় দল থেকে বাদ দেওয়া হয়েছে" : "Removed from favourites") : (lang === "bn" ? "প্রিয় দলে যোগ হয়েছে ★" : "Added to favourites ★")); }
     catch { setMyTeams(myTeams); toast(lang === "bn" ? "সেভ করা গেল না, আবার চেষ্টা করুন" : "Couldn't save"); }
   }
   async function finishOnboarding({ fav, rival, phone }) {
     await saveMyTeams(user, { fav, rival });
     const p = await updateProfile(user, { onboarded: true, ...(phone ? { phone } : {}) });
     setProfile(p); setMyTeams({ fav, rival }); setEditing(false);
+    if (fav?.length) askPush(teamName(teamsById[fav[0]], lang));
     // আমন্ত্রণে এসে থাকলে দল বাছার পর সরাসরি সেই লিগে
     if (joinedLeague) { setPredTab((x) => ({ tab: "friends", league: joinedLeague, key: x.key + 1 })); setJoinedLeague(null); go("predict"); }
     else go("matches");
@@ -8051,6 +6331,7 @@ export default function App() {
   async function onSavePrediction(m, h, a, penPick) {
     const p = await savePrediction(user, m.id, h, a, penPick);
     setPreds((x) => ({ ...x, [m.id]: p }));
+    askPush(null);
   }
 
   // ডেস্কটপে বাঁ পাশে লিগের তালিকা: হোম, প্রেডিকশন, দৈনিক চ্যালেঞ্জ, লিগ ট্যাব আর জিজ্ঞেস করুন বাদে
@@ -8058,7 +6339,7 @@ export default function App() {
   // অ্যাডমিন: সাইটের মেনু ছাড়া আলাদা পাতা
   if (view?.kind === "admin") return (
     <LangCtx.Provider value="bn">
-      <AdminApp user={user} toast={toast} goProfile={() => go("profile")} onExit={() => go("matches")} />
+      <Suspense fallback={<Loading />}><AdminApp user={user} toast={toast} goProfile={() => go("profile")} onExit={() => go("matches")} /></Suspense>
       {toastMsg && <div className="toast">{toastMsg}</div>}
     </LangCtx.Provider>
   );
@@ -8105,12 +6386,12 @@ export default function App() {
         ) : view?.kind === "team" ? (
           <Team key={view.id} id={view.id} teamsById={teamsById} preds={preds} onOpen={openMatch} isFav={myTeams.fav.includes(view.id)} onToggleFav={toggleFav} user={user} toast={toast} onLogin={() => go("profile")} />
         ) : view?.kind === "page" ? (
-          <InfoPage key={view.id} id={view.id} user={user} goProfile={() => go("profile")} />
+          <Suspense fallback={<Loading />}><InfoPage key={view.id} id={view.id} user={user} goProfile={() => go("profile")} /></Suspense>
         ) : view?.kind === "daily" ? (
-          <DailyPage user={user} goProfile={() => go("profile")} toast={toast} />
+          <Suspense fallback={<Loading />}><DailyPage user={user} goProfile={() => go("profile")} toast={toast} /></Suspense>
 
         ) : view?.kind === "quiz" ? (
-          <QuizPage code={view.code} user={user} goProfile={() => go("profile")} toast={toast} />
+          <Suspense fallback={<Loading />}><QuizPage code={view.code} user={user} goProfile={() => go("profile")} toast={toast} /></Suspense>
         ) : view?.kind === "player" ? (
           <PlayerAny key={view.id} id={view.id} comps={comps} teamsById={teamsById} />
         ) : view?.kind === "match" ? (
@@ -8120,7 +6401,7 @@ export default function App() {
         ) : tab === "leagues" ? (
           <Leagues comps={comps} toast={toast} />
         ) : tab === "ask" ? (
-          <AskPage teams={Object.values(teamsById)} preds={preds} onOpen={openMatch} chat={askChat} setChat={setAskChat} />
+          <Suspense fallback={<Loading />}><AskPage teams={Object.values(teamsById)} preds={preds} onOpen={openMatch} chat={askChat} setChat={setAskChat} /></Suspense>
         ) : tab === "predict" ? (
           <Predict user={user} profile={profile} preds={preds} fav={myTeams.fav} onOpen={openMatch} goProfile={() => go("profile")} toast={toast} initialTab={predTab.tab} openLeagueId={predTab.league} reloadKey={predTab.key} />
         ) : (
@@ -8135,9 +6416,14 @@ export default function App() {
 
       {!onboarding && <Nav tab={tab} go={go} />}
       {searching && <SearchSheet comps={comps} teams={Object.values(teamsById)} onClose={closeSearch} />}
+      <PushAsk ask={pushAsk} user={user} toast={toast} onClose={() => setPushAsk(null)} />
       {toastMsg && <div className="toast">{toastMsg}</div>}
     </FavCtx.Provider>
     </NavCtx.Provider>
     </LangCtx.Provider>
   );
 }
+
+
+// আলাদা করা পাতাগুলোর (Ask, Admin, Quiz…) দরকারি জিনিস
+export { BN_DAYS_SHORT, BN_MONTHS, BadgeGrid, BadgeIcon, CARD_FONT, CARD_W, CalIcon, Crest, DAILY_Q, DEMO, DEMO_QUIZ_Q, DatedRows, EN_MONTHS, FavCtx, FbIcon, FlameIcon, Friends, GameSwitch, HELP_CHIPS, I, League, Leagues, LevelBadges, LevelIcon, Loading, Logo, MailIcon, MatchRow, MoonIcon, PlayIcon, Predict, Profile, QuizIcon, RES, RankBadge, ReplayIcon, S, SearchIcon, ShareIcon, SparkIcon, TargetIcon, Team, TrophyIcon, UserAvatar, UserIcon, UsersIcon, W, answer, badgeOf, clockLogo, compLabel, countdown, dailyCall, dayKey, dayLabel, everyMin, has, ls, lvParse, lvTier, num, ok, ord, pName, rpc, sb, shortName, store, stored, teamName, timeLabel, useBackClose, useDaily, useDailyProgress, useNav, useT, useWide, zone };

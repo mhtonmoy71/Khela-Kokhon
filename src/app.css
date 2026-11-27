@@ -1531,3 +1531,8 @@ button.scr { width: 100%; }
 }
 /* জুম চালু থাকায় আইফোনে লেখার ঘরে চাপলে পাতা বড় হয়ে না যায় (১৬px-এর কম হলে Safari জুম করে) */
 @supports (-webkit-touch-callout: none) { input:not([type=checkbox]):not([type=radio]):not([type=range]), select, textarea { font-size: 16px !important; } }
+.push-ask { text-align: center; padding-top: 18px; }
+.push-ask .pa-ic { width: 56px; height: 56px; margin: 4px auto 10px; border-radius: 50%; display: grid; place-items: center; background: var(--greenDim); color: var(--green); }
+.push-ask h3 { font-size: 19px; line-height: 1.35; margin-bottom: 6px; }
+.push-ask p { font-size: 14px; line-height: 1.6; margin-bottom: 16px; }
+.push-ask .btn + .btn { margin-top: 8px; }
