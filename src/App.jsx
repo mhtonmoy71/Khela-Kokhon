@@ -4186,7 +4186,7 @@ const WEEKDAYS = [
   ["বৃহস্পতি", "thursday", "thu"], ["শুক্র", "friday", "fri"], ["শনি", "saturday", "sat"],
 ];
 
-const norm = (s) => (s || "").normalize("NFC").replace(/[‌‍]/g, "").toLowerCase().replace(/[?!।,.;:"'’()]/g, " ").replace(/\s+/g, " ").trim();
+const norm = (s) => (s || "").normalize("NFC").replace(/[‌‍]/g, "").toLowerCase().replace(/[?!।,.;:"'’()]/g, " ").replace(/\s+/g, " ").trim().replace(/(^|\s)গত কাল/g, "$1গতকাল");
 const isBn = (s) => /[ঀ-৿]/.test(s);
 const esc = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
@@ -4997,7 +4997,9 @@ async function answerBase(raw, teams, lang, idsOverride) {
 
   // কোনো দল নেই, দিনের প্রশ্ন
   const today = dayKey(new Date());
-  let day = has(q, W.yesterday) ? addDays(today, -1) : has(q, W.tomorrow) ? addDays(today, 1) : has(q, W.today) ? today : null;
+  // শুধু "কাল" দুই দিকেই হয়: "কালকের খবর", "কাল কী হলো" মানে গতকাল; "আগামীকাল" সবসময় সামনের দিন
+  const pastKal = !has(q, ["আগামীকাল", "আগামী"]) && has(q, ["কাল", "কালকে", "কালকের"]) && has(q, ["খবর", "ফল", "রেজাল্ট", "স্কোর", "হলো", "হল", "হয়েছে", "হয়েছিল", "হয়ে গেছে", "জিতেছে", "জিতল", "হেরেছে", "হারল", "ছিল", "গেল"]);
+  let day = has(q, W.yesterday) || pastKal ? addDays(today, -1) : has(q, W.tomorrow) ? addDays(today, 1) : has(q, W.today) ? today : null;
   if (!day) {
     const wd = WEEKDAYS.findIndex((names) => has(q, names));
     if (wd >= 0) {
@@ -5016,7 +5018,8 @@ async function answerBase(raw, teams, lang, idsOverride) {
       const nl = nk ? (await getMatchesOnDay(nk)).filter((m) => !comp || m.competition_code === comp) : [];
       return { text: bn ? `${label} ${comp ? "এই প্রতিযোগিতার " : ""}কোনো খেলা নেই।${nl.length ? ` পরের খেলা ${dayLabel(nk, "bn")}, মোট ${num(nl.length, "bn")}টা:` : ""}` : `${label}: no matches.${nl.length ? ` Next matchday ${dayLabel(nk, "en")} (${nl.length}):` : ""}`, matches: nl };
     }
-    return { text: bn ? `${label} মোট ${num(list.length, "bn")}টা খেলা।` : `${label}: ${list.length} matches.`, matches: list };
+    const past = day < today;
+    return { text: bn ? `${label} মোট ${num(list.length, "bn")}টা খেলা${past ? " হয়েছে। ফল নিচে দিলাম:" : "।"}` : `${label}: ${list.length} matches${past ? ". Results below:" : "."}`, matches: list };
   }
 
   // শুধু প্রতিযোগিতার নাম
