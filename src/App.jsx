@@ -5228,7 +5228,7 @@ function LgTable({ code, teamsById, lang, fallback, hl }) {
     <>
       <div className="lgt-bar">
         <div className="seg lgt-seg">{[["short", bn ? "সংক্ষেপ" : "Short"], ["full", bn ? "পূর্ণ" : "Full"], ["form", bn ? "ফর্ম" : "Form"]].map(([k, l]) => <button key={k} className={mode === k ? "on" : ""} onClick={() => setMode(k)}>{l}</button>)}</div>
-        <div className="seg lgt-seg">{[["all", bn ? "সব" : "All"], ["home", bn ? "ঘরে" : "Home"], ["away", bn ? "বাইরে" : "Away"]].map(([k, l]) => <button key={k} className={venue === k ? "on" : ""} onClick={() => setVenue(k)}>{l}</button>)}</div>
+        <div className="seg lgt-seg">{[["all", bn ? "সব" : "All"], ["home", bn ? "হোম" : "Home"], ["away", bn ? "অ্যাওয়ে" : "Away"]].map(([k, l]) => <button key={k} className={venue === k ? "on" : ""} onClick={() => setVenue(k)}>{l}</button>)}</div>
       </div>
       {d.groups.map((g, gi) => (
         <div key={gi} className="card lgt" style={{ marginBottom: 10 }}>
@@ -5669,7 +5669,7 @@ function AfPlayer({ id, comps, teamsById }) {
                   <span className="pmr-top muted"><span>{dayLabel(dayKey(g.date), lang, { short: true })}</span><span>{lgName(g.code, g.league)}</span></span>
                   <span className="pmr-main">
                     {logo(g.opp.logo)}
-                    <span className="pmr-opp"><b>{g.opp.name}</b><small>{g.home ? (bn ? "ঘরে" : "Home") : (bn ? "বাইরে" : "Away")} · {g.team.name}</small></span>
+                    <span className="pmr-opp"><b>{g.opp.name}</b><small>{g.home ? (bn ? "হোম" : "Home") : (bn ? "অ্যাওয়ে" : "Away")} · {g.team.name}</small></span>
                     {g.res && <span className={"pmr-res r" + g.res}>{RES[g.res]} {num(g.gf, lang)}-{num(g.ga, lang)}</span>}
                     <span className="pmr-me">
                       {g.goals > 0 && <BallMini n={g.goals} />}
