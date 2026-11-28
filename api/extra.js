@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto";
+import { askAI } from "./_ask-ai.js";
 // ═══════════════════════════════════════════════════════════════
 //  /api/extra — দরকার পড়লে football-data.org থেকে আনে, তারপর Supabase-এ জমিয়ে রাখে
 //    ?type=team&id=86        → দলের খেলোয়াড় তালিকা, কোচ, মাঠ (৭ দিন জমা থাকে)
@@ -8,6 +9,7 @@ import { createHash } from "node:crypto";
 //    ?type=photos&team=86    → স্কোয়াডের সবার ছোট ছবি; ?type=photos&ids=1,2 → নির্দিষ্ট খেলোয়াড়দের
 //    ?type=players           → ছয় লিগের সব খেলোয়াড়ের তালিকা (সার্চের জন্য, সপ্তাহে একবার নতুন)
 //    ?type=quizseed          → কুইজের প্রশ্ন ডেটাবেসে তোলে (আগে থাকলে কিছু বদলায় না)
+//    ?type=ask (POST)        → জিজ্ঞেস করুন: আগের কথা মিলিয়ে প্রশ্ন বোঝা (_ask-ai.js)
 //  একই জিনিস বারবার চাইলে football-data-এ আর যায় না, তাই ফ্রি সীমার মধ্যে থাকে।
 // ═══════════════════════════════════════════════════════════════
 const FD = "https://api.football-data.org/v4";
@@ -236,6 +238,7 @@ async function quizSeed(req, res) {
 
 export default async function handler(req, res) {
   const q = req.query || {};
+  if (q.type === "ask") return askAI(req, res);
   if (q.type === "crest") return crest(req, res);
   if (q.type === "players") return allPlayers(req, res).catch((e) => res.status(500).json({ ok: false, error: String(e.message || e).slice(0, 120) }));
   if (q.type === "quizseed") return quizSeed(req, res).catch((e) => res.status(500).json({ ok: false, error: String(e.message || e).slice(0, 120) }));

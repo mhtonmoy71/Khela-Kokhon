@@ -126,14 +126,34 @@ function AskPage({ teams, preds, onOpen, chat, setChat }) {
   };
   useEffect(() => () => { clearTimeout(kbTimer.current); document.documentElement.classList.remove("kb-open"); }, []);
 
-  async function ask(text) {
+  // আগের কথা মিলিয়ে প্রশ্নটা বোঝা (সার্ভারে AI); না পেলে বা দেরি হলে প্রশ্ন যেমন আছে তেমনই
+  async function understand(t) {
+    const history = chat.slice(-8).map((m) => (m.me ? { role: "user", text: m.me } : { role: "assistant", text: m.text || "" }));
+    const ac = new AbortController();
+    const timer = setTimeout(() => ac.abort(), 6000);
+    try {
+      const r = await fetch("/api/extra?type=ask", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ message: t, history }), signal: ac.signal });
+      const d = await r.json();
+      return d?.ok ? d : null;
+    } catch { return null; } finally { clearTimeout(timer); }
+  }
+
+  // chip = পরামর্শের বোতাম: লেখা আগেই স্পষ্ট, তাই AI লাগে না
+  async function ask(text, chip = false) {
     const t = text.trim();
     if (!t || busy) return;
     setQ(""); setBusy(true);
     if (sound) wakeAudio();
     setChat((c) => [...c, { me: t }]);
     try {
-      const a = await answer(t, teams, lang, ctx, favIds);
+      const u = chip ? null : await understand(t);
+      if (u?.action === "reply") {
+        setChat((c) => [...c, { text: u.reply, matches: [], chips: HELP_CHIPS[lang === "bn" ? "bn" : "en"].slice(0, 4), ctx }]);
+        if (sound) chime();
+        setBusy(false);
+        return;
+      }
+      const a = await answer(u?.action === "query" ? u.query : t, teams, lang, ctx, favIds);
       setChat((c) => [...c, a || { text: "…", matches: [] }]);
       if (sound) chime();
     } catch {
@@ -155,7 +175,7 @@ function AskPage({ teams, preds, onOpen, chat, setChat }) {
                 {lang === "bn" ? "দল, লিগ বা খেলোয়াড় নিয়ে যা খুশি জিজ্ঞেস করুন: সূচি, ফল, টেবিল, ফর্ম, হেড টু হেড, গোল, কোচ, স্টেডিয়াম। সময় বলব বাংলাদেশ সময়ে।" : "Ask anything about teams, leagues or players: fixtures, results, tables, form, head to head, goals, coach, stadium."}
               </p>
               <div className="ask-ex">
-                {[...HELP_CHIPS[lang === "bn" ? "bn" : "en"], lang === "bn" ? "কী কী জিজ্ঞেস করা যায়" : "What can I ask?"].map((e) => <button key={e} className="chip" onClick={() => ask(e)}>{e}</button>)}
+                {[...HELP_CHIPS[lang === "bn" ? "bn" : "en"], lang === "bn" ? "কী কী জিজ্ঞেস করা যায়" : "What can I ask?"].map((e) => <button key={e} className="chip" onClick={() => ask(e, true)}>{e}</button>)}
               </div>
             </>
           )}
@@ -204,7 +224,7 @@ function AskPage({ teams, preds, onOpen, chat, setChat }) {
               )}
               {m.teamLink && <button className="chip" style={{ marginTop: 8 }} onClick={() => nav.openTeam(m.teamLink)}>{lang === "bn" ? (m.squadLink ? "পুরো স্কোয়াড দেখুন →" : "দলের পাতা খুলুন →") : (m.squadLink ? "Full squad →" : "Open team page →")}</button>}
               {i === chat.length - 1 && m.chips?.length > 0 && (
-                <div className="ask-ex ask-follow">{m.chips.slice(0, 6).map((e) => <button key={e} className="chip" onClick={() => ask(e)}>{e}</button>)}</div>
+                <div className="ask-ex ask-follow">{m.chips.slice(0, 6).map((e) => <button key={e} className="chip" onClick={() => ask(e, true)}>{e}</button>)}</div>
               )}
             </div>
           ))}
