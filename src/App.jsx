@@ -4541,7 +4541,8 @@ const AW = {
   live: ["লাইভ", "এখন চলছে", "চলছে", "এখন কী", "এখন কোন", "live", "right now", "on now", "playing now"],
   week: ["এই সপ্তাহ", "সপ্তাহে", "সামনের সপ্তাহ", "৭ দিন", "সাত দিন", "this week", "next 7", "week"],
   weekend: ["উইকেন্ড", "সপ্তাহান্ত", "weekend"],
-  recap: ["রাতে কী হ", "রাতে কি হ", "রাতে কে জিত", "রাতের ফল", "রাতের খেলার ফল", "রাতের খেলাগুলোর ফল", "রাতের সারাংশ", "রাতের খবর", "গত রাত", "গতরাত", "কাল রাতে কী", "কাল রাতে কি", "সারাংশ", "কী হলো", "কি হলো", "কী হল", "কি হল", "কী হয়েছে", "কি হয়েছে", "last night", "overnight", "recap", "summary", "what happened"],
+  summary: ["সারাংশ", "সামারি", "বিস্তারিত", "কী কী হয়েছে", "কি কি হয়েছে", "কী কী হলো", "কি কি হলো", "কী হলো", "কি হলো", "কী হয়েছে", "কি হয়েছে", "ম্যাচ রিপোর্ট", "রিপোর্ট", "summary", "recap", "report", "what happened", "details"],
+  yes: ["হ্যাঁ", "হ্যা", "হা", "হুম", "জি", "চাই", "দাও", "দিন", "বলো", "বলুন", "জানাও", "জানান", "অবশ্যই", "ঠিক আছে", "yes", "yeah", "yep", "sure", "ok", "okay", "please"],
   mine: ["আমার দল", "প্রিয় দল", "আমার প্রিয়", "my team", "my teams", "my favourite", "my favorite"],
   help: ["কী কী জিজ্ঞেস", "কি কি জিজ্ঞেস", "কী জিজ্ঞেস", "কি জিজ্ঞেস", "কী পারো", "কি পারো", "কী কী পারো", "কী পারেন", "কি পারেন", "কী কী পারেন", "সাহায্য", "help", "what can"],
   pron: ["তাদের", "ওদের", "ওরা", "তারা", "এদের", "দলটা", "দলটার", "ওই দল", "their", "they", "them", "that team"],
@@ -4647,8 +4648,8 @@ function findGuide(q) {
 }
 
 const HELP_CHIPS = {
-  bn: ["রাতে কী হলো", "কুইজ কীভাবে খেলব", "প্রেডিকশনের নিয়ম", "রিয়ালের পরের খেলা কবে", "লা লিগা টেবিল", "বার্সেলোনার ফর্ম কেমন", "আর্সেনাল টেবিলে কততম", "রিয়াল বনাম বার্সা হেড টু হেড", "লিভারপুলের কোচ কে", "এমবাপ্পে কয়টা গোল করেছে", "এই সপ্তাহের খেলা", "এখন কী খেলা চলছে", "আমার দলের পরের খেলা"],
-  en: ["What happened last night", "How does the quiz work", "Prediction rules", "Real Madrid next match", "La Liga table", "Barcelona form", "Arsenal table position", "Real vs Barça head to head", "Liverpool coach", "Mbappé goals", "This week's matches", "Live now", "My teams next match"],
+  bn: ["কুইজ কীভাবে খেলব", "প্রেডিকশনের নিয়ম", "রিয়ালের পরের খেলা কবে", "লা লিগা টেবিল", "বার্সেলোনার ফর্ম কেমন", "আর্সেনাল টেবিলে কততম", "রিয়াল বনাম বার্সা হেড টু হেড", "লিভারপুলের কোচ কে", "এমবাপ্পে কয়টা গোল করেছে", "এই সপ্তাহের খেলা", "এখন কী খেলা চলছে", "আমার দলের পরের খেলা"],
+  en: ["How does the quiz work", "Prediction rules", "Real Madrid next match", "La Liga table", "Barcelona form", "Arsenal table position", "Real vs Barça head to head", "Liverpool coach", "Mbappé goals", "This week's matches", "Live now", "My teams next match"],
 };
 
 async function getMatchesRange(from, to) {
@@ -4678,7 +4679,7 @@ function followups(ids, comp, teams, lang) {
     const c = compLabel(comp, lang);
     return bn ? [`${c} টেবিল`, `${poss(c, "bn")} সর্বোচ্চ গোলদাতা`, `${poss(c, "bn")} পরের খেলা`, `${poss(c, "bn")} অবনমন অঞ্চল`] : [`${c} table`, `${c} top scorer`, `${c} next matches`, `${c} relegation`];
   }
-  return bn ? ["রাতে কী হলো", "আজ কী খেলা", "আগামীকাল কী খেলা", "এই সপ্তাহের খেলা", "এখন কী খেলা চলছে"] : ["What happened last night", "Today's matches", "Tomorrow's matches", "This week's matches", "Live now"];
+  return bn ? ["আজ কী খেলা", "আগামীকাল কী খেলা", "এই সপ্তাহের খেলা", "এখন কী খেলা চলছে"] : ["Today's matches", "Tomorrow's matches", "This week's matches", "Live now"];
 }
 
 // "লা লিগায়", "প্রিমিয়ার লিগে", "সিরি আ-তে"
@@ -4709,8 +4710,8 @@ async function answer(raw, teams, lang, ctx = {}, favIds = []) {
     return { text: g.intro, guide: { key: gk, icon: GUIDES[gk].icon, ...g }, chips: more, ctx };
   }
   if (is("help") && !ids.length) return {
-    text: bn ? "আমি যা বলতে পারি:\n• যেকোনো দলের পরের খেলা আর শেষ ফল (বাংলাদেশ সময়ে)\n• লিগ টেবিল, কোন দল কততম, কত পয়েন্ট\n• দলের ফর্ম, পরিসংখ্যান, কোচ, স্টেডিয়াম, স্কোয়াড\n• দুই দলের হেড টু হেড\n• খেলোয়াড়ের গোল, সর্বোচ্চ গোলদাতা\n• রাতে কী হলো: রাতের খেলাগুলোর ফল এক নজরে\n• আজ, কাল, এই সপ্তাহে বা উইকেন্ডে কী খেলা, এখন কী চলছে\n• আপনার প্রিয় দলের খেলা\n• সাইটের যেকোনো ফিচার কীভাবে চলে: কুইজ, প্রেডিকশন, বন্ধুদের লিগ, প্রিয় দল, লগইন\nআগের প্রশ্নের দলটাও মনে রাখি, তাই পরে শুধু “ওদের শেষ ফল?” লিখলেও চলবে।"
-      : "I can tell you:\n• Any team's next match and last result (Bangladesh time)\n• League tables, positions and points\n• Team form, stats, coach, stadium, squad\n• Head to head between two teams\n• Player goals and top scorers\n• What happened last night: overnight results at a glance\n• Matches today, tomorrow, this week, the weekend, or live now\n• Your favourite teams' matches\nI also remember the last team you asked about.",
+    text: bn ? "আমি যা বলতে পারি:\n• যেকোনো দলের পরের খেলা আর শেষ ফল (বাংলাদেশ সময়ে)\n• লিগ টেবিল, কোন দল কততম, কত পয়েন্ট\n• দলের ফর্ম, পরিসংখ্যান, কোচ, স্টেডিয়াম, স্কোয়াড\n• দুই দলের হেড টু হেড\n• খেলোয়াড়ের গোল, সর্বোচ্চ গোলদাতা\n• আজ, কাল, এই সপ্তাহে বা উইকেন্ডে কী খেলা, এখন কী চলছে\n• আপনার প্রিয় দলের খেলা\n• সাইটের যেকোনো ফিচার কীভাবে চলে: কুইজ, প্রেডিকশন, বন্ধুদের লিগ, প্রিয় দল, লগইন\nআগের প্রশ্নের দলটাও মনে রাখি, তাই পরে শুধু “ওদের শেষ ফল?” লিখলেও চলবে।"
+      : "I can tell you:\n• Any team's next match and last result (Bangladesh time)\n• League tables, positions and points\n• Team form, stats, coach, stadium, squad\n• Head to head between two teams\n• Player goals and top scorers\n• Matches today, tomorrow, this week, the weekend, or live now\n• Your favourite teams' matches\nI also remember the last team you asked about.",
     matches: [], chips: HELP_CHIPS[bn ? "bn" : "en"], ctx,
   };
 
@@ -4740,49 +4741,6 @@ async function answer(raw, teams, lang, ctx = {}, favIds = []) {
     const next = await getNextMatchTime(new Date(now).toISOString());
     const nx = next ? (await getMatchesOnDay(dayKey(new Date(next)))).filter((m) => m.utc_date >= new Date(now).toISOString()).slice(0, 4) : [];
     return done({ text: bn ? `এই মুহূর্তে কোনো খেলা চলছে না।${nx.length ? ` পরের খেলা শুরু ${whenText(nx[0].utc_date, "bn")}:` : ""}` : `Nothing live right now.${nx.length ? " Next up:" : ""}`, matches: nx });
-  }
-
-  // রাতের সারাংশ: "রাতে কী হলো", "গত রাতের ফল", "চ্যাম্পিয়নস লিগে কী হলো"
-  // রাত জেগে খেলা দেখা কঠিন, তাই সকালে এক প্রশ্নেই প্রিয় দল আর বড় খেলাগুলোর ফল
-  if (has(q, AW.recap) && !ids.length && !has(q, ["আজ রাতে", "tonight", "আগামীকাল", "tomorrow"])) {
-    const now = Date.now();
-    const fin = async (h) => (await getMatchesRange(new Date(now - h * 3600000).toISOString(), new Date(now).toISOString()))
-      .filter((m) => isDone(m) && m.home_score != null && (!comp || m.competition_code === comp));
-    let hours = 20, list = await fin(20);
-    if (!list.length) { hours = 48; list = await fin(48); }
-    const bdHour = (new Date(now).getUTCHours() + 6) % 24;
-    const when = hours > 20 ? (bn ? "গত দুই দিনে" : "In the last two days") : bdHour >= 4 && bdHour < 16 ? (bn ? "রাতে" : "Overnight") : (bn ? "গত কয়েক ঘণ্টায়" : "In the last few hours");
-    const where = comp ? (bn ? `${compIn(comp, "bn")} ` : ` ${compIn(comp, "en")}`) : "";
-    if (!list.length) return done({ text: bn ? `গত দুই দিনে ${where}কোনো খেলা শেষ হয়নি।` : `No matches finished${where} in the last two days.`, matches: [] });
-    const fav = new Set(favIds);
-    const isFav = (m) => fav.has(m.home_id) || fav.has(m.away_id);
-    const rank = (m) => { const i = COMP_ORDER.indexOf(m.competition_code); return i < 0 ? 99 : i; };
-    const sorted = [...list].sort((a, b) => isFav(b) - isFav(a) || rank(a) - rank(b) || (a.utc_date < b.utc_date ? -1 : 1));
-    const ke = (n) => (bn ? (/[\u0980-\u09FF]$/.test(n) ? n + "কে" : n + "-কে") : n);
-    const line = (m) => {
-      const H = teamName(m.home, lang), A = teamName(m.away, lang), hs = m.home_score, as = m.away_score;
-      const c = comp ? "" : ` (${compLabel(m.competition_code, lang)})`;
-      const hiLo = `${num(Math.max(hs, as), lang)}-${num(Math.min(hs, as), lang)}`;
-      if (hs !== as) {
-        const [Wn, Ln] = hs > as ? [H, A] : [A, H];
-        return bn ? `${Wn} ${hiLo} গোলে ${ke(Ln)} হারিয়েছে${c}` : `${Wn} beat ${Ln} ${hiLo}${c}`;
-      }
-      if (m.pen_home != null && m.pen_away != null && m.pen_home !== m.pen_away) {
-        const [Wn, Ln] = m.pen_home > m.pen_away ? [H, A] : [A, H];
-        const p = `${num(Math.max(m.pen_home, m.pen_away), lang)}-${num(Math.min(m.pen_home, m.pen_away), lang)}`;
-        return bn ? `${Wn} টাইব্রেকারে ${p} ব্যবধানে ${ke(Ln)} হারিয়েছে, নির্ধারিত সময়ে ${hiLo}${c}` : `${Wn} beat ${Ln} ${p} on penalties after ${hiLo}${c}`;
-      }
-      return bn ? (hs === 0 ? `${H}-${A} ম্যাচ গোলশূন্য ড্র${c}` : `${H}-${A} ম্যাচ ${hiLo} গোলে ড্র${c}`) : (hs === 0 ? `${H} and ${A} drew 0-0${c}` : `${H} and ${A} drew ${hiLo}${c}`);
-    };
-    const mine = sorted.filter(isFav);
-    const big = sorted.filter((m) => !isFav(m)).slice(0, mine.length ? 4 : 6);
-    const parts = [bn ? `${when} ${where}${num(list.length, "bn")}টা খেলা শেষ হয়েছে${comp ? "" : ` (${countByComp(list, "bn")})`}।` : `${when}, ${list.length} matches finished${where}${comp ? "" : ` (${countByComp(list, "en")})`}.`];
-    if (mine.length) parts.push((bn ? "আপনার দল:\n" : "Your teams:\n") + mine.slice(0, 5).map((m) => "• " + line(m)).join("\n"));
-    if (big.length) parts.push((bn ? (mine.length ? "অন্য বড় খেলা:\n" : "বড় খেলাগুলো:\n") : (mine.length ? "Other big games:\n" : "Big games:\n")) + big.map((m) => "• " + line(m)).join("\n"));
-    const wild = [...list].sort((a, b) => (b.home_score + b.away_score) - (a.home_score + a.away_score))[0];
-    const goals = wild.home_score + wild.away_score;
-    if (goals >= 6 && ![...mine.slice(0, 5), ...big].includes(wild)) parts.push(bn ? `সবচেয়ে বেশি গোল: ${teamName(wild.home, "bn")} ${num(wild.home_score, "bn")}-${num(wild.away_score, "bn")} ${teamName(wild.away, "bn")}, মোট ${num(goals, "bn")}টা।` : `Goal fest: ${teamName(wild.home, "en")} ${wild.home_score}-${wild.away_score} ${teamName(wild.away, "en")}.`);
-    return done({ text: parts.join("\n\n"), matches: sorted.slice(0, 12) });
   }
 
   // এই সপ্তাহ / উইকেন্ড
@@ -4918,6 +4876,18 @@ async function answer(raw, teams, lang, ctx = {}, favIds = []) {
     return done({ text: parts.join(" "), teamLink: one, squadLink: is("squad") });
   }
 
+  // ম্যাচের পুরো সারাংশ: আগের উত্তরে প্রস্তাব দেওয়া ম্যাচে "হ্যাঁ", অথবা সরাসরি "রিয়ালের ম্যাচের সারাংশ"
+  const sayYes = ctx.offer && !ids.length && !comp && q.split(" ").length <= 5 && has(q, AW.yes);
+  const askSum = has(q, AW.summary) && !is("help");
+  if (sayYes || (askSum && (one || (!ids.length && !comp && ctx.offer)))) {
+    let m = null;
+    if (one && !sayYes) m = await recentMatch(one);
+    else m = (await withLive(await getMatchesByIds([ctx.offer])))[0] || null;
+    const tid = one || ctx.ids?.[0];
+    if (!m) return done({ text: bn ? `${tid ? poss(nm(tid), "bn") + " " : ""}সাম্প্রতিক কোনো ম্যাচ পাওয়া যায়নি।` : "No recent match found.", matches: [] }, tid ? [tid] : [], null);
+    return done({ ...(await matchSummary(m, lang)), matches: [m] }, tid ? [tid] : [], null);
+  }
+
   // বাকি সব (পরের খেলা, শেষ ফল, খেলোয়াড়, দিন): আগের নিয়মে; প্রসঙ্গ থেকে দল এলে সেটা দিয়ে
   const base = await answerBase(raw, teams, lang, fromCtx ? ids : null);
   if (base?.players?.length) {
@@ -4929,7 +4899,62 @@ async function answer(raw, teams, lang, ctx = {}, favIds = []) {
     ].filter((x) => norm(x) !== q);
     return { ...base, chips: chips.length ? chips : followups([], null, teams, lang), ctx: { ids: tid ? [tid] : [], comp: null } };
   }
-  return done(base, fromCtx ? ids : findTeams(q, teams), comp);
+  const fIds = fromCtx ? ids : findTeams(q, teams);
+  const out = done(base, fIds, comp);
+  // এক দলের প্রশ্নে: খেলা চলছে বা সদ্য শেষ হলে পুরো সারাংশের প্রস্তাব ("হ্যাঁ" বললেই আসবে)
+  if (out && fIds.length === 1) {
+    const rm = await recentMatch(fIds[0], 3).catch(() => null);
+    if (rm) {
+      const me = fIds[0], opp = teamName(rm.home_id === me ? rm.away : rm.home, lang);
+      const live = isLive(rm);
+      const ask = bn
+        ? (live ? `${poss(opp, "bn")} বিপক্ষে খেলাটা এখন চলছে। এ পর্যন্ত কী কী হয়েছে, জানতে চান?` : `${poss(opp, "bn")} বিপক্ষে ${((l) => (l === "আজ" ? "আজকের" : l === "গতকাল" ? "গতকালের" : l.split(", ")[1] + "-এর"))(dayLabel(dayKey(rm.utc_date), "bn"))} ম্যাচের পুরো সারাংশ চান?`)
+        : (live ? `The game against ${opp} is live. Want a rundown so far?` : `Want the full summary of the match against ${opp}?`);
+      out.text = (out.text ? out.text + "\n\n" : "") + ask;
+      out.chips = [bn ? (live ? "হ্যাঁ, জানাও" : "হ্যাঁ, সারাংশ দাও") : (live ? "Yes, tell me" : "Yes, show summary"), ...(out.chips || [])].slice(0, 6);
+      out.ctx = { ...out.ctx, offer: rm.id };
+      if (!(out.matches || []).some((x) => x.id === rm.id)) out.matches = [rm, ...(out.matches || [])];
+    }
+  }
+  return out;
+}
+
+// দলের চলতি ম্যাচ, না থাকলে শেষ ম্যাচ (days দিনের মধ্যে শেষ হলে; না দিলে যত পুরনোই হোক)
+async function recentMatch(id, days) {
+  const [nx] = await withLive(await getTeamMatches([id], { upcoming: true, limit: 1 }));
+  if (nx && isLive(nx)) return nx;
+  const [last] = await getTeamMatches([id], { upcoming: false, limit: 1 });
+  if (!last) return null;
+  if (days && Date.now() - Date.parse(last.utc_date) > days * 86400000) return null;
+  return last;
+}
+
+// ম্যাচের পুরো সারাংশ: শেষ হলে report.js-এর রিপোর্ট, চলতে থাকলে এ পর্যন্ত গোল আর লাল কার্ড
+async function matchSummary(m, lang) {
+  const bn = lang === "bn";
+  let L = await getLiveFull(m.id).catch(() => null);
+  if (!DEMO && !L?.events && m.status === "FINISHED") {
+    L = await fetch(`/api/live?match=${m.id}`).then((x) => x.json()).then((d) => d?.row || L).catch(() => L);
+  }
+  const H = teamName(m.home, lang), A = teamName(m.away, lang);
+  const pn = (n) => (bn ? bnPlayer(n, "bn") : n);
+  if (m.status === "FINISHED") {
+    const r = matchReport(m, L, { lang, tn: (t) => teamName(t, lang), pn, comp: mComp(m, lang) });
+    if (r) return { text: r.title + "\n\n" + r.paras.join("\n\n") };
+    return { text: describe(m, null, true, lang) };
+  }
+  const ev = Array.isArray(L?.events) ? L.events : [];
+  const mins = (e) => (e.x ? `${num(e.m, lang)}+${num(e.x, lang)}` : num(e.m, lang)) + "'";
+  const side = (e) => (e.s === "h" ? H : A);
+  const keyEv = ev.filter((e) => (e.t === "Goal" && !/missed/i.test(e.d || "")) || (e.t === "Card" && /red/i.test(e.d || "")))
+    .sort((a, b) => (a.m - b.m) || ((a.x || 0) - (b.x || 0)));
+  const lines = keyEv.map((e) => e.t === "Card"
+    ? (bn ? `• ${mins(e)} লাল কার্ড: ${pn(e.p)} (${side(e)})` : `• ${mins(e)} Red card: ${pn(e.p)} (${side(e)})`)
+    : (bn ? `• ${mins(e)} গোল: ${pn(e.p)}${/own/i.test(e.d || "") ? " (আত্মঘাতী)" : /penalty/i.test(e.d || "") ? " (পেনাল্টি)" : ""} (${side(e)})` : `• ${mins(e)} Goal: ${pn(e.p)}${/own/i.test(e.d || "") ? " (own goal)" : /penalty/i.test(e.d || "") ? " (pen)" : ""} (${side(e)})`));
+  const head = bn
+    ? `${H} ${num(m.home_score ?? 0, "bn")}-${num(m.away_score ?? 0, "bn")} ${A}${m.minute ? `, খেলার ${num(m.minute, "bn")} মিনিট চলছে` : ", খেলা চলছে"}।`
+    : `${H} ${m.home_score ?? 0}-${m.away_score ?? 0} ${A}${m.minute ? `, ${m.minute}'` : ", in progress"}.`;
+  return { text: head + "\n\n" + (lines.length ? lines.join("\n") : (bn ? "এখনো কোনো গোল বা লাল কার্ড হয়নি।" : "No goals or red cards yet.")) };
 }
 // পজিশন → G/D/M/F
 const posGroup = (p) => (!p ? "" : /goal/i.test(p) ? "G" : /back|defen/i.test(p) ? "D" : /midfield/i.test(p) ? "M" : "F");
