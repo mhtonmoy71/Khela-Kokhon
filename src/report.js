@@ -69,7 +69,7 @@ export function matchReport(m, live, { tn, pn = (x) => x, comp = "", lang = "bn"
       g.s === "h" ? h++ : a++;
       const lead = winSide === "h" ? h - a : a - h;
       if (lead < 0) trailed = true;
-      if (lead === 1 && (winSide === "h" ? h : a) === Math.min(hs, as) + 1) winner = g;
+      if (g.s === winSide && lead === 1 && (winSide === "h" ? h : a) === Math.min(hs, as) + 1) winner = g;
     }
   }
   if (pens) title = `টাইব্রেকারে ${er(W)} জয়, ${bn(m.pen_home)}–${bn(m.pen_away)} ব্যবধানে হারল ${Lz}`;
@@ -155,7 +155,7 @@ function reportEn(m, live, { tn, pn, comp }) {
       g.s === "h" ? h++ : a++;
       const lead = winSide === "h" ? h - a : a - h;
       if (lead < 0) trailed = true;
-      if (lead === 1 && (winSide === "h" ? h : a) === Math.min(hs, as) + 1) winner = g;
+      if (g.s === winSide && lead === 1 && (winSide === "h" ? h : a) === Math.min(hs, as) + 1) winner = g;
     }
   }
   const lastGoal = gs?.[gs.length - 1];
